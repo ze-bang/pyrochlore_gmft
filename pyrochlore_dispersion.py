@@ -137,6 +137,9 @@ class zeroFluxSolver:
     def exponent_zero(self, k, alpha, mu, nu):
         return np.exp(-1j*self.neta(alpha)*(np.dot(k,self.NNtest(mu)-self.NNtest(nu))))
 
+    def exponent_mag(self, k, alpha, mu):
+        temp = 1/2 * self.h * self.neta(alpha) * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NNtest(mu)))
+        return temp
 
     def M_zero(self, k, alpha):
         temp = 0
@@ -145,6 +148,10 @@ class zeroFluxSolver:
                 if not i==j:
                     temp += self.exponent_zero(k, alpha, i, j)
         temp = -self.Jpm*self.eta[alpha]/4 * temp
+
+        for i in range(4):
+            temp += -self.exponent_mag(k, alpha, i)
+
         return np.real(temp)
 
 

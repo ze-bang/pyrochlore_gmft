@@ -196,6 +196,11 @@ class piFluxSolver:
         temp = -self.Jpm*self.eta[alpha]/4 * self.exponent_pi(k, alpha, mu, nu, rs1, rs2)
         return temp
 
+    def M_pi_mag_term(self, k, alpha, rs1, mu):
+        rs = rs1 - neta(alpha) * step(mu)
+        temp = 1 / 2 * self.h * neta(alpha) * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * self.NNtest(mu)))
+        return temp
+
     def M_pi_sub(self, k, rs, alpha):
         M = np.zeros((4, 4), dtype=complex)
         for i in range(4):
@@ -208,6 +213,9 @@ class piFluxSolver:
                     index1 = findS(rs1)
                     index2 = findS(rs2)
                     M[index1][index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
+                    M[i][index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                    M[index2][i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+
         return M
 
     def M_pi(self, k, alpha):
@@ -218,6 +226,8 @@ class piFluxSolver:
         E, V = np.linalg.eigh(M)
         self.V = V
         return E
+
+
 
     def setM(self):
         for i in range(len(self.bigB)):
