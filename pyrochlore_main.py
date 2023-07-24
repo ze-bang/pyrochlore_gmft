@@ -251,4 +251,4 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhaseMag(0, 0.25, 20, 0, 12, 20, np.array([1, 1, 0]), 1, "phase_mag_110.txt")
 
-spinon_continuum(100, 100, 0.046)
+spinon_continuum(50, 50, 0.046)
