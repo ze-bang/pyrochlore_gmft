@@ -155,7 +155,7 @@ def spinon_continuum_zero(nE, nK, Jpm):
     # dex = edges(d1, e, 5e-2)
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/spin_con_test.png")
-    plt.show()
+    # plt.show()
 
 def spinon_continuum_pi(nE, nK, Jpm):
 
@@ -190,10 +190,9 @@ def spinon_continuum_pi(nE, nK, Jpm):
     # dex = edges(d1, e, 5e-2)
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/spin_con_test_pi.png")
-    plt.show()
+    # plt.show()
 
 def spinon_continuum(nE, nK, Jpm):
-    print("Begin calculating 2 spinon continuum")
     if Jpm >= 0:
         spinon_continuum_zero(nE, nK, Jpm)
     else:
@@ -201,29 +200,24 @@ def spinon_continuum(nE, nK, Jpm):
 
 def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
     n = n / magnitude(n)
+    print(n)
 
     JP = np.linspace(JPm, JPmax, nK)
     h = np.linspace(hm, hmax, nH)
     phases = np.zeros((nK,nH), dtype=int)
 
-    totaltask = nK * nH
-    increment = totaltask / 50
 
-    print("Begin calculating Phase Diagram with Anisotropy")
-    el = "==:==:=="
     for i in range (nK):
         for j in range (nH):
-            start = time.time()
-            count = count + 1
             print("Jpm is now " + str(JP[i]))
             print("h is now " + str(h[j]))
             if JP[i] >= 0:
                 py0s = py0.zeroFluxSolver(JP[i], h= h[j], n=n, kappa=kappa, res=10)
                 py0s.setupALL()
+                print(py0s.minLams)
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
                 print([py0s.lams, py0s.minLams])
-                # py0s.graph(0, True)
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa, res=10)
@@ -232,12 +226,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
                 pyps.findLambda()
                 print([pyps.lams, pyps.minLams])
                 phases[i][j] = phase0(pyps.lams, pyps.minLams, 1)
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
+
 
     np.savetxt(filename, phases)
 
@@ -260,6 +249,6 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0, 0.25, 20, 0, 3, 20, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
+# findPhaseMag(0, 0.25, 20, 0, 12, 20, np.array([1, 1, 0]), 1, "phase_mag_110.txt")
 
-spinon_continuum(15, 15, -1/3)
+spinon_continuum(100, 100, 0.046)
