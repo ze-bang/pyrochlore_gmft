@@ -166,11 +166,11 @@ class zeroFluxSolver:
         return np.real(temp)
 
     def M_tot(self, k):
-        M = np.zeros((2,2), dtype=complex)
-        M[0, 0] = self.M_zero(k, 0)
-        M[1, 1] = self.M_zero(k, 1)
-        M[0, 1] = self.exponent_mag(k, 0)
-        M[1, 0] = np.conj(M[0,1])
+        M = np.zeros((len(k), 2,2), dtype=complex)
+        M[:, 0, 0] = self.M_zero(k, 0)
+        M[:, 1, 1] = self.M_zero(k, 1)
+        M[:, 0, 1] = self.exponent_mag(k, 0)
+        M[:, 1, 0] = np.conj(M[:, 0, 1])
         E, V = np.linalg.eig(M)
 
         return E
@@ -184,8 +184,7 @@ class zeroFluxSolver:
         return 0
 
     def setM(self):
-        for i in range(len(self.bigB)):
-            self.M[:,i] = np.real(self.M_tot(self.bigB[i]).T)
+        self.M = np.real(self.M_tot(self.bigB).T)
         return 1
 
     def setupALL(self):
@@ -201,7 +200,7 @@ class zeroFluxSolver:
         return np.real(val)
 
     def E_zero(self, k, alpha, lams):
-        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[alpha]))
+        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[:, alpha]))
         return np.real(val)
 
 
@@ -248,9 +247,8 @@ class zeroFluxSolver:
         return np.linspace(A, B, N)
 
     def dispersion_zero(self, P, alpha, lams):
-        temp = []
-        for i in P:
-            temp += [self.E_zero(i, alpha, lams)]
+
+        temp = self.E_zero(P, alpha, lams)
         return temp
 
     def findLambda(self):

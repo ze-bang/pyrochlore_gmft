@@ -213,27 +213,42 @@ class piFluxSolver:
         return temp
 
     def M_pi_sub(self, k, rs, alpha):
-        M = np.zeros((4, 4), dtype=complex)
-        for i in range(4):
-            for j in range(4):
-                if not i==j:
-                    mu = unitCell(rs) + neta(alpha)*step(i)
-                    nu = unitCell(rs) + neta(alpha)*step(j)
-                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                    index1 = findS(rs1)
-                    index2 = findS(rs2)
-                    M[index1][index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                    M[i][index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                    M[index2][i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+        if len(k) == 3:
+            M = np.zeros((4, 4), dtype=complex)
+            for i in range(4):
+                for j in range(4):
+                    if not i==j:
+                        mu = unitCell(rs) + neta(alpha)*step(i)
+                        nu = unitCell(rs) + neta(alpha)*step(j)
+                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                        index1 = findS(rs1)
+                        index2 = findS(rs2)
+                        M[index1][index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
+                        M[i][index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                        M[index2][i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+        else:
+            M = np.zeros((len(k), 4, 4), dtype=complex)
+            for i in range(4):
+                for j in range(4):
+                    if not i==j:
+                        mu = unitCell(rs) + neta(alpha)*step(i)
+                        nu = unitCell(rs) + neta(alpha)*step(j)
+                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                        index1 = findS(rs1)
+                        index2 = findS(rs2)
+                        M[:, index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
+                        M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                        M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
 
         return M
 
     def M_pi(self, k, alpha):
-        bigM = np.zeros((4,4,4), dtype=complex)
+        bigM = np.zeros((len(k), 4,4,4), dtype=complex)
         for i in range(4):
-            bigM[i] = self.M_pi_sub(k,i,alpha)
-        M = np.sum(bigM, axis=0)
+            bigM[:,i, :, :] = self.M_pi_sub(k,i,alpha)
+        M = np.einsum('ijkl->ikl', bigM)
         E, V = np.linalg.eigh(M)
         self.V = V
         return E
@@ -241,9 +256,8 @@ class piFluxSolver:
 
 
     def setM(self):
-        for i in range(len(self.bigB)):
-            self.M[0][i] = self.M_pi(self.bigB[i], 0)
-            self.M[1][i] = self.M_pi(self.bigB[i], 1)
+        self.M[0] = self.M_pi(self.bigB, 0)
+        self.M[1] = self.M_pi(self.bigB, 1)
         return 1
     #
     #
@@ -270,22 +284,10 @@ class piFluxSolver:
         return val
 
 
-    def setmindex(self):
-        self.calAllDispersion()
-        mins = 1000
-        mindex = -1
-        for i in range(len(self.dLU[0])):
-            if self.dLU[0][i] < mins:
-                mins = self.dLU[0][i]
-                mindex = i
-        self.mindex = mindex
-
-        return 0
 
     def minLam(self, alpha):
         # k = obliqueProj(k)
-        self.setmindex()
-        temp = self.M_pi(self.LU[self.mindex],alpha)[0]
+        temp = min(self.M_pi(self.LU,alpha)[:,0])
         if temp == 0:
             temp = -1000
         self.minLams[alpha] = - temp
@@ -339,9 +341,7 @@ class piFluxSolver:
     #graphing BZ
 
     def dispersion_pi(self, P, alpha, lams):
-        temp = []
-        for i in P:
-            temp += [self.E_pi(i, alpha, lams)]
+        temp = self.E_pi(P, alpha, lams)
         return np.array(temp)
 
     def findLambda(self):

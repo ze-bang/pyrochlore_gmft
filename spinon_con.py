@@ -19,16 +19,12 @@ def NN(mu):
         return np.array([1 / 4, 1 / 4, -1 / 4])
 
 def green_zero(k, omega, alpha, pyp0):
-    temp = 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*(pyp0.lams[alpha]+pyp0.E_zero(k,alpha, pyp0.lams)))
-    # print(pyp0.lams)
-    # print(pyp0.E_zero(k,alpha, pyp0.lams))
-    # print(temp)
-    return temp
+    return 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*(pyp0.lams[alpha]+pyp0.E_zero(k,alpha, pyp0.lams)))
 
 def green_pi(k, omega, alpha, pypi, mu, nu, i):
-    temp = 2*pypi.Jzz*pypi.V[nu][i]*np.conj(pypi.V).T[i][mu]/(omega**2 + 2*pypi.Jzz*(pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[i]))
-
-    return temp
+    temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
+    return tempc
 
 def gaussian(mu, tol):
     return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
@@ -41,17 +37,14 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
-    tempE = np.zeros(len(Ks))
-    tempQ = np.zeros(len(Ks))
 
-    green = np.zeros(len(Ks))
-    inte= np.zeros(len(Ks), dtype=complex)
 
-    for i in range(le):
-        tempE[i] = pyp0.E_zero(Ks[i], alpha, pyp0.lams)
-        tempQ[i] = pyp0.E_zero(Qs[i], alpha, pyp0.lams)
-        green[i] = green_zero(Ks[i], omega, alpha, pyp0) * green_zero(Qs[i], omega, alpha, pyp0)
-        inte[i] = gaussian(omega-tempE[i]-tempQ[i], tol) * green[i]
+    tempE= pyp0.E_zero(Ks, alpha, pyp0.lams)
+    tempQ = pyp0.E_zero(Qs, alpha, pyp0.lams)
+
+    green = np.multiply(green_zero(Ks, omega, alpha, pyp0), green_zero(Qs, omega, alpha, pyp0))
+    inte = np.multiply(gaussian(omega-tempE-tempQ, tol), green)
+
 
     return np.real(np.sum(inte))
 
@@ -59,33 +52,32 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
-    tempE = np.zeros((4, len(Ks)))
-    tempQ = np.zeros((4, len(Ks)))
-    for i in range(le):
-        tempE[:,i] = pyp0.E_pi(Ks[i], alpha, pyp0.lams).T
-        tempQ[:,i] = pyp0.E_pi(Qs[i], alpha, pyp0.lams).T
+
+
+    tempE = pyp0.E_pi(Ks, alpha, pyp0.lams)
+    tempQ= pyp0.E_pi(Qs, alpha, pyp0.lams)
+
 
 
     inte = np.zeros(len(Ks), dtype=complex)
 
     # vgreenpi = np.vectorize(green_pi, excluded=['omega', 'alpha', 'pypi', 'mu', 'nu', 'i'])
-    for k in range(len(Ks)):
-        for rs in range(4):
-            for gamma in range(4):
-                for gammap in range(4):
-                    for i in range(4):
-                        for j in range(4):
-                            if not i == j:
-                                mu = unitCell(rs) + neta(alpha) * step(i)
-                                nu = unitCell(rs) + neta(alpha) * step(j)
-                                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                                index1 = findS(rs1)
-                                index2 = findS(rs2)
-                                temp = np.multiply(green_pi(Ks[k], omega, alpha, pyp0, rs, rs, gamma), green_pi(Qs[k], omega, alpha, pyp0, index1, index2, gammap))
-                                inte[k] += np.multiply(gaussian(omega - tempE[gamma][k] - tempQ[gammap][k], tol), temp)*np.exp(-1j*np.dot(Qs[k], NNtest(i)-NNtest(j)))
+    for rs in range(4):
+        for gamma in range(4):
+            for gammap in range(4):
+                for i in range(4):
+                    for j in range(4):
+                        if not i == j:
+                            mu = unitCell(rs) + neta(alpha) * step(i)
+                            nu = unitCell(rs) + neta(alpha) * step(j)
+                            rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                            rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                            index1 = findS(rs1)
+                            index2 = findS(rs2)
+                            temp = np.multiply(green_pi(Ks, omega, alpha, pyp0, rs, rs, gamma), green_pi(Qs, omega, alpha, pyp0, index1, index2, gammap))
+                            inte += np.multiply(gaussian(omega - tempE[:,gamma] - tempQ[:,gammap], tol), temp)*np.exp(-1j*np.dot(Qs, NNtest(i)-NNtest(j)))
 
-    print([q, omega])
+
     return np.real(np.sum(inte))
 
 
