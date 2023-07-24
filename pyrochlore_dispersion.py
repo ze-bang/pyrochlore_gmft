@@ -22,14 +22,25 @@ def genBZ( d):
             BZ += [x]
     return BZ
 
+def z(mu):
+    if mu == 0:
+        return -np.array([1,1,1])/np.sqrt(3)
+    if mu == 1:
+        return np.array([-1,1,1])/np.sqrt(3)
+    if mu == 2:
+        return np.array([1,-1,1])/np.sqrt(3)
+    if mu == 3:
+        return np.array([1,1,-1])/np.sqrt(3)
+
 class zeroFluxSolver:
 
-    def __init__(self, Jpm, h=0, eta=1, kappa=2, lam=2, res=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, res=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
         self.eta = [eta, 1]
-        self.h=0
+        self.h = h
+        self.n = n
 
         self.tol = 1e-3
         self.lams = [lam, lam]
@@ -137,8 +148,10 @@ class zeroFluxSolver:
     def exponent_zero(self, k, alpha, mu, nu):
         return np.exp(-1j*self.neta(alpha)*(np.dot(k,self.NNtest(mu)-self.NNtest(nu))))
 
-    def exponent_mag(self, k, alpha, mu):
-        temp = 1/2 * self.h * self.neta(alpha) * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NNtest(mu)))
+    def exponent_mag(self, k, alpha):
+        temp =0
+        for mu in range(4):
+            temp += 1/2 * self.h * self.neta(alpha) * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NNtest(mu)))
         return temp
 
     def M_zero(self, k, alpha):
@@ -149,11 +162,18 @@ class zeroFluxSolver:
                     temp += self.exponent_zero(k, alpha, i, j)
         temp = -self.Jpm*self.eta[alpha]/4 * temp
 
-        for i in range(4):
-            temp += -self.exponent_mag(k, alpha, i)
 
         return np.real(temp)
 
+    def M_tot(self, k):
+        M = np.zeros((2,2), dtype=complex)
+        M[0, 0] = self.M_zero(k, 0)
+        M[1, 1] = self.M_zero(k, 1)
+        M[0, 1] = self.exponent_mag(k, 0)
+        M[1, 0] = np.conj(M[0,1])
+        E, V = np.linalg.eig(M)
+
+        return E
 
     def minLam(self, alpha):
         # k = obliqueProj(k)
@@ -165,8 +185,7 @@ class zeroFluxSolver:
 
     def setM(self):
         for i in range(len(self.bigB)):
-            self.M[0][i] = self.M_zero(self.bigB[i], 0)
-            self.M[1][i] = self.M_zero(self.bigB[i], 1)
+            self.M[:,i] = np.real(self.M_tot(self.bigB[i]).T)
         return 1
 
     def setupALL(self):
@@ -178,19 +197,19 @@ class zeroFluxSolver:
 
 
     def E_zero_fixed(self,alpha, lams):
-        try:
-            val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M[alpha]))
-            return val
-        except:
-            return 0
+        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M[alpha]))
+        return np.real(val)
 
     def E_zero(self, k, alpha, lams):
-        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_zero(k, alpha)))
-        return val
+        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[alpha]))
+        return np.real(val)
+
 
 
 
     def rho_zero(self, alpha, lams):
+        if (self.E_zero_fixed(alpha, lams) == 0).any():
+            return 0
         temp = np.mean(self.Jzz*self.eta[alpha]/self.E_zero_fixed(alpha, lams))
         return temp
 
@@ -199,8 +218,9 @@ class zeroFluxSolver:
     def findLambda_zero(self,alpha):
         warnings.filterwarnings("error")
         lamMin = 0
-        lamMax = 2
+        lamMax = 100
         rhoguess = 10
+        # print(self.kappa)
         while(np.absolute(rhoguess-self.kappa) >= self.tol):
              self.lams[alpha] = (lamMin+lamMax)/2
              try:
@@ -209,11 +229,16 @@ class zeroFluxSolver:
                      lamMin = self.lams[alpha]
                  else:
                      lamMax = self.lams[alpha]
-             except:
+             except Exception as e:
+                 # print(e)
                  lamMin = self.lams[alpha]
-             # print([self.lams[alpha], rhoguess])
-             if lamMax < self.minLams[alpha]:
-                return -1000
+             # print([self.lams[alpha], rhoguess, lamMax, self.minLams[alpha]])
+             # if lamMax < self.minLams[alpha]:
+             #     self.lams[alpha] = -1000
+             #     return 1
+             if lamMax == 0:
+                 self.lams[alpha] = -1000
+                 return 1
         return 0
 
 

@@ -19,7 +19,11 @@ def NN(mu):
         return np.array([1 / 4, 1 / 4, -1 / 4])
 
 def green_zero(k, omega, alpha, pyp0):
-    return 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*(pyp0.lams[alpha]+pyp0.E_zero(k,alpha, pyp0.lams)))
+    temp = 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*(pyp0.lams[alpha]+pyp0.E_zero(k,alpha, pyp0.lams)))
+    # print(pyp0.lams)
+    # print(pyp0.E_zero(k,alpha, pyp0.lams))
+    # print(temp)
+    return temp
 
 def green_pi(k, omega, alpha, pypi, mu, nu, i):
     temp = 2*pypi.Jzz*pypi.V[nu][i]*np.conj(pypi.V).T[i][mu]/(omega**2 + 2*pypi.Jzz*(pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[i]))
@@ -40,23 +44,14 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
     tempE = np.zeros(len(Ks))
     tempQ = np.zeros(len(Ks))
 
-
+    green = np.zeros(len(Ks))
+    inte= np.zeros(len(Ks), dtype=complex)
 
     for i in range(le):
         tempE[i] = pyp0.E_zero(Ks[i], alpha, pyp0.lams)
         tempQ[i] = pyp0.E_zero(Qs[i], alpha, pyp0.lams)
-
-    green = np.multiply(green_zero(Ks, omega, alpha, pyp0), green_zero(Qs, omega, alpha, pyp0))
-    inte = np.multiply(gaussian(omega-tempE-tempQ, tol), green)
-    # expm = 0
-    # for i in range(4):
-    #     for j in range(4):
-    #         if not i == j:
-    #             expm += np.exp(1j*np.dot(q, NN(i)-NN(j))/2)
-    #
-    # inte = inte*expm
-
-    # print(inte)
+        green[i] = green_zero(Ks[i], omega, alpha, pyp0) * green_zero(Qs[i], omega, alpha, pyp0)
+        inte[i] = gaussian(omega-tempE[i]-tempQ[i], tol) * green[i]
 
     return np.real(np.sum(inte))
 

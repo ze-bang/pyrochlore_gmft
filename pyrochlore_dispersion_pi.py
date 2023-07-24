@@ -98,15 +98,26 @@ def NNtest(mu):
     if mu == 3:
         return np.array([1, 1, 0])/2
 
+def z(mu):
+    if mu == 0:
+        return -np.array([1,1,1])/np.sqrt(3)
+    if mu == 1:
+        return np.array([-1,1,1])/np.sqrt(3)
+    if mu == 2:
+        return np.array([1,-1,1])/np.sqrt(3)
+    if mu == 3:
+        return np.array([1,1,-1])/np.sqrt(3)
 class piFluxSolver:
 
-    def __init__(self, Jpm, h=0, eta=1, kappa=2, lam=2, res=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, res=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
         self.eta = [eta, 1]
         self.tol = 1e-3
         self.lams =[lam, lam]
+        self.h = h
+        self.n = n
 
         self.b0 = np.pi * np.array([1, 1, 1])
         self.b1 = np.pi * np.array([-1, 1, 1])
@@ -198,7 +209,7 @@ class piFluxSolver:
 
     def M_pi_mag_term(self, k, alpha, rs1, mu):
         rs = rs1 - neta(alpha) * step(mu)
-        temp = 1 / 2 * self.h * neta(alpha) * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * self.NNtest(mu)))
+        temp = 1 / 2 * self.h * neta(alpha) * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * NNtest(mu)))
         return temp
 
     def M_pi_sub(self, k, rs, alpha):
@@ -263,7 +274,7 @@ class piFluxSolver:
         self.calAllDispersion()
         mins = 1000
         mindex = -1
-        for i in range (len(self.dLU[0])):
+        for i in range(len(self.dLU[0])):
             if self.dLU[0][i] < mins:
                 mins = self.dLU[0][i]
                 mindex = i
@@ -275,6 +286,8 @@ class piFluxSolver:
         # k = obliqueProj(k)
         self.setmindex()
         temp = self.M_pi(self.LU[self.mindex],alpha)[0]
+        if temp == 0:
+            temp = -1000
         self.minLams[alpha] = - temp
         return 0
 
@@ -299,7 +312,7 @@ class piFluxSolver:
     def findLambda_pi(self,alpha):
         warnings.filterwarnings("error")
         lamMin = 0
-        lamMax = 2
+        lamMax = 100
         rhoguess = 10
         while(np.absolute(rhoguess-self.kappa) >= self.tol):
              self.lams[alpha] = (lamMin+lamMax)/2
@@ -314,10 +327,13 @@ class piFluxSolver:
              except:
                  lamMin = self.lams[alpha]
 
-             if lamMax < self.minLams[alpha]:
-                 return -1000
+             # if lamMax < self.minLams[alpha]:
+             #     self.lams[alpha] = -1000
+             #     return 1
              # print([self.lams[alpha],rhoguess])
-
+             if lamMax == 0:
+                 self.lams[alpha] = -1000
+                 return 1
         return 0
 
     #graphing BZ
@@ -336,6 +352,7 @@ class piFluxSolver:
     def calDispersion(self, alpha):
         indexS = alpha*4
         indexE = (alpha+1)*4
+        # print(self.lams)
         self.dGammaX[indexS:indexE] = self.dispersion_pi(self.GammaX, alpha, self.lams).T
         self.dXW[indexS:indexE] = self.dispersion_pi(self.XW, alpha, self.lams).T
         self.dWK[indexS:indexE] = self.dispersion_pi(self.WK, alpha, self.lams).T
@@ -347,7 +364,6 @@ class piFluxSolver:
     def calAllDispersion(self):
         self.calDispersion(0)
         self.calDispersion(1)
-        self.didit=True
 
     def graphbranch(self, index, color):
         plt.plot(np.linspace(-0.5, 0, self.res), self.dGammaX[index], color)

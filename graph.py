@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def graphPhase(filename):
-    phases = np.loadtxt(filename, delimiter=' ', dtype=int).T
+    phases = np.loadtxt(filename, delimiter=' ').T
 
     tempc = np.copy(phases[:phases.shape[0]-1, :])
     tempc = np.flip(tempc, axis=0)
@@ -48,7 +48,7 @@ def graphPhase(filename):
 
 
 def graphMagPhase(filename):
-    phases = np.loadtxt(filename, delimiter=' ', dtype=int).T
+    phases = np.loadtxt(filename, delimiter=' ').T
 
 
     JP = np.linspace(0, 0.25, phases.shape[1])
@@ -64,5 +64,5 @@ def graphMagPhase(filename):
     plt.show()
 
 
-# graphPhase("phase_diagram.txt")
-graphMagPhase("phase_mag_111.txt")
+# graphPhase("Files/phase_diagram.txt")
+graphMagPhase("phase_mag_110.txt")
