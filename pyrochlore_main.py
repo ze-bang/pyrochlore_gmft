@@ -167,7 +167,7 @@ def spinon_continuum_pi(nE, nK, Jpm):
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     # kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,1, nK), np.linspace(1, 1.4, nK), np.linspace(1.4, 1.7, nK), np.linspace(1.7, 1.85, nK)))
     # d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
-    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 1e-4)
+    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 1e-3)
     kk = np.linspace(-0.5, 0, nK)
     np.savetxt("Files/spin_cont_test_pi.txt", d1)
 
@@ -251,4 +251,4 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhaseMag(0, 0.25, 20, 0, 12, 20, np.array([1, 1, 0]), 1, "phase_mag_110.txt")
 
-spinon_continuum(50, 50, 0.046)
+spinon_continuum(15, 15, -1/3)
