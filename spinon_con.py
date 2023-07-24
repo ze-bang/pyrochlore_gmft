@@ -2,6 +2,9 @@
 import numpy as np
 from pyrochlore_dispersion_pi import *
 from numpy import ndarray
+import time
+import math
+import sys
 
 class myarray(ndarray):
     @property
@@ -51,12 +54,9 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
 def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks+q
-    le = len(Ks)
-
 
     tempE = pyp0.E_pi(Ks, alpha, pyp0.lams)
     tempQ= pyp0.E_pi(Qs, alpha, pyp0.lams)
-
 
 
     inte = np.zeros(len(Ks), dtype=complex)
@@ -77,34 +77,61 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
                             temp = np.multiply(green_pi(Ks, omega, alpha, pyp0, rs, rs, gamma), green_pi(Qs, omega, alpha, pyp0, index1, index2, gammap))
                             inte += np.multiply(gaussian(omega - tempE[:,gamma] - tempQ[:,gammap], tol), temp)*np.exp(-1j*np.dot(Qs, NNtest(i)-NNtest(j)))
 
-
     return np.real(np.sum(inte))
 
 
 def graph_spin_cont_pi(pyp0, E, K, tol):
+    el = "==:==:=="
+    totaltask = len(E)*len(K)
+    increment = totaltask/50
+    count = 0
 
     temp = np.zeros((len(E), len(K)))
 
     for i in range(len(E)):
         for j in range(len(K)):
+            start = time.time()
+            count = count + 1
             temp[i][j] = spinon_cont_pi(K[j], E[i], 0, pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
+            end = time.time()
+            el = (end - start)*(totaltask-count)
+            el = telltime(el)
+            sys.stdout.write('\r')
+            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            sys.stdout.flush()
     return temp/np.max(temp)
     # E, K = np.meshgrid(e, K)
 
 def graph_spin_cont_zero(pyp0, E, K, tol):
-
+    el = "==:==:=="
+    totaltask = len(E)*len(K)
+    increment = totaltask/50
+    count = 0
     temp = np.zeros((len(E), len(K)))
     for i in range(len(E)):
         for j in range(len(K)):
+            start = time.time()
+            count = count + 1
             temp[i][j] = spinon_cont_zero(K[j], E[i], 0, pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
+            end = time.time()
+            el = (end - start)*(totaltask-count)
+            el = telltime(el)
+            sys.stdout.write('\r')
+            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            sys.stdout.flush()
     return temp/np.max(temp)
     # E, K = np.meshgrid(e, K)
 
-
+def telltime(sec):
+    hours = math.floor(sec/3600)
+    sec = sec-hours*3600
+    minus = math.floor(sec/60)
+    sec = int(sec - minus * 60)
+    return str(hours) + ':' + str(minus) + ':' + str(sec)
 
 
 

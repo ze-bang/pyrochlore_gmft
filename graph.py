@@ -64,5 +64,5 @@ def graphMagPhase(filename):
     plt.show()
 
 
-graphPhase("Files/phase_diagram.txt")
-# graphMagPhase("phase_mag_110.txt")
+# graphPhase("Files/phase_diagram.txt")
+graphMagPhase("phase_mag_111.txt")

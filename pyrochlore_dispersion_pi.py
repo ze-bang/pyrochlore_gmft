@@ -209,7 +209,7 @@ class piFluxSolver:
 
     def M_pi_mag_term(self, k, alpha, rs1, mu):
         rs = rs1 - neta(alpha) * step(mu)
-        temp = 1 / 2 * self.h * neta(alpha) * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * NNtest(mu)))
+        temp = 1 / 2 * self.h  * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * NNtest(mu)))
         return temp
 
     def M_pi_sub(self, k, rs, alpha):

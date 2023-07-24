@@ -151,7 +151,7 @@ class zeroFluxSolver:
     def exponent_mag(self, k, alpha):
         temp =0
         for mu in range(4):
-            temp += 1/2 * self.h * self.neta(alpha) * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NNtest(mu)))
+            temp += 1/4 * self.h * np.dot(self.n, z(mu)) * np.exp(1j*np.dot(k, self.neta(alpha)*self.NNtest(mu)))
         return temp
 
     def M_zero(self, k, alpha):
@@ -170,21 +170,20 @@ class zeroFluxSolver:
         M[:, 0, 0] = self.M_zero(k, 0)
         M[:, 1, 1] = self.M_zero(k, 1)
         M[:, 0, 1] = self.exponent_mag(k, 0)
-        M[:, 1, 0] = np.conj(M[:, 0, 1])
+        M[:, 1, 0] = self.exponent_mag(k, 1)
         E, V = np.linalg.eig(M)
-
-        return E
+        return np.real(E)
 
     def minLam(self, alpha):
         # k = obliqueProj(k)
-        temp = self.M_zero(self.GammaX[0],alpha)
+        temp = min(self.M_tot(self.GammaX)[:,alpha])
         if temp == 0:
             temp = -1000
         self.minLams[alpha] = - temp
         return 0
 
     def setM(self):
-        self.M = np.real(self.M_tot(self.bigB).T)
+        self.M = self.M_tot(self.bigB).T
         return 1
 
     def setupALL(self):
