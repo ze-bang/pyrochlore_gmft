@@ -167,7 +167,7 @@ def spinon_continuum_pi(nE, nK, Jpm):
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     # kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,1, nK), np.linspace(1, 1.4, nK), np.linspace(1.4, 1.7, nK), np.linspace(1.7, 1.85, nK)))
     # d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
-    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 1e-4)
+    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 1e-3)
     kk = np.linspace(-0.5, 0, nK)
     np.savetxt("Files/spin_cont_test_pi.txt", d1)
 
@@ -218,7 +218,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
                 print([py0s.lams, py0s.minLams])
-                # py0s.graph(0, True)
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa, res=10)
