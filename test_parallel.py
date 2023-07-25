@@ -1,8 +1,17 @@
-from multiprocessing import Process
+from mpi4py import MPI
 import numpy as np
 
-kappaR = np.linspace(-1, 0, 100)
-kappa = (kappaR+1)/(kappaR-1)
+comm = MPI.COMM_WORLD
+size = comm.Get_size() # new: gives number of ranks in comm
+rank = comm.Get_rank()
 
-kappaR*(kappa+1) = (kappa-1)
-1 + kappaR = (1-kappaR)*kappa
+numDataPerRank = 10
+data = None
+if rank == 0:
+    data = np.linspace(1,size*numDataPerRank,numDataPerRank*size)
+    # when size=4 (using -n 4), data = [1.0:40.0]
+
+recvbuf = np.empty(numDataPerRank, dtype='d') # allocate space for recvbuf
+comm.Scatter(data, recvbuf, root=0)
+
+print('Rank: ',rank, ', recvbuf received: ',recvbuf)

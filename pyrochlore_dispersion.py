@@ -151,7 +151,7 @@ class zeroFluxSolver:
     def exponent_mag(self, k, alpha):
         temp =0
         for mu in range(4):
-            temp += 1/4 * self.h * np.dot(self.n, z(mu)) * np.exp(1j*np.dot(k, self.neta(alpha)*self.NNtest(mu)))
+            temp += 1/2 * self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)*2))
         return temp
 
     def M_zero(self, k, alpha):

@@ -218,6 +218,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
                 print([py0s.lams, py0s.minLams])
+                # py0s.graph(0, True)
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa, res=10)
@@ -249,6 +250,6 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0, 0.25, 20, 0, 12, 20, np.array([1, 1, 0]), 1, "phase_mag_110.txt")
+findPhaseMag(0, 0.25, 30, 0, 3, 30, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
 
-spinon_continuum(50, 50, 0.046)
+# spinon_continuum(50, 50, 0.046)
