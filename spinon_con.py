@@ -75,7 +75,9 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
                             index1 = findS(rs1)
                             index2 = findS(rs2)
                             temp = np.multiply(green_pi(Ks, omega, alpha, pyp0, rs, rs, gamma), green_pi(Qs, omega, alpha, pyp0, index1, index2, gammap))
-                            inte += np.multiply(gaussian(omega - tempE[:,gamma] - tempQ[:,gammap], tol), temp)*np.exp(-1j*np.dot(Qs, NNtest(i)-NNtest(j)))
+                            inte += np.multiply(gaussian(omega - tempE[:,gamma] - tempQ[:,gammap], tol), temp)
+
+                            # inte += np.multiply(np.multiply(gaussian(omega - tempE[:,gamma] - tempQ[:,gammap], tol), temp),np.exp(-1j*np.dot(Qs, NNtest(i)-NNtest(j))))
 
     return np.real(np.sum(inte))
 
