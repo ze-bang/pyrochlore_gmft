@@ -2,6 +2,7 @@
 import numpy as np
 from pyrochlore_dispersion_pi import *
 from numpy import ndarray
+from mpi4py import MPI
 import time
 import math
 import sys
