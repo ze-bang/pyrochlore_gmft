@@ -1,13 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
-from multiprocessing import Pool
+from numba import jit
+from numba.experimental import jitclass
 
 def neta(alpha):
     if alpha == 0:
         return 1
     else:
         return -1
+
 
 def ifFBZ(k):
     b1, b2, b3 = k
@@ -17,6 +19,7 @@ def ifFBZ(k):
         return True
     else:
         return False
+
 
 def genBZ(d):
     d = d*1j
@@ -107,6 +110,8 @@ def z(mu):
         return np.array([1,-1,1])/np.sqrt(3)
     if mu == 3:
         return np.array([1,1,-1])/np.sqrt(3)
+
+
 class piFluxSolver:
 
     def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, res=20, Jzz=1):
@@ -195,6 +200,7 @@ class piFluxSolver:
             y[i] = np.dot(W, self.b(i))
         return np.array(np.matmul(np.linalg.inv(M), y)).T[0]
 
+
     def exponent_pi(self, k, alpha, mu, nu, rs1, rs2):
         rs = rs1 - neta(alpha) * step(mu)
 
@@ -207,42 +213,30 @@ class piFluxSolver:
         temp = -self.Jpm*self.eta[alpha]/4 * self.exponent_pi(k, alpha, mu, nu, rs1, rs2)
         return temp
 
+
     def M_pi_mag_term(self, k, alpha, rs1, mu):
         rs = rs1 - neta(alpha) * step(mu)
         temp = 1 / 2 * self.h  * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * NNtest(mu)))
         return temp
 
+
     def M_pi_sub(self, k, rs, alpha):
-        if len(k) == 3:
-            M = np.zeros((4, 4), dtype=complex)
-            for i in range(4):
-                for j in range(4):
-                    if not i==j:
-                        mu = unitCell(rs) + neta(alpha)*step(i)
-                        nu = unitCell(rs) + neta(alpha)*step(j)
-                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                        index1 = findS(rs1)
-                        index2 = findS(rs2)
-                        M[index1][index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                        M[i][index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                        M[index2][i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
-        else:
-            M = np.zeros((len(k), 4, 4), dtype=complex)
-            for i in range(4):
-                for j in range(4):
-                    if not i==j:
-                        mu = unitCell(rs) + neta(alpha)*step(i)
-                        nu = unitCell(rs) + neta(alpha)*step(j)
-                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                        index1 = findS(rs1)
-                        index2 = findS(rs2)
-                        M[:, index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                        M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                        M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+        M = np.zeros((len(k), 4, 4), dtype=complex)
+        for i in range(4):
+            for j in range(4):
+                if not i==j:
+                    mu = unitCell(rs) + neta(alpha)*step(i)
+                    nu = unitCell(rs) + neta(alpha)*step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    M[:, index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
+                    M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                    M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
 
         return M
+
 
     def M_pi(self, k, alpha):
         bigM = np.zeros((len(k), 4,4,4), dtype=complex)
@@ -349,6 +343,7 @@ class piFluxSolver:
         self.findLambda_pi(1)
         return 1
 
+
     def calDispersion(self, alpha):
         indexS = alpha*4
         indexE = (alpha+1)*4
@@ -373,6 +368,8 @@ class piFluxSolver:
         plt.plot(np.linspace(1, 1.4, self.res), self.dGammaL[index], color)
         plt.plot(np.linspace(1.4, 1.7, self.res), self.dLU[index], color)
         plt.plot(np.linspace(1.7, 1.85, self.res), self.dUW[index], color)
+
+
     def graph(self, alpha, show):
         if not self.didit:
             self.calAllDispersion()
@@ -413,12 +410,15 @@ class piFluxSolver:
 
         return min(mins)
 
+
     def GS(self, alpha):
         if self.updated:
             self.setE(self.res, self.lams)
 
         temp = np.mean(self.E)- self.lams[alpha]
         return temp
+
+
     def EMAX(self, alpha):
         if not self.didit:
             self.calAllDispersion()

@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
+from numba import jit
+
 
 
 def ifFBZ(k):
@@ -12,6 +14,8 @@ def ifFBZ(k):
         return True
     else:
         return False
+
+
 
 def genBZ( d):
     d = d * 1j
@@ -77,6 +81,8 @@ class zeroFluxSolver:
         self.LU = self.drawLine(self.L, self.U, res)
         self.UW = self.drawLine(self.U,self.W, res)
 
+        self.bigK = np.concatenate((self.GammaX, self.XW, self.WK, self.KGamma, self.GammaL, self.LU, self.UW))
+
         self.dGammaX = np.zeros((2,res))
         self.dXW = np.zeros((2,res))
         self.dWK = np.zeros((2,res))
@@ -99,8 +105,9 @@ class zeroFluxSolver:
     def repcoord(self, a, b, c):
         return a*self.b1+b*self.b2+c*self.b3
 
-
-
+    def realcoord(self, r):
+        r1, r2, r3 = r
+        return r1*self.e1 +r2*self.e2 + r3* self.e3
 
 
 
@@ -145,14 +152,17 @@ class zeroFluxSolver:
         elif alpha == 1:
             return -1
 
+
     def exponent_zero(self, k, alpha, mu, nu):
         return np.exp(-1j*self.neta(alpha)*(np.dot(k,self.NNtest(mu)-self.NNtest(nu))))
+
 
     def exponent_mag(self, k, alpha):
         temp =0
         for mu in range(4):
-            temp += 1/2 * self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)*2))
+            temp += - 1/2*self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)))
         return temp
+
 
     def M_zero(self, k, alpha):
         temp = 0
@@ -165,6 +175,7 @@ class zeroFluxSolver:
 
         return np.real(temp)
 
+
     def M_tot(self, k):
         M = np.zeros((len(k), 2,2), dtype=complex)
         M[:, 0, 0] = self.M_zero(k, 0)
@@ -174,13 +185,24 @@ class zeroFluxSolver:
         E, V = np.linalg.eig(M)
         return np.real(E)
 
+
     def minLam(self, alpha):
         # k = obliqueProj(k)
-        temp = min(self.M_tot(self.GammaX)[:,alpha])
+        temp = min(self.M_tot(self.bigK)[:,alpha])
         if temp == 0:
             temp = -1000
         self.minLams[alpha] = - temp
         return 0
+
+    def phase_test(self):
+        try:
+            rho = np.array([self.rho_zero(0, self.minLams), self.rho_zero(1, self.minLams)])
+            if (rho < self.kappa).any():
+                return 1
+            else:
+                return 0
+        except:
+            return 1
 
     def setM(self):
         self.M = self.M_tot(self.bigB).T
@@ -193,24 +215,21 @@ class zeroFluxSolver:
         return 0
 
 
-
     def E_zero_fixed(self,alpha, lams):
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M[alpha]))
         return np.real(val)
+
 
     def E_zero(self, k, alpha, lams):
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[:, alpha]))
         return np.real(val)
 
 
-
-
     def rho_zero(self, alpha, lams):
-        if (self.E_zero_fixed(alpha, lams) == 0).any():
+        if (self.E_zero_fixed(alpha, lams) <= 0).any():
             return 0
         temp = np.mean(self.Jzz*self.eta[alpha]/self.E_zero_fixed(alpha, lams))
         return temp
-
 
 
     def findLambda_zero(self,alpha):
@@ -234,7 +253,7 @@ class zeroFluxSolver:
              # if lamMax < self.minLams[alpha]:
              #     self.lams[alpha] = -1000
              #     return 1
-             if lamMax == 0:
+             if lamMax == 0 or rhoguess == 0:
                  self.lams[alpha] = -1000
                  return 1
         return 0
@@ -254,6 +273,7 @@ class zeroFluxSolver:
         self.findLambda_zero(0)
         self.findLambda_zero(1)
         return 1
+
 
     def calDispersionA(self, alpha):
         self.dGammaX[alpha] = self.dispersion_zero(self.GammaX, alpha, self.lams)
@@ -315,10 +335,12 @@ class zeroFluxSolver:
             self.calDispersion()
         return self.dGammaX[alpha][0]
 
+
     def GS(self, alpha):
         if not self.didit:
             self.calDispersion()
         return np.mean(self.E_zero_fixed(alpha, self.lams)) - self.lams[alpha]
+
 
     def EMAX(self, alpha):
         if not self.didit:
