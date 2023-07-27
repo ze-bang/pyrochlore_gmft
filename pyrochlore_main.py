@@ -73,7 +73,7 @@ def findPhase(nK, nE, res, filename):
             print("Jpm is now " + str(JP[i]))
             print("Kappa is now " + str(kappa[j]))
             if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], eta=kappa[j], res=res)
+                py0s = py0.zeroFluxSolver(JP[i], eta=kappa[j], BZres=res)
                 py0s.setupALL()
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
@@ -88,7 +88,7 @@ def findPhase(nK, nE, res, filename):
 
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
-                pyps = pypi.piFluxSolver(JP[i], kappa=kappa[j], res=res, lam=abs(JP[i])*2)
+                pyps = pypi.piFluxSolver(JP[i], kappa=kappa[j], BZres=res, lam=abs(JP[i])*2)
                 pyps.setupALL()
                 print("Finding pi Flux Lambda")
                 pyps.findLambda()
@@ -134,7 +134,7 @@ def edges(D, E, tol):
 
 
 def spinon_continuum_zero(nE, nK, Jpm, filename):
-    py0s = py0.zeroFluxSolver(Jpm, res=25)
+    py0s = py0.zeroFluxSolver(Jpm, BZres=20, graphres=nK)
     py0s.setupALL()
     py0s.findLambda()
     py0s.calDispersion()
@@ -169,7 +169,7 @@ def spinon_continuum_zero(nE, nK, Jpm, filename):
 
 def spinon_continuum_pi(nE, nK, Jpm, filename):
 
-    py0s = pypi.piFluxSolver(Jpm, res=25)
+    py0s = pypi.piFluxSolver(Jpm, BZres=20, graphres=nK)
     py0s.setupALL()
     py0s.findLambda()
     py0s.calAllDispersion()
@@ -177,7 +177,7 @@ def spinon_continuum_pi(nE, nK, Jpm, filename):
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     # kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,1, nK), np.linspace(1, 1.4, nK), np.linspace(1.4, 1.7, nK), np.linspace(1.7, 1.85, nK)))
     # d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
-    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 1e-3)
+    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
     kk = np.linspace(-0.5, 0, nK)
     np.savetxt("Files/"+filename+".txt", d1)
 
@@ -226,14 +226,14 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
             print("Jpm is now " + str(JP[i]))
             print("h is now " + str(h[j]))
             if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, res=10)
+                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa)
                 py0s.setupALL()
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
                 # print([py0s.lams, py0s.minLams])
                 phases[i][j] = py0s.phase_test()
             else:
-                pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa, res=10)
+                pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
                 pyps.setupALL()
                 print("Finding pi Flux Lambda")
                 pyps.findLambda()
@@ -247,16 +247,16 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
     np.savetxt(filename, phases)
 
 
-def graphdispersion(JP, kappa, rho, res):
+def graphdispersion(JP, kappa, rho, graphres):
     if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP, res=res)
+        py0s = py0.zeroFluxSolver(JP, graphres=graphres)
         py0s.setupALL()
         py0s.findLambda()
         # print(py0s.lams)
         py0s.graph(0, False)
         py0s.graph(1, True)
     elif JP < 0:
-        py0s = pypi.piFluxSolver(JP, res=res)
+        py0s = pypi.piFluxSolver(JP, graphres=graphres)
         py0s.setupALL()
         py0s.findLambda()
         py0s.graph(0, False)

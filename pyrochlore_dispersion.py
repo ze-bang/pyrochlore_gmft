@@ -38,7 +38,7 @@ def z(mu):
 
 class zeroFluxSolver:
 
-    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, res=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
@@ -68,28 +68,29 @@ class zeroFluxSolver:
         self.K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
         self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
-        self.res =res
-        self.bigB = genBZ(20)
+        self.BZres = BZres
+        self.graphres = graphres
+        self.bigB = genBZ(BZres)
 
         self.M = np.zeros((2,len(self.bigB)))
 
-        self.GammaX = self.drawLine(self.Gamma, self.X, res)
-        self.XW = self.drawLine(self.X, self.W, res)
-        self.WK = self.drawLine(self.W, self.K, res)
-        self.KGamma = self.drawLine(self.K, self.Gamma, res)
-        self.GammaL = self.drawLine(self.Gamma, self.L, res)
-        self.LU = self.drawLine(self.L, self.U, res)
-        self.UW = self.drawLine(self.U,self.W, res)
+        self.GammaX = self.drawLine(self.Gamma, self.X, graphres)
+        self.XW = self.drawLine(self.X, self.W, graphres)
+        self.WK = self.drawLine(self.W, self.K, graphres)
+        self.KGamma = self.drawLine(self.K, self.Gamma, graphres)
+        self.GammaL = self.drawLine(self.Gamma, self.L, graphres)
+        self.LU = self.drawLine(self.L, self.U, graphres)
+        self.UW = self.drawLine(self.U,self.W, graphres)
 
         self.bigK = np.concatenate((self.GammaX, self.XW, self.WK, self.KGamma, self.GammaL, self.LU, self.UW))
 
-        self.dGammaX = np.zeros((2,res))
-        self.dXW = np.zeros((2,res))
-        self.dWK = np.zeros((2,res))
-        self.dKGamma = np.zeros((2,res))
-        self.dGammaL = np.zeros((2,res))
-        self.dLU = np.zeros((2,res))
-        self.dUW = np.zeros((2,res))
+        self.dGammaX = np.zeros((2,graphres))
+        self.dXW = np.zeros((2,graphres))
+        self.dWK = np.zeros((2,graphres))
+        self.dKGamma = np.zeros((2,graphres))
+        self.dGammaL = np.zeros((2,graphres))
+        self.dLU = np.zeros((2,graphres))
+        self.dUW = np.zeros((2,graphres))
 
         self.V = 1
 
@@ -294,13 +295,13 @@ class zeroFluxSolver:
     def graph(self, alpha, show):
         if not self.didit:
             self.calDispersion()
-        plt.plot(np.linspace(-0.5, 0, self.res), self.dGammaX[alpha], 'b')
-        plt.plot(np.linspace(0, 0.3, self.res), self.dXW[alpha] , 'b')
-        plt.plot(np.linspace(0.3, 0.5, self.res), self.dWK[alpha], 'b')
-        plt.plot(np.linspace(0.5, 1, self.res), self.dKGamma[alpha], 'b')
-        plt.plot(np.linspace(1, 1.4, self.res), self.dGammaL[alpha], 'b')
-        plt.plot(np.linspace(1.4, 1.7, self.res), self.dLU[alpha], 'b')
-        plt.plot(np.linspace(1.7, 1.85, self.res),self.dUW[alpha], 'b')
+        plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[alpha], 'b')
+        plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[alpha] , 'b')
+        plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[alpha], 'b')
+        plt.plot(np.linspace(0.5, 1, self.graphres), self.dKGamma[alpha], 'b')
+        plt.plot(np.linspace(1, 1.4, self.graphres), self.dGammaL[alpha], 'b')
+        plt.plot(np.linspace(1.4, 1.7, self.graphres), self.dLU[alpha], 'b')
+        plt.plot(np.linspace(1.7, 1.85, self.graphres),self.dUW[alpha], 'b')
         plt.ylabel(r'$\omega/J_{zz}$')
         plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
@@ -319,13 +320,13 @@ class zeroFluxSolver:
     def graph_even(self, alpha, show):
         if not self.didit:
             self.calDispersion()
-        plt.plot(np.linspace(-0.5, 0, self.res), self.dGammaX[alpha], 'b')
-        plt.plot(np.linspace(0, 0.5, self.res), self.dXW[alpha] , 'b')
-        plt.plot(np.linspace(0.5, 1, self.res), self.dWK[alpha], 'b')
-        plt.plot(np.linspace(1, 1.5, self.res), self.dKGamma[alpha], 'b')
-        plt.plot(np.linspace(1.5, 2, self.res), self.dGammaL[alpha], 'b')
-        plt.plot(np.linspace(2, 2.5, self.res), self.dLU[alpha], 'b')
-        plt.plot(np.linspace(2.5, 3, self.res),self.dUW[alpha], 'b')
+        plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[alpha], 'b')
+        plt.plot(np.linspace(0, 0.5, self.graphres), self.dXW[alpha] , 'b')
+        plt.plot(np.linspace(0.5, 1, self.graphres), self.dWK[alpha], 'b')
+        plt.plot(np.linspace(1, 1.5, self.graphres), self.dKGamma[alpha], 'b')
+        plt.plot(np.linspace(1.5, 2, self.graphres), self.dGammaL[alpha], 'b')
+        plt.plot(np.linspace(2, 2.5, self.graphres), self.dLU[alpha], 'b')
+        plt.plot(np.linspace(2.5, 3, self.graphres),self.dUW[alpha], 'b')
         if show:
             plt.show()
 

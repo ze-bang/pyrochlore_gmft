@@ -114,7 +114,7 @@ def z(mu):
 
 class piFluxSolver:
 
-    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, res=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
@@ -153,25 +153,26 @@ class piFluxSolver:
         self.K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
         self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
-        self.res =res
-        self.bigB = genBZ(res)
+        self.BZres = BZres
+        self.graphres = graphres
+        self.bigB = genBZ(BZres)
         self.M = np.zeros((len(self.bigB), 8))
 
-        self.GammaX = drawLine(self.Gamma, self.X, res)
-        self.XW = drawLine(self.X, self.W, res)
-        self.WK = drawLine(self.W, self.K, res)
-        self.KGamma = drawLine(self.K, self.Gamma, res)
-        self.GammaL = drawLine(self.Gamma, self.L, res)
-        self.LU = drawLine(self.L, self.U, res)
-        self.UW = drawLine(self.U,self.W, res)
+        self.GammaX = drawLine(self.Gamma, self.X, graphres)
+        self.XW = drawLine(self.X, self.W, graphres)
+        self.WK = drawLine(self.W, self.K, graphres)
+        self.KGamma = drawLine(self.K, self.Gamma, graphres)
+        self.GammaL = drawLine(self.Gamma, self.L, graphres)
+        self.LU = drawLine(self.L, self.U, graphres)
+        self.UW = drawLine(self.U,self.W, graphres)
 
-        self.dGammaX =  np.zeros((8,res))
-        self.dXW =  np.zeros((8,res))
-        self.dWK =  np.zeros((8,res))
-        self.dKGamma =  np.zeros((8,res))
-        self.dGammaL =  np.zeros((8,res))
-        self.dLU =  np.zeros((8,res))
-        self.dUW = np.zeros((8,res))
+        self.dGammaX =  np.zeros((8,graphres))
+        self.dXW =  np.zeros((8,graphres))
+        self.dWK =  np.zeros((8,graphres))
+        self.dKGamma =  np.zeros((8,graphres))
+        self.dGammaL =  np.zeros((8,graphres))
+        self.dLU =  np.zeros((8,graphres))
+        self.dUW = np.zeros((8,graphres))
 
         self.didit=False
         self.updated=True
@@ -364,13 +365,13 @@ class piFluxSolver:
         self.calDispersion(1)
 
     def graphbranch(self, index, color):
-        plt.plot(np.linspace(-0.5, 0, self.res), self.dGammaX[index], color)
-        plt.plot(np.linspace(0, 0.3, self.res), self.dXW[index], color)
-        plt.plot(np.linspace(0.3, 0.5, self.res), self.dWK[index], color)
-        plt.plot(np.linspace(0.5, 1, self.res), self.dKGamma[index], color)
-        plt.plot(np.linspace(1, 1.4, self.res), self.dGammaL[index], color)
-        plt.plot(np.linspace(1.4, 1.7, self.res), self.dLU[index], color)
-        plt.plot(np.linspace(1.7, 1.85, self.res), self.dUW[index], color)
+        plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[index], color)
+        plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[index], color)
+        plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[index], color)
+        plt.plot(np.linspace(0.5, 1, self.graphres), self.dKGamma[index], color)
+        plt.plot(np.linspace(1, 1.4, self.graphres), self.dGammaL[index], color)
+        plt.plot(np.linspace(1.4, 1.7, self.graphres), self.dLU[index], color)
+        plt.plot(np.linspace(1.7, 1.85, self.graphres), self.dUW[index], color)
 
 
     def graph(self, alpha, show):
@@ -416,7 +417,7 @@ class piFluxSolver:
 
     def GS(self, alpha):
         if self.updated:
-            self.setE(self.res, self.lams)
+            self.setE(self.lams)
 
         temp = np.mean(self.E)- self.lams[alpha]
         return temp
