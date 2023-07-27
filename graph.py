@@ -59,8 +59,8 @@ def graphMagPhase(filename):
     # plt.imshow(bigphase, cmap='gray', vmin=-3, vmax=3, interpolation='bilinear', extent=[-0.1, 0.1, -1, 1], aspect='auto')
 
     plt.contourf(X, Y, phases)
-    plt.xlabel(r'$J_\pm/J_{zz}$')
-    plt.ylabel(r'$h/J_{zz}$')
+    plt.xlabel(r'$J_\pm/J_{y}$')
+    plt.ylabel(r'$h/J_{y}$')
     plt.show()
 
 

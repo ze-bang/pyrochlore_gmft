@@ -69,7 +69,7 @@ class zeroFluxSolver:
         self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
         self.res =res
-        self.bigB = genBZ(res)
+        self.bigB = genBZ(20)
 
         self.M = np.zeros((2,len(self.bigB)))
 
@@ -186,12 +186,12 @@ class zeroFluxSolver:
         return np.real(E)
 
 
-    def minLam(self, alpha):
+    def minLam(self):
         # k = obliqueProj(k)
-        temp = min(self.M_tot(self.bigK)[:,alpha])
-        if temp == 0:
-            temp = -1000
-        self.minLams[alpha] = - temp
+        temp = np.amin(self.M_tot(self.bigK), axis=0)
+        dex = np.where(temp==0)
+        temp[dex]= -1000
+        self.minLams = - temp
         return 0
 
     def phase_test(self):
@@ -210,8 +210,7 @@ class zeroFluxSolver:
 
     def setupALL(self):
         self.setM()
-        self.minLam(0)
-        self.minLam(1)
+        self.minLam()
         return 0
 
 

@@ -155,7 +155,7 @@ class piFluxSolver:
 
         self.res =res
         self.bigB = genBZ(res)
-        self.M = np.zeros((2, len(self.bigB), 4))
+        self.M = np.zeros((len(self.bigB), 8))
 
         self.GammaX = drawLine(self.Gamma, self.X, res)
         self.XW = drawLine(self.X, self.W, res)
@@ -238,20 +238,23 @@ class piFluxSolver:
         return M
 
 
-    def M_pi(self, k, alpha):
-        bigM = np.zeros((len(k), 4,4,4), dtype=complex)
+    def M_pi(self, k):
+        bigM1 = np.zeros((len(k), 4,4,4), dtype=complex)
+        bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
         for i in range(4):
-            bigM[:,i, :, :] = self.M_pi_sub(k,i,alpha)
-        M = np.einsum('ijkl->ikl', bigM)
-        E, V = np.linalg.eigh(M)
+            bigM1[:,i, :, :] = self.M_pi_sub(k,i,0)
+            bigM2[:, i, :, :] = self.M_pi_sub(k, i, 1)
+        M = np.einsum('ijkl->ikl', bigM1)
+        M1 = np.einsum('ijkl->ikl', bigM2)
+        FM = np.block([[M, 0],[0, M1]])
+        E, V = np.linalg.eig(FM)
         self.V = V
         return E
 
 
 
     def setM(self):
-        self.M[0] = self.M_pi(self.bigB, 0)
-        self.M[1] = self.M_pi(self.bigB, 1)
+        self.M = self.M_pi(self.bigB)
         return 1
     #
     #
@@ -263,7 +266,7 @@ class piFluxSolver:
 
     def E_pi_fixed(self, alpha, lams):
         # k = obliqueProj(k)
-        temp = self.M[alpha]
+        temp = self.M[:,4*alpha:4*alpha+4]
         try:
             val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
             return val
@@ -273,7 +276,7 @@ class piFluxSolver:
 
     def E_pi(self,k, alpha, lams):
         # k = obliqueProj(k)
-        temp = self.M_pi(k,alpha)
+        temp = self.M_pi(k)[alpha]
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
         return val
 

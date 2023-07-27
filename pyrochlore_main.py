@@ -141,7 +141,7 @@ def spinon_continuum_zero(nE, nK, Jpm, filename):
 
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,1, nK), np.linspace(1, 1.4, nK), np.linspace(1.4, 1.7, nK), np.linspace(1.7, 1.85, nK)))
-    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
+    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.02)
     np.savetxt("Files/"+filename+".txt", d1)
 
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
@@ -268,4 +268,4 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhaseMag(0, 0.25, 20, 0, 3, 20, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
 
-spinon_continuum(15,15,-1/3, "spin_con_zero_test")
+spinon_continuum(20,20,0.046, "spin_con_zero_detailed")
