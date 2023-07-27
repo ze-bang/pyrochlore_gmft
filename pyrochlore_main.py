@@ -134,7 +134,7 @@ def edges(D, E, tol):
 
 
 def spinon_continuum_zero(nE, nK, Jpm, filename):
-    py0s = py0.zeroFluxSolver(Jpm, res=nK)
+    py0s = py0.zeroFluxSolver(Jpm, res=25)
     py0s.setupALL()
     py0s.findLambda()
     py0s.calDispersion()
@@ -169,7 +169,7 @@ def spinon_continuum_zero(nE, nK, Jpm, filename):
 
 def spinon_continuum_pi(nE, nK, Jpm, filename):
 
-    py0s = pypi.piFluxSolver(Jpm, res=nK)
+    py0s = pypi.piFluxSolver(Jpm, res=25)
     py0s.setupALL()
     py0s.findLambda()
     py0s.calAllDispersion()
@@ -268,4 +268,4 @@ def graphdispersion(JP, kappa, rho, res):
 
 # findPhaseMag(0, 0.25, 20, 0, 3, 20, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
 
-spinon_continuum(20,20,0.046, "spin_con_zero_detailed")
+spinon_continuum(100,100,0.046, "spin_con_zero_detailed")
