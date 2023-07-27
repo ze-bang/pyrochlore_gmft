@@ -47,7 +47,7 @@ class zeroFluxSolver:
         self.n = n
 
         self.tol = 1e-3
-        self.lams = [lam, lam]
+        self.lams = np.array([lam, lam], dtype=float)
 
         self.b0 = np.pi * np.array([1, 1, 1])
         self.b1 = np.pi * np.array([-1, 1, 1])
@@ -92,8 +92,8 @@ class zeroFluxSolver:
         self.dLU = np.zeros((2,graphres))
         self.dUW = np.zeros((2,graphres))
 
-        self.V = 1
-
+        self.V = np.zeros((len(self.bigB),2,2))
+        self.Vt =np.zeros((len(self.bigB),2,2))
         self.didit = False
 
 #pyrochlore brillouin zone
@@ -161,7 +161,7 @@ class zeroFluxSolver:
     def exponent_mag(self, k, alpha):
         temp =0
         for mu in range(4):
-            temp += - 1/2*self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)))
+            temp += - 1/2 * self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)))
         return temp
 
 
@@ -184,14 +184,17 @@ class zeroFluxSolver:
         M[:, 0, 1] = self.exponent_mag(k, 0)
         M[:, 1, 0] = self.exponent_mag(k, 1)
         E, V = np.linalg.eig(M)
+        self.V = V
+        self.Vt = np.trace(np.einsum('ijk,ijk->ijk', V, np.conj(V)), axis1=1, axis2=2)
+        # print(V)
         return np.real(E)
 
 
     def minLam(self):
         # k = obliqueProj(k)
         temp = np.amin(self.M_tot(self.bigK), axis=0)
-        dex = np.where(temp==0)
-        temp[dex]= -1000
+        # dex = np.where(self.eta==0)
+        # temp[dex]= -1000
         self.minLams = - temp
         return 0
 
@@ -210,12 +213,12 @@ class zeroFluxSolver:
         return 1
 
     def setupALL(self):
-        self.setM()
         self.minLam()
+        self.setM()
         return 0
 
 
-    def E_zero_fixed(self,alpha, lams):
+    def E_zero_fixed(self, alpha, lams):
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M[alpha]))
         return np.real(val)
 
@@ -228,9 +231,18 @@ class zeroFluxSolver:
     def rho_zero(self, alpha, lams):
         if (self.E_zero_fixed(alpha, lams) <= 0).any():
             return 0
-        temp = np.mean(self.Jzz*self.eta[alpha]/self.E_zero_fixed(alpha, lams))
+        temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed(alpha, lams))
         return temp
 
+    def E_zero_fixed_mag(self, lams):
+        val = np.sqrt(2 * self.Jzz * (lams + self.M[alpha]))
+        return np.real(val)
+
+    def rho_zero_mag(self):
+        if (self.E_zero_fixed_mag(alpha, lams) <= 0).any():
+            return 0
+        temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed_mag(alpha, lams))
+        return temp
 
     def findLambda_zero(self,alpha):
         warnings.filterwarnings("error")
@@ -265,7 +277,6 @@ class zeroFluxSolver:
         return np.linspace(A, B, N)
 
     def dispersion_zero(self, P, alpha, lams):
-
         temp = self.E_zero(P, alpha, lams)
         return temp
 
