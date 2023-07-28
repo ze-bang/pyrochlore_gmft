@@ -60,6 +60,7 @@ class zeroFluxSolver:
         self.e3 = np.array([1, 1, 0])/2
 
         self.minLams = np.zeros(2)
+        self.maglam = lam
 
         self.Gamma = np.array([0, 0, 0])
         self.L = np.pi * np.array([1, 1, 1])
@@ -227,6 +228,9 @@ class zeroFluxSolver:
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[:, alpha]))
         return np.real(val)
 
+    def E_zero_fixed_mag(self, alpha, lam):
+        val = np.sqrt(2 * self.Jzz * (lam + self.M[alpha]))
+        return np.real(val)
 
     def rho_zero(self, alpha, lams):
         if (self.E_zero_fixed(alpha, lams) <= 0).any():
@@ -234,15 +238,36 @@ class zeroFluxSolver:
         temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed(alpha, lams))
         return temp
 
-    def E_zero_fixed_mag(self, lams):
-        val = np.sqrt(2 * self.Jzz * (lams + self.M[alpha]))
-        return np.real(val)
+    def rho_zero_mag(self, lam):
+        temp = np.mean(self.Jzz / self.E_zero_fixed_mag(0, lam))
+        temp += np.mean(self.Jzz / self.E_zero_fixed_mag(1, lam))
+        return np.real(temp)/2
 
-    def rho_zero_mag(self):
-        if (self.E_zero_fixed_mag(alpha, lams) <= 0).any():
-            return 0
-        temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed_mag(alpha, lams))
-        return temp
+    def findLambda_mag(self):
+        warnings.filterwarnings("error")
+        lamMin = 0
+        lamMax = 100
+        rhoguess = 10
+        # print(self.kappa)
+        while(np.absolute(rhoguess-self.kappa) >= self.tol):
+             self.maglam = (lamMin+lamMax)/2
+             try:
+                 rhoguess = self.rho_zero_mag(self.maglam)
+                 if rhoguess - self.kappa > 0:
+                     lamMin = self.maglam
+                 else:
+                     lamMax = self.maglam
+             except Exception as e:
+                 # print(e)
+                 lamMin = self.maglam
+             # print([self.maglam, rhoguess, lamMax, self.maglam])
+             # if lamMax < self.minLams[alpha]:
+             #     self.lams[alpha] = -1000
+             #     return 1
+             if lamMax == 0 or rhoguess == 0:
+                 self.maglam = -1000
+                 return 1
+        return 0
 
     def findLambda_zero(self,alpha):
         warnings.filterwarnings("error")

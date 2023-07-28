@@ -69,23 +69,6 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
 
     return np.real(np.sum(inte))
 
-def SSSF_zero(q, alpha, pyp0, tol):
-    Ks = pyp0.bigB
-    Qs = Ks+q
-    le = len(Ks)
-
-    M = formfactor()
-
-    ffac = np.einsum('ij, klj -> ikl', Qs, M)
-    ffac = np.exp(1j*ffac)
-    ffac = np.einsum('ikl->i', ffac)
-
-
-    green = np.multiply(green_zero(Ks, 0, alpha, pyp0), green_zero(Qs, 0, alpha, pyp0))
-    inte = np.multiply(green, ffac)
-
-    return np.real(np.sum(inte))
-
 def SSSF_zero(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
@@ -102,7 +85,6 @@ def SSSF_zero(q, alpha, pyp0):
     inte = np.multiply(green, ffac)
 
     return np.real(np.sum(inte))
-
 
 
 def spinon_cont_pi(q, omega, alpha, pyp0, tol):
@@ -147,7 +129,9 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     inte = np.einsum('ijk, ijk', temp2, gauss)
     return np.real(inte)
 
-def SSSF_zero(q, alpha, pyp0, tol):
+
+@jit(nopython=True, parallel=True)
+def SSSF_pi(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
 
@@ -161,7 +145,6 @@ def SSSF_zero(q, alpha, pyp0, tol):
     greenp1 = np.zeros((len(Ks),4,4), dtype=complex)
     greenp2 = np.zeros((len(Ks),4,4,4,4), dtype=complex)
 
-    # vgreenpi = np.vectorize(green_pi, excluded=['omega', 'alpha', 'pypi', 'mu', 'nu', 'i'])
     for rs in range(4):
         for gamma in range(4):
             for i in range(4):
@@ -181,43 +164,6 @@ def SSSF_zero(q, alpha, pyp0, tol):
     inte = np.einsum('iajkl, ibjlo', greenp1, temp)
 
     return np.real(inte)
-
-def SSSF_zero(q, alpha, pyp0):
-    Ks = pyp0.bigB
-    Qs = Ks+q
-
-    s = np.array([1,1,1,1])
-    dumb = np.einsum('i,j->ij', s, s)
-
-    M = formfactor()
-    ffac = np.einsum('ij, klj -> ikl', Qs, M)
-    ffac = np.exp(1j*ffac)
-
-    greenp1 = np.zeros((len(Ks),4,4), dtype=complex)
-    greenp2 = np.zeros((len(Ks),4,4,4,4), dtype=complex)
-
-    # vgreenpi = np.vectorize(green_pi, excluded=['omega', 'alpha', 'pypi', 'mu', 'nu', 'i'])
-    for rs in range(4):
-        for gamma in range(4):
-            for i in range(4):
-                for j in range(4):
-                    if not i == j:
-                        mu = unitCell(rs) + neta(alpha) * step(i)
-                        nu = unitCell(rs) + neta(alpha) * step(j)
-                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                        index1 = findS(rs1)
-                        index2 = findS(rs2)
-                        greenp1[:, gamma, rs] = green_pi(Ks,0,alpha, pyp0, rs, rs, gamma)
-                        greenp2[:, gamma, rs, i, j] = green_pi(Ks, 0, alpha, pyp0, index1, index2, gamma)
-
-    greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
-    temp = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
-    inte = np.einsum('iajkl, ibjlo', greenp1, temp)
-
-    return np.real(inte)
-
-
 
 
 def graph_spin_cont_pi(pyp0, E, K, tol):
@@ -268,7 +214,7 @@ def graph_spin_cont_zero(pyp0, E, K, tol):
     # E, K = np.meshgrid(e, K)
 
 
-def graph_SSSF_zero(pyp0, K, tol):
+def graph_SSSF_zero(pyp0, K):
     el = "==:==:=="
     totaltask = len(K)
     increment = totaltask/50
@@ -279,7 +225,7 @@ def graph_SSSF_zero(pyp0, K, tol):
     for j in range(len(K)):
         start = time.time()
         count = count + 1
-        temp[j] = SSSF_zero(K[j], 0, pyp0, tol)
+        temp[j] = SSSF_zero(K[j], 0, pyp0)
         # if temp[i][j] > tempMax:
         #     tempMax = temp[i][j]
         end = time.time()
@@ -288,6 +234,7 @@ def graph_SSSF_zero(pyp0, K, tol):
         sys.stdout.write('\r')
         sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
         sys.stdout.flush()
+
     return temp/np.max(temp)
     # E, K = np.meshgrid(e, K)
 

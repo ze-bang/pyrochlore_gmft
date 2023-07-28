@@ -8,11 +8,9 @@ import time
 import sys
 from numba import jit
 
-
+#region miscellaneous
 def magnitude(vector):
     return math.sqrt(sum(pow(element, 2) for element in vector))
-
-
 
 def phase0(lams, minLams, pi):
     lamA, lamB = lams
@@ -47,8 +45,42 @@ def phaseMag(lams, minLams, pi):
         print(3*(-1)**pi)
         return 3*(-1)**pi
 
+def edges(D, E, tol):
+    D = D.transpose()
+    mindex = np.zeros(D.shape[0])
+    maxdex = np.zeros(D.shape[0])
+    print(D.shape)
+    for i in range(D.shape[0]):
+        minfound = False
+        maxfound = False
+        for j in range(D.shape[1]):
+            if D[i][j] >= tol and not minfound:
+                mindex[i] = E[j]
+                minfound = True
+            if D[i][j] <= tol and minfound and (not maxfound):
+                maxdex[i] = E[j]
+                maxfound = True
+    return [mindex, maxdex]
+#endregion
 
+#region graph dispersion
+def graphdispersion(JP, kappa, rho, graphres):
+    if JP >= 0:
+        py0s = py0.zeroFluxSolver(JP, graphres=graphres)
+        py0s.setupALL()
+        py0s.findLambda()
+        # print(py0s.lams)
+        py0s.graph(0, False)
+        py0s.graph(1, True)
+    elif JP < 0:
+        py0s = pypi.piFluxSolver(JP, graphres=graphres)
+        py0s.setupALL()
+        py0s.findLambda()
+        py0s.graph(0, False)
+        py0s.graph(1, True)
+#endregion
 
+#region Phase for Anisotropy
 def findPhase(nK, nE, res, filename):
 
     JP = np.linspace(0, 0.1, nK)
@@ -112,27 +144,47 @@ def findPhase(nK, nE, res, filename):
 
 
     np.savetxt(filename, phases)
+#endregion
+
+#region Phase for Magnetic Field
+def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
+    n = n / magnitude(n)
+    print(n)
+
+    JP = np.linspace(JPm, JPmax, nK)
+    h = np.linspace(hm, hmax, nH)
+    phases = np.zeros((nK,nH), dtype=int)
 
 
-def edges(D, E, tol):
-    D = D.transpose()
-    mindex = np.zeros(D.shape[0])
-    maxdex = np.zeros(D.shape[0])
-    print(D.shape)
-    for i in range(D.shape[0]):
-        minfound = False
-        maxfound = False
-        for j in range(D.shape[1]):
-            if D[i][j] >= tol and not minfound:
-                mindex[i] = E[j]
-                minfound = True
-            if D[i][j] <= tol and minfound and (not maxfound):
-                maxdex[i] = E[j]
-                maxfound = True
-    return [mindex, maxdex]
+    for i in range (nK):
+        for j in range (nH):
+            print("Jpm is now " + str(JP[i]))
+            print("h is now " + str(h[j]))
+            if JP[i] >= 0:
+                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa)
+                py0s.setupALL()
+                # phases[i][j] = py0s.phase_test()
+                print("Finding 0 Flux Lambda")
 
+                py0s.findLambda_mag()
+                print([py0s.maglam, py0s.minLams])
+                phases[i][j] = phaseMag(np.array([py0s.maglam,py0s.maglam]), py0s.minLams, 0)
+            else:
+                pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
+                pyps.setupALL()
+                print("Finding pi Flux Lambda")
+                pyps.findLambda()
+                print([pyps.lams, pyps.minLams])
+                try:
+                    py0s.calDispersion()
+                    phases[i][j] = 1
+                except:
+                    phases[i][j] = 0
 
+    np.savetxt(filename, phases)
+#endregion
 
+#region DSSF
 def spinon_continuum_zero(nE, nK, Jpm, filename):
     py0s = py0.zeroFluxSolver(Jpm, BZres=20, graphres=nK)
     py0s.setupALL()
@@ -164,8 +216,6 @@ def spinon_continuum_zero(nE, nK, Jpm, filename):
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
     # plt.show()
-
-
 
 def spinon_continuum_pi(nE, nK, Jpm, filename):
 
@@ -202,72 +252,92 @@ def spinon_continuum_pi(nE, nK, Jpm, filename):
     plt.savefig("Files/"+filename+".png")
     # plt.show()
 
-
-
 def spinon_continuum(nE, nK, Jpm, filename):
     if Jpm >= 0:
         spinon_continuum_zero(nE, nK, Jpm, filename)
     else:
         spinon_continuum_pi(nE, nK, Jpm, filename)
 
+#endregion
+
+#region SSSF
+
+def BZbasis(mu):
+    if mu == 0:
+        return 2*np.pi*np.array([-1,1,1])
+    elif mu == 1:
+        return 2*np.pi*np.array([1,-1,1])
+    elif mu == 2:
+        return 2*np.pi*np.array([1,1,-1])
+def hkltoK(H, L):
+    return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
+
+def hkltoKtest(H, L):
+    return H * (BZbasis(0)+BZbasis(1)) + L * BZbasis(2)
+def SSSF_zero_cal(nK, Jpm, filename):
+    py0s = py0.zeroFluxSolver(Jpm, BZres=30, graphres=nK)
+    py0s.setupALL()
+    py0s.findLambda()
+    py0s.calDispersion()
+
+    H = np.linspace(-2,2,nK)
+    L = np.linspace(-2,2,nK)
+
+    X, Y = np.meshgrid(H, L)
+    K = hkltoK(X,Y).reshape((nK*nK,3))
 
 
-def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
-    n = n / magnitude(n)
-    print(n)
+    d1 = graph_SSSF_zero(py0s, K).reshape((nK, nK))
+    # np.savetxt("Files/"+filename+".txt", d1)
 
-    JP = np.linspace(JPm, JPmax, nK)
-    h = np.linspace(hm, hmax, nH)
-    phases = np.zeros((nK,nH), dtype=int)
+    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    plt.contourf(X,Y, d1, levels=100)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
 
+    # dex = edges(d1, e, 5e-2)
+    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
+    # plt.savefig("Files/"+filename+".png")
+    plt.show()
 
-    for i in range (nK):
-        for j in range (nH):
-            print("Jpm is now " + str(JP[i]))
-            print("h is now " + str(h[j]))
-            if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa)
-                py0s.setupALL()
-                # phases[i][j] = py0s.phase_test()
-                print("Finding 0 Flux Lambda")
+def SSSF_pi_cal( nK, Jpm, filename):
 
-                py0s.findLambda()
-                print([py0s.lams, py0s.minLams])
-                phases[i][j] = phaseMag(py0s.lams, py0s.minLams, 0)
-            else:
-                pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
-                pyps.setupALL()
-                print("Finding pi Flux Lambda")
-                pyps.findLambda()
-                print([pyps.lams, pyps.minLams])
-                try:
-                    py0s.calDispersion()
-                    phases[i][j] = 1
-                except:
-                    phases[i][j] = 0
+    py0s = pypi.piFluxSolver(Jpm, BZres=20, graphres=nK)
+    py0s.setupALL()
+    py0s.findLambda()
+    py0s.calAllDispersion()
 
-    np.savetxt(filename, phases)
+    H = np.linspace(-2,2,nK)
+    L = np.linspace(-2,2,nK)
+    X, Y = np.meshgrid(H, L)
+    K = hkltoK(X,Y).reshape((nK*nK,3))
 
 
-def graphdispersion(JP, kappa, rho, graphres):
-    if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP, graphres=graphres)
-        py0s.setupALL()
-        py0s.findLambda()
-        # print(py0s.lams)
-        py0s.graph(0, False)
-        py0s.graph(1, True)
-    elif JP < 0:
-        py0s = pypi.piFluxSolver(JP, graphres=graphres)
-        py0s.setupALL()
-        py0s.findLambda()
-        py0s.graph(0, False)
-        py0s.graph(1, True)
+    d1 = graph_SSSF_pi(py0s, K).reshape((nK, nK))
+    np.savetxt("Files/"+filename+".txt", d1)
+
+    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    plt.contourf(X,Y, d1, levels=100)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
+    # dex = edges(d1, e, 5e-2)
+    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
+    plt.savefig("Files/"+filename+".png")
+    # plt.show()
+
+def SSSF(nK, Jpm, filename):
+    if Jpm >= 0:
+        SSSF_zero_cal( nK, Jpm, filename)
+    # else:
+    #     SSSF_pi_cal(nK, Jpm, filename)
+
+#endregion
 
 # graphdispersion(-1/3, 1, 2, 10)
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-findPhaseMag(0, 0.25, 20, 0, 3, 20, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
+# findPhaseMag(0, 0.25, 20, 0, 3, 20, np.array([1, 1, 1]), 1, "phase_mag_111.txt")
 
 # spinon_continuum(5,5,0.046, "spin_con_zero_detailed")
+SSSF(30,0.04, "spin_con_zero_detailed")
