@@ -38,13 +38,14 @@ def z(mu):
 
 class zeroFluxSolver:
 
-    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
         self.eta = [eta, 1]
         self.h = h
         self.n = n
+        self.omega = omega
 
         self.tol = 1e-3
         self.lams = np.array([lam, lam], dtype=float)
@@ -74,6 +75,8 @@ class zeroFluxSolver:
         self.bigB = genBZ(BZres)
 
         self.M = np.zeros((2,len(self.bigB)))
+        self.MF = []
+        self.E =[]
 
         self.GammaX = self.drawLine(self.Gamma, self.X, graphres)
         self.XW = self.drawLine(self.X, self.W, graphres)
@@ -96,6 +99,7 @@ class zeroFluxSolver:
         self.V = np.zeros((len(self.bigB),2,2))
         self.Vt =np.zeros((len(self.bigB),2,2))
         self.didit = False
+        self.Mset = False
 
 #pyrochlore brillouin zone
 
@@ -185,10 +189,20 @@ class zeroFluxSolver:
         M[:, 0, 1] = self.exponent_mag(k, 0)
         M[:, 1, 0] = self.exponent_mag(k, 1)
         E, V = np.linalg.eig(M)
-        self.V = V
-        self.Vt = np.trace(np.einsum('ijk,ijk->ijk', V, np.conj(V)), axis1=1, axis2=2)
+        if self.Mset == False:
+            self.MF = M
+            self.Mset = True
         # print(V)
         return np.real(E)
+
+    def Green(self, lams):
+        temp = self.MF + np.diag(lams+self.omega/(2*self.Jzz))
+        G = np.linalg.inv(temp)
+        return np.real(G)
+
+    def rho_true(self, alpha, lams):
+        E = self.Green(lams)
+        return np.mean(E, axis=0)[alpha, alpha]
 
 
     def minLam(self):
@@ -214,8 +228,8 @@ class zeroFluxSolver:
         return 1
 
     def setupALL(self):
-        self.minLam()
         self.setM()
+        # self.minLam()
         return 0
 
 
@@ -228,47 +242,12 @@ class zeroFluxSolver:
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + self.M_tot(k)[:, alpha]))
         return np.real(val)
 
-    def E_zero_fixed_mag(self, alpha, lam):
-        val = np.sqrt(2 * self.Jzz * (lam + self.M[alpha]))
-        return np.real(val)
 
     def rho_zero(self, alpha, lams):
         if (self.E_zero_fixed(alpha, lams) <= 0).any():
             return 0
         temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed(alpha, lams))
         return temp
-
-    def rho_zero_mag(self, lam):
-        temp = np.mean(self.Jzz / self.E_zero_fixed_mag(0, lam))
-        temp += np.mean(self.Jzz / self.E_zero_fixed_mag(1, lam))
-        return np.real(temp)/2
-
-    def findLambda_mag(self):
-        warnings.filterwarnings("error")
-        lamMin = 0
-        lamMax = 100
-        rhoguess = 10
-        # print(self.kappa)
-        while(np.absolute(rhoguess-self.kappa) >= self.tol):
-             self.maglam = (lamMin+lamMax)/2
-             try:
-                 rhoguess = self.rho_zero_mag(self.maglam)
-                 if rhoguess - self.kappa > 0:
-                     lamMin = self.maglam
-                 else:
-                     lamMax = self.maglam
-             except Exception as e:
-                 # print(e)
-                 lamMin = self.maglam
-             # print([self.maglam, rhoguess, lamMax, self.maglam])
-             # if lamMax < self.minLams[alpha]:
-             #     self.lams[alpha] = -1000
-             #     return 1
-             if lamMax == 0 or rhoguess == 0:
-                 self.maglam = -1000
-                 return 1
-        return 0
-
     def findLambda_zero(self,alpha):
         warnings.filterwarnings("error")
         lamMin = 0
@@ -278,7 +257,8 @@ class zeroFluxSolver:
         while(np.absolute(rhoguess-self.kappa) >= self.tol):
              self.lams[alpha] = (lamMin+lamMax)/2
              try:
-                 rhoguess = self.rho_zero(alpha, self.lams)
+                 rhoguess = self.rho_true(alpha, self.lams)
+                 # rhoguess = self.rho_zero(alpha, self.lams)
                  if rhoguess - self.kappa > 0:
                      lamMin = self.lams[alpha]
                  else:
@@ -286,13 +266,13 @@ class zeroFluxSolver:
              except Exception as e:
                  # print(e)
                  lamMin = self.lams[alpha]
-             # print([self.lams[alpha], rhoguess, lamMax, self.minLams[alpha]])
+             # print([lamMin, lamMax, rhoguess])
              # if lamMax < self.minLams[alpha]:
              #     self.lams[alpha] = -1000
              #     return 1
-             if lamMax == 0 or rhoguess == 0:
-                 self.lams[alpha] = -1000
-                 return 1
+             # if lamMax == 0 or rhoguess == 0:
+             #     self.lams[alpha] = -1000
+             #     return 1
         return 0
 
 

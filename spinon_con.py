@@ -67,6 +67,8 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
     temp = np.multiply(cauchy(omega-tempE-tempQ, tol), green)
     inte = np.multiply(temp, ffac)
 
+
+
     return np.real(np.sum(inte))
 
 def SSSF_zero(q, alpha, pyp0):
@@ -130,7 +132,6 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     return np.real(inte)
 
 
-@jit(nopython=True, parallel=True)
 def SSSF_pi(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
@@ -142,8 +143,8 @@ def SSSF_pi(q, alpha, pyp0):
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
-    greenp1 = np.zeros((len(Ks),4,4), dtype=complex)
-    greenp2 = np.zeros((len(Ks),4,4,4,4), dtype=complex)
+    greenp1 = np.zeros((len(Ks),4), dtype=complex)
+    greenp2 = np.zeros((len(Ks),4,4,4), dtype=complex)
 
     for rs in range(4):
         for gamma in range(4):
@@ -156,9 +157,8 @@ def SSSF_pi(q, alpha, pyp0):
                         rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
                         index1 = findS(rs1)
                         index2 = findS(rs2)
-                        greenp1[:, gamma, rs] = green_pi(Ks,0,alpha, pyp0, rs, rs, gamma)
-                        greenp2[:, gamma, rs, i, j] = green_pi(Ks, 0, alpha, pyp0, index1, index2, gamma)
-
+                        greenp1[:, rs] = green_pi(Ks,0,alpha, pyp0, rs, rs, gamma)
+                        greenp2[:, rs, i, j] = green_pi(Ks, 0, alpha, pyp0, index1, index2, gamma)
     greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
     temp = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
     inte = np.einsum('iajkl, ibjlo', greenp1, temp)
@@ -239,7 +239,7 @@ def graph_SSSF_zero(pyp0, K):
     # E, K = np.meshgrid(e, K)
 
 
-def graph_SSSF_pi(pyp0, K, tol):
+def graph_SSSF_pi(pyp0, K):
     el = "==:==:=="
     totaltask = len(K)
     increment = totaltask/50
@@ -249,7 +249,7 @@ def graph_SSSF_pi(pyp0, K, tol):
     for j in range(len(K)):
         start = time.time()
         count = count + 1
-        temp[j] = spinon_cont_zero(K[j], 0, pyp0, tol)
+        temp[j] = SSSF_pi(K[j], 0, pyp0)
         # if temp[i][j] > tempMax:
         #     tempMax = temp[i][j]
         end = time.time()

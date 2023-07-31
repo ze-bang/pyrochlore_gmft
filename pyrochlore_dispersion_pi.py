@@ -136,6 +136,7 @@ class piFluxSolver:
 
         self.E = []
         self.V= []
+        self.Mset = False
 
         self.mindex = -1
         self.minLams = np.zeros(2)
@@ -158,6 +159,8 @@ class piFluxSolver:
         self.bigB = genBZ(BZres)
         self.M = np.zeros((len(self.bigB), 8))
 
+        self.Vt= []
+
         self.GammaX = drawLine(self.Gamma, self.X, graphres)
         self.XW = drawLine(self.X, self.W, graphres)
         self.WK = drawLine(self.W, self.K, graphres)
@@ -165,6 +168,9 @@ class piFluxSolver:
         self.GammaL = drawLine(self.Gamma, self.L, graphres)
         self.LU = drawLine(self.L, self.U, graphres)
         self.UW = drawLine(self.U,self.W, graphres)
+
+        self.bigK = np.concatenate((self.GammaX, self.XW, self.WK, self.KGamma, self.GammaL, self.LU, self.UW))
+
 
         self.dGammaX =  np.zeros((8,graphres))
         self.dXW =  np.zeros((8,graphres))
@@ -247,10 +253,13 @@ class piFluxSolver:
             bigM2[:, i, :, :] = self.M_pi_sub(k, i, 1)
         M = np.einsum('ijkl->ikl', bigM1)
         M1 = np.einsum('ijkl->ikl', bigM2)
-        FM = np.block([[M, 0],[0, M1]])
+        FM = np.block([[M, np.zeros((len(k), 4,4))],[np.zeros((len(k), 4,4)), M1]])
         E, V = np.linalg.eig(FM)
-        self.V = V
-        return E
+        if self.Mset == False:
+            self.V = V
+            self.Vt = np.trace(np.einsum('ijk,ijk->ijk', V, np.conj(V)), axis1=1, axis2=2)
+            self.Mset = True
+        return np.real(E)
 
 
 
@@ -277,7 +286,9 @@ class piFluxSolver:
 
     def E_pi(self,k, alpha, lams):
         # k = obliqueProj(k)
-        temp = self.M_pi(k)[alpha]
+        indexS = alpha*4
+        indexE = (alpha+1)*4
+        temp = self.M_pi(k)[:,indexS:indexE]
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
         return val
 
@@ -285,10 +296,10 @@ class piFluxSolver:
 
     def minLam(self, alpha):
         # k = obliqueProj(k)
-        temp = min(self.M_pi(self.LU,alpha)[:,0])
-        if temp == 0:
-            temp = -1000
-        self.minLams[alpha] = - temp
+        temp = np.amin(self.M_pi(self.bigK), axis=0)
+        # dex = np.where(self.eta==0)
+        # temp[dex]= -1000
+        self.minLams = - temp
         return 0
 
     def setupALL(self):
@@ -296,6 +307,7 @@ class piFluxSolver:
         self.minLam(0)
         self.minLam(1)
         return 0
+
     def setE(self, lams):
         self.E = np.zeros((2, len(self.bigB), 4))
         self.E[0] = self.E_pi_fixed(0, lams)
