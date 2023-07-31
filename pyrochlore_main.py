@@ -195,11 +195,10 @@ def spinon_continuum_zero(nE, nK, Jpm, filename, BZres):
 
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
-    # d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.04)
+    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.04)
 
-    d1 = np.loadtxt("Files/spin_con_zero_detailed.txt")
 
-    # np.savetxt("Files/"+filename+".txt", d1)
+    np.savetxt("Files/"+filename+".txt", d1)
 
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
 
@@ -344,5 +343,5 @@ def SSSF(nK, BZres, Jpm, filename):
 
 # findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,0,0]), 1, "phase_mag_100.txt")
 
-spinon_continuum(30,30,30,0.046, "spin_con_zero_detailed")
+spinon_continuum(100,100,40,0.046, "spin_con_zero_complete")
 # SSSF(30,0.04, "SSSF_Zero_0.04")
