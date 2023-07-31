@@ -97,7 +97,7 @@ class zeroFluxSolver:
         self.dUW = np.zeros((2,graphres))
 
         self.V = np.zeros((len(self.bigB),2,2))
-        self.Vt =np.zeros((len(self.bigB),2,2))
+        self.Vt = np.zeros((len(self.bigB),2,2))
         self.didit = False
         self.Mset = False
 
@@ -195,27 +195,38 @@ class zeroFluxSolver:
         # print(V)
         return np.real(E)
 
-    def Green(self, lams):
-        temp = self.MF + np.diag(lams+self.omega/(2*self.Jzz))
-        G = np.linalg.inv(temp)
-        return np.real(G)
+    def M_single(self, k):
+        M = np.zeros((2,2), dtype=complex)
+        M[0, 0] = self.M_zero(k, 0)
+        M[1, 1] = self.M_zero(k, 1)
+        M[0, 1] = self.exponent_mag(k, 0)
+        M[1, 0] = self.exponent_mag(k, 1)
+        E, V = np.linalg.eig(M)
+        # print(V)
+        return np.real(E)
 
-    def rho_true(self, alpha, lams):
-        E = self.Green(lams)
-        return np.mean(E, axis=0)[alpha, alpha]
+    # def Green(self, lams):
+    #     temp = self.MF + np.diag(lams+self.omega/(2*self.Jzz))
+    #     E,V = np.linalg.eig(temp)
+    #     return np.real(E)
+    #
+    # def rho_true(self, alpha, lams):
+    #     E = self.Green(lams)
+    #     return np.mean(self.Jzz/np.sqrt(2*self.Jzz*E), axis=0)[alpha, alpha]
 
 
     def minLam(self):
         # k = obliqueProj(k)
-        temp = np.amin(self.M_tot(self.bigK), axis=0)
-        # dex = np.where(self.eta==0)
-        # temp[dex]= -1000
-        self.minLams = - temp
+        temp = np.amin(self.M_tot(self.bigB), axis=0)
+        # temp = self.M_single(self.L)
+
+        self.minLams = -temp
         return 0
 
     def phase_test(self):
         try:
             rho = np.array([self.rho_zero(0, self.minLams), self.rho_zero(1, self.minLams)])
+            print(rho)
             if (rho < self.kappa).any():
                 return 1
             else:
@@ -229,7 +240,7 @@ class zeroFluxSolver:
 
     def setupALL(self):
         self.setM()
-        # self.minLam()
+        self.minLam()
         return 0
 
 
@@ -244,8 +255,6 @@ class zeroFluxSolver:
 
 
     def rho_zero(self, alpha, lams):
-        if (self.E_zero_fixed(alpha, lams) <= 0).any():
-            return 0
         temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed(alpha, lams))
         return temp
     def findLambda_zero(self,alpha):
@@ -257,7 +266,7 @@ class zeroFluxSolver:
         while(np.absolute(rhoguess-self.kappa) >= self.tol):
              self.lams[alpha] = (lamMin+lamMax)/2
              try:
-                 rhoguess = self.rho_true(alpha, self.lams)
+                 rhoguess = self.rho_zero(alpha, self.lams)
                  # rhoguess = self.rho_zero(alpha, self.lams)
                  if rhoguess - self.kappa > 0:
                      lamMin = self.lams[alpha]
@@ -314,20 +323,20 @@ class zeroFluxSolver:
         plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[alpha], 'b')
         plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[alpha] , 'b')
         plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[alpha], 'b')
-        plt.plot(np.linspace(0.5, 1, self.graphres), self.dKGamma[alpha], 'b')
-        plt.plot(np.linspace(1, 1.4, self.graphres), self.dGammaL[alpha], 'b')
-        plt.plot(np.linspace(1.4, 1.7, self.graphres), self.dLU[alpha], 'b')
-        plt.plot(np.linspace(1.7, 1.85, self.graphres),self.dUW[alpha], 'b')
+        plt.plot(np.linspace(0.5, 0.9, self.graphres), self.dKGamma[alpha], 'b')
+        plt.plot(np.linspace(0.9, 1.3, self.graphres), self.dGammaL[alpha], 'b')
+        plt.plot(np.linspace(1.3, 1.6, self.graphres), self.dLU[alpha], 'b')
+        plt.plot(np.linspace(1.6, 1.85, self.graphres),self.dUW[alpha], 'b')
         plt.ylabel(r'$\omega/J_{zz}$')
         plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.4, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.7, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-        xlabpos = [-0.5,0,0.3,0.5,1,1.4,1.7,1.85]
+        xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
         labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
         plt.xticks(xlabpos, labels)
         if show:

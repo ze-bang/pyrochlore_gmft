@@ -380,10 +380,10 @@ class piFluxSolver:
         plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[index], color)
         plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[index], color)
         plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[index], color)
-        plt.plot(np.linspace(0.5, 1, self.graphres), self.dKGamma[index], color)
-        plt.plot(np.linspace(1, 1.4, self.graphres), self.dGammaL[index], color)
-        plt.plot(np.linspace(1.4, 1.7, self.graphres), self.dLU[index], color)
-        plt.plot(np.linspace(1.7, 1.85, self.graphres), self.dUW[index], color)
+        plt.plot(np.linspace(0.5, 0.9, self.graphres), self.dKGamma[index], color)
+        plt.plot(np.linspace(1, 1.3, self.graphres), self.dGammaL[index], color)
+        plt.plot(np.linspace(1.3, 1.6, self.graphres), self.dLU[index], color)
+        plt.plot(np.linspace(1.6, 1.85, self.graphres), self.dUW[index], color)
 
 
     def graph(self, alpha, show):
@@ -404,11 +404,11 @@ class piFluxSolver:
         plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.4, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.7, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+        plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
         plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-        xlabpos = [-0.5,0,0.3,0.5,1,1.4,1.7,1.85]
+        xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
         labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
         plt.xticks(xlabpos, labels)
 
