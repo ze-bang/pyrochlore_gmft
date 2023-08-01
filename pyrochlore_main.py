@@ -230,9 +230,9 @@ def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
     py0s.calAllDispersion()
 
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
-    # kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,1, nK), np.linspace(1, 1.4, nK), np.linspace(1.4, 1.7, nK), np.linspace(1.7, 1.85, nK)))
-    # d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
-    d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
+    kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
+    d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
+    # d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
     kk = np.linspace(-0.5, 0, nK)
     np.savetxt("Files/"+filename+".txt", d1)
 
@@ -241,15 +241,15 @@ def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
     X,Y = np.meshgrid(kk, e)
     plt.contourf(X,Y, d1, levels=100)
     plt.ylabel(r'$\omega/J_{zz}$')
-    # plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=1, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=1.4, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=1.7, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-    xlabpos = [-0.5, 0, 0.3, 0.5, 1, 1.4, 1.7, 1.85]
+    plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
+    xlabpos = [-0.5, 0, 0.3, 0.5, 0.9, 1.3, 1.6, 1.85]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
     # dex = edges(d1, e, 5e-2)
@@ -274,11 +274,21 @@ def BZbasis(mu):
         return np.pi*np.array([0,1,0])
     elif mu == 2:
         return np.pi*np.array([0,0,1])
+
+def BZbasisa(mu):
+    if mu == 0:
+        return 2*np.pi*np.array([-1,1,1])
+    elif mu == 1:
+        return 2*np.pi*np.array([1,-1,1])
+    elif mu == 2:
+        return 2*np.pi*np.array([1,1,-1])
+
 def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
 
 def hkltoKtest(H, L):
-    return H * (BZbasis(0)+BZbasis(1)) + L * BZbasis(2)
+    return np.einsum('ij,k->ijk',H, BZbasisa(0)+BZbasisa(1)) + np.einsum('ij,k->ijk',L, BZbasisa(2))
+
 def SSSF_zero_cal(nK, BZres, Jpm, filename):
     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK)
     py0s.setupALL()
@@ -328,7 +338,7 @@ def SSSF_pi_cal(nK, BZres, Jpm, filename):
     # dex = edges(d1, e, 5e-2)
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
-    # plt.show()
+    plt.show()
 
 def SSSF(nK, BZres, Jpm, filename):
     if Jpm >= 0:
@@ -342,7 +352,7 @@ def SSSF(nK, BZres, Jpm, filename):
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 1, "phase_mag_111.txt")
+# findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 1, "phase_mag_111.txt")
 
-# spinon_continuum(100,100,40,0.046, "spin_con_zero_complete")
-# SSSF(30,0.04, "SSSF_Zero_0.04")
+# spinon_continuum(20,20,20,-1/3, "spin_con_zero_complete")
+SSSF(20,20,-0.25, "SSSF_pi_test")

@@ -30,10 +30,18 @@ def green_zero(k, omega, alpha, pyp0):
 
 
 
-def green_pi(k, omega, alpha, pypi, mu, nu, i):
-    temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
-    return tempc
+def green_pi(k, omega, alpha, pypi):
+    indexS = alpha * 4
+    indexE = (alpha + 1) * 4
+    V = pypi.V[:,indexS:indexE, indexS:indexE]
+    E = pypi.E_pi(k, alpha, pypi.lams)
+    X = np.array([[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]])
+    temp = 2*pypi.Jzz*np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    tempc = np.einsum('ik,jl->ikjl', E, X)
+    temp = temp/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + tempc))
+    # tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
+    return temp
 
 def gaussian(mu, tol):
     return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
@@ -106,29 +114,32 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
-    greenp1 = np.zeros((len(Ks),4,4), dtype=complex)
-    greenp2 = np.zeros((len(Ks),4,4,4,4), dtype=complex)
 
-    # vgreenpi = np.vectorize(green_pi, excluded=['omega', 'alpha', 'pypi', 'mu', 'nu', 'i'])
+    bigdex = np.zeros((4,4,4))
+
     for rs in range(4):
-        for gamma in range(4):
-            for i in range(4):
-                for j in range(4):
-                    if not i == j:
-                        mu = unitCell(rs) + neta(alpha) * step(i)
-                        nu = unitCell(rs) + neta(alpha) * step(j)
-                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                        index1 = findS(rs1)
-                        index2 = findS(rs2)
-                        greenp1[:, gamma, rs] = green_pi(Ks,omega,alpha, pyp0, rs, rs, gamma)
-                        greenp2[:, gamma, rs, i, j] = green_pi(Ks, omega, alpha, pyp0, index1, index2, gamma)
+        for i in range(4):
+            for j in range(4):
+                if not i == j:
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rs) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    bigdex[rs,index1,index2] += 1
 
+    greenp1 = np.einsum('ijkl,kl->ijk',green_pi(Ks, 0, alpha, pyp0), np.identity(4))
     greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
-    temp = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
-    temp2 = np.einsum('iajkl, ibjlo-> iab', greenp1, temp)
 
-    inte = np.einsum('ijk, ijk', temp2, gauss)
+    greenp2 = np.einsum('ijkl,a->ijakl',green_pi(Qs, 0, alpha, pyp0), np.ones(4))
+    greenp2 = np.einsum('ijakl,akl->ijakl', greenp2, bigdex)
+
+    greenp2 = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
+    inte = np.einsum('iajkl, ibjkl->iab', greenp1, greenp2)
+
+    inte = np.einsum('ijk, ijk', inte, gauss)
+
     return np.real(inte)
 
 
@@ -143,27 +154,30 @@ def SSSF_pi(q, alpha, pyp0):
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
-    greenp1 = np.zeros((len(Ks),4), dtype=complex)
-    greenp2 = np.zeros((len(Ks),4,4,4), dtype=complex)
+    bigdex = np.zeros((4,4,4))
 
     for rs in range(4):
-        for gamma in range(4):
-            for i in range(4):
-                for j in range(4):
-                    if not i == j:
-                        mu = unitCell(rs) + neta(alpha) * step(i)
-                        nu = unitCell(rs) + neta(alpha) * step(j)
-                        rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                        index1 = findS(rs1)
-                        index2 = findS(rs2)
-                        greenp1[:, rs] = green_pi(Ks,0,alpha, pyp0, rs, rs, gamma)
-                        greenp2[:, rs, i, j] = green_pi(Ks, 0, alpha, pyp0, index1, index2, gamma)
-    greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
-    temp = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
-    inte = np.einsum('iajkl, ibjlo', greenp1, temp)
+        for i in range(4):
+            for j in range(4):
+                if not i == j:
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rs) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    bigdex[rs,index1,index2] += 1
 
-    return np.real(inte)
+    greenp1 = np.einsum('ijkl,kl->ijk',green_pi(Ks, 0, alpha, pyp0), np.identity(4))
+    greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
+
+    greenp2 = np.einsum('ijkl,a->ijakl',green_pi(Qs, 0, alpha, pyp0), np.ones(4))
+    greenp2 = np.einsum('ijakl,akl->ijakl', greenp2, bigdex)
+
+    greenp2 = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
+    inte = np.einsum('iajkl, ibjkl', greenp1, greenp2)
+
+    return np.real(np.sum(inte))
 
 
 def graph_spin_cont_pi(pyp0, E, K, tol):
