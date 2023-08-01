@@ -161,9 +161,10 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
             print("Jpm is now " + str(JP[i]))
             print("h is now " + str(h[j]))
             if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=36)
+                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=50)
                 py0s.setupALL()
                 print("Finding 0 Flux Lambda")
+                # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
                 print(py0s.lams)
                 try:
@@ -341,7 +342,7 @@ def SSSF(nK, BZres, Jpm, filename):
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,0,0]), 1, "phase_mag_100.txt")
+findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 1, "phase_mag_111.txt")
 
-spinon_continuum(100,100,40,0.046, "spin_con_zero_complete")
+# spinon_continuum(100,100,40,0.046, "spin_con_zero_complete")
 # SSSF(30,0.04, "SSSF_Zero_0.04")
