@@ -31,9 +31,7 @@ def green_zero(k, omega, alpha, pyp0):
 
 
 def green_pi(k, omega, alpha, pypi):
-    indexS = alpha * 4
-    indexE = (alpha + 1) * 4
-    V = pypi.V[:,indexS:indexE, indexS:indexE]
+    V = pypi.V[alpha]
     E = pypi.E_pi(k, alpha, pypi.lams)
     X = np.array([[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]])
     temp = 2*pypi.Jzz*np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
@@ -41,6 +39,29 @@ def green_pi(k, omega, alpha, pypi):
     tempc = np.einsum('ik,jl->ikjl', E, X)
     temp = temp/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + tempc))
     # tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
+    return temp
+
+
+def green_pi_test(k, omega, alpha, pypi):
+    V = pypi.V[alpha]
+    E = pypi.E_pi(k, alpha, pypi.lams)
+    temp = np.zeros((len(k),4,4,4), dtype=complex)
+    for i in range(4):
+        for mu in range(4):
+            for nu in range(4):
+                if not mu == nu:
+                    temp[:, i, mu, nu] = 2*pypi.Jzz*np.multiply(V[:,nu,i], np.conj(np.transpose(V, (0, 2, 1)))[:,i,mu])/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + E[:, i]))
+    return temp
+
+def green_pi_test_1(k, omega, alpha, pypi):
+    V = pypi.V[alpha]
+    E = pypi.E_pi(k, alpha, pypi.lams)
+    temp = np.zeros((len(k),4,4,4), dtype=complex)
+    for i in range(4):
+        for mu in range(4):
+            for nu in range(4):
+                if not mu == nu:
+                    temp[:, i, mu, nu] =  E[:, i]
     return temp
 
 def gaussian(mu, tol):
@@ -56,11 +77,32 @@ def formfactor():
             M[i][j] = NN(i)-NN(j)
     return M
 
+def formfactorM():
+    M=np.zeros((4,4,3))
+    for i in range(4):
+        for j in range(4):
+            M[i][j] = NNtest(i)-NNtest(j)
+    return M
+
+def gaugefieldpi(alpha):
+    gauge = np.zeros((4,4,4), dtype=complex)
+    for rs in range(4):
+        for i in range(4):
+            for j in range(4):
+                if not i == j:
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rs) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    gauge[rs,index1,index2] += np.exp(1j * neta(alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
+    return gauge
 def spinon_cont_zero(q, omega, alpha, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks+q
-    le = len(Ks)
-
+    # le = len(Ks)
+    # sQ = np.einsum('i,j->ij', np.ones(le), q)
 
     tempE= pyp0.E_zero(Ks, alpha, pyp0.lams)
     tempQ = pyp0.E_zero(Qs, alpha, pyp0.lams)
@@ -83,13 +125,13 @@ def SSSF_zero(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
+    sQ = np.einsum('i,j->ij', np.ones(le), q)
 
     M = formfactor()
 
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
     ffac = np.einsum('ikl->i', ffac)
-
 
     green = np.multiply(green_zero(Ks, 0, alpha, pyp0), green_zero(Qs, 0, alpha, pyp0))
     inte = np.multiply(green, ffac)
@@ -139,13 +181,14 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     inte = np.einsum('iajkl, ibjkl->iab', greenp1, greenp2)
 
     inte = np.einsum('ijk, ijk', inte, gauss)
-
     return np.real(inte)
 
 
 def SSSF_pi(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
+    le = len(Ks)
+    sQ = np.einsum('i,j->ij', np.ones(le), q)
 
     s = np.array([1,1,1,1])
     dumb = np.einsum('i,j->ij', s, s)
@@ -154,28 +197,29 @@ def SSSF_pi(q, alpha, pyp0):
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
-    bigdex = np.zeros((4,4,4))
+    M = formfactorM()
+    ffacM = np.einsum('ij, klj -> ikl', sQ, M)
+    ffacM = np.exp(1j*ffacM)
+    ffacT = np.einsum('ijk,ijk->ijk', ffac, ffacM)
 
-    for rs in range(4):
-        for i in range(4):
-            for j in range(4):
-                if not i == j:
-                    mu = unitCell(rs) + neta(alpha) * step(i)
-                    nu = unitCell(rs) + neta(alpha) * step(j)
-                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                    index1 = findS(rs1)
-                    index2 = findS(rs2)
-                    bigdex[rs,index1,index2] += 1
+    gauge = gaugefieldpi(alpha)
 
-    greenp1 = np.einsum('ijkl,kl->ijk',green_pi(Ks, 0, alpha, pyp0), np.identity(4))
-    greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
 
-    greenp2 = np.einsum('ijkl,a->ijakl',green_pi(Qs, 0, alpha, pyp0), np.ones(4))
-    greenp2 = np.einsum('ijakl,akl->ijakl', greenp2, bigdex)
 
-    greenp2 = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
-    inte = np.einsum('iajkl, ibjkl', greenp1, greenp2)
+    greenp1 = np.einsum('ijkl->ikl', green_pi(Ks, 0, alpha, pyp0))
+    greenp1 = np.einsum('ikl,kl->ik',greenp1, np.identity(4))
+    greenp1 = np.einsum('ik, la-> ikla', greenp1, dumb)
+
+
+    greenp2 = np.einsum('ijkl->ikl',green_pi_test_1(Qs, 0, alpha, pyp0))
+
+    greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(4))
+    greenp2 = np.einsum('iakl,akl->iakl', greenp2, gauge)
+    # print(greenp2)
+
+    greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffacT)
+    inte = np.einsum('iakl, ibkl', greenp1, greenp2)
+    # print(np.sum(greenp2))
 
     return np.real(np.sum(inte))
 

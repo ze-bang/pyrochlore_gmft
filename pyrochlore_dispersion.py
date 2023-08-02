@@ -188,11 +188,12 @@ class zeroFluxSolver:
         M[:, 1, 1] = self.M_zero(k, 1)
         M[:, 0, 1] = self.exponent_mag(k, 0)
         M[:, 1, 0] = self.exponent_mag(k, 1)
-        E, V = np.linalg.eig(M)
+        E, V = np.linalg.eigh(M)
         if self.Mset == False:
             self.MF = M
             self.Mset = True
         # print(V)
+        # print(E)
         return np.real(E)
 
     def M_single(self, k):
@@ -217,7 +218,7 @@ class zeroFluxSolver:
 
     def minLam(self):
         # k = obliqueProj(k)
-        temp = np.amin(self.M_tot(self.bigB), axis=0)
+        temp = np.amin(self.M.T, axis=0)
         # temp = self.M_single(self.L)
 
         self.minLams = -temp
@@ -226,7 +227,6 @@ class zeroFluxSolver:
     def phase_test(self):
         try:
             rho = np.array([self.rho_zero(0, self.minLams), self.rho_zero(1, self.minLams)])
-            print(rho)
             if (rho < self.kappa).any():
                 return 1
             else:
@@ -279,9 +279,9 @@ class zeroFluxSolver:
              # if lamMax < self.minLams[alpha]:
              #     self.lams[alpha] = -1000
              #     return 1
-             # if lamMax == 0 or rhoguess == 0:
-             #     self.lams[alpha] = -1000
-             #     return 1
+             if lamMax == 0:
+                 self.lams[alpha] = -1000
+                 return 1
         return 0
 
 

@@ -34,10 +34,10 @@ def phaseMag(lams, minLams, pi):
     if np.all(lams < minLams):
         print("AFM Phase")
         return 0
-    elif lamA < minLams[0]:
+    elif lamA - minLams[0] < 0:
         print("PMu Phase")
         return 1+pi
-    elif lamB < minLams[1]:
+    elif lamB - minLams[1]< 0:
         print("PMu Phase")
         return -(1+pi)
     else:
@@ -66,16 +66,20 @@ def edges(D, E, tol):
 #region graph dispersion
 def graphdispersion(JP, kappa, rho, graphres, BZres):
     if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP, kappa=rho, graphres=graphres, BZres=BZres)
+        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres)
         py0s.setupALL()
         py0s.findLambda()
         print(py0s.lams)
         py0s.graph(0, False)
         py0s.graph(1, True)
     elif JP < 0:
-        py0s = pypi.piFluxSolver(JP, kappa=rho, graphres=graphres, BZres=BZres)
+        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres)
         py0s.setupALL()
         py0s.findLambda()
+        print(py0s.M_pi_single(np.pi * np.array([1, 1, 1])/2, 0))
+        print(py0s.M_pi_single(np.pi*np.array([1,1,-1])/2, 0))
+        print(py0s.M_pi_single(np.pi * np.array([-1, -1, 1])/2, 0))
+        print(py0s.M_pi_single(np.pi*np.array([-1,-1,-1])/2, 0))
         py0s.graph(0, False)
         py0s.graph(1, True)
 #endregion
@@ -83,7 +87,7 @@ def graphdispersion(JP, kappa, rho, graphres, BZres):
 #region Phase for Anisotropy
 def findPhase(nK, nE, res, filename):
 
-    JP = np.linspace(0, 0.1, nK)
+    JP = np.linspace(0, 0.03, nK)
     kappaR = np.linspace(-1, 0, nE)
     kappa = (1+kappaR)/(1-kappaR)
 
@@ -147,7 +151,7 @@ def findPhase(nK, nE, res, filename):
 #endregion
 
 #region Phase for Magnetic Field
-def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
+def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     n = n / magnitude(n)
     print(n)
 
@@ -161,17 +165,18 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, kappa, filename):
             print("Jpm is now " + str(JP[i]))
             print("h is now " + str(h[j]))
             if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=50)
+                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=BZres)
                 py0s.setupALL()
                 print("Finding 0 Flux Lambda")
                 # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
-                print(py0s.lams)
-                try:
-                    py0s.calDispersion()
-                    phases[i][j] = 1
-                except:
-                    phases[i][j] = 0
+                print(py0s.lams, py0s.minLams)
+                phases[i,j] = phaseMag(py0s.lams, py0s.minLams, 0)
+                # try:
+                #     py0s.calDispersion()
+                #     phases[i][j] = 1
+                # except:
+                #     phases[i][j] = 0
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
                 pyps.setupALL()
@@ -196,7 +201,7 @@ def spinon_continuum_zero(nE, nK, Jpm, filename, BZres):
 
     e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
-    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.04)
+    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.02)
 
 
     np.savetxt("Files/"+filename+".txt", d1)
@@ -233,7 +238,9 @@ def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
     d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
     # d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
-    kk = np.linspace(-0.5, 0, nK)
+    # kk = np.linspace(-0.5, 0, nK)
+
+
     np.savetxt("Files/"+filename+".txt", d1)
 
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
@@ -277,11 +284,11 @@ def BZbasis(mu):
 
 def BZbasisa(mu):
     if mu == 0:
-        return 2*np.pi*np.array([-1,1,1])
+        return np.pi*np.array([1,0,0])/2
     elif mu == 1:
-        return 2*np.pi*np.array([1,-1,1])
+        return np.pi*np.array([0,1,0])/2
     elif mu == 2:
-        return 2*np.pi*np.array([1,1,-1])
+        return np.pi*np.array([0,0,1])/2
 
 def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
@@ -298,15 +305,36 @@ def SSSF_zero_cal(nK, BZres, Jpm, filename):
     H = np.linspace(-2,2,nK)
     L = np.linspace(-2,2,nK)
 
-    X, Y = np.meshgrid(H, L)
-    K = hkltoK(X,Y).reshape((nK*nK,3))
+    A, B = np.meshgrid(H, L)
+    K = hkltoK(A,B).reshape((nK*nK,3))
 
 
     d1 = graph_SSSF_zero(py0s, K).reshape((nK, nK))
     np.savetxt("Files/"+filename+".txt", d1)
 
+    Gamma = np.array([0, 0])
+    L =  np.array([1, 1])/2
+    X = np.array([0, 1])
+    K = np.array([3/4,0])
+    U = np.array([1 / 4, 1])
+    Up = np.array([1 / 4, -1])
+
+    plt.plot([0],[0], marker='o', color='b')
+    plt.plot(drawLine(X, U, 2).T[0], drawLine(X, U, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(U, L, 2).T[0], drawLine(U, L, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(K, L, 2).T[0], drawLine(K, L, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(K, Up, 2).T[0], drawLine(K, Up, 2).T[1], color='b')
+    plt.plot(drawLine(-U, Up, 2).T[0], drawLine(-U, Up, 2).T[1], color='b')
+    plt.plot(drawLine(-U, -K, 2).T[0], drawLine(-U, -K, 2).T[1], color='b')
+    plt.plot(drawLine(-Up, -K, 2).T[0], drawLine(-Up, -K, 2).T[1], color='b')
+    plt.plot(drawLine(-Up, U, 2).T[0], drawLine(-Up, U, 2).T[1], color='b')
+    plt.text(Gamma[0]+0.03,Gamma[1]+0.03, '$\Gamma$')
+    plt.text(L[0]+0.03,L[1]+0.03, '$L$')
+    plt.text(X[0]+0.03,X[1]+0.03, '$X$')
+    plt.text(K[0]+0.03,K[1]+0.03, '$K$')
+    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    plt.contourf(X,Y, d1, levels=100)
+    plt.contourf(A,B, d1, levels=100)
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
 
@@ -315,24 +343,48 @@ def SSSF_zero_cal(nK, BZres, Jpm, filename):
     plt.savefig("Files/"+filename+".png")
     plt.show()
 
+
 def SSSF_pi_cal(nK, BZres, Jpm, filename):
 
     py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK)
     py0s.setupALL()
     py0s.findLambda()
-    py0s.calAllDispersion()
+    # py0s.calAllDispersion()
 
     H = np.linspace(-2,2,nK)
     L = np.linspace(-2,2,nK)
-    X, Y = np.meshgrid(H, L)
-    K = hkltoK(X,Y).reshape((nK*nK,3))
+    A, B = np.meshgrid(H, L)
+    K = hkltoKtest(A,B).reshape((nK*nK,3))
 
 
     d1 = graph_SSSF_pi(py0s, K).reshape((nK, nK))
     np.savetxt("Files/"+filename+".txt", d1)
 
+
+    Gamma = np.array([0, 0])
+    L =  np.array([1, 1])/2
+    X = np.array([0, 1])
+    K = np.array([3/4,0])
+    U = np.array([1 / 4, 1])
+    Up = np.array([1 / 4, -1])
+
+    plt.plot([0],[0], marker='o', color='b')
+    plt.plot(drawLine(X, U, 2).T[0], drawLine(X, U, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(U, L, 2).T[0], drawLine(U, L, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(K, L, 2).T[0], drawLine(K, L, 2).T[1], marker='o', color='b')
+    plt.plot(drawLine(K, Up, 2).T[0], drawLine(K, Up, 2).T[1], color='b')
+    plt.plot(drawLine(-U, Up, 2).T[0], drawLine(-U, Up, 2).T[1], color='b')
+    plt.plot(drawLine(-U, -K, 2).T[0], drawLine(-U, -K, 2).T[1], color='b')
+    plt.plot(drawLine(-Up, -K, 2).T[0], drawLine(-Up, -K, 2).T[1], color='b')
+    plt.plot(drawLine(-Up, U, 2).T[0], drawLine(-Up, U, 2).T[1], color='b')
+    plt.text(Gamma[0]+0.03,Gamma[1]+0.03, '$\Gamma$')
+    plt.text(L[0]+0.03,L[1]+0.03, '$L$')
+    plt.text(X[0]+0.03,X[1]+0.03, '$X$')
+    plt.text(K[0]+0.03,K[1]+0.03, '$K$')
+    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
+
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    plt.contourf(X,Y, d1, levels=100)
+    plt.contourf(A,B, d1, levels=100)
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
     # dex = edges(d1, e, 5e-2)
@@ -348,11 +400,12 @@ def SSSF(nK, BZres, Jpm, filename):
 
 #endregion
 
-# graphdispersion(0.1, 1, 1, 10, 36)
+# graphdispersion(-1/3, 1, 2, 20, 20)
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 1, "phase_mag_111.txt")
+# findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 20, 1, "phase_mag_111.txt")
 
-# spinon_continuum(20,20,20,-1/3, "spin_con_zero_complete")
-SSSF(20,20,-0.25, "SSSF_pi_test")
+spinon_continuum(50,50,50,0.046, "spin_con_zero_test")
+
+# SSSF(20,20,-1/3, "SSSF_pi_test")

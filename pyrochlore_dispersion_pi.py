@@ -9,7 +9,15 @@ def neta(alpha):
         return 1
     else:
         return -1
-
+def NN(mu):
+    if mu == 0:
+        return np.array([-1 / 4, -1 / 4, -1 / 4])
+    if mu == 1:
+        return np.array([-1 / 4, 1 / 4, 1 / 4])
+    if mu == 2:
+        return np.array([1 / 4, -1 / 4, 1 / 4])
+    if mu == 3:
+        return np.array([1 / 4, 1 / 4, -1 / 4])
 
 def ifFBZ(k):
     b1, b2, b3 = k
@@ -134,9 +142,7 @@ class piFluxSolver:
         # self.e2 = np.array([1, 0, 1])/2
         # self.e3 = np.array([1, 1, 0])/2
 
-        self.E = []
-        self.V= []
-        self.Mset = False
+
 
         self.mindex = -1
         self.minLams = np.zeros(2)
@@ -158,7 +164,9 @@ class piFluxSolver:
         self.graphres = graphres
         self.bigB = genBZ(BZres)
         self.M = np.zeros((len(self.bigB), 8))
-
+        self.E = []
+        self.V= np.zeros((2,len(self.bigB),4,4), dtype=complex)
+        self.Mset = False
         self.Vt= []
 
         self.GammaX = drawLine(self.Gamma, self.X, graphres)
@@ -239,13 +247,23 @@ class piFluxSolver:
                     index1 = findS(rs1)
                     index2 = findS(rs2)
                     M[:, index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                    M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                    M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+                    # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                    # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
 
         return M
 
-
-    def M_pi(self, k):
+    def M_pi(self, k, alpha):
+        bigM = np.zeros((len(k), 4,4,4), dtype=complex)
+        for i in range(4):
+            bigM[:,i, :, :] = self.M_pi_sub(k,i,alpha)
+        M = np.einsum('ijkl->ikl', bigM)
+        E, V = np.linalg.eigh(M)
+        # print(E)
+        # print(V)
+        if self.Mset == False:
+            self.V[alpha] = V
+        return np.real(E)
+    def M_pi_tot(self, k):
         bigM1 = np.zeros((len(k), 4,4,4), dtype=complex)
         bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
         for i in range(4):
@@ -254,17 +272,43 @@ class piFluxSolver:
         M = np.einsum('ijkl->ikl', bigM1)
         M1 = np.einsum('ijkl->ikl', bigM2)
         FM = np.block([[M, np.zeros((len(k), 4,4))],[np.zeros((len(k), 4,4)), M1]])
-        E, V = np.linalg.eig(FM)
+        E, V = np.linalg.eigh(FM)
+        # print(E)
         if self.Mset == False:
             self.V = V
             self.Vt = np.trace(np.einsum('ijk,ijk->ijk', V, np.conj(V)), axis1=1, axis2=2)
             self.Mset = True
         return np.real(E)
 
+    def M_pi_sub_single(self, k, rs, alpha):
+        M = np.zeros((4, 4), dtype=complex)
+        for i in range(4):
+            for j in range(4):
+                if not i==j:
+                    mu = unitCell(rs) + neta(alpha)*step(i)
+                    nu = unitCell(rs) + neta(alpha)*step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    M[index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
+                    # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                    # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+
+        return M
+
+    def M_pi_single(self, k, alpha):
+        bigM = np.zeros((4,4,4), dtype=complex)
+        for i in range(4):
+            bigM[i, :, :] = self.M_pi_sub_single(k,i,alpha)
+        M = np.einsum('ijk->jk', bigM)
+        E, V = np.linalg.eigh(M)
+        return np.real(E)
 
 
     def setM(self):
-        self.M = self.M_pi(self.bigB)
+        self.M[:, 0:4] = self.M_pi(self.bigB, 0)
+        self.M[:, 4:8] = self.M_pi(self.bigB, 1)
         return 1
     #
     #
@@ -286,17 +330,19 @@ class piFluxSolver:
 
     def E_pi(self,k, alpha, lams):
         # k = obliqueProj(k)
-        indexS = alpha*4
-        indexE = (alpha+1)*4
-        temp = self.M_pi(k)[:,indexS:indexE]
+        # indexS = alpha*4
+        # indexE = (alpha+1)*4
+        # temp = self.M_pi(k)[:,indexS:indexE]
+        temp = self.M_pi(k, alpha)
+
         val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
         return val
 
 
 
-    def minLam(self, alpha):
+    def minLam(self):
         # k = obliqueProj(k)
-        temp = np.amin(self.M_pi(self.bigK), axis=0)
+        temp = np.amin(self.M, axis=0)
         # dex = np.where(self.eta==0)
         # temp[dex]= -1000
         self.minLams = - temp
@@ -304,8 +350,7 @@ class piFluxSolver:
 
     def setupALL(self):
         self.setM()
-        self.minLam(0)
-        self.minLam(1)
+        # self.minLam()
         return 0
 
     def setE(self, lams):
@@ -373,6 +418,7 @@ class piFluxSolver:
         self.dUW[indexS:indexE] = self.dispersion_pi(self.UW, alpha, self.lams).T
 
     def calAllDispersion(self):
+        self.Mset = True
         self.calDispersion(0)
         self.calDispersion(1)
 
@@ -381,7 +427,7 @@ class piFluxSolver:
         plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[index], color)
         plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[index], color)
         plt.plot(np.linspace(0.5, 0.9, self.graphres), self.dKGamma[index], color)
-        plt.plot(np.linspace(1, 1.3, self.graphres), self.dGammaL[index], color)
+        plt.plot(np.linspace(0.9, 1.3, self.graphres), self.dGammaL[index], color)
         plt.plot(np.linspace(1.3, 1.6, self.graphres), self.dLU[index], color)
         plt.plot(np.linspace(1.6, 1.85, self.graphres), self.dUW[index], color)
 
@@ -390,14 +436,14 @@ class piFluxSolver:
         if not self.didit:
             self.calAllDispersion()
 
-        for i in range(4):
-            index = alpha*4 + i
-            self.graphbranch(index, 'b')
+        # for i in range(4):
+        #     index = alpha*4 + i
+        #     self.graphbranch(index, 'b')
 
-        # self.graphbranch(0, 'b')
-        # self.graphbranch(1, 'r')
-        # self.graphbranch(2, 'y')
-        # self.graphbranch(3, 'g')
+        self.graphbranch(4*alpha, 'b')
+        self.graphbranch(4*alpha+1, 'r')
+        self.graphbranch(4*alpha+2, 'y')
+        self.graphbranch(4*alpha+3, 'g')
 
         plt.ylabel(r'$\omega/J_{zz}$')
         plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
