@@ -1,29 +1,114 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import warnings
+from sympy.utilities.iterables import multiset_permutations
+from itertools import permutations
 from numba import jit
+from numba.experimental import jitclass
+from numba import float32, int16, boolean
+from numba import types, typed, typeof
 
 
+# def ifFBZ(k):
+#     b1, b2, b3 = k
+#     if np.any(abs(k) > 2 * np.pi):
+#         return False
+#     elif abs(b1 + b2 + b3) < 3 * np.pi and abs(b1 - b2 + b3) < 3 * np.pi and abs(-b1 + b2 + b3) < 3 * np.pi and abs(
+#             b1 + b2 - b3) < 3 * np.pi:
+#         return True
+#     else:
+#         return False
+#
+#
+# # @jit(nopython=True, parallel=True)
+# def genBZ( d):
+#     d = d * 1j
+#     b = np.mgrid[-2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d].reshape(3, -1).T
+#     BZ = []
+#     for x in b:
+#         if ifFBZ(x):
+#             BZ += [x]
+#     return BZ
+def msp(items):
+  '''Yield the permutations of `items` where items is either a list
+  of integers representing the actual items or a list of hashable items.
+  The output are the unique permutations of the items given as a list
+  of integers 0, ..., n-1 that represent the n unique elements in
+  `items`.
 
-def ifFBZ(k):
-    b1, b2, b3 = k
-    if np.any(abs(k) > 2 * np.pi):
-        return False
-    elif abs(b1 + b2 + b3) < 3 * np.pi and abs(b1 - b2 + b3) < 3 * np.pi and abs(-b1 + b2 + b3) < 3 * np.pi and abs(
-            b1 + b2 - b3) < 3 * np.pi:
-        return True
-    else:
-        return False
+  Examples
+  ========
 
+  # >>> for i in msp('xoxox'):
+  # ...   print(i)
 
+  [1, 1, 1, 0, 0]
+  [0, 1, 1, 1, 0]
+  [1, 0, 1, 1, 0]
+  [1, 1, 0, 1, 0]
+  [0, 1, 1, 0, 1]
+  [1, 0, 1, 0, 1]
+  [0, 1, 0, 1, 1]
+  [0, 0, 1, 1, 1]
+  [1, 0, 0, 1, 1]
+  [1, 1, 0, 0, 1]
 
+  Reference: "An O(1) Time Algorithm for Generating Multiset Permutations", Tadao Takaoka
+  https://pdfs.semanticscholar.org/83b2/6f222e8648a7a0599309a40af21837a0264b.pdf
+  '''
+  def visit(head):
+      (rv, j) = ([], head)
+      for i in range(N):
+          (dat, j) = E[j]
+          rv.append(dat)
+      return rv
+
+  u = list(set(items))
+  E = list(reversed(sorted([u.index(i) for i in items])))
+  N = len(E)
+  # put E into linked-list format
+  (val, nxt) = (0, 1)
+  for i in range(N):
+      E[i] = [E[i], i + 1]
+  E[-1][nxt] = None
+  head = 0
+  afteri = N - 1
+  i = afteri - 1
+  yield visit(head)
+  while E[afteri][nxt] is not None or E[afteri][val] < E[head][val]:
+      j = E[afteri][nxt]  # added to algorithm for clarity
+      if j is not None and E[i][val] >= E[j][val]:
+          beforek = afteri
+      else:
+          beforek = i
+      k = E[beforek][nxt]
+      E[beforek][nxt] = E[k][nxt]
+      E[k][nxt] = head
+      if E[k][val] < E[head][val]:
+          i = k
+      afteri = E[i][nxt]
+      head = k
+      yield visit(head)
+
+def permute(G):
+    B = []
+    for i in msp(G):
+        B += [i]
+        print(i)
+    return B
+def BasisBZ(mu):
+    if mu == 0:
+        return 2*np.pi*np.array([-1,1,1])
+    if mu == 1:
+        return 2*np.pi*np.array([1,-1,1])
+    if mu == 2:
+        return 2*np.pi*np.array([1,1,-1])
 def genBZ( d):
     d = d * 1j
     b = np.mgrid[-2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d].reshape(3, -1).T
-    BZ = []
-    for x in b:
-        if ifFBZ(x):
-            BZ += [x]
+    BZ = np.zeros((len(b), 3), dtype=float)
+    for i in range (len(b)):
+        BZ[i] = b[i, 0] *BasisBZ(0) + b[i, 1] *BasisBZ(1) + b[i, 2] *BasisBZ(2)
     return BZ
 
 def z(mu):
@@ -36,8 +121,64 @@ def z(mu):
     if mu == 3:
         return np.array([1,1,-1])/np.sqrt(3)
 
+#
+# spec = [
+#     ('Jpm', float32),
+#     ('h', float32),
+#     ('n', typeof(np.array([0.0,0.0,0.0]))),
+# ('eta', float32),
+# ('kappa', float32),
+# ('lam', float32),
+# ('BZres', int16),
+# ('graphres', int16),
+# ('omega', float32),
+# ('Jzz', float32),
+# ('tol', float32),
+# ('lams', typeof(np.array([0.0,0.0]))),
+# ('b0', typeof(np.array([0.0,0.0]))),
+# ('b1', typeof(np.array([0.0,0.0]))),
+# ('b2', typeof(np.array([0.0,0.0]))),
+# ('b3', typeof(np.array([0.0,0.0]))),
+# ('e0', typeof(np.array([0.0,0.0]))),
+# ('e1', typeof(np.array([0.0,0.0]))),
+# ('e2', typeof(np.array([0.0,0.0]))),
+# ('e3', typeof(np.array([0.0,0.0]))),
+# ('e3', typeof(np.array([0.0,0.0]))),
+# ('minLams', typeof(np.array([0.0,0.0]))),
+# ('maglam', typeof(np.array([0.0,0.0]))),
+# ('Gamma', typeof(np.array([0.0,0.0]))),
+# ('X', typeof(np.array([0.0,0.0]))),
+# ('L', typeof(np.array([0.0,0.0]))),
+# ('W', typeof(np.array([0.0,0.0]))),
+# ('K', typeof(np.array([0.0,0.0]))),
+# ('U', typeof(np.array([0.0,0.0]))),
+# ('bigB', typeof(np.array([0.0,0.0]))),
+# ('M', typeof(np.zeros((2,3), dtype=float))),
+# ('MF', typeof(np.zeros((2,3), dtype=float))),
+# ('GammaX', typeof(np.zeros((2,3), dtype=float))),
+# ('XW', typeof(np.zeros((2,3), dtype=float))),
+# ('WK', typeof(np.zeros((2,3), dtype=float))),
+# ('KGamma', typeof(np.zeros((2,3), dtype=float))),
+# ('GammaL', typeof(np.zeros((2,3), dtype=float))),
+# ('LU', typeof(np.zeros((2,3), dtype=float))),
+# ('UW', typeof(np.zeros((2,3), dtype=float))),
+# ('bigK', typeof(np.zeros((2,3), dtype=float))),
+# ('dGammaX', typeof(np.zeros((2,3), dtype=float))),
+# ('dXW', typeof(np.zeros((2,3), dtype=float))),
+# ('dWK', typeof(np.zeros((2,3), dtype=float))),
+# ('dKGamma', typeof(np.zeros((2,3), dtype=float))),
+# ('dGammaL', typeof(np.zeros((2,3), dtype=float))),
+# ('dLU', typeof(np.zeros((2,3), dtype=float))),
+# ('dUW', typeof(np.zeros((2,3), dtype=float))),
+# ('V', typeof(np.zeros((3,2,2), dtype=complex))),
+# ('Vt', typeof(np.zeros((3,2,2), dtype=complex))),
+# ('didit', boolean),
+# ('Mset', boolean),
+# ]
+#
+#
+# @jitclass(spec)
 class zeroFluxSolver:
-
     def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
@@ -50,12 +191,11 @@ class zeroFluxSolver:
         self.tol = 1e-3
         self.lams = np.array([lam, lam], dtype=float)
 
-        self.b0 = np.pi * np.array([1, 1, 1])
-        self.b1 = np.pi * np.array([-1, 1, 1])
-        self.b2 = np.pi * np.array([1, -1, 1])
-        self.b3 = np.pi * np.array([1, 1, -1])
+        self.b1 = 2*np.pi * np.array([-1, 1, 1])
+        self.b2 = 2*np.pi * np.array([1, -1, 1])
+        self.b3 = 2*np.pi * np.array([1, 1, -1])
 
-        self.e0 = np.array([0, 0, 0])/2
+        self.e0 = np.array([0,0,0])
         self.e1 = np.array([0, 1, 1])/2
         self.e2 = np.array([1, 0, 1])/2
         self.e3 = np.array([1, 1, 0])/2
@@ -70,13 +210,15 @@ class zeroFluxSolver:
         self.K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
         self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
+        self.symK = self.genALLSymPoints()
+
         self.BZres = BZres
         self.graphres = graphres
         self.bigB = genBZ(BZres)
 
         self.M = np.zeros((2,len(self.bigB)))
-        self.MF = []
-        self.E =[]
+        self.MF = np.zeros((2,len(self.bigB)))
+        self.E =np.zeros(len(self.bigB))
 
         self.GammaX = self.drawLine(self.Gamma, self.X, graphres)
         self.XW = self.drawLine(self.X, self.W, graphres)
@@ -96,8 +238,8 @@ class zeroFluxSolver:
         self.dLU = np.zeros((2,graphres))
         self.dUW = np.zeros((2,graphres))
 
-        self.V = np.zeros((len(self.bigB),2,2))
-        self.Vt = np.zeros((len(self.bigB),2,2))
+        self.V = np.zeros((len(self.bigB),2,2), dtype=complex)
+        self.Vt = np.zeros((len(self.bigB),2,2), dtype=complex)
         self.didit = False
         self.Mset = False
 
@@ -166,7 +308,7 @@ class zeroFluxSolver:
     def exponent_mag(self, k, alpha):
         temp =0
         for mu in range(4):
-            temp += - 1/2 * self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)))
+            temp += - 1/4 * self.h * np.dot(self.n, z(mu)) * np.cos(np.dot(k, self.neta(alpha)*self.NN(mu)))
         return temp
 
 
@@ -206,14 +348,22 @@ class zeroFluxSolver:
         # print(V)
         return np.real(E)
 
-    # def Green(self, lams):
-    #     temp = self.MF + np.diag(lams+self.omega/(2*self.Jzz))
-    #     E,V = np.linalg.eig(temp)
-    #     return np.real(E)
-    #
-    # def rho_true(self, alpha, lams):
-    #     E = self.Green(lams)
-    #     return np.mean(self.Jzz/np.sqrt(2*self.Jzz*E), axis=0)[alpha, alpha]
+    def E_zero_true(self, k, lams):
+        M = np.zeros((len(k), 2, 2), dtype=complex)
+        M[:, 0, 0] = self.M_zero(k, 0)
+        M[:, 1, 1] = self.M_zero(k, 1)
+        M[:, 0, 1] = self.exponent_mag(k, 0)
+        M[:, 1, 0] = self.exponent_mag(k, 1)
+        M = M + + np.diag(lams)
+        E, V = np.linalg.eigh(M)
+        return np.sqrt(2*self.Jzz*np.real(E))
+
+    def rho_true(self, alpha, lams):
+        temp = self.MF + np.diag(lams)
+        E,V = np.linalg.eigh(temp)
+        Vt = np.real(np.einsum('ijk,ijk->ijk',V, np.conj(V))[:,alpha,:])
+        Ep = np.mean(Vt*self.Jzz/np.sqrt(2*self.Jzz*E), axis=0)
+        return np.sum(Ep)
 
 
     def minLam(self):
@@ -257,16 +407,17 @@ class zeroFluxSolver:
     def rho_zero(self, alpha, lams):
         temp = np.mean(self.Jzz*self.eta[alpha] /self.E_zero_fixed(alpha, lams))
         return temp
+
     def findLambda_zero(self,alpha):
         warnings.filterwarnings("error")
         lamMin = 0
-        lamMax = 100
+        lamMax = 50
         rhoguess = 10
         # print(self.kappa)
         while(np.absolute(rhoguess-self.kappa) >= self.tol):
              self.lams[alpha] = (lamMin+lamMax)/2
              try:
-                 rhoguess = self.rho_zero(alpha, self.lams)
+                 rhoguess = self.rho_true(alpha, self.lams)
                  # rhoguess = self.rho_zero(alpha, self.lams)
                  if rhoguess - self.kappa > 0:
                      lamMin = self.lams[alpha]
@@ -275,7 +426,7 @@ class zeroFluxSolver:
              except Exception as e:
                  # print(e)
                  lamMin = self.lams[alpha]
-             # print([lamMin, lamMax, rhoguess])
+             # print([self.lams, lamMin, lamMax, rhoguess])
              # if lamMax < self.minLams[alpha]:
              #     self.lams[alpha] = -1000
              #     return 1
@@ -290,8 +441,8 @@ class zeroFluxSolver:
     def drawLine(self, A, B, N):
         return np.linspace(A, B, N)
 
-    def dispersion_zero(self, P, alpha, lams):
-        temp = self.E_zero(P, alpha, lams)
+    def dispersion_zero(self, P, lams):
+        temp = self.E_zero_true(P, lams)
         return temp
 
     def findLambda(self):
@@ -299,20 +450,35 @@ class zeroFluxSolver:
         self.findLambda_zero(1)
         return 1
 
-
-    def calDispersionA(self, alpha):
-        self.dGammaX[alpha] = self.dispersion_zero(self.GammaX, alpha, self.lams)
-        self.dXW[alpha] = self.dispersion_zero(self.XW, alpha, self.lams)
-        self.dWK[alpha] = self.dispersion_zero(self.WK, alpha, self.lams)
-        self.dKGamma[alpha] = self.dispersion_zero(self.KGamma, alpha, self.lams)
-        self.dGammaL[alpha] = self.dispersion_zero(self.GammaL, alpha, self.lams)
-        self.dLU[alpha] = self.dispersion_zero(self.LU, alpha, self.lams)
-        self.dUW[alpha] = self.dispersion_zero(self.UW, alpha, self.lams)
+    def genALLSymPoints(self):
+        G = np.array(list(set(permutations(self.Gamma))))
+        L = np.array(list(set(permutations(self.L))))
+        X = np.array(list(set(permutations(self.X))))
+        W = np.array(list(set(permutations(self.W))))
+        K = np.array(list(set(permutations(self.K))))
+        U = np.array(list(set(permutations(self.U))))
+        Lp = np.array(list(set(permutations(np.pi*np.array([-1,1,1])))))
+        Wp = np.array(list(set(permutations(2*np.pi*np.array([0,-1,1/2])))))
+        Kp = np.array(list(set(permutations(2*np.pi*np.array([0,-3/4,3/4])))))
+        Up = np.array(list(set(permutations(2*np.pi*np.array([-1/4,1,1/4])))))
+        Upp = np.array(list(set(permutations(2 * np.pi * np.array([1 / 4, -1, 1 / 4])))))
+        A = np.concatenate((G,L,X,W,K,U))
+        Ap = np.concatenate((Lp, Up, Upp))
+        A = np.concatenate((A, -A, Ap, -Ap, Wp, Kp))
+        return A
+    def calSymmetryDispersion(self):
+        #ALL SYMMETRY POINTS
+        # print(self.symK)
+        self.dispersion_zero(self.symK, self.lams)
 
     def calDispersion(self):
-        self.calDispersionA(0)
-        self.calDispersionA(1)
-
+        self.dGammaX= self.dispersion_zero(self.GammaX, self.lams).T
+        self.dXW= self.dispersion_zero(self.XW, self.lams).T
+        self.dWK = self.dispersion_zero(self.WK, self.lams).T
+        self.dKGamma = self.dispersion_zero(self.KGamma, self.lams).T
+        self.dGammaL = self.dispersion_zero(self.GammaL, self.lams).T
+        self.dLU= self.dispersion_zero(self.LU, self.lams).T
+        self.dUW = self.dispersion_zero(self.UW, self.lams).T
         self.didit = True
 
 
@@ -358,6 +524,7 @@ class zeroFluxSolver:
     def gap(self, alpha):
         if not self.didit:
             self.calDispersion()
+        temp = np.amin(self.M, axis=0)
         return self.dGammaX[alpha][0]
 
 

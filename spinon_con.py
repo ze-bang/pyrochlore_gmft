@@ -212,12 +212,12 @@ def SSSF_pi(q, alpha, pyp0):
 
 
     greenp2 = np.einsum('ijkl->ikl',green_pi_test_1(Qs, 0, alpha, pyp0))
-
+    #
     greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(4))
     greenp2 = np.einsum('iakl,akl->iakl', greenp2, gauge)
-    # print(greenp2)
-
-    greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffacT)
+    # # print(greenp2)
+    #
+    # greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffacT)
     inte = np.einsum('iakl, ibkl', greenp1, greenp2)
     # print(np.sum(greenp2))
 

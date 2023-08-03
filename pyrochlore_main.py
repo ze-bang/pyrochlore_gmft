@@ -64,16 +64,16 @@ def edges(D, E, tol):
 #endregion
 
 #region graph dispersion
-def graphdispersion(JP, kappa, rho, graphres, BZres):
+def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
     if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres)
+        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.setupALL()
         py0s.findLambda()
         print(py0s.lams)
         py0s.graph(0, False)
         py0s.graph(1, True)
     elif JP < 0:
-        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres)
+        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.setupALL()
         py0s.findLambda()
         print(py0s.M_pi_single(np.pi * np.array([1, 1, 1])/2, 0))
@@ -170,13 +170,17 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 print("Finding 0 Flux Lambda")
                 # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
-                print(py0s.lams, py0s.minLams)
-                phases[i,j] = phaseMag(py0s.lams, py0s.minLams, 0)
-                # try:
-                #     py0s.calDispersion()
-                #     phases[i][j] = 1
-                # except:
-                #     phases[i][j] = 0
+                print(py0s.lams)
+                # phases[i,j] = phaseMag(py0s.lams, py0s.minLams, 0)
+
+                # py0s.calSymmetryDispersion()
+                try:
+                    # py0s.graph(0, False)
+                    # py0s.graph(1, True)
+                    py0s.calSymmetryDispersion()
+                    phases[i][j] = 1
+                except:
+                    phases[i][j] = 0
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
                 pyps.setupALL()
@@ -354,7 +358,7 @@ def SSSF_pi_cal(nK, BZres, Jpm, filename):
     H = np.linspace(-2,2,nK)
     L = np.linspace(-2,2,nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoKtest(A,B).reshape((nK*nK,3))
+    K = hkltoK(A,B).reshape((nK*nK,3))
 
 
     d1 = graph_SSSF_pi(py0s, K).reshape((nK, nK))
@@ -400,12 +404,12 @@ def SSSF(nK, BZres, Jpm, filename):
 
 #endregion
 
-# graphdispersion(-1/3, 1, 2, 20, 20)
+# graphdispersion(0.15, 2, np.array([0,0,1]), 1, 1, 20, 20)
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0.0, 0.25, 10, 0, 3, 30, np.array([1,1,1]), 20, 1, "phase_mag_111.txt")
+findPhaseMag(0.0, 0.25, 20, 0, 3, 20, np.array([1,1,1]), 20, 1, "phase_mag_111.txt")
 
-spinon_continuum(50,50,50,0.046, "spin_con_zero_test")
+# spinon_continuum(50,50,50,0.046, "spin_con_zero_test")
 
 # SSSF(20,20,-1/3, "SSSF_pi_test")
