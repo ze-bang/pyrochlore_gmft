@@ -13,10 +13,16 @@ import math
 # print(np.einsum('ij,j->i', GammaX, L))
 
 
-H = np.linspace(-2, 2, 5)
-L = np.linspace(-2, 2, 5)
+# H = np.linspace(-2, 2, 5)
+# L = np.linspace(-2, 2, 5)
+#
+# X,Y = np.meshgrid(H, L)
+#
+# print(X)
+# print(Y)
 
-X,Y = np.meshgrid(H, L)
-
-print(X)
-print(Y)
+M = np.array([[3,-1],[-1,3]])
+E,V = np.linalg.eigh(M)
+print(E)
+print(V)
+print(np.transpose(np.conj(V))*M*V)

@@ -263,6 +263,7 @@ class piFluxSolver:
         if self.Mset == False:
             self.V[alpha] = V
         return np.real(E)
+
     def M_pi_tot(self, k):
         bigM1 = np.zeros((len(k), 4,4,4), dtype=complex)
         bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
@@ -276,7 +277,6 @@ class piFluxSolver:
         # print(E)
         if self.Mset == False:
             self.V = V
-            self.Vt = np.trace(np.einsum('ijk,ijk->ijk', V, np.conj(V)), axis1=1, axis2=2)
             self.Mset = True
         return np.real(E)
 
@@ -309,6 +309,7 @@ class piFluxSolver:
     def setM(self):
         self.M[:, 0:4] = self.M_pi(self.bigB, 0)
         self.M[:, 4:8] = self.M_pi(self.bigB, 1)
+        self.Mset=True
         return 1
     #
     #

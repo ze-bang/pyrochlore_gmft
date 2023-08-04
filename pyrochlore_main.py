@@ -6,6 +6,7 @@ from spinon_con import *
 import math
 import time
 import sys
+from graph import *
 from numba import jit
 
 #region miscellaneous
@@ -170,17 +171,17 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 print("Finding 0 Flux Lambda")
                 # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
-                print(py0s.lams)
-                # phases[i,j] = phaseMag(py0s.lams, py0s.minLams, 0)
+                print(py0s.lams, py0s.minLams)
+                phases[i,j] = py0s.E_scan(py0s.lams)
 
                 # py0s.calSymmetryDispersion()
-                try:
-                    # py0s.graph(0, False)
-                    # py0s.graph(1, True)
-                    py0s.calSymmetryDispersion()
-                    phases[i][j] = 1
-                except:
-                    phases[i][j] = 0
+                # try:
+                #     # py0s.graph(0, False)
+                #     # py0s.graph(1, True)
+                #     py0s.M_single(np.pi*np.array([1,1,1]))
+                #     phases[i][j] = 1
+                # except:
+                #     phases[i][j] = 0
             else:
                 pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
                 pyps.setupALL()
@@ -300,11 +301,10 @@ def hkltoK(H, L):
 def hkltoKtest(H, L):
     return np.einsum('ij,k->ijk',H, BZbasisa(0)+BZbasisa(1)) + np.einsum('ij,k->ijk',L, BZbasisa(2))
 
-def SSSF_zero_cal(nK, BZres, Jpm, filename):
-    py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK)
+def SSSF_zero_cal(nK,h, n, BZres, Jpm, filename):
+    py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
     py0s.setupALL()
     py0s.findLambda()
-    py0s.calDispersion()
 
     H = np.linspace(-2,2,nK)
     L = np.linspace(-2,2,nK)
@@ -348,9 +348,9 @@ def SSSF_zero_cal(nK, BZres, Jpm, filename):
     plt.show()
 
 
-def SSSF_pi_cal(nK, BZres, Jpm, filename):
+def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
 
-    py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK)
+    py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK,h=h,n=n)
     py0s.setupALL()
     py0s.findLambda()
     # py0s.calAllDispersion()
@@ -396,11 +396,11 @@ def SSSF_pi_cal(nK, BZres, Jpm, filename):
     plt.savefig("Files/"+filename+".png")
     plt.show()
 
-def SSSF(nK, BZres, Jpm, filename):
+def SSSF(nK,h, n, Jpm, BZres,  filename):
     if Jpm >= 0:
-        SSSF_zero_cal(nK,BZres, Jpm, filename)
+        SSSF_zero_cal(nK,h, n,BZres, Jpm, filename)
     else:
-        SSSF_pi_cal(nK, BZres, Jpm, filename)
+        SSSF_pi_cal(nK,h, n, BZres, Jpm, filename)
 
 #endregion
 
@@ -408,8 +408,11 @@ def SSSF(nK, BZres, Jpm, filename):
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-findPhaseMag(0.0, 0.25, 20, 0, 3, 20, np.array([1,1,1]), 20, 1, "phase_mag_111.txt")
+# findPhaseMag(0.0001, 0.25, 20, 0, 3, 20, np.array([1,1,1]), 40, 1, "phase_mag_111.txt")
 
 # spinon_continuum(50,50,50,0.046, "spin_con_zero_test")
 
-# SSSF(20,20,-1/3, "SSSF_pi_test")
+SSSF(20, 0, np.array([1,1,1]),0.04,20, "SSSF_pi_test")
+
+# graphPhase("Files/phase_diagram.txt")
+# graphMagPhase("phase_mag_111.txt")

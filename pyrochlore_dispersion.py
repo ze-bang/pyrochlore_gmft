@@ -9,26 +9,27 @@ from numba import float32, int16, boolean
 from numba import types, typed, typeof
 
 
-# def ifFBZ(k):
-#     b1, b2, b3 = k
-#     if np.any(abs(k) > 2 * np.pi):
-#         return False
-#     elif abs(b1 + b2 + b3) < 3 * np.pi and abs(b1 - b2 + b3) < 3 * np.pi and abs(-b1 + b2 + b3) < 3 * np.pi and abs(
-#             b1 + b2 - b3) < 3 * np.pi:
-#         return True
-#     else:
-#         return False
-#
-#
-# # @jit(nopython=True, parallel=True)
-# def genBZ( d):
-#     d = d * 1j
-#     b = np.mgrid[-2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d].reshape(3, -1).T
-#     BZ = []
-#     for x in b:
-#         if ifFBZ(x):
-#             BZ += [x]
-#     return BZ
+def ifFBZ(k):
+    b1, b2, b3 = k
+    if np.any(abs(k) > 2 * np.pi):
+        return False
+    elif abs(b1 + b2 + b3) < 3 * np.pi and abs(b1 - b2 + b3) < 3 * np.pi and abs(-b1 + b2 + b3) < 3 * np.pi and abs(
+            b1 + b2 - b3) < 3 * np.pi:
+        return True
+    else:
+        return False
+
+
+# @jit(nopython=True, parallel=True)
+def genBZ( d):
+    d = d * 1j
+    b = np.mgrid[-2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d].reshape(3, -1).T
+    BZ = []
+    # print(b)
+    for x in b:
+        if ifFBZ(x):
+            BZ += [x]
+    return BZ
 def msp(items):
   '''Yield the permutations of `items` where items is either a list
   of integers representing the actual items or a list of hashable items.
@@ -98,18 +99,19 @@ def permute(G):
     return B
 def BasisBZ(mu):
     if mu == 0:
-        return 2*np.pi*np.array([-1,1,1])
+        return np.pi*np.array([-1,1,1])
     if mu == 1:
-        return 2*np.pi*np.array([1,-1,1])
+        return np.pi*np.array([1,-1,1])
     if mu == 2:
-        return 2*np.pi*np.array([1,1,-1])
-def genBZ( d):
-    d = d * 1j
-    b = np.mgrid[-2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d, -2 * np.pi:2 * np.pi:d].reshape(3, -1).T
-    BZ = np.zeros((len(b), 3), dtype=float)
-    for i in range (len(b)):
-        BZ[i] = b[i, 0] *BasisBZ(0) + b[i, 1] *BasisBZ(1) + b[i, 2] *BasisBZ(2)
-    return BZ
+        return np.pi*np.array([1,1,-1])
+
+# def genBZ( d):
+#     d = d * 1j
+#     b = np.mgrid[-1: 1:d, -1: 1:d, -1: 1:d].reshape(3, -1).T
+#     BZ = np.zeros((len(b), 3), dtype=float)
+#     for i in range (len(b)):
+#         BZ[i] = b[i, 0] *BasisBZ(0) + b[i, 1] *BasisBZ(1) + b[i, 2] *BasisBZ(2)
+#     return BZ
 
 def z(mu):
     if mu == 0:
@@ -120,6 +122,45 @@ def z(mu):
         return np.array([1,-1,1])/np.sqrt(3)
     if mu == 3:
         return np.array([1,1,-1])/np.sqrt(3)
+
+Gamma = np.array([0, 0, 0])
+L = np.pi * np.array([1, 1, 1])
+X = 2*np.pi * np.array([0, 1, 0])
+W = 2*np.pi * np.array([0, 1, 1 / 2])
+K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
+U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
+
+
+def genALLSymPoints():
+    pG = np.array(list(set(permutations(Gamma))))
+    pL = np.array(list(set(permutations(L))))
+    pX = np.array(list(set(permutations(X))))
+    pW = np.array(list(set(permutations(W))))
+    pK = np.array(list(set(permutations(K))))
+    pU = np.array(list(set(permutations(U))))
+    Lp = np.array(list(set(permutations(np.pi*np.array([-1,1,1])))))
+    Wp = np.array(list(set(permutations(2*np.pi*np.array([0,-1,1/2])))))
+    Kp = np.array(list(set(permutations(2*np.pi*np.array([0,-3/4,3/4])))))
+    Up = np.array(list(set(permutations(2*np.pi*np.array([-1/4,1,1/4])))))
+    Upp = np.array(list(set(permutations(2 * np.pi * np.array([1 / 4, -1, 1 / 4])))))
+    A = np.concatenate((pG,pL,pX,pW,pK,pU))
+    Ap = np.concatenate((Lp, Up, Upp))
+    A = np.concatenate((A, -A, Ap, -Ap, Wp, Kp))
+    return A
+
+symK = genALLSymPoints()
+
+def populate(res):
+    temp = np.zeros((1,3))
+    for i in symK:
+        for j in symK:
+            if not (i == j).all():
+                temp = np.concatenate((temp, np.linspace(i, j, res)))
+            else:
+                temp = np.concatenate((temp, np.linspace(i, j, 1)))
+    return temp
+
+symK = populate(3)
 
 #
 # spec = [
@@ -210,11 +251,14 @@ class zeroFluxSolver:
         self.K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
         self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
-        self.symK = self.genALLSymPoints()
+        # self.symK = self.genALLSymPoints()
+        # self.symK = self.populate(BZres)
 
         self.BZres = BZres
         self.graphres = graphres
         self.bigB = genBZ(BZres)
+
+        # print(self.bigB)
 
         self.M = np.zeros((2,len(self.bigB)))
         self.MF = np.zeros((2,len(self.bigB)))
@@ -344,18 +388,39 @@ class zeroFluxSolver:
         M[1, 1] = self.M_zero(k, 1)
         M[0, 1] = self.exponent_mag(k, 0)
         M[1, 0] = self.exponent_mag(k, 1)
+        M = M + np.diag(self.lams)
         E, V = np.linalg.eig(M)
         # print(V)
-        return np.real(E)
+        return np.sqrt(2*self.Jzz*np.real(E))
 
-    def E_zero_true(self, k, lams):
+    def E_scan(self, lams):
+        k = symK
         M = np.zeros((len(k), 2, 2), dtype=complex)
         M[:, 0, 0] = self.M_zero(k, 0)
         M[:, 1, 1] = self.M_zero(k, 1)
         M[:, 0, 1] = self.exponent_mag(k, 0)
         M[:, 1, 0] = self.exponent_mag(k, 1)
-        M = M + + np.diag(lams)
+        M = M + np.diag(lams)
         E, V = np.linalg.eigh(M)
+        for i in range(len(k)):
+            if (E[i] < 0).any():
+                print(k[i])
+                return 1
+        else:
+            return 0
+
+    def M_true(self, k, lams):
+        M = np.zeros((len(k), 2, 2), dtype=complex)
+        M[:, 0, 0] = self.M_zero(k, 0)
+        M[:, 1, 1] = self.M_zero(k, 1)
+        M[:, 0, 1] = self.exponent_mag(k, 0)
+        M[:, 1, 0] = self.exponent_mag(k, 1)
+        M = M + np.diag(lams)
+        E, V = np.linalg.eigh(M)
+        return [E,V]
+
+    def E_zero_true(self, k, lams):
+        E, V = self.M_true(k, lams)
         return np.sqrt(2*self.Jzz*np.real(E))
 
     def rho_true(self, alpha, lams):
@@ -390,7 +455,7 @@ class zeroFluxSolver:
 
     def setupALL(self):
         self.setM()
-        self.minLam()
+        # self.minLam()
         return 0
 
 
@@ -450,26 +515,13 @@ class zeroFluxSolver:
         self.findLambda_zero(1)
         return 1
 
-    def genALLSymPoints(self):
-        G = np.array(list(set(permutations(self.Gamma))))
-        L = np.array(list(set(permutations(self.L))))
-        X = np.array(list(set(permutations(self.X))))
-        W = np.array(list(set(permutations(self.W))))
-        K = np.array(list(set(permutations(self.K))))
-        U = np.array(list(set(permutations(self.U))))
-        Lp = np.array(list(set(permutations(np.pi*np.array([-1,1,1])))))
-        Wp = np.array(list(set(permutations(2*np.pi*np.array([0,-1,1/2])))))
-        Kp = np.array(list(set(permutations(2*np.pi*np.array([0,-3/4,3/4])))))
-        Up = np.array(list(set(permutations(2*np.pi*np.array([-1/4,1,1/4])))))
-        Upp = np.array(list(set(permutations(2 * np.pi * np.array([1 / 4, -1, 1 / 4])))))
-        A = np.concatenate((G,L,X,W,K,U))
-        Ap = np.concatenate((Lp, Up, Upp))
-        A = np.concatenate((A, -A, Ap, -Ap, Wp, Kp))
-        return A
+
+
+
     def calSymmetryDispersion(self):
         #ALL SYMMETRY POINTS
         # print(self.symK)
-        self.dispersion_zero(self.symK, self.lams)
+        self.dispersion_zero(self.bigB, self.lams)
 
     def calDispersion(self):
         self.dGammaX= self.dispersion_zero(self.GammaX, self.lams).T

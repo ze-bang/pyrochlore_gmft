@@ -25,8 +25,12 @@ def NN(mu):
 
 
 
-def green_zero(k, omega, alpha, pyp0):
-    return 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*(pyp0.lams[alpha]+pyp0.E_zero(k,alpha, pyp0.lams)))
+def green_zero(k, omega, pyp0):
+    E, V = pyp0.M_true(k, pyp0.lams)
+    Vt = np.einsum('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    green = 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*E)
+    green = np.einsum('ijkl, ij->ikl', Vt, green)
+    return green
 
 
 
@@ -39,30 +43,32 @@ def green_pi(k, omega, alpha, pypi):
     tempc = np.einsum('ik,jl->ikjl', E, X)
     temp = temp/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + tempc))
     # tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
-    return temp
+    return (np.einsum('ijkl->ikl', temp))
 
 
 def green_pi_test(k, omega, alpha, pypi):
-    V = pypi.V[alpha]
-    E = pypi.E_pi(k, alpha, pypi.lams)
-    temp = np.zeros((len(k),4,4,4), dtype=complex)
+    bigM = np.zeros((len(k), 4, 4, 4), dtype=complex)
+    for i in range(4):
+        bigM[:, i, :, :] = pypi.M_pi_sub(k, i, alpha)
+    M = np.einsum('ijkl->ikl', bigM)
+    E, V = np.linalg.eigh(M)
+    temp = np.zeros((len(k),4,4), dtype=complex)
     for i in range(4):
         for mu in range(4):
             for nu in range(4):
-                if not mu == nu:
-                    temp[:, i, mu, nu] = 2*pypi.Jzz*np.multiply(V[:,nu,i], np.conj(np.transpose(V, (0, 2, 1)))[:,i,mu])/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + E[:, i]))
+                temp[:, mu, nu] += 2*pypi.Jzz*np.multiply(V[:,nu,i], np.conj(np.transpose(V, (0, 2, 1)))[:,i,mu])/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + E[:, i]))
     return temp
 
-def green_pi_test_1(k, omega, alpha, pypi):
-    V = pypi.V[alpha]
-    E = pypi.E_pi(k, alpha, pypi.lams)
-    temp = np.zeros((len(k),4,4,4), dtype=complex)
-    for i in range(4):
-        for mu in range(4):
-            for nu in range(4):
-                if not mu == nu:
-                    temp[:, i, mu, nu] =  E[:, i]
-    return temp
+# def green_pi_test_1(k, omega, alpha, pypi):
+#     V = pypi.V[alpha]
+#     E = pypi.E_pi(k, alpha, pypi.lams)
+#     temp = np.zeros((len(k),4,4,4), dtype=complex)
+#     for i in range(4):
+#         for mu in range(4):
+#             for nu in range(4):
+#                 if not mu == nu:
+#                     temp[:, i, mu, nu] =  E[:, i]
+#     return temp
 
 def gaussian(mu, tol):
     return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
@@ -113,15 +119,14 @@ def spinon_cont_zero(q, omega, alpha, pyp0, tol):
     ffac = np.einsum('ikl->i', ffac)
 
 
-    green = np.multiply(green_zero(Ks, omega, alpha, pyp0), green_zero(Qs, omega, alpha, pyp0))
+    green = np.trace(np.fliplr(np.einsum('ijk,ikj->ijk',green_zero(Ks, 0, pyp0), green_zero(Qs, 0, pyp0))), axis1=1, axis2=2)
     temp = np.multiply(cauchy(omega-tempE-tempQ, tol), green)
     inte = np.multiply(temp, ffac)
 
 
-
     return np.real(np.sum(inte))
 
-def SSSF_zero(q, alpha, pyp0):
+def SSSF_zero(q, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
@@ -133,10 +138,18 @@ def SSSF_zero(q, alpha, pyp0):
     ffac = np.exp(1j*ffac)
     ffac = np.einsum('ikl->i', ffac)
 
-    green = np.multiply(green_zero(Ks, 0, alpha, pyp0), green_zero(Qs, 0, alpha, pyp0))
-    inte = np.multiply(green, ffac)
+    greenp1 = green_zero(Ks, 0, pyp0)
+    greenp2 = green_zero(Qs, 0, pyp0)
 
-    return np.real(np.sum(inte))
+    green = np.einsum('ijj,ikk->ijk',greenp1, greenp2)
+    green = green[:,0,1] + green[:,1,0]
+
+    temp = np.einsum('ijk,ikj->ijk', greenp1, greenp2)
+    temp = temp[:, 0, 1] + temp[:, 1, 0]
+    green = green + temp
+
+    inte = np.multiply(green, ffac)
+    return np.real(np.sum(inte))/(2*le)
 
 
 def spinon_cont_pi(q, omega, alpha, pyp0, tol):
@@ -188,7 +201,6 @@ def SSSF_pi(q, alpha, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
-    sQ = np.einsum('i,j->ij', np.ones(le), q)
 
     s = np.array([1,1,1,1])
     dumb = np.einsum('i,j->ij', s, s)
@@ -197,31 +209,73 @@ def SSSF_pi(q, alpha, pyp0):
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
-    M = formfactorM()
-    ffacM = np.einsum('ij, klj -> ikl', sQ, M)
-    ffacM = np.exp(1j*ffacM)
-    ffacT = np.einsum('ijk,ijk->ijk', ffac, ffacM)
+    # M = formfactorM()
+    # ffacM = np.einsum('ij, klj -> ikl', sQ, M)
+    # ffacM = np.exp(1j*ffacM)
+    # ffacT = np.einsum('ijk,ijk->ijk', ffac, ffacM)
 
     gauge = gaugefieldpi(alpha)
 
 
 
     greenp1 = np.einsum('ijkl->ikl', green_pi(Ks, 0, alpha, pyp0))
-    greenp1 = np.einsum('ikl,kl->ik',greenp1, np.identity(4))
-    greenp1 = np.einsum('ik, la-> ikla', greenp1, dumb)
+    # greenp1 = np.einsum('ikl,kl->ik',greenp1, np.identity(4))
+    # greenp1 = np.einsum('ik, la-> ikla', greenp1, dumb)
 
 
-    greenp2 = np.einsum('ijkl->ikl',green_pi_test_1(Qs, 0, alpha, pyp0))
+    greenp2 = np.einsum('ijkl->ikl',green_pi(Qs, 0, alpha, pyp0))
     #
     greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(4))
     greenp2 = np.einsum('iakl,akl->iakl', greenp2, gauge)
     # # print(greenp2)
     #
-    # greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffacT)
-    inte = np.einsum('iakl, ibkl', greenp1, greenp2)
+    greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffac)
+
+    temp = 0
+    for i in range(4):
+        for mu in range(4):
+            for nu in range(4):
+                temp += np.sum(greenp1[:,i,i]*greenp2[:,i,mu,nu])
+    # inte = np.einsum('iakl, ibkl', greenp1, greenp2)
     # print(np.sum(greenp2))
 
-    return np.real(np.sum(inte))
+    return np.real(temp)
+
+def SSSF_pi_dumb(q, alpha, pyp0):
+    Ks = pyp0.bigB
+    Qs = Ks+q
+    le = len(Ks)
+    sQ = np.einsum('i,j->ij', np.ones(le), q)
+
+    greenp1 = green_pi_test(Ks, 0, alpha, pyp0)
+    greenp2 = green_pi_test(Qs, 0, alpha, pyp0)
+
+    # print(greenp1)
+    #
+    # greenp1b = green_pi_test(Ks, 0, 1-alpha, pyp0)
+    # greenp2b = green_pi_test(Qs, 0, 1-alpha, pyp0)
+
+
+    temp = 0
+    for rs in range(4):
+        for i in range(4):
+            for j in range(4):
+                if not i == j:
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rs) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    # temp += np.sum(greenp1[:, rs, rs] * greenp2[:, index1, index2])
+                    # temp += np.sum(greenp1b[:, rs, rs] * greenp2b[:, index1, index2])
+
+                    temp += greenp2[:,rs,rs]
+                                   # *np.exp(1j*neta(alpha)*np.dot(sQ, NNtest(i)-NNtest(j))))
+                    # temp += np.sum(greenp1b[:, rs, rs] * greenp2b[:, index1, index2]) \
+                                   # * np.exp(1j * neta(1-alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1))) \
+                                   # * np.exp(1j * neta(1-alpha) * np.dot(Qs, NN(i) - NN(j))))
+    return np.real(np.sum(temp))
 
 
 def graph_spin_cont_pi(pyp0, E, K, tol):
@@ -283,7 +337,7 @@ def graph_SSSF_zero(pyp0, K):
     for j in range(len(K)):
         start = time.time()
         count = count + 1
-        temp[j] = SSSF_zero(K[j], 0, pyp0)
+        temp[j] = SSSF_zero(K[j], pyp0)
         # if temp[i][j] > tempMax:
         #     tempMax = temp[i][j]
         end = time.time()
@@ -293,7 +347,7 @@ def graph_SSSF_zero(pyp0, K):
         sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
         sys.stdout.flush()
 
-    return temp/np.max(temp)
+    return temp
     # E, K = np.meshgrid(e, K)
 
 
@@ -307,7 +361,7 @@ def graph_SSSF_pi(pyp0, K):
     for j in range(len(K)):
         start = time.time()
         count = count + 1
-        temp[j] = SSSF_pi(K[j], 0, pyp0)
+        temp[j] = SSSF_pi_dumb(K[j], 0, pyp0)
         # if temp[i][j] > tempMax:
         #     tempMax = temp[i][j]
         end = time.time()
@@ -316,7 +370,7 @@ def graph_SSSF_pi(pyp0, K):
         sys.stdout.write('\r')
         sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
         sys.stdout.flush()
-    return temp/np.max(temp)
+    return temp
     # E, K = np.meshgrid(e, K)
 
 

@@ -65,4 +65,4 @@ def graphMagPhase(filename):
 
 
 # graphPhase("Files/phase_diagram.txt")
-graphMagPhase("phase_mag_111.txt")
+# graphMagPhase("phase_mag_111.txt")
