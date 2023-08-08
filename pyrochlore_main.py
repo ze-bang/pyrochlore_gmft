@@ -154,17 +154,17 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
                 # print(py0s.lams, py0s.minLams)
-                try:
-                    phases[i, j] = py0s.gap()
-                except:
-                    phases[i, j] = 0
                 # try:
-                #     if py0s.gap() < 1e-4:
-                #         phases[i, j] = 0
-                #     else:
-                #         phases[i, j] = 1
+                #     phases[i, j] = py0s.gap()
                 # except:
                 #     phases[i, j] = 0
+                try:
+                    if py0s.gap() < 1e-4:
+                        phases[i, j] = 0
+                    else:
+                        phases[i, j] = 1
+                except:
+                    phases[i, j] = 0
                 # gap[i] = py0s.gap()
                 # E111[i] = np.min(py0s.E_single(np.pi*np.array([1,1,1])))
                 # E000[i] = np.min(py0s.E_single(np.array([0,0,0])))

@@ -3,122 +3,270 @@ import matplotlib.pyplot as plt
 import warnings
 from numba import jit
 from numba.experimental import jitclass
-
-def neta(alpha):
-    if alpha == 0:
-        return 1
-    else:
-        return -1
-def NN(mu):
-    if mu == 0:
-        return np.array([-1 / 4, -1 / 4, -1 / 4])
-    if mu == 1:
-        return np.array([-1 / 4, 1 / 4, 1 / 4])
-    if mu == 2:
-        return np.array([1 / 4, -1 / 4, 1 / 4])
-    if mu == 3:
-        return np.array([1 / 4, 1 / 4, -1 / 4])
-
-def ifFBZ(k):
-    b1, b2, b3 = k
-    if np.any(abs(k) > 2*np.pi):
-        return False
-    elif abs(b1+b2+b3)<3*np.pi and abs(b1-b2+b3)<3*np.pi and abs(-b1+b2+b3)<3*np.pi and abs(b1+b2-b3)<3*np.pi:
-        return True
-    else:
-        return False
+from misc_helper import *
 
 
-def genBZ(d):
-    d = d*1j
-    b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
-    BZ = []
-    for x in b:
-        if ifFBZ(x):
-            BZ += [x]
-    return BZ
+def exponent_pi(k, alpha, mu, nu, rs1, rs2):
+    rs = rs1 - neta(alpha) * step(mu)
 
-def step(mu):
-    if mu == 0:
-        return np.array([0,0,0])
-    if mu == 1:
-        return np.array([1,0,0])
-    if mu == 2:
-        return np.array([0,1,0])
-    if mu == 3:
-        return np.array([0,0,1])
+    f = np.real(np.exp(1j * neta(alpha) * (A_pi(rs, rs2) - A_pi(rs, rs1))))
+
+    return f * np.exp(1j * neta(alpha) * (np.dot(k, NNtest(nu) - NNtest(mu))))
 
 
+def M_pi_term(k, alpha, rs1, rs2, mu, nu, eta, Jpm):
+    temp = -Jpm * eta[alpha] / 4 * exponent_pi(k, alpha, mu, nu, rs1, rs2)
+    return temp
+
+
+def M_pi_mag_term(k, alpha, rs1, mu, h, n):
+    rs = rs1 - neta(alpha) * step(mu)
+    temp = 1 / 2 * h * np.dot(n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(
+        1j * np.dot(k, neta(alpha) * NNtest(mu)))
+    return temp
+
+
+def M_pi_sub(k, rs, alpha, eta, Jpm):
+    M = np.zeros((len(k), 4, 4), dtype=complex)
+    for i in range(4):
+        for j in range(4):
+            if not i == j:
+                mu = unitCell(rs) + neta(alpha) * step(i)
+                nu = unitCell(rs) + neta(alpha) * step(j)
+                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                index1 = findS(rs1)
+                index2 = findS(rs2)
+                M[:, index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
+                # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+
+    return M
+
+
+def M_pi(k,eta,Jpm):
+    bigM1 = np.zeros((len(k), 4, 4, 4), dtype=complex)
+    bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
+    for i in range(4):
+        bigM1[:, i, :, :] = M_pi_sub(k, i, 0,eta,Jpm)
+        bigM2[:, i, :, :] = M_pi_sub(k, i, 1,eta,Jpm)
+    M = np.einsum('ijkl->ikl', bigM1)
+    M1 = np.einsum('ijkl->ikl', bigM2)
+    FM = np.block([[M, np.zeros((len(k), 4, 4))], [np.zeros((len(k), 4, 4)), M1]])
+    return FM
+
+
+def M_pi_sub_single(k, rs, alpha, eta, Jpm):
+    M = np.zeros((4, 4), dtype=complex)
+    for i in range(4):
+        for j in range(4):
+            if not i == j:
+                mu = unitCell(rs) + neta(alpha) * step(i)
+                nu = unitCell(rs) + neta(alpha) * step(j)
+                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                index1 = findS(rs1)
+                index2 = findS(rs2)
+                M[index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
+                # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
+                # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
+
+    return M
+
+
+def M_pi_single(k, eta, Jpm):
+    bigM = np.zeros((4, 4, 4), dtype=complex)
+    bigM2 = np.zeros((4, 4, 4), dtype=complex)
+    for i in range(4):
+        bigM[i, :, :] = M_pi_sub_single(k, i, 0, eta, Jpm)
+        bigM2[i, :, :] = M_pi_sub_single(k, i, 1, eta, Jpm)
+    M = np.einsum('ijk->jk', bigM)
+    M1 = np.einsum('ijk->jk', bigM2)
+    FM = np.block([[M, np.zeros((4, 4))], [np.zeros((4, 4)), M1]])
+    return FM
+
+def E_pi_fixed(lams, M):
+    M = M + np.diag(np.repeat(lams,4))
+    E, V = np.linalg.eigh(M)
+    return [E, V]
+
+
+def E_pi(lams, k, eta, Jpm):
+    M = M_pi(k,eta,Jpm)
+    M = M + np.diag(np.repeat(lams,4))
+    E, V = np.linalg.eigh(M)
+    return [E,V]
+
+
+def rho_true(Jzz, M, lams):
+    dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
+    temp = M + np.diag(np.repeat(lams,4))
+    E,V = np.linalg.eigh(temp)
+    Vt = np.real(np.einsum('ijk,ijk->ijk',V, np.conj(V)))
+    Ep = np.mean(np.einsum('ijk, ik->ij', Vt, 1/np.sqrt(2*Jzz*E)), axis=0)
+    Ep = np.einsum('jk, ik->ij', dumb, Ep)
+    return Ep
 
 
 
 
-def drawLine(A, B, N):
-    return np.linspace(A, B, N)
+def findlambda_pi(M, Jzz, kappa, tol):
+    warnings.filterwarnings("error")
+    lamMin = np.zeros(2)
+    lamMax = 10*np.ones(2)
+    lams = (lamMin + lamMax) / 2
+    rhoguess = rho_true(Jzz, M, lams)
+    # print(self.kappa)
+    for i in range(2):
+        while np.absolute(rhoguess[i]-kappa) >= tol:
+             lams[i] = (lamMin[i]+lamMax[i])/2
+             # rhoguess = rho_true(Jzz, M, lams)
+             try:
+                 rhoguess = rho_true(Jzz, M, lams)
+                 # rhoguess = self.rho_zero(alpha, self.lams)
+                 if rhoguess[i] - kappa > 0:
+                     lamMin[i] = lams[i]
+                 else:
+                     lamMax[i] = lams[i]
+             except:
+                 # print(e)
+                 lamMin[i] = lams[i]
+             print([lams[i], lamMin[i], lamMax[i], rhoguess[i]])
+             # if lamMax == 0:
+             #     break
+    return lams
 
 
 
+# graphing BZ
 
-def mod2pi(a):
-    while a>= 2*np.pi:
-        a = a - 2*np.pi
-    return a
+def dispersion_pi(lams, k, Jzz, Jpm, eta):
+    temp = np.sqrt(2*Jzz*E_pi(lams, k, Jpm, eta)[0])
+    return temp
 
-def A_pi(r1,r2):
-    bond = r1-r2
-    r1, r2, r3 = r1
 
-    if np.all(bond == step(0)):
-        return 0
-    if np.all(bond == step(1)):
-        return mod2pi(np.pi*(r2+r3))
-    if np.all(bond == step(2)):
-        return mod2pi(np.pi*r3)
-    if np.all(bond == step(3)):
-        return 0
-    if np.all(bond == -step(1)):
-        return mod2pi(np.pi*(r2+r3))
-    if np.all(bond == -step(2)):
-        return mod2pi(np.pi*r3)
-    if np.all(bond == -step(3)):
-        return 0
+def calDispersion(lams, Jzz, Jpm, eta):
+    dGammaX= dispersion_pi(lams, GammaX, Jzz, Jpm, eta)
+    dXW= dispersion_pi(lams, XW, Jzz, Jpm, eta)
+    dWK = dispersion_pi(lams, WK, Jzz, Jpm, eta)
+    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, eta)
+    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, eta)
+    dLU= dispersion_pi(lams, LU, Jzz, Jpm, eta)
+    dUW = dispersion_pi(lams, UW, Jzz, Jpm, eta)
 
-def findS(r):
-    for i in range (4):
-        if np.all(r == unitCell(i)):
-            return i
-    return -1
+    for i in range(8):
+        plt.plot(np.linspace(-0.5, 0, graphres), dGammaX[:,i], 'b')
+        plt.plot(np.linspace(0, 0.3, graphres), dXW[:, i] , 'b')
+        plt.plot(np.linspace(0.3, 0.5, graphres), dWK[:, i], 'b')
+        plt.plot(np.linspace(0.5, 0.9, graphres), dKGamma[:, i], 'b')
+        plt.plot(np.linspace(0.9, 1.3, graphres), dGammaL[:, i], 'b')
+        plt.plot(np.linspace(1.3, 1.6, graphres), dLU[:, i], 'b')
+        plt.plot(np.linspace(1.6, 1.85, graphres),dUW[:, i], 'b')
+    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
+    xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.xticks(xlabpos, labels)
 
-def unitCell(mu):
-    if mu == 0:
-        return np.array([0,0,0])
-    if mu == 1:
-        return np.array([0,1,0])
-    if mu == 2:
-        return np.array([0,0,1])
-    if mu == 3:
-        return np.array([0,1,1])
+#
+# def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
+#     temp = np.zeros((len(q),2))
+#     mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
+#     for i in range(len(q)):
+#         temp[i] = np.amin(np.sqrt(2 * Jzz * E_zero_true(lams, q[i]+K, Jpm, eta, h, n)[0]) + mins, axis=0)
+#     return temp
+# 
+# def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+#     temp = np.zeros((len(q),2))
+#     mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
+#     for i in range(len(q)):
+#         temp[i] = np.amax(np.sqrt(2 * Jzz * E_zero_true(lams, q[i]+K, Jpm, eta, h, n)[0]) + mins, axis=0)
+#     return temp
+# 
+# def loweredge(lams, Jzz, Jpm, eta, h, n, K):
+#     dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
+#     dXW= minCal(lams, XW, Jzz, Jpm, eta, h, n, K)
+#     dWK = minCal(lams, WK, Jzz, Jpm, eta, h, n, K)
+#     dKGamma = minCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
+#     dGammaL = minCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
+#     dLU= minCal(lams, LU, Jzz, Jpm, eta, h, n, K)
+#     dUW = minCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+# 
+#     for i in range(2):
+#         plt.plot(np.linspace(-0.5, 0, graphres), dGammaX[:,i], 'w')
+#         plt.plot(np.linspace(0, 0.3, graphres), dXW[:, i] , 'w')
+#         plt.plot(np.linspace(0.3, 0.5, graphres), dWK[:, i], 'w')
+#         plt.plot(np.linspace(0.5, 0.9, graphres), dKGamma[:, i], 'w')
+#         plt.plot(np.linspace(0.9, 1.3, graphres), dGammaL[:, i], 'w')
+#         plt.plot(np.linspace(1.3, 1.6, graphres), dLU[:, i], 'w')
+#         plt.plot(np.linspace(1.6, 1.85, graphres),dUW[:, i], 'w')
+#     plt.ylabel(r'$\omega/J_{zz}$')
+#     plt.axvline(x=-0.5, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.3, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.5, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.9, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.3, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.6, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.85, color='w', label='axvline - full height', linestyle='dashed')
+#     xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
+#     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+#     plt.xticks(xlabpos, labels)
+# 
+# def upperedge(lams, Jzz, Jpm, eta, h, n, K):
+#     dGammaX= maxCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
+#     dXW= maxCal(lams, XW, Jzz, Jpm, eta, h, n, K)
+#     dWK = maxCal(lams, WK, Jzz, Jpm, eta, h, n, K)
+#     dKGamma = maxCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
+#     dGammaL = maxCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
+#     dLU= maxCal(lams, LU, Jzz, Jpm, eta, h, n, K)
+#     dUW = maxCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+# 
+#     for i in range(2):
+#         plt.plot(np.linspace(-0.5, 0, graphres), dGammaX[:,i], 'w')
+#         plt.plot(np.linspace(0, 0.3, graphres), dXW[:, i] , 'w')
+#         plt.plot(np.linspace(0.3, 0.5, graphres), dWK[:, i], 'w')
+#         plt.plot(np.linspace(0.5, 0.9, graphres), dKGamma[:, i], 'w')
+#         plt.plot(np.linspace(0.9, 1.3, graphres), dGammaL[:, i], 'w')
+#         plt.plot(np.linspace(1.3, 1.6, graphres), dLU[:, i], 'w')
+#         plt.plot(np.linspace(1.6, 1.85, graphres),dUW[:, i], 'w')
+#     plt.ylabel(r'$\omega/J_{zz}$')
+#     plt.axvline(x=-0.5, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.3, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.5, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=0.9, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.3, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.6, color='w', label='axvline - full height', linestyle='dashed')
+#     plt.axvline(x=1.85, color='w', label='axvline - full height', linestyle='dashed')
+#     xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
+#     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+#     plt.xticks(xlabpos, labels)
 
-def NNtest(mu):
-    if mu == 0:
-        return np.array([0, 0, 0])/2
-    if mu == 1:
-        return np.array([0, 1, 1])/2
-    if mu == 2:
-        return np.array([1, 0, 1])/2
-    if mu == 3:
-        return np.array([1, 1, 0])/2
+def gap(M, lams):
+    temp = M + np.diag(np.repeat(lams,4))
+    E,V = np.linalg.eigh(temp)
+    # E = np.sqrt(E)
+    temp = np.amin(E)
+    print("Gap is " + str(temp))
+    return temp
 
-def z(mu):
-    if mu == 0:
-        return -np.array([1,1,1])/np.sqrt(3)
-    if mu == 1:
-        return np.array([-1,1,1])/np.sqrt(3)
-    if mu == 2:
-        return np.array([1,-1,1])/np.sqrt(3)
-    if mu == 3:
-        return np.array([1,1,-1])/np.sqrt(3)
+def EMAX(M, lams):
+    temp = M + np.diag(np.repeat(lams,4))
+    E,V = np.linalg.eigh(temp)
+    temp = np.amax(E)
+    return temp
 
+#
+# def GS(lams, k, Jzz, Jpm, eta, h, n):
+#     return np.mean(dispersion_pi(lams, k, Jzz, Jpm, eta), axis=0) - np.repeat(lams)
 
 class piFluxSolver:
 
@@ -126,363 +274,49 @@ class piFluxSolver:
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
-        self.eta = [eta, 1]
+        self.eta = np.array([eta, 1])
         self.tol = 1e-3
         self.lams =[lam, lam]
         self.h = h
         self.n = n
 
-        self.b0 = np.pi * np.array([1, 1, 1])
-        self.b1 = np.pi * np.array([-1, 1, 1])
-        self.b2 = np.pi * np.array([1, -1, 1])
-        self.b3 = np.pi * np.array([1, 1, -1])
-        #
-        # self.e0 = np.array([0, 0, 0])/2
-        # self.e1 = np.array([0, 1, 1])/2
-        # self.e2 = np.array([1, 0, 1])/2
-        # self.e3 = np.array([1, 1, 0])/2
 
-
-
-        self.mindex = -1
         self.minLams = np.zeros(2)
-
-        # self.e0 = np.array([0, 0, 0])
-        # self.e1 = np.array([1, 0, 0])
-        # self.e2 = np.array([0, 1, 0])
-        # self.e3 = np.array([0, 0, 1])
-
-        self.Gamma = np.array([0, 0, 0])
-
-        self.L = np.pi * np.array([1, 1, 1])
-        self.X = 2*np.pi * np.array([0, 1, 0])
-        self.W = 2*np.pi * np.array([0, 1, 1 / 2])
-        self.K = 2*np.pi * np.array([0, 3 / 4, 3 / 4])
-        self.U = 2*np.pi * np.array([1 / 4, 1, 1 / 4])
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = genBZ(BZres)
-        self.M = np.zeros((len(self.bigB), 8))
-        self.E = []
-        self.V= np.zeros((2,len(self.bigB),4,4), dtype=complex)
-        self.Mset = False
-        self.Vt= []
-
-        self.GammaX = drawLine(self.Gamma, self.X, graphres)
-        self.XW = drawLine(self.X, self.W, graphres)
-        self.WK = drawLine(self.W, self.K, graphres)
-        self.KGamma = drawLine(self.K, self.Gamma, graphres)
-        self.GammaL = drawLine(self.Gamma, self.L, graphres)
-        self.LU = drawLine(self.L, self.U, graphres)
-        self.UW = drawLine(self.U,self.W, graphres)
-
-        self.bigK = np.concatenate((self.GammaX, self.XW, self.WK, self.KGamma, self.GammaL, self.LU, self.UW))
+        self.bigB = np.concatenate((genBZ(BZres), symK))
 
 
-        self.dGammaX =  np.zeros((8,graphres))
-        self.dXW =  np.zeros((8,graphres))
-        self.dWK =  np.zeros((8,graphres))
-        self.dKGamma =  np.zeros((8,graphres))
-        self.dGammaL =  np.zeros((8,graphres))
-        self.dLU =  np.zeros((8,graphres))
-        self.dUW = np.zeros((8,graphres))
+        self.bigK = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
+        self.MF = M_pi(self.bigB, self.eta, self.Jpm)
 
-        self.didit=False
-        self.updated=True
 
     #alpha = 1 for A = -1 for B
 
 
-
-
-    def b(self, mu):
-        if mu == 0:
-            return self.b1
-        if mu == 1:
-            return self.b2
-        if mu == 2:
-            return self.b3
-
-    def obliqueProj(self,W):
-        M = np.zeros((3, 3))
-        for i in range(3):
-            for j in range(3):
-                M[i][j] = np.dot(self.b(i), self.b(j))
-
-        y = np.zeros((3, 1))
-        for i in range(3):
-            y[i] = np.dot(W, self.b(i))
-        return np.array(np.matmul(np.linalg.inv(M), y)).T[0]
-
-
-    def exponent_pi(self, k, alpha, mu, nu, rs1, rs2):
-        rs = rs1 - neta(alpha) * step(mu)
-
-        f = np.real(np.exp(1j * neta(alpha) * (A_pi(rs, rs2) - A_pi(rs, rs1))))
-
-        return f * np.exp(1j * neta(alpha) * (np.dot(k, NNtest(nu) - NNtest(mu))))
-
-
-    def M_pi_term(self, k, alpha, rs1, rs2, mu, nu):
-        temp = -self.Jpm*self.eta[alpha]/4 * self.exponent_pi(k, alpha, mu, nu, rs1, rs2)
-        return temp
-
-
-    def M_pi_mag_term(self, k, alpha, rs1, mu):
-        rs = rs1 - neta(alpha) * step(mu)
-        temp = 1 / 2 * self.h  * np.dot(self.n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(1j * np.dot(k, neta(alpha) * NNtest(mu)))
-        return temp
-
-
-    def M_pi_sub(self, k, rs, alpha):
-        M = np.zeros((len(k), 4, 4), dtype=complex)
-        for i in range(4):
-            for j in range(4):
-                if not i==j:
-                    mu = unitCell(rs) + neta(alpha)*step(i)
-                    nu = unitCell(rs) + neta(alpha)*step(j)
-                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                    index1 = findS(rs1)
-                    index2 = findS(rs2)
-                    M[:, index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                    # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                    # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
-
-        return M
-
-    def M_pi(self, k, alpha):
-        bigM = np.zeros((len(k), 4,4,4), dtype=complex)
-        for i in range(4):
-            bigM[:,i, :, :] = self.M_pi_sub(k,i,alpha)
-        M = np.einsum('ijkl->ikl', bigM)
-        E, V = np.linalg.eigh(M)
-        # print(E)
-        # print(V)
-        if self.Mset == False:
-            self.V[alpha] = V
-        return np.real(E)
-
-    def M_pi_tot(self, k):
-        bigM1 = np.zeros((len(k), 4,4,4), dtype=complex)
-        bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
-        for i in range(4):
-            bigM1[:,i, :, :] = self.M_pi_sub(k,i,0)
-            bigM2[:, i, :, :] = self.M_pi_sub(k, i, 1)
-        M = np.einsum('ijkl->ikl', bigM1)
-        M1 = np.einsum('ijkl->ikl', bigM2)
-        FM = np.block([[M, np.zeros((len(k), 4,4))],[np.zeros((len(k), 4,4)), M1]])
-        E, V = np.linalg.eigh(FM)
-        # print(E)
-        if self.Mset == False:
-            self.V = V
-            self.Mset = True
-        return np.real(E)
-
-    def M_pi_sub_single(self, k, rs, alpha):
-        M = np.zeros((4, 4), dtype=complex)
-        for i in range(4):
-            for j in range(4):
-                if not i==j:
-                    mu = unitCell(rs) + neta(alpha)*step(i)
-                    nu = unitCell(rs) + neta(alpha)*step(j)
-                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                    index1 = findS(rs1)
-                    index2 = findS(rs2)
-                    M[index1, index2] += self.M_pi_term(k, alpha, mu, nu, i, j)
-                    # M[:,i,index2] += -self.M_pi_mag_term(k, alpha, rs2, j)
-                    # M[:, index2, i] += -np.conj(self.M_pi_mag_term(k, 1-alpha, rs2, j))
-
-        return M
-
-    def M_pi_single(self, k, alpha):
-        bigM = np.zeros((4,4,4), dtype=complex)
-        for i in range(4):
-            bigM[i, :, :] = self.M_pi_sub_single(k,i,alpha)
-        M = np.einsum('ijk->jk', bigM)
-        E, V = np.linalg.eigh(M)
-        return np.real(E)
-
-
-    def setM(self):
-        self.M[:, 0:4] = self.M_pi(self.bigB, 0)
-        self.M[:, 4:8] = self.M_pi(self.bigB, 1)
-        self.Mset=True
-        return 1
-    #
-    #
-    # def setM(self):
-    #     with Pool() as pool:
-    #         result = pool.map(self.setM_serial,range(len(self.bigB)))
-    #     return 1
-
-
-    def E_pi_fixed(self, alpha, lams):
-        # k = obliqueProj(k)
-        temp = self.M[:,4*alpha:4*alpha+4]
-        try:
-            val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
-            return val
-        except:
-            return 0
-
-
-    def E_pi(self,k, alpha, lams):
-        # k = obliqueProj(k)
-        # indexS = alpha*4
-        # indexE = (alpha+1)*4
-        # temp = self.M_pi(k)[:,indexS:indexE]
-        temp = self.M_pi(k, alpha)
-
-        val = np.sqrt(2 * self.Jzz * self.eta[1-alpha] * (lams[alpha] + temp))
-        return val
-
-
-
-    def minLam(self):
-        # k = obliqueProj(k)
-        temp = np.amin(self.M, axis=0)
-        # dex = np.where(self.eta==0)
-        # temp[dex]= -1000
-        self.minLams = - temp
-        return 0
-
-    def setupALL(self):
-        self.setM()
-        # self.minLam()
-        return 0
-
-    def setE(self, lams):
-        self.E = np.zeros((2, len(self.bigB), 4))
-        self.E[0] = self.E_pi_fixed(0, lams)
-        self.E[1] = self.E_pi_fixed(1, lams)
-
-    def rho_pi(self, alpha, lams):
-        if self.updated:
-            self.setE(lams)
-        tempc = self.Jzz*self.eta[alpha]/self.E[alpha]
-        temp = np.mean(tempc)
-        return temp
-
-
-    def findLambda_pi(self,alpha):
-        warnings.filterwarnings("error")
-        lamMin = 0
-        lamMax = 100
-        rhoguess = 10
-        while(np.absolute(rhoguess-self.kappa) >= self.tol):
-             self.lams[alpha] = (lamMin+lamMax)/2
-
-             try:
-                 rhoguess = self.rho_pi(alpha, self.lams)
-
-                 if rhoguess - self.kappa > 0:
-                     lamMin = self.lams[alpha]
-                 else:
-                     lamMax = self.lams[alpha]
-             except:
-                 lamMin = self.lams[alpha]
-
-             # if lamMax < self.minLams[alpha]:
-             #     self.lams[alpha] = -1000
-             #     return 1
-             # print([self.lams[alpha],rhoguess])
-             if lamMax == 0:
-                 self.lams[alpha] = -1000
-                 return 1
-        return 0
-
-    #graphing BZ
-
-    def dispersion_pi(self, P, alpha, lams):
-        temp = self.E_pi(P, alpha, lams)
-        return np.array(temp)
-
     def findLambda(self):
-        self.findLambda_pi(0)
-        self.findLambda_pi(1)
-        return 1
+        self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
+
+    def M_true(self, k):
+        return M_pi(k, self.Jpm, self.eta)
 
 
-    def calDispersion(self, alpha):
-        indexS = alpha*4
-        indexE = (alpha+1)*4
-        # print(self.lams)
-        self.dGammaX[indexS:indexE] = self.dispersion_pi(self.GammaX, alpha, self.lams).T
-        self.dXW[indexS:indexE] = self.dispersion_pi(self.XW, alpha, self.lams).T
-        self.dWK[indexS:indexE] = self.dispersion_pi(self.WK, alpha, self.lams).T
-        self.dKGamma[indexS:indexE] = self.dispersion_pi(self.KGamma, alpha, self.lams).T
-        self.dGammaL[indexS:indexE] = self.dispersion_pi(self.GammaL, alpha, self.lams).T
-        self.dLU[indexS:indexE] = self.dispersion_pi(self.LU, alpha, self.lams).T
-        self.dUW[indexS:indexE] = self.dispersion_pi(self.UW, alpha, self.lams).T
+    def E_pi(self, k):
+        return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.Jpm, self.eta)[0])
 
-    def calAllDispersion(self):
-        self.Mset = True
-        self.calDispersion(0)
-        self.calDispersion(1)
+    def gap(self):
+        return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 
-    def graphbranch(self, index, color):
-        plt.plot(np.linspace(-0.5, 0, self.graphres), self.dGammaX[index], color)
-        plt.plot(np.linspace(0, 0.3, self.graphres), self.dXW[index], color)
-        plt.plot(np.linspace(0.3, 0.5, self.graphres), self.dWK[index], color)
-        plt.plot(np.linspace(0.5, 0.9, self.graphres), self.dKGamma[index], color)
-        plt.plot(np.linspace(0.9, 1.3, self.graphres), self.dGammaL[index], color)
-        plt.plot(np.linspace(1.3, 1.6, self.graphres), self.dLU[index], color)
-        plt.plot(np.linspace(1.6, 1.85, self.graphres), self.dUW[index], color)
-
-
-    def graph(self, alpha, show):
-        if not self.didit:
-            self.calAllDispersion()
-
-        # for i in range(4):
-        #     index = alpha*4 + i
-        #     self.graphbranch(index, 'b')
-
-        self.graphbranch(4*alpha, 'b')
-        self.graphbranch(4*alpha+1, 'r')
-        self.graphbranch(4*alpha+2, 'y')
-        self.graphbranch(4*alpha+3, 'g')
-
-        plt.ylabel(r'$\omega/J_{zz}$')
-        plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
-        plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-        xlabpos = [-0.5,0,0.3,0.5,0.9,1.3,1.6,1.85]
-        labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-        plt.xticks(xlabpos, labels)
-
+    def graph(self, show):
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
             plt.show()
 
+    def E_single(self, k):
+        M = M_pi_single(k, self.eta, self.Jpm) + np.diag(np.repeat(self.lams, 4))
+        E, V = np.linalg.eigh(M)
+        return np.sqrt(2*self.Jzz*E)
 
-    def gap(self, alpha):
-        if not self.didit:
-            self.calAllDispersion()
-        mins = []
-        for i in range(4):
-            index = alpha*4 + i
-            mins += [min(self.dLU[index])]
-
-        return min(mins)
-
-
-    def GS(self, alpha):
-        if self.updated:
-            self.setE(self.lams)
-
-        temp = np.mean(self.E)- self.lams[alpha]
-        return temp
-
-
-    def EMAX(self, alpha):
-        if not self.didit:
-            self.calAllDispersion()
-        return max(self.dLU[4*alpha+2])
+    def EMAX(self):
+        return np.sqrt(2*self.Jzz*EMAX(self.MF, self.lams))
