@@ -21,8 +21,5 @@ import math
 # print(X)
 # print(Y)
 
-M = np.array([[3,-1],[-1,3]])
-E,V = np.linalg.eigh(M)
-print(E)
-print(V)
-print(np.transpose(np.conj(V))*M*V)
+arr = np.array([-10.2, -5.3, -2.1, 0, 1.2, 3.4])
+print(np.diag(arr))

@@ -26,7 +26,7 @@ def NN(mu):
 
 
 def green_zero(k, omega, pyp0):
-    E, V = pyp0.M_true(k, pyp0.lams)
+    E, V = pyp0.E_zero(k)
     Vt = np.einsum('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*E)
     green = np.einsum('ijkl, ij->ikl', Vt, green)

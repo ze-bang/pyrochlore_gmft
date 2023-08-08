@@ -46,33 +46,15 @@ def phaseMag(lams, minLams, pi):
         print(3*(-1)**pi)
         return 3*(-1)**pi
 
-def edges(D, E, tol):
-    D = D.transpose()
-    mindex = np.zeros(D.shape[0])
-    maxdex = np.zeros(D.shape[0])
-    print(D.shape)
-    for i in range(D.shape[0]):
-        minfound = False
-        maxfound = False
-        for j in range(D.shape[1]):
-            if D[i][j] >= tol and not minfound:
-                mindex[i] = E[j]
-                minfound = True
-            if D[i][j] <= tol and minfound and (not maxfound):
-                maxdex[i] = E[j]
-                maxfound = True
-    return [mindex, maxdex]
 #endregion
 
 #region graph dispersion
 def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.setupALL()
         py0s.findLambda()
         print(py0s.lams)
-        py0s.graph(0, False)
-        py0s.graph(1, True)
+        py0s.graph(True)
     elif JP < 0:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.setupALL()
@@ -111,7 +93,6 @@ def findPhase(nK, nE, res, filename):
             print("Kappa is now " + str(kappa[j]))
             if JP[i] >= 0:
                 py0s = py0.zeroFluxSolver(JP[i], eta=kappa[j], BZres=res)
-                py0s.setupALL()
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
 
@@ -158,41 +139,35 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     JP = np.linspace(JPm, JPmax, nK)
     h = np.linspace(hm, hmax, nH)
-    phases = np.zeros((nK,nH), dtype=int)
+    phases = np.zeros((nK, nH), dtype=float)
 
-
+    gap = np.zeros(nH)
+    E111 = np.zeros(nH)
+    E000 = np.zeros(nH)
     for i in range (nK):
         for j in range (nH):
             print("Jpm is now " + str(JP[i]))
             print("h is now " + str(h[j]))
             if JP[i] >= 0:
                 py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=BZres)
-                py0s.setupALL()
                 print("Finding 0 Flux Lambda")
                 # phases[i][j] = py0s.phase_test()
                 py0s.findLambda()
-                print(py0s.lams, py0s.minLams)
-                phases[i,j] = py0s.E_scan(py0s.lams)
-
-                # py0s.calSymmetryDispersion()
-                # try:
-                #     # py0s.graph(0, False)
-                #     # py0s.graph(1, True)
-                #     py0s.M_single(np.pi*np.array([1,1,1]))
-                #     phases[i][j] = 1
-                # except:
-                #     phases[i][j] = 0
-            else:
-                pyps = pypi.piFluxSolver(JP[i], h= h[j], n=n, kappa=kappa)
-                pyps.setupALL()
-                print("Finding pi Flux Lambda")
-                pyps.findLambda()
-                print([pyps.lams, pyps.minLams])
+                # print(py0s.lams, py0s.minLams)
                 try:
-                    pyps.calDispersion()
-                    phases[i][j] = 1
+                    phases[i, j] = py0s.gap()
                 except:
-                    phases[i][j] = 0
+                    phases[i, j] = 0
+                # try:
+                #     if py0s.gap() < 1e-4:
+                #         phases[i, j] = 0
+                #     else:
+                #         phases[i, j] = 1
+                # except:
+                #     phases[i, j] = 0
+                # gap[i] = py0s.gap()
+                # E111[i] = np.min(py0s.E_single(np.pi*np.array([1,1,1])))
+                # E000[i] = np.min(py0s.E_single(np.array([0,0,0])))
 
     np.savetxt(filename, phases)
 #endregion
@@ -200,37 +175,37 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 #region DSSF
 def spinon_continuum_zero(nE, nK, Jpm, filename, BZres):
     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK)
-    py0s.setupALL()
     py0s.findLambda()
-    py0s.calDispersion()
 
-    e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
+    e = np.linspace(py0s.gap(), py0s.EMAX()*2.1, nE)
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
-    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.02)
+    # d1 = graph_spin_cont_zero(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 0.02)
 
 
-    np.savetxt("Files/"+filename+".txt", d1)
+    # np.savetxt("Files/"+filename+".txt", d1)
 
-    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    d1 = np.loadtxt("Files/spin_con_zero_test.txt")
 
     X,Y = np.meshgrid(kk, e)
     plt.contourf(X,Y, d1, levels=100)
     plt.ylabel(r'$\omega/J_{zz}$')
-    plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-    xlabpos = [-0.5, 0, 0.3, 0.5, 0.9, 1.3, 1.6, 1.85]
-    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-    plt.xticks(xlabpos, labels)
+    py0s.graph_loweredge(False)
+    py0s.graph_upperedge(False)
+    # plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
+    # xlabpos = [-0.5, 0, 0.3, 0.5, 0.9, 1.3, 1.6, 1.85]
+    # labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    # plt.xticks(xlabpos, labels)
     # dex = edges(d1, e, 5e-2)
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
-    # plt.show()
+    plt.show()
 
 def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
 
@@ -239,7 +214,7 @@ def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
     py0s.findLambda()
     py0s.calAllDispersion()
 
-    e = np.linspace(py0s.gap(0), py0s.EMAX(0)*2.1, nE)
+    e = np.linspace(py0s.gap(), py0s.EMAX(0)*2.1, nE)
     kk = np.concatenate((np.linspace(-0.5, 0, nK), np.linspace(0, 0.3, nK), np.linspace(0.3, 0.5, nK), np.linspace(0.5,0.9, nK), np.linspace(0.9, 1.3, nK), np.linspace(1.3, 1.6, nK), np.linspace(1.6, 1.85, nK)))
     d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), 1e-4)
     # d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
@@ -253,21 +228,22 @@ def spinon_continuum_pi(nE, nK, Jpm, filename, BZres):
     X,Y = np.meshgrid(kk, e)
     plt.contourf(X,Y, d1, levels=100)
     plt.ylabel(r'$\omega/J_{zz}$')
-    plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
-    xlabpos = [-0.5, 0, 0.3, 0.5, 0.9, 1.3, 1.6, 1.85]
-    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-    plt.xticks(xlabpos, labels)
+    # py0s.graph_loweredge(False)
+    # plt.axvline(x=-0.5, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.3, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.5, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=0.9, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.3, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.6, color='b', label='axvline - full height', linestyle='dashed')
+    # plt.axvline(x=1.85, color='b', label='axvline - full height', linestyle='dashed')
+    # xlabpos = [-0.5, 0, 0.3, 0.5, 0.9, 1.3, 1.6, 1.85]
+    # labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    # plt.xticks(xlabpos, labels)
     # dex = edges(d1, e, 5e-2)
     # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
-    # plt.show()
+    plt.show()
 
 def spinon_continuum(nE, nK, BZres, Jpm, filename):
     if Jpm >= 0:
@@ -303,7 +279,6 @@ def hkltoKtest(H, L):
 
 def SSSF_zero_cal(nK,h, n, BZres, Jpm, filename):
     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
-    py0s.setupALL()
     py0s.findLambda()
 
     H = np.linspace(-2,2,nK)
@@ -404,15 +379,15 @@ def SSSF(nK,h, n, Jpm, BZres,  filename):
 
 #endregion
 
-# graphdispersion(0.15, 2, np.array([0,0,1]), 1, 1, 20, 20)
+# graphdispersion(0.19739, 0.158, np.array([1,1,1]), 1, 1, 20, 20)
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# findPhaseMag(0.0001, 0.25, 20, 0, 3, 20, np.array([1,1,1]), 40, 1, "phase_mag_111.txt")
+findPhaseMag(0.0001, 0.25, 25, 0, 3, 25, np.array([1,1,1]), 35, 1, "phase_mag_111.txt")
 
 # spinon_continuum(50,50,50,0.046, "spin_con_zero_test")
 
-SSSF(20, 0, np.array([1,1,1]),0.04,20, "SSSF_pi_test")
+# SSSF(40, 0, np.array([1,1,1]),0.04,40, "SSSF_pi_test")
 
 # graphPhase("Files/phase_diagram.txt")
-# graphMagPhase("phase_mag_111.txt")
+graphMagPhase("phase_mag_111.txt")
