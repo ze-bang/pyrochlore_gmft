@@ -10,8 +10,7 @@ from graph import *
 from numba import jit
 
 #region miscellaneous
-def magnitude(vector):
-    return math.sqrt(sum(pow(element, 2) for element in vector))
+
 
 def phase0(lams, minLams, pi):
     lamA, lamB = lams

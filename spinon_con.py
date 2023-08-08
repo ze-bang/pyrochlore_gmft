@@ -13,15 +13,6 @@ class myarray(ndarray):
     def H(self):
         return self.conj().T
 
-def NN(mu):
-    if mu == 0:
-        return np.array([-1 / 4, -1 / 4, -1 / 4])
-    if mu == 1:
-        return np.array([-1 / 4, 1 / 4, 1 / 4])
-    if mu == 2:
-        return np.array([1 / 4, -1 / 4, 1 / 4])
-    if mu == 3:
-        return np.array([1 / 4, 1 / 4, -1 / 4])
 
 
 
@@ -215,8 +206,6 @@ def SSSF_pi(q, alpha, pyp0):
     # ffacT = np.einsum('ijk,ijk->ijk', ffac, ffacM)
 
     gauge = gaugefieldpi(alpha)
-
-
 
     greenp1 = np.einsum('ijkl->ikl', green_pi(Ks, 0, alpha, pyp0))
     # greenp1 = np.einsum('ikl,kl->ik',greenp1, np.identity(4))

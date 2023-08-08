@@ -268,7 +268,6 @@ class zeroFluxSolver:
         self.tol = 1e-3
         self.lams = np.array([lam, lam], dtype=np.single)
 
-
         # self.symK = self.genALLSymPoints()
         # self.symK = self.populate(BZres)
 

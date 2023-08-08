@@ -274,9 +274,9 @@ class piFluxSolver:
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
-        self.eta = np.array([eta, 1])
+        self.eta = np.array([eta, 1], dtype=float)
         self.tol = 1e-3
-        self.lams =[lam, lam]
+        self.lams = np.array([lam, lam], dtype=float)
         self.h = h
         self.n = n
 
@@ -286,9 +286,6 @@ class piFluxSolver:
         self.BZres = BZres
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres), symK))
-
-
-        self.bigK = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
         self.MF = M_pi(self.bigB, self.eta, self.Jpm)
 
 
@@ -299,17 +296,17 @@ class piFluxSolver:
         self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
 
     def M_true(self, k):
-        return M_pi(k, self.Jpm, self.eta)
+        return M_pi(k, self.eta, self.Jpm)
 
 
     def E_pi(self, k):
-        return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.Jpm, self.eta)[0])
+        return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.eta, self.Jpm)[0])
 
     def gap(self):
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 
     def graph(self, show):
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.eta)
         if show:
             plt.show()
 

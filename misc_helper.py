@@ -1,6 +1,13 @@
 import numpy as np
 from itertools import permutations
+import math
 
+
+graphres=20
+
+
+def magnitude(vector):
+    return math.sqrt(sum(pow(element, 2) for element in vector))
 
 b0 = np.pi * np.array([1, 1, 1])
 b1 = np.pi * np.array([-1, 1, 1])
@@ -181,7 +188,6 @@ def obliqueProj(W):
         y[i] = np.dot(W, b(i))
     return np.array(np.matmul(np.linalg.inv(M), y)).T[0]
 
-graphres=20
 GammaX = drawLine(Gamma, X, graphres)
 XW = drawLine(X, W, graphres)
 WK = drawLine(W, K, graphres)
