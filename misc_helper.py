@@ -3,11 +3,17 @@ from itertools import permutations
 import math
 
 
-graphres=20
+graphres=50
 
 
 def magnitude(vector):
     return math.sqrt(sum(pow(element, 2) for element in vector))
+
+e0 = np.array([0,0,0])
+e1 = np.array([0,1,1])/2
+e2 = np.array([1,0,1])/2
+e3 = np.array([1,1,0])/2
+
 
 b0 = np.pi * np.array([1, 1, 1])
 b1 = np.pi * np.array([-1, 1, 1])
@@ -33,22 +39,22 @@ def realcoord(r):
 
 def z(mu):
     if mu == 0:
-        return -np.array([1,1,1])/np.sqrt(3)
+        return -np.array([1,1,1])/sqrt(3)
     if mu == 1:
-        return np.array([-1,1,1])/np.sqrt(3)
+        return np.array([-1,1,1])/sqrt(3)
     if mu == 2:
-        return np.array([1,-1,1])/np.sqrt(3)
+        return np.array([1,-1,1])/sqrt(3)
     if mu == 3:
-        return np.array([1,1,-1])/np.sqrt(3)
+        return np.array([1,1,-1])/sqrt(3)
 
 
 def BasisBZ(mu):
     if mu == 0:
-        return np.pi*np.array([-1,1,1])
+        return 2*np.pi*np.array([-1,1,1])
     if mu == 1:
-        return np.pi*np.array([1,-1,1])
+        return 2*np.pi*np.array([1,-1,1])
     if mu == 2:
-        return np.pi*np.array([1,1,-1])
+        return 2*np.pi*np.array([1,1,-1])
 
 def neta(alpha):
     if alpha == 0:
@@ -75,13 +81,21 @@ def ifFBZ(k):
         return False
 
 
+# def genBZ(d):
+#     d = d*1j
+#     b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
+#     BZ = []
+#     for x in b:
+#         if ifFBZ(x):
+#             BZ += [x]
+#     return BZ
+
 def genBZ(d):
     d = d*1j
-    b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
-    BZ = []
-    for x in b:
-        if ifFBZ(x):
-            BZ += [x]
+    b = np.mgrid[-1:1:d, -1:1:d, -1:1:d].reshape(3,-1).T/2
+    BZ = np.zeros((len(b),3))
+    for i in range(len(b)):
+        BZ[i] = b[i,0]*BasisBZ(0) + b[i,1]*BasisBZ(1) + b[i,2] * BasisBZ(2)
     return BZ
 
 def step(mu):
@@ -157,16 +171,6 @@ def NNtest(mu):
         return np.array([1, 0, 1])/2
     if mu == 3:
         return np.array([1, 1, 0])/2
-
-def z(mu):
-    if mu == 0:
-        return -np.array([1,1,1])/np.sqrt(3)
-    if mu == 1:
-        return np.array([-1,1,1])/np.sqrt(3)
-    if mu == 2:
-        return np.array([1,-1,1])/np.sqrt(3)
-    if mu == 3:
-        return np.array([1,1,-1])/np.sqrt(3)
 
 
 def b(mu):

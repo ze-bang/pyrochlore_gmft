@@ -31,15 +31,21 @@ ZZZ = np.array([[-1, -1, -1],[-1, 1, 1], [1, -1, 1], [1, 1, -1]])/np.sqrt(3)
 
 
 def exponent_mag(h, n, k, alpha):
-    temp = 0
-    for i in range(4):
-        temp = -1 * h * np.dot(n, z(i)) * np.exp(np.dot(k, 1j*neta(alpha)*NN(i)))
+    # temp = 0
+    # for i in range(4):
+    #     temp += -1/4 * h * np.dot(n, z(i)) * np.exp(1j*np.dot(k, neta(alpha)*NN(i)))
+    temp = -1/4 * h * np.exp(1j*np.dot(k, neta(alpha)*NN(1)))
+
     return temp
 
 
 def M_zero(Jpm, eta, k, alpha):
     temp = -Jpm/4 *eta[alpha]* np.exp(-1j*neta(alpha)*(np.einsum('ik, jlk->ijl',k, formfactor)))
     temp = np.einsum('ijk->i', temp)
+    # temp = 0
+    # for i in range(4):
+    #     for j in range(4):
+    #         temp += -Jpm / 4 * eta[alpha] * np.exp(-1j * neta(alpha) * np.dot(k, NN(i)-NN(j)))
     return temp
 
 def M_zero_single(Jpm, eta, k, alpha):
@@ -73,27 +79,31 @@ def E_zero_true(lams, k, Jpm, eta, h, n):
     E, V = np.linalg.eigh(M)
     return [E,V]
 
-def rho_true(Jzz, M, lams):
+def green_f(M, lams, omega):
+    temp = M + np.diag(lams) + np.diag(omega**2*np.ones(2)/2)
+    return np.linalg.inv(temp)
+
+def rho_true(M, lams, Jzz):
     temp = M + np.diag(lams)
     E,V = np.linalg.eigh(temp)
     Vt = np.real(np.einsum('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = np.mean(np.einsum('ijk, ik->ij', Vt, 1/np.sqrt(2*Jzz*E)), axis=0)
+    Ep = np.mean(np.einsum('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E)), axis=0)
     return Ep
 
 
 def findLambda_zero(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
     lamMin = np.zeros(2)
-    lamMax = 10*np.ones(2)
+    lamMax = 50*np.ones(2)
     lams = (lamMin + lamMax) / 2
-    rhoguess = rho_true(Jzz, M, lams)
+    rhoguess = rho_true(M, lams, Jzz)
     # print(self.kappa)
     for i in range(2):
         while np.absolute(rhoguess[i]-kappa) >= tol:
              lams[i] = (lamMin[i]+lamMax[i])/2
              # rhoguess = rho_true(Jzz, M, lams)
              try:
-                 rhoguess = rho_true(Jzz, M, lams)
+                 rhoguess = rho_true(M, lams, Jzz)
                  # rhoguess = self.rho_zero(alpha, self.lams)
                  if rhoguess[i] - kappa > 0:
                      lamMin[i] = lams[i]
@@ -102,10 +112,8 @@ def findLambda_zero(M, Jzz, kappa, tol):
              except:
                  # print(e)
                  lamMin[i] = lams[i]
-             print([lams[i], lamMin[i], lamMax[i], rhoguess[i]])
-             # if lamMax == 0:
-             #     break
-    return lams
+
+    return [lams, lamMax, lamMin]
 
 
 #graphing BZ
@@ -237,13 +245,7 @@ def upperedge(lams, Jzz, Jpm, eta, h, n, K):
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
 
-def gap(M, lams):
-    temp = M + np.diag(lams)
-    E,V = np.linalg.eigh(temp)
-    # E = np.sqrt(E)
-    temp = np.amin(E)
-    print("Gap is " + str(temp))
-    return temp
+
 
 def EMAX(M, lams):
     temp = M + np.diag(lams)
@@ -279,8 +281,14 @@ class zeroFluxSolver:
 
 
     def findLambda(self):
-        self.lams = findLambda_zero(self.MF, self.Jzz, self.kappa, self.tol)
+        self.lams = findLambda_zero(self.MF, self.Jzz, self.kappa, self.tol)[0]
 
+    def condensed(self):
+        lams, lmax, lmin = findLambda_zero(self.MF, self.Jzz, self.kappa, self.tol)
+        if (np.abs(lmax-lmin)<=1e-5).any():
+            return 1
+        else:
+            return 0
     def M_true(self, k):
         return M_true(k, self.Jpm, self.eta, self.h, self.n)
 
@@ -288,7 +296,12 @@ class zeroFluxSolver:
         return np.sqrt(2*self.Jzz*E_zero_true(self.lams, k, self.Jpm, self.eta, self.h, self.n)[0])
 
     def gap(self):
-        return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
+        temp = self.MF + np.diag(self.lams)
+        E, V = np.linalg.eigh(temp)
+        # E = np.sqrt(2*self.Jzz*E)
+        dex = np.argmin(E,axis=0)[0]
+        print("Gap at " + str(self.bigB[dex]) + " with " + str(E[dex, 0]))
+        return E[dex, 0]
 
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
