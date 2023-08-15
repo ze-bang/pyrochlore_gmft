@@ -427,12 +427,12 @@ h110 = np.array([1,1,0])/2
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
+PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
 # PhaseMagtestJP(0, 0.25, 50, 0, 3, 25, h111, 35, 1, "0.txt")
 
 
-findPhaseMag(0, 0.25, 51, 0, 3, 25, h111, 35, 1, "phase_test_111")
+# findPhaseMag(0, 0.25, 25, 0, 3, 25, h111, 25, 1, "phase_test_111")
 # findPhaseMag(0, 0.25, 25, 0, 3, 25, h001, 35, 1, "phase_test_001")
 # findPhaseMag(0, 0.25, 25, 0, 6, 25, h110, 35, 1, "phase_test_110")
 
@@ -441,7 +441,7 @@ findPhaseMag(0, 0.25, 51, 0, 3, 25, h111, 35, 1, "phase_test_111")
 # SSSF(20, 0, np.array([1,1,1]),-0.2,20, "SSSF_zero_test")
 
 # graphPhase("Files/phase_diagram.txt")
-graphMagPhase("phase_test_111", 0.25,3)
-graphMagPhase("phase_test_111_dev", 0.25,3)
+# graphMagPhase("phase_test_111", 0.25,3)
+# graphMagPhase("phase_test_111_dev", 0.25,3)
 # graphMagPhase("phase_test_001", 0.25,3)
 # graphMagPhase("phase_test_110", 0.25,6)

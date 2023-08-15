@@ -101,16 +101,16 @@ def findLambda_zero(M, Jzz, kappa, tol):
     # print(self.kappa)
     yes = True
     while yes >= tol:
-        # for i in range(2):
-         lams = (lamMin+lamMax)/2
-         # rhoguess = rho_true(Jzz, M, lams)
+         lams = (lamMin + lamMax) / 2
+
          try:
              rhoguess = rho_true(M, lams, Jzz)
              # rhoguess = self.rho_zero(alpha, self.lams)
-             if rhoguess[0] - kappa > 0:
-                 lamMin = lams
-             else:
-                 lamMax = lams
+             for i in range(2):
+                 if rhoguess[i] - kappa > 0:
+                     lamMin[i] = lams[i]
+                 else:
+                     lamMax[i] = lams[i]
              # if rhoguess[0] - kappa > 0:
              #     lamMin[1] = lams[1]
              # else:
@@ -118,7 +118,7 @@ def findLambda_zero(M, Jzz, kappa, tol):
          except:
              # print(e)
              lamMin = lams
-         # print([lams, rhoguess, np.absolute(rhoguess-kappa)])
+             print([lams, rhoguess, np.absolute(rhoguess-kappa)])
          if np.absolute(rhoguess[0]-kappa)<=tol and np.absolute(rhoguess[1]-kappa)<=tol:
              yes = False
 
