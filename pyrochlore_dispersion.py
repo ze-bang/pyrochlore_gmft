@@ -99,21 +99,28 @@ def findLambda_zero(M, Jzz, kappa, tol):
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(M, lams, Jzz)
     # print(self.kappa)
-    for i in range(2):
-        while np.absolute(rhoguess[i]-kappa) >= tol:
-             lams[i] = (lamMin[i]+lamMax[i])/2
-             # rhoguess = rho_true(Jzz, M, lams)
-             try:
-                 rhoguess = rho_true(M, lams, Jzz)
-                 # rhoguess = self.rho_zero(alpha, self.lams)
-                 if rhoguess[i] - kappa > 0:
-                     lamMin[i] = lams[i]
-                 else:
-                     lamMax[i] = lams[i]
-             except:
-                 # print(e)
-                 lamMin[i] = lams[i]
-             print(lams[i], rhoguess[i])
+    yes = True
+    while yes >= tol:
+        # for i in range(2):
+         lams = (lamMin+lamMax)/2
+         # rhoguess = rho_true(Jzz, M, lams)
+         try:
+             rhoguess = rho_true(M, lams, Jzz)
+             # rhoguess = self.rho_zero(alpha, self.lams)
+             if rhoguess[0] - kappa > 0:
+                 lamMin = lams
+             else:
+                 lamMax = lams
+             # if rhoguess[0] - kappa > 0:
+             #     lamMin[1] = lams[1]
+             # else:
+             #     lamMax[1] = lams[1]
+         except:
+             # print(e)
+             lamMin = lams
+         # print([lams, rhoguess, np.absolute(rhoguess-kappa)])
+         if np.absolute(rhoguess[0]-kappa)<=tol and np.absolute(rhoguess[1]-kappa)<=tol:
+             yes = False
 
     return lams
 
@@ -331,7 +338,7 @@ class zeroFluxSolver:
         self.n = n
         self.omega = omega
 
-        self.tol = 5e-5
+        self.tol = 1e-4
         self.lams = np.array([lam, lam], dtype=np.single)
 
         # self.symK = self.genALLSymPoints()

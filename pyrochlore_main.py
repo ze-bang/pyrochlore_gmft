@@ -442,6 +442,6 @@ findPhaseMag(0, 0.25, 51, 0, 3, 25, h111, 35, 1, "phase_test_111")
 
 # graphPhase("Files/phase_diagram.txt")
 graphMagPhase("phase_test_111", 0.25,3)
-# graphMagPhase("phase_test_111_dev", 0.25,3)
+graphMagPhase("phase_test_111_dev", 0.25,3)
 # graphMagPhase("phase_test_001", 0.25,3)
 # graphMagPhase("phase_test_110", 0.25,6)

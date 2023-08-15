@@ -124,23 +124,26 @@ def findlambda_pi(M, Jzz, kappa, tol):
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(Jzz, M, lams)
     # print(self.kappa)
-    for i in range(2):
-        while np.absolute(rhoguess[i]-kappa) >= tol:
-             lams[i] = (lamMin[i]+lamMax[i])/2
-             # rhoguess = rho_true(Jzz, M, lams)
-             try:
-                 rhoguess = rho_true(Jzz, M, lams)
-                 # rhoguess = self.rho_zero(alpha, self.lams)
-                 if rhoguess[i] - kappa > 0:
-                     lamMin[i] = lams[i]
-                 else:
-                     lamMax[i] = lams[i]
-             except:
-                 # print(e)
-                 lamMin[i] = lams[i]
+    yes = True
+
+    while yes >= tol:
+        # for i in range(2):
+         lams= (lamMin+lamMax)/2
+         # rhoguess = rho_true(Jzz, M, lams)
+         try:
+             rhoguess = rho_true(Jzz, M, lams)
+             # rhoguess = self.rho_zero(alpha, self.lams)
+             if rhoguess[i] - kappa > 0:
+                 lamMin = lams
+             else:
+                 lamMax = lams
+         except:
+             lamMin = lams
              # print([lams[i], lamMin[i], lamMax[i], rhoguess[i]])
              # if lamMax == 0:
              #     break
+         if np.absolute(rhoguess[0]-kappa)<=tol and np.absolute(rhoguess[1]-kappa)<=tol:
+            yes = False
     return lams
 
 
