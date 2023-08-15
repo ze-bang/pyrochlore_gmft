@@ -7,6 +7,7 @@ import time
 import math
 import sys
 from numba import jit
+from misc_helper import *
 
 class myarray(ndarray):
     @property
@@ -16,28 +17,34 @@ class myarray(ndarray):
 
 
 
-def green_zero(k, omega, pyp0):
-    E, V = pyp0.E_zero(k)
+def green_zero(k, pyp0):
+    E, V = pyp0.LV_zero(k)
     Vt = np.einsum('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = 2*pyp0.Jzz/(omega**2 + 2*pyp0.Jzz*E)
-    green = np.einsum('ijkl, ij->ikl', Vt, green)
+    green = 2*pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = np.einsum('ikjl, ik->ijl', Vt, green)
+    return green
+
+def green_zero_old(k, alpha, omega, pyp0):
+    E = pyp0.E_zero_old(k, alpha)
+    green = 2*pyp0.Jzz/(omega**2 + E)
+    return green
+
+def green_f(k, omega, pyp0):
+    M = pyp0.M_true(k)
+    M = M + np.diag(pyp0.lams) + np.identity(2)*omega**2/(2*pyp0.Jzz)
+    return np.linalg.inv(M)
+
+
+def green_pi(k, pypi):
+    E, V = pypi.LV_zero(k)
+    Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = 2*pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = np.einsum('ikjl, ik->ijl', Vt, green)
     return green
 
 
-
-def green_pi(k, omega, alpha, pypi):
-    V = pypi.V[alpha]
-    E = pypi.E_pi(k, alpha, pypi.lams)
-    X = np.array([[1,1,1,1],[1,1,1,1],[1,1,1,1],[1,1,1,1]])
-    temp = 2*pypi.Jzz*np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    tempc = np.einsum('ik,jl->ikjl', E, X)
-    temp = temp/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + tempc))
-    # tempc = np.divide(temp, omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + pypi.E_pi(k, alpha, pypi.lams)[:, i]))
-    return (np.einsum('ijkl->ikl', temp))
-
-
-def green_pi_test(k, omega, alpha, pypi):
+def green_pi_test(k, alpha, pypi):
     bigM = np.zeros((len(k), 4, 4, 4), dtype=complex)
     for i in range(4):
         bigM[:, i, :, :] = pypi.M_pi_sub(k, i, alpha)
@@ -47,7 +54,7 @@ def green_pi_test(k, omega, alpha, pypi):
     for i in range(4):
         for mu in range(4):
             for nu in range(4):
-                temp[:, mu, nu] += 2*pypi.Jzz*np.multiply(V[:,nu,i], np.conj(np.transpose(V, (0, 2, 1)))[:,i,mu])/(omega ** 2 + 2 * pypi.Jzz * (pypi.lams[alpha] + E[:, i]))
+                temp[:, mu, nu] += 2*pypi.Jzz*np.multiply(V[:,nu,i], np.conj(np.transpose(V, (0, 2, 1)))[:,i,mu])/( 2 * pypi.Jzz * (pypi.lams[alpha] + E[:, i]))
     return temp
 
 # def green_pi_test_1(k, omega, alpha, pypi):
@@ -95,26 +102,85 @@ def gaugefieldpi(alpha):
                     index2 = findS(rs2)
                     gauge[rs,index1,index2] += np.exp(1j * neta(alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
     return gauge
-def spinon_cont_zero(q, omega, alpha, pyp0, tol):
+
+def gaugepi():
+    gauge = np.zeros((8, 8, 8), dtype=complex)
+    gauge[0:4,0:4,0:4] = gaugefieldpi(0)
+    gauge[4:8,4:8,4:8] = gaugefieldpi(1)
+    return gauge
+def spinon_cont_zero_old(q, omega, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks+q
-    # le = len(Ks)
+    dum = np.array([[1,1],[1,1]])
+    le = len(Ks)
     # sQ = np.einsum('i,j->ij', np.ones(le), q)
+    #
+    # tempE= np.einsum('ij, jk->ijk',pyp0.E_zero(Ks),dum)
+    # tempQ = np.einsum('ij, jk->ikj',pyp0.E_zero(Qs),dum)
 
-    tempE= pyp0.E_zero(Ks, alpha, pyp0.lams)
-    tempQ = pyp0.E_zero(Qs, alpha, pyp0.lams)
+    tempE= pyp0.E_zero_old(Ks,0)
+    tempQ = pyp0.E_zero_old(Qs, 0)
+
+    # print(cauchy(omega-tempE-tempQ, tol))
+    # print(tempE)
+    # print(tempQ)
+    M = formfactor()
+    #
+    ffac = np.einsum('ij, klj -> ikl', Qs, M)
+    ffac = np.exp(1j*ffac)
+    ffac = np.einsum('ikl->i', ffac)
+
+    green1 = np.real(green_zero_old(Ks, 0, omega, pyp0))
+    green2 = np.real(green_zero_old(Qs, 0, omega, pyp0))
+
+    green = green1 * green2
+    # dex = np.where(green<0)
+    # stuff = [green[dex], green1[dex], green2[dex]]
+    # print(stuff)
+    # temp = np.mean(green)
+    temp = np.multiply(gaussian(omega-tempE-tempQ, tol), green)
+    # temp = temp[:,0,1]+ temp[:,1,0]/2
+    inte = np.multiply(temp, ffac)
+
+    # green = green1[:,0,0] * green2[:,1,1]
+    # temp = np.multiply(cauchy(omega-tempE-tempQ, tol), np.ones(le))
+    # inte = np.multiply(temp, ffac)
+    return np.mean(inte)
+
+
+def spinon_cont_zero(q, omega, pyp0, tol):
+    Ks = pyp0.bigB
+    Qs = Ks+q
+    dum = np.array([[1,1],[1,1]])
+    le = len(Ks)
+    # sQ = np.einsum('i,j->ij', np.ones(le), q)
+    #
+    tempE= np.einsum('ij, jk->ijk',pyp0.E_zero(Ks),dum)
+    tempQ = np.einsum('ij, jk->ikj',pyp0.E_zero(Qs),dum)
+
+    # tempE= pyp0.E_zero(Ks)[:,0]
+    # tempQ = pyp0.E_zero(Qs)[:,0]
+
+    # print(cauchy(omega-tempE-tempQ, tol))
+    # print(tempE)
+    # print(tempQ)
     M = formfactor()
 
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
     ffac = np.einsum('ikl->i', ffac)
+    #
+    # green1 = green_zero(Ks, omega, pyp0)
+    # green2 = green_zero(Qs, omega, pyp0)
 
-
-    green = np.trace(np.fliplr(np.einsum('ijk,ikj->ijk',green_zero(Ks, 0, pyp0), green_zero(Qs, 0, pyp0))), axis1=1, axis2=2)
+    green = np.einsum('ijj,ikk->ijk',green_zero(Ks, pyp0), green_zero(Qs, pyp0))
     temp = np.multiply(cauchy(omega-tempE-tempQ, tol), green)
+    temp = temp[:,0,1]+ temp[:,1,0]/2
     inte = np.multiply(temp, ffac)
 
-
+    # green = green1[:,0,0] * green2[:,1,1]
+    # temp = np.multiply(cauchy(omega-tempE-tempQ, tol), np.ones(le))
+    # inte = np.multiply(temp, ffac)
     return np.real(np.sum(inte))
 
 def SSSF_zero(q, pyp0):
@@ -129,18 +195,18 @@ def SSSF_zero(q, pyp0):
     ffac = np.exp(1j*ffac)
     ffac = np.einsum('ikl->i', ffac)
 
-    greenp1 = green_zero(Ks, 0, pyp0)
-    greenp2 = green_zero(Qs, 0, pyp0)
+    greenp1 = green_zero(Ks, pyp0)
+    greenp2 = green_zero(Qs, pyp0)
 
     green = np.einsum('ijj,ikk->ijk',greenp1, greenp2)
-    green = green[:,0,1] + green[:,1,0]
+    green = (green[:,0,1] + green[:,1,0])/2
 
     temp = np.einsum('ijk,ikj->ijk', greenp1, greenp2)
-    temp = temp[:, 0, 1] + temp[:, 1, 0]
+    temp = (temp[:, 0, 1] + temp[:, 1, 0])/2
     green = green + temp
 
     inte = np.multiply(green, ffac)
-    return np.real(np.sum(inte))/(2*le)
+    return np.real(np.mean(inte))
 
 
 def spinon_cont_pi(q, omega, alpha, pyp0, tol):
@@ -149,12 +215,12 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
 
     tempE = pyp0.E_pi(Ks, alpha, pyp0.lams)
     tempQ = pyp0.E_pi(Qs, alpha, pyp0.lams)
-    s = np.array([1,1,1,1])
+    s = np.array([1,1,1,1,1,1,1,1])
     dumb = np.einsum('i,j->ij', s, s)
     tempE = np.einsum('ij,k->ijk', tempE, s)
-    tempQ = np.transpose(np.einsum('ij,k->ijk', tempQ, s), (0,2,1))
+    tempQ = np.einsum('ij,k->ikj', tempQ, s)
 
-    gauss = gaussian(omega - tempE - tempQ, tol)
+    gauss = cauchy(omega - tempE - tempQ, tol)
 
     M = formfactor()
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
@@ -175,10 +241,10 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
                     index2 = findS(rs2)
                     bigdex[rs,index1,index2] += 1
 
-    greenp1 = np.einsum('ijkl,kl->ijk',green_pi(Ks, 0, alpha, pyp0), np.identity(4))
+    greenp1 = np.einsum('ijkl,kl->ijk',green_pi(Ks, pyp0), np.identity(4))
     greenp1 = np.einsum('ijk, la-> ijkla', greenp1, dumb)
 
-    greenp2 = np.einsum('ijkl,a->ijakl',green_pi(Qs, 0, alpha, pyp0), np.ones(4))
+    greenp2 = np.einsum('ijkl,a->ijakl',green_pi(Qs, pyp0), np.ones(4))
     greenp2 = np.einsum('ijakl,akl->ijakl', greenp2, bigdex)
 
     greenp2 = np.einsum('ijakl, ikl-> ijakl', greenp2, ffac)
@@ -188,15 +254,18 @@ def spinon_cont_pi(q, omega, alpha, pyp0, tol):
     return np.real(inte)
 
 
-def SSSF_pi(q, alpha, pyp0):
+def SSSF_pi(q, pyp0):
     Ks = pyp0.bigB
     Qs = Ks+q
     le = len(Ks)
+    sQ = np.einsum('i,j->ij', np.ones(le), q)
 
-    s = np.array([1,1,1,1])
+    s = np.array([1,1,1,1,1,1,1,1])
     dumb = np.einsum('i,j->ij', s, s)
 
-    M = formfactor()
+    M = np.zeros((8, 8, 3), dtype=complex)
+    M[0:4,0:4] = formfactor()
+    M[4:8,4:8] = formfactor()
     ffac = np.einsum('ij, klj -> ikl', Qs, M)
     ffac = np.exp(1j*ffac)
 
@@ -205,30 +274,26 @@ def SSSF_pi(q, alpha, pyp0):
     # ffacM = np.exp(1j*ffacM)
     # ffacT = np.einsum('ijk,ijk->ijk', ffac, ffacM)
 
-    gauge = gaugefieldpi(alpha)
+    gauge = gaugepi()
+    greenp1 = green_pi(Ks, pyp0)
 
-    greenp1 = np.einsum('ijkl->ikl', green_pi(Ks, 0, alpha, pyp0))
-    # greenp1 = np.einsum('ikl,kl->ik',greenp1, np.identity(4))
-    # greenp1 = np.einsum('ik, la-> ikla', greenp1, dumb)
+    greenp2 = green_pi(Qs, pyp0)
 
-
-    greenp2 = np.einsum('ijkl->ikl',green_pi(Qs, 0, alpha, pyp0))
-    #
-    greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(4))
+    greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(8))
     greenp2 = np.einsum('iakl,akl->iakl', greenp2, gauge)
     # # print(greenp2)
     #
-    greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffac)
+    # greenp2 = np.einsum('iakl, ikl-> iakl', greenp2, ffac)
 
-    temp = 0
-    for i in range(4):
-        for mu in range(4):
-            for nu in range(4):
-                temp += np.sum(greenp1[:,i,i]*greenp2[:,i,mu,nu])
-    # inte = np.einsum('iakl, ibkl', greenp1, greenp2)
+    # temp = 0
+    # for i in range(4):
+    #     for mu in range(4):
+    #         for nu in range(4):
+    #             temp += np.sum(greenp1[:,i,i]*greenp2[:,i,mu,nu])
+    inte = np.einsum('ikk, ikjl->i', greenp1, greenp2)
     # print(np.sum(greenp2))
 
-    return np.real(temp)
+    return np.mean(inte)
 
 def SSSF_pi_dumb(q, alpha, pyp0):
     Ks = pyp0.bigB
@@ -236,13 +301,12 @@ def SSSF_pi_dumb(q, alpha, pyp0):
     le = len(Ks)
     sQ = np.einsum('i,j->ij', np.ones(le), q)
 
-    greenp1 = green_pi_test(Ks, 0, alpha, pyp0)
-    greenp2 = green_pi_test(Qs, 0, alpha, pyp0)
+    greenp1 = green_pi(Ks, pyp0)[:, 0:4, 0:4]
+    greenp2 = green_pi(Qs, pyp0)[:, 0:4, 0:4]
 
     # print(greenp1)
-    #
-    # greenp1b = green_pi_test(Ks, 0, 1-alpha, pyp0)
-    # greenp2b = green_pi_test(Qs, 0, 1-alpha, pyp0)
+    greenp1b = green_pi(Ks, pyp0)[:, 4:8, 4:8]
+    greenp2b = green_pi(Qs, pyp0)[:, 4:8, 4:8]
 
 
     temp = 0
@@ -259,9 +323,9 @@ def SSSF_pi_dumb(q, alpha, pyp0):
                     # temp += np.sum(greenp1[:, rs, rs] * greenp2[:, index1, index2])
                     # temp += np.sum(greenp1b[:, rs, rs] * greenp2b[:, index1, index2])
 
-                    temp += greenp2[:,rs,rs]
+                    temp += greenp1[:,rs,rs]*greenp2[:,index1,index2]
                                    # *np.exp(1j*neta(alpha)*np.dot(sQ, NNtest(i)-NNtest(j))))
-                    # temp += np.sum(greenp1b[:, rs, rs] * greenp2b[:, index1, index2]) \
+                    temp += greenp1b[:, rs, rs] * greenp2b[:, index1, index2]
                                    # * np.exp(1j * neta(1-alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1))) \
                                    # * np.exp(1j * neta(1-alpha) * np.dot(Qs, NN(i) - NN(j))))
     return np.real(np.sum(temp))
@@ -302,7 +366,7 @@ def graph_spin_cont_zero(pyp0, E, K, tol):
         for j in range(len(K)):
             start = time.time()
             count = count + 1
-            temp[i][j] = spinon_cont_zero(K[j], E[i], 0, pyp0, tol)
+            temp[i][j] = spinon_cont_zero(K[j], E[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             end = time.time()
@@ -311,7 +375,7 @@ def graph_spin_cont_zero(pyp0, E, K, tol):
             sys.stdout.write('\r')
             sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             sys.stdout.flush()
-    return temp/np.max(temp)
+    return temp
     # E, K = np.meshgrid(e, K)
 
 

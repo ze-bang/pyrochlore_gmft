@@ -3,7 +3,7 @@ from itertools import permutations
 import math
 
 
-graphres=50
+graphres=20
 
 
 def magnitude(vector):
@@ -28,6 +28,8 @@ W = 2 * np.pi * np.array([0, 1, 1 / 2])
 K = 2 * np.pi * np.array([0, 3 / 4, 3 / 4])
 U = 2 * np.pi * np.array([1 / 4, 1, 1 / 4])
 
+stepN = magnitude(np.abs(U-W))/graphres
+
 def repcoord(a, b, c):
     return a*b1+b*b2+c*b3
 
@@ -39,22 +41,22 @@ def realcoord(r):
 
 def z(mu):
     if mu == 0:
-        return -np.array([1,1,1])/sqrt(3)
+        return -np.array([1,1,1])/np.sqrt(3)
     if mu == 1:
-        return np.array([-1,1,1])/sqrt(3)
+        return np.array([-1,1,1])/np.sqrt(3)
     if mu == 2:
-        return np.array([1,-1,1])/sqrt(3)
+        return np.array([1,-1,1])/np.sqrt(3)
     if mu == 3:
-        return np.array([1,1,-1])/sqrt(3)
+        return np.array([1,1,-1])/np.sqrt(3)
 
 
 def BasisBZ(mu):
     if mu == 0:
-        return 2*np.pi*np.array([-1,1,1])
+        return np.pi*np.array([-1,1,1])
     if mu == 1:
-        return 2*np.pi*np.array([1,-1,1])
+        return np.pi*np.array([1,-1,1])
     if mu == 2:
-        return 2*np.pi*np.array([1,1,-1])
+        return np.pi*np.array([1,1,-1])
 
 def neta(alpha):
     if alpha == 0:
@@ -92,7 +94,7 @@ def ifFBZ(k):
 
 def genBZ(d):
     d = d*1j
-    b = np.mgrid[-1:1:d, -1:1:d, -1:1:d].reshape(3,-1).T/2
+    b = np.mgrid[-1:1:d, -1:1:d, -1:1:d].reshape(3,-1).T
     BZ = np.zeros((len(b),3))
     for i in range(len(b)):
         BZ[i] = b[i,0]*BasisBZ(0) + b[i,1]*BasisBZ(1) + b[i,2] * BasisBZ(2)
@@ -159,8 +161,10 @@ def unitCell(mu):
     if mu == 3:
         return np.array([0,1,1])
 
-def drawLine(A, B, N):
-    return np.linspace(A, B, N)
+def drawLine(A, B, stepN):
+    N = magnitude(np.abs(A-B))
+    num = int(N/stepN)
+    return np.linspace(A, B, num)
 
 def NNtest(mu):
     if mu == 0:
@@ -192,16 +196,25 @@ def obliqueProj(W):
         y[i] = np.dot(W, b(i))
     return np.array(np.matmul(np.linalg.inv(M), y)).T[0]
 
-GammaX = drawLine(Gamma, X, graphres)
-XW = drawLine(X, W, graphres)
-WK = drawLine(W, K, graphres)
-KGamma = drawLine(K, Gamma, graphres)
-GammaL = drawLine(Gamma, L, graphres)
-LU = drawLine(L, U, graphres)
-UW = drawLine(U, W, graphres)
 
 
+GammaX = drawLine(Gamma, X, stepN)
+XW = drawLine(X, W, stepN)
+WK = drawLine(W, K, stepN)
+KGamma = drawLine(K, Gamma, stepN)
+GammaL = drawLine(Gamma, L, stepN)
+LU = drawLine(L, U, stepN)
+UW = drawLine(U, W, stepN)
 
+
+gGamma1 = 0
+gX = magnitude(np.abs(Gamma-X))
+gW1 = gX + magnitude(np.abs(X-W))
+gK = gW1 + magnitude(np.abs(W-K))
+gGamma2 = gK + magnitude(np.abs(K-Gamma))
+gL = gGamma2 + magnitude(np.abs(Gamma-L))
+gU = gL + magnitude(np.abs(L-U))
+gW2 = gU + magnitude(np.abs(U-W))
 
 def msp(items):
   '''Yield the permutations of `items` where items is either a list
@@ -290,12 +303,12 @@ def genALLSymPoints():
 
 symK = genALLSymPoints()
 
-graphres = 20
-
-GammaX = drawLine(Gamma, X, graphres)
-XW = drawLine(X, W, graphres)
-WK = drawLine(W, K, graphres)
-KGamma = drawLine(K, Gamma, graphres)
-GammaL = drawLine(Gamma, L, graphres)
-LU = drawLine(L, U, graphres)
-UW = drawLine(U, W, graphres)
+# graphres = 20
+#
+# GammaX = drawLine(Gamma, X, graphres)
+# XW = drawLine(X, W, graphres)
+# WK = drawLine(W, K, graphres)
+# KGamma = drawLine(K, Gamma, graphres)
+# GammaL = drawLine(Gamma, L, graphres)
+# LU = drawLine(L, U, graphres)
+# UW = drawLine(U, W, graphres)
