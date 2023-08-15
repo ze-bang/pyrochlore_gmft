@@ -3,7 +3,7 @@ from itertools import permutations
 import math
 
 
-graphres=20
+graphres=10
 
 
 def magnitude(vector):

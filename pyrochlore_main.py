@@ -134,6 +134,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     JP = np.linspace(JPm, JPmax, nK)
 
     gap = np.zeros(nK)
+    dev = np.zeros(nK)
     E111 = np.zeros(nK)
     E000 = np.zeros(nK)
     # for i in range (nH):
@@ -158,12 +159,14 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             # except:
             #     phases[i, j] = 0
             gap[i] = py0s.gap()
+            dev[i] = py0s.rho_dev()
             E111[i] = np.min(py0s.E_single(np.pi*np.array([1,1,1])))
             E000[i] = np.min(py0s.E_single(np.array([0,0,0])))
             print([gap[i], E111[i], E000[i]])
     plt.plot(JP, gap, color='b')
     plt.plot(JP, E111, color='g')
     plt.plot(JP, E000, color='r')
+    plt.plot(JP, dev, color='black')
     plt.show()
 
 
@@ -426,16 +429,19 @@ h110 = np.array([1,1,0])/2
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
+# PhaseMagtestJP(0, 0.25, 50, 0, 3, 25, h111, 35, 1, "0.txt")
 
-# findPhaseMag(0, 0.25, 25, 0, 3, 25, h111, 35, 1, "phase_test_111")
+
+findPhaseMag(0, 0.25, 51, 0, 3, 25, h111, 35, 1, "phase_test_111")
 # findPhaseMag(0, 0.25, 25, 0, 3, 25, h001, 35, 1, "phase_test_001")
 # findPhaseMag(0, 0.25, 25, 0, 6, 25, h110, 35, 1, "phase_test_110")
 
-# spinon_continuum(20,20,20,0.04, 0.05, "spin_con_zero_test_omega")
+# spinon_continuum(20,20,20,0.046, 0.04, "spin_con_zero_flux_final")
 
-SSSF(20, 0, np.array([1,1,1]),-0.2,20, "SSSF_zero_test")
+# SSSF(20, 0, np.array([1,1,1]),-0.2,20, "SSSF_zero_test")
 
 # graphPhase("Files/phase_diagram.txt")
-# graphMagPhase("phase_test_111", 0.25,3)
+graphMagPhase("phase_test_111", 0.25,3)
+# graphMagPhase("phase_test_111_dev", 0.25,3)
 # graphMagPhase("phase_test_001", 0.25,3)
 # graphMagPhase("phase_test_110", 0.25,6)

@@ -20,13 +20,13 @@ class myarray(ndarray):
 def green_zero(k, pyp0):
     E, V = pyp0.LV_zero(k)
     Vt = np.einsum('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = 2*pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
     green = np.einsum('ikjl, ik->ijl', Vt, green)
     return green
 
 def green_zero_old(k, alpha, omega, pyp0):
     E = pyp0.E_zero_old(k, alpha)
-    green = 2*pyp0.Jzz/(omega**2 + E)
+    green = pyp0.Jzz/(omega**2 + E)
     return green
 
 def green_f(k, omega, pyp0):
@@ -39,7 +39,7 @@ def green_pi(k, pypi):
     E, V = pypi.LV_zero(k)
     Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = 2*pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
     green = np.einsum('ikjl, ik->ijl', Vt, green)
     return green
 

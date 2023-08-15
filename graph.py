@@ -58,9 +58,9 @@ def graphMagPhase(filename, jpmax, hmax):
 
     # plt.imshow(bigphase, cmap='gray', vmin=-3, vmax=3, interpolation='bilinear', extent=[-0.1, 0.1, -1, 1], aspect='auto')
 
-    # cs = plt.contourf(X, Y, phases, levels=[0, 0.02,50], colors=['#43AC63', '#B5E8C4'])
+    cs = plt.contourf(X, Y, phases, levels=[0, 0.02,10000], colors=['#43AC63', '#B5E8C4'])
     # plt.colorbar()
-    cs = plt.contourf(X, Y, phases, levels=100)
+    # cs = plt.contourf(X, Y, phases, levels=100)
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
     plt.savefig(filename+'phase')

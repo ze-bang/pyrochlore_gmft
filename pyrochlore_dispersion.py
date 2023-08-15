@@ -88,7 +88,7 @@ def rho_true(M, lams, Jzz):
     temp = M + np.diag(lams)
     E,V = np.linalg.eigh(temp)
     Vt = np.einsum('ijk,ikj->ikj',np.transpose(np.conj(V), (0,2,1)),V)
-    Ep = np.mean(np.einsum('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E)), axis=0)
+    Ep = np.real(np.mean(np.einsum('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E)), axis=0))
     return Ep
 
 
@@ -113,7 +113,7 @@ def findLambda_zero(M, Jzz, kappa, tol):
              except:
                  # print(e)
                  lamMin[i] = lams[i]
-             # print(lams[i], rhoguess[i])
+             print(lams[i], rhoguess[i])
 
     return lams
 
@@ -331,7 +331,7 @@ class zeroFluxSolver:
         self.n = n
         self.omega = omega
 
-        self.tol = 1e-3
+        self.tol = 5e-5
         self.lams = np.array([lam, lam], dtype=np.single)
 
         # self.symK = self.genALLSymPoints()
@@ -390,11 +390,7 @@ class zeroFluxSolver:
         return E_zero_old(self.lams, k, alpha, self.Jzz, self.Jpm, self.eta)
 
     def rho_dev(self):
-        temp = self.MF + np.diag(self.lams)
-        E, V = np.linalg.eigh(temp)
-        Vt = np.einsum('ijk,ikj->ikj', np.transpose(np.conj(V), (0, 2, 1)), V)
-        Ep = np.mean(np.einsum('ijk, ik->ij', Vt, self.Jzz / np.sqrt(2 * self.Jzz * E)), axis=0)-self.kappa
-        return max(Ep)
+        return max(rho_true(self.MF, self.lams, self.Jzz) - self.kappa)
 
     def EMAX(self):
         return EMAX(self.MF, self.lams, self.Jzz)
