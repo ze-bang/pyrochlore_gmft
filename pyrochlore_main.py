@@ -440,7 +440,7 @@ h110 = np.array([1,1,0])/2
 
 # spinon_continuum(20,20,20,0.046, 0.04, "spin_con_zero_flux_final")
 
-SSSF(25, 0, np.array([1,1,1]),-0.2,25, "SSSF_pi_test_1")
+SSSF(20, 0, np.array([1,1,1]),-0.2,20, "SSSF_zero_test_1")
 #
 # graphPhase("Files/phase_diagram.txt")
 # graphMagPhase("phase_test_111", 0.25,3)
