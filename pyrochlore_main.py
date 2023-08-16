@@ -305,11 +305,11 @@ def BZbasis(mu):
 
 def BZbasisa(mu):
     if mu == 0:
-        return np.pi*np.array([1,0,0])/2
+        return np.pi*np.array([-1,1,1])
     elif mu == 1:
-        return np.pi*np.array([0,1,0])/2
+        return np.pi*np.array([1,-1,1])
     elif mu == 2:
-        return np.pi*np.array([0,0,1])/2
+        return np.pi*np.array([1,1,-1])
 
 def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
@@ -338,6 +338,15 @@ def SSSF_zero_cal(nK,h, n, BZres, Jpm, filename):
     U = np.array([1 / 4, 1])
     Up = np.array([1 / 4, -1])
 
+
+    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
+    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    plt.contourf(A,B, d1, levels=100)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
+
+    # dex = edges(d1, e, 5e-2)
+    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.plot([0],[0], marker='o', color='b')
     plt.plot(drawLine(X, U, 2).T[0], drawLine(X, U, 2).T[1], marker='o', color='b')
     plt.plot(drawLine(U, L, 2).T[0], drawLine(U, L, 2).T[1], marker='o', color='b')
@@ -351,14 +360,6 @@ def SSSF_zero_cal(nK,h, n, BZres, Jpm, filename):
     plt.text(L[0]+0.03,L[1]+0.03, '$L$')
     plt.text(X[0]+0.03,X[1]+0.03, '$X$')
     plt.text(K[0]+0.03,K[1]+0.03, '$K$')
-    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
-    # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    plt.contourf(A,B, d1, levels=100)
-    plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
-
-    # dex = edges(d1, e, 5e-2)
-    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
     plt.show()
 
@@ -386,6 +387,14 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     U = np.array([1 / 4, 1])
     Up = np.array([1 / 4, -1])
 
+
+
+    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    plt.contourf(A,B, d1, levels=100)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
+    # dex = edges(d1, e, 5e-2)
+    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.plot([0],[0], marker='o', color='b')
     plt.plot(drawLine(X, U, 2).T[0], drawLine(X, U, 2).T[1], marker='o', color='b')
     plt.plot(drawLine(U, L, 2).T[0], drawLine(U, L, 2).T[1], marker='o', color='b')
@@ -400,13 +409,6 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     plt.text(X[0]+0.03,X[1]+0.03, '$X$')
     plt.text(K[0]+0.03,K[1]+0.03, '$K$')
     plt.text(U[0]+0.03,U[1]+0.03, '$U$')
-
-    # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    plt.contourf(A,B, d1, levels=100)
-    plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
-    # dex = edges(d1, e, 5e-2)
-    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
     plt.savefig("Files/"+filename+".png")
     plt.show()
 
@@ -427,21 +429,20 @@ h110 = np.array([1,1,0])/2
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
+# PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
 # PhaseMagtestJP(0, 0.25, 50, 0, 3, 25, h111, 35, 1, "0.txt")
 
 
-# findPhaseMag(0, 0.25, 25, 0, 3, 25, h111, 25, 1, "phase_test_111")
-# findPhaseMag(0, 0.25, 25, 0, 3, 25, h001, 35, 1, "phase_test_001")
-# findPhaseMag(0, 0.25, 25, 0, 6, 25, h110, 35, 1, "phase_test_110")
+# findPhaseMag(0, 0.25, 50, 0, 3, 50, h111, 35, 1, "phase_test_111")
+# findPhaseMag(0, 0.25, 50, 0, 3, 50, h001, 35, 1, "phase_test_001")
+# findPhaseMag(0, 0.25, 50, 0, 12, 50, h110, 35, 1, "phase_test_110")
 
 # spinon_continuum(20,20,20,0.046, 0.04, "spin_con_zero_flux_final")
 
-# SSSF(20, 0, np.array([1,1,1]),-0.2,20, "SSSF_zero_test")
-
+SSSF(25, 0, np.array([1,1,1]),-0.2,25, "SSSF_pi_test_1")
+#
 # graphPhase("Files/phase_diagram.txt")
 # graphMagPhase("phase_test_111", 0.25,3)
-# graphMagPhase("phase_test_111_dev", 0.25,3)
 # graphMagPhase("phase_test_001", 0.25,3)
-# graphMagPhase("phase_test_110", 0.25,6)
+# graphMagPhase("phase_test_110", 0.25,12)
