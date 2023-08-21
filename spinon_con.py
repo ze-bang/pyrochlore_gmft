@@ -108,8 +108,8 @@ def gaugefieldpi(alpha, K):
 
 def gaugepi(K):
     gauge = np.zeros((len(K), 8, 8, 8), dtype=complex)
-    gauge[:,0:4,0:4,0:4] = gaugefieldpi(0, K)
-    gauge[:,4:8,4:8,4:8] = gaugefieldpi(1, K)
+    gauge[:,0:4,4:8,4:8] = gaugefieldpi(0, K)
+    gauge[:,4:8,0:4,0:4] = gaugefieldpi(1, K)
     return gauge
 
 
@@ -207,13 +207,18 @@ def SSSF_pi(q, pyp0):
 
     gauge = gaugepi(Ks)
 
-    greenp1 = green_pi(Ks, pyp0)
-    greenp2 = green_pi(Qs, pyp0)
+    greenpK = green_pi(Ks, pyp0)
+    greenpQ = green_pi(Qs, pyp0)
 
-    greenp2 = np.einsum('ikl,a->iakl',greenp2, np.ones(8))
+    greenp1 = np.einsum('ikl,a->iakl',greenpQ, np.ones(8))
+    greenp1 = np.einsum('iakl,iakl->iakl', greenp1, gauge)
+
+    inte = np.einsum('ikk, ikjl->i', greenpK, greenp1)
+
+    greenp2 = np.einsum('ikl,a->iakl', greenpK, np.ones(8))
     greenp2 = np.einsum('iakl,iakl->iakl', greenp2, gauge)
 
-    inte = np.einsum('ikk, ikjl->i', greenp1, greenp2)
+    inte += np.einsum('ikjl, ikk->i', greenp2, greenpQ)
 
     return np.real(np.mean(inte))/4
 
@@ -249,19 +254,19 @@ def SSSF_pi_dumb(q, pyp0):
                         *np.exp(1j * neta(0) * np.dot(Ks, NN(i)-NN(j)))\
                         *np.exp(1j * neta(0) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
 
-                mu = unitCell(rs) + neta(1) * step(i)
-                nu = unitCell(rs) + neta(1) * step(j)
-                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                index1 = findS(rs1)
-                index2 = findS(rs2)
-                temp += greenp1b[:, rs, rs] * greenp2[:, index1, index2]\
-                        *np.exp(-1j * neta(1) * np.dot(Ks, NN(i)-NN(j)))\
-                        *np.exp(1j * neta(1) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
-
-                temp += greenp1b[:, index1, index2] * greenp2b[:, index1, index2]\
-                        *np.exp(1j * neta(1) * np.dot(Ks, NN(i)-NN(j)))\
-                        *np.exp(1j * neta(1) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
+                # mu = unitCell(rs) + neta(1) * step(i)
+                # nu = unitCell(rs) + neta(1) * step(j)
+                # rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                # rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                # index1 = findS(rs1)
+                # index2 = findS(rs2)
+                # temp += greenp1b[:, rs, rs] * greenp2[:, index1, index2]\
+                #         *np.exp(-1j * neta(1) * np.dot(Ks, NN(i)-NN(j)))\
+                #         *np.exp(1j * neta(1) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
+                # 
+                # temp += greenp1b[:, index1, index2] * greenp2b[:, index1, index2]\
+                #         *np.exp(1j * neta(1) * np.dot(Ks, NN(i)-NN(j)))\
+                #         *np.exp(1j * neta(1) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1)))
 
     return np.real(np.mean(temp))
 
@@ -349,7 +354,7 @@ def graph_SSSF_pi(pyp0, K):
     for j in range(len(K)):
         start = time.time()
         count = count + 1
-        temp[j] = SSSF_pi_dumb(K[j], pyp0)
+        temp[j] = SSSF_pi(K[j], pyp0)
         # if temp[i][j] > tempMax:
         #     tempMax = temp[i][j]
         end = time.time()

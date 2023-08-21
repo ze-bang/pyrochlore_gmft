@@ -2,23 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 from sympy.utilities.iterables import multiset_permutations
-
-from numba import njit, jit
-from numba.experimental import jitclass
-from numba import float32, int16, boolean, complex64
-from numba import types, typed, typeof
 from misc_helper import *
-
-
-
-# def genBZ( d):
-#     d = d * 1j
-#     b = np.mgrid[-1: 1:d, -1: 1:d, -1: 1:d].reshape(3, -1).T
-#     BZ = np.zeros((len(b), 3), dtype=np.single)
-#     for i in range (len(b)):
-#         BZ[i] = b[i, 0] *BasisBZ(0) + b[i, 1] *BasisBZ(1) + b[i, 2] *BasisBZ(2)
-#     return BZ
-
+import numba as nb
 
 formfactor = np.zeros((4,4,3))
 for i in range(4):
@@ -29,17 +14,21 @@ for i in range(4):
 NNN = np.array([[-1/4, -1/4, -1/4],[-1/4, 1/4, 1/4], [1/4, -1/4, 1/4], [1/4, 1/4, -1/4]])
 ZZZ = np.array([[-1, -1, -1],[-1, 1, 1], [1, -1, 1], [1, 1, -1]])/np.sqrt(3)
 
-
+@nb.njit
 def exponent_mag(h, n, k, alpha):
-    temp = 0
+    temp = np.zeros((len(k)), dtype=np.complex128)
     for i in range(4):
-        temp += -1/4 * h * np.dot(n, z(i)) * np.exp(1j*np.dot(k, neta(alpha)*NNtest(i)))
+        temp = temp + -1/4 * h * np.dot(n, z(i)) * np.exp(1j*np.dot(k, neta(alpha)*NNtest(i)))
     return temp
 
-
+@nb.njit
 def M_zero(Jpm, eta, k, alpha):
-    temp = -Jpm/4 *eta[alpha]* np.exp(-1j*neta(alpha)*(np.einsum('ik, jlk->ijl',k, formfactor)))
-    temp = np.einsum('ijk->i', temp)
+    # temp = -Jpm/4 *eta[alpha]* np.exp(-1j*neta(alpha)*(np.einsum('ik, jlk->ijl',k, formfactor)))
+    # temp = np.einsum('ijk->i', temp)
+    temp = np.zeros((len(k)), dtype=np.complex128)
+    for i in range(4):
+        for j in range(4):
+            temp = temp - Jpm / 4 * eta[alpha] * np.exp(-1j * neta(alpha) * (np.dot(k, NN(i)-NN(j))))
     return temp
 
 def M_zero_single(Jpm, eta, k, alpha):
@@ -47,8 +36,10 @@ def M_zero_single(Jpm, eta, k, alpha):
     temp = np.sum(temp)
     return temp
 
+
+@nb.njit
 def M_true(k, Jpm, eta, h, n):
-    M = np.zeros((len(k), 2,2), dtype=complex)
+    M = np.zeros((len(k), 2,2), dtype=np.complex128)
     M[:, 0, 0] = M_zero(Jpm, eta, k, 0)
     M[:, 1, 1] = M_zero(Jpm, eta, k, 1)
     M[:, 0, 1] = exponent_mag(h, n, k, 0)
@@ -66,7 +57,6 @@ def M_single(lams, k, Jzz, Jpm, eta, h, n):
     E, V = np.linalg.eig(M)
     return np.sqrt(2*Jzz*np.real(E))
 
-
 def E_zero_true(lams, k, Jpm, eta, h, n):
     M = M_true(k, Jpm, eta, h, n)
     M = M + np.diag(lams)
@@ -75,6 +65,7 @@ def E_zero_true(lams, k, Jpm, eta, h, n):
 
 def E_zero_old(lams, k, alpha, Jzz, Jpm, eta):
     return np.sqrt(2*Jzz*(lams[alpha]+M_zero(Jpm, eta, k, alpha)))
+
 def green_f(M, lams, omega):
     temp = M + np.diag(lams) + np.diag(omega**2*np.ones(2)/2)
     return np.linalg.inv(temp)

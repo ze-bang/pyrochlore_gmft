@@ -55,12 +55,12 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
         py0s.findLambda()
         # print(py0s.lams, py0s.minLams, py0s.condensed())
         # plt.axvline(x=py0s.lams[0], color='b', label='axvline - full height', linestyle='dashed')
-        plt.plot(py0s.lams[0], py0s.rho(py0s.lams)[0], marker='o')
-        # py0s.graph(False)
+        # plt.plot(py0s.lams[0], py0s.rho(py0s.lams)[0], marker='o')
+        py0s.graph(False)
         # py0s.graphAlg(False)
         # py0s.graphAlg(False)
         # plt.legend(['Num', 'Alg'])
-        # plt.show()
+        plt.show()
     elif JP < 0:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
@@ -469,8 +469,8 @@ h110 = np.array([1,1,0])/2
 # SSSF(25, 2.4, h110,0.02,25, "SSSF_zero_0.02_h110=2.4")
 # #
 #
-SSSF(25, 0, np.array([1,1,1]),-0.45,25, "SSSF_pi_-0.45_dumb")
-# SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")
+# SSSF(25, 0, np.array([1,1,1]),-0.45,25, "SSSF_pi_-0.45_dumb")
+SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")
 # SSSF(25, 0, np.array([1,1,1]),-0.05,25, "SSSF_pi_-0.05_dumb")
 
 #

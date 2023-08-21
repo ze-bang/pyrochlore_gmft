@@ -1,13 +1,16 @@
 import numpy as np
 from itertools import permutations
 import math
-
+import numba as nb
 
 graphres=50
 
-
+@nb.njit
 def magnitude(vector):
-    return math.sqrt(sum(pow(element, 2) for element in vector))
+    temp = 0
+    for i in vector:
+        temp = temp + i**2
+    return np.sqrt(temp)
 
 e0 = np.array([0,0,0])
 e1 = np.array([0,1,1])/2
@@ -30,14 +33,18 @@ U = 2 * np.pi * np.array([1 / 4, 1, 1 / 4])
 
 stepN = magnitude(np.abs(U-W))/graphres
 
+
+@nb.njit
 def repcoord(a, b, c):
     return a*b1+b*b2+c*b3
 
+
+@nb.njit
 def realcoord(r):
     r1, r2, r3 = r
     return r1*e1 +r2*e2 + r3* e3
 
-
+@nb.njit
 def z(mu):
     if mu == 0:
         return -np.array([1,1,1])/np.sqrt(3)
@@ -48,7 +55,7 @@ def z(mu):
     if mu == 3:
         return np.array([1,1,-1])/np.sqrt(3)
 
-
+@nb.njit
 def BasisBZ(mu):
     if mu == 0:
         return np.pi*np.array([-1,1,1])
@@ -57,11 +64,15 @@ def BasisBZ(mu):
     if mu == 2:
         return np.pi*np.array([1,1,-1])
 
+
+@nb.njit
 def neta(alpha):
     if alpha == 0:
         return 1
     else:
         return -1
+
+@nb.njit
 def NN(mu):
     if mu == 0:
         return np.array([-1 / 4, -1 / 4, -1 / 4])
@@ -72,6 +83,8 @@ def NN(mu):
     if mu == 3:
         return np.array([1 / 4, 1 / 4, -1 / 4])
 
+
+@nb.njit
 def ifFBZ(k):
     b1, b2, b3 = k
     if np.any(abs(k) > 2*np.pi):
@@ -91,14 +104,17 @@ def ifFBZ(k):
 #             BZ += [x]
 #     return BZ
 
+
+
 def genBZ(d):
     d = d*1j
     b = np.mgrid[-1:1:d, -1:1:d, -1:1:d].reshape(3,-1).T
-    BZ = np.zeros((len(b),3))
-    for i in range(len(b)):
-        BZ[i] = b[i,0]*BasisBZ(0) + b[i,1]*BasisBZ(1) + b[i,2] * BasisBZ(2)
+    basis = np.array([BasisBZ(0), BasisBZ(1), BasisBZ(2)])
+    BZ = np.einsum('ij, jk->ik', b, basis)
     return BZ
 
+
+@nb.njit
 def step(mu):
     if mu == 0:
         return np.array([0,0,0])
@@ -111,16 +127,17 @@ def step(mu):
 
 
 
-
+@nb.njit
 def mod2pi(a):
     while a>= 2*np.pi:
         a = a - 2*np.pi
     return a
 
+
+@nb.njit
 def A_pi(r1,r2):
     bond = r1-r2
     r1, r2, r3 = r1
-
     if np.all(bond == step(0)):
         return 0
     if np.all(bond == step(1)):
@@ -136,12 +153,15 @@ def A_pi(r1,r2):
     if np.all(bond == -step(3)):
         return 0
 
+@nb.njit
 def findS(r):
     for i in range (4):
         if np.all(r == unitCell(i)):
             return i
     return -1
 
+
+@nb.njit
 def unitCell(mu):
     if mu == 0:
         return np.array([0,0,0])
@@ -152,11 +172,15 @@ def unitCell(mu):
     if mu == 3:
         return np.array([0,1,1])
 
+
 def drawLine(A, B, stepN):
     N = magnitude(np.abs(A-B))
     num = int(N/stepN)
-    return np.linspace(A, B, num)
+    temp = np.linspace(A, B, num)
+    return temp
 
+
+@nb.njit
 def NNtest(mu):
     if mu == 0:
         return np.array([0, 0, 0])/2
@@ -167,7 +191,7 @@ def NNtest(mu):
     if mu == 3:
         return np.array([1, 1, 0])/2
 
-
+@nb.njit
 def b(mu):
     if mu == 0:
         return b1
@@ -268,12 +292,12 @@ def msp(items):
       head = k
       yield visit(head)
 
+
 def permute(G):
     B = []
     for i in msp(G):
         B += [i]
     return B
-
 
 def genALLSymPoints():
     pG = np.array(list(set(permutations(Gamma))))
