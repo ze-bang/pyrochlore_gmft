@@ -91,7 +91,23 @@ def rho_true(M, lams, Jzz):
     Ep = np.real(np.mean(np.einsum('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E)), axis=0))
     return Ep
 
+def findminLam(M, Jzz, tol):
+    warnings.filterwarnings("error")
+    lamMin = np.zeros(2)
+    lamMax = 50*np.ones(2)
+    lams = (lamMin + lamMax) / 2
 
+    while not ((lamMax-lamMin<=tol).all()):
+        lams = (lamMin + lamMax) / 2
+        try:
+             rhoguess = rho_true(M, lams, Jzz)
+             for i in range(2):
+                 lamMax[i] = lams[i]
+        except:
+             lamMin = lams
+        # print([lams, lamMin, lamMax,lamMax-lamMin])
+
+    return lams
 def findLambda_zero(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
     lamMin = np.zeros(2)
@@ -99,8 +115,8 @@ def findLambda_zero(M, Jzz, kappa, tol):
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(M, lams, Jzz)
     # print(self.kappa)
-    yes = True
-    while yes >= tol:
+    # yes = True
+    while not ((np.absolute(rhoguess-kappa)<=tol).all()):
         lams = (lamMin + lamMax) / 2
              # rhoguess = rho_true(Jzz, M, lams)
         try:
@@ -118,9 +134,11 @@ def findLambda_zero(M, Jzz, kappa, tol):
         except:
              # print(e)
              lamMin = lams
-        # print([lams, rhoguess, np.absolute(rhoguess-kappa)])
-        if np.absolute(rhoguess[0]-kappa)<=tol and np.absolute(rhoguess[1]-kappa)<=tol:
-             yes = False
+        # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
+        # if (lamMax-lamMin<=1e-6).all():
+        #      lams = -1000*np.ones(2)
+             # print("here")
+             # break
 
     return lams
 
@@ -131,7 +149,7 @@ def dispersion_zero(lams, k, Jzz, Jpm, eta, h, n):
     temp = np.sqrt(2*Jzz*E_zero_true(lams, k, Jpm, eta, h, n)[0])
     return temp
 
-def algebraicE(lams,k, h):
+def algebraicE1110Field(lams,k, h):
     q1 = k[:, 0]
     q2 = k[:, 1]
     q3 = k[:, 2]
@@ -163,8 +181,9 @@ def algebraicE(lams,k, h):
                     16 * h ** 2 + 3 * (lamA - lamB) ** 2))) + (lamA + lamB) / 2
     return E
 
+
 def algdispersion(lams,k,Jzz, h):
-    return np.sqrt(2*Jzz*np.real(algebraicE(lams,k, h)))
+    return np.sqrt(2*Jzz*np.real(algebraicE1110Field(lams,k, h)))
 
 # def populate(res):
 #     temp = np.zeros((1,3))
@@ -340,7 +359,7 @@ class zeroFluxSolver:
 
         self.tol = 1e-4
         self.lams = np.array([lam, lam], dtype=np.single)
-
+        self.minLams = np.zeros(2)
         # self.symK = self.genALLSymPoints()
         # self.symK = self.populate(BZres)
 
@@ -355,13 +374,12 @@ class zeroFluxSolver:
         self.lams = findLambda_zero(self.MF, self.Jzz, self.kappa, self.tol)
         warnings.resetwarnings()
 
+    def findminLam(self):
+        self. minLams = findminLam(self.MF, self.Jzz, 1e-10)
+        warnings.resetwarnings()
 
-    # def condensed(self):
-    #     lams, lmax, lmin = findLambda_zero(self.MF, self.Jzz, self.kappa, self.tol)
-    #     if (np.abs(lmax-lmin)<=1e-5).any():
-    #         return 1
-    #     else:
-    #         return 0
+    def condensed(self):
+        return np.absolute(self.minLams - self.lams) < 1e-3
     def M_true(self, k):
         return M_true(k, self.Jpm, self.eta, self.h, self.n)
 
@@ -379,12 +397,30 @@ class zeroFluxSolver:
         dex = np.argmin(E,axis=0)[0]
         # print("Gap at " + str(self.bigB[dex]) + " with " + str(E[dex, 0]))
         return np.sqrt(2*self.Jzz*E[dex, 0])
-
+    def gapwhere(self):
+        temp = self.MF + np.diag(self.lams)
+        E, V = np.linalg.eigh(temp)
+        # E = np.sqrt(2*self.Jzz*E)
+        dex = np.argmin(E,axis=0)[0]
+        return np.mod(self.bigB[dex], 2*np.pi)
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
             plt.show()
 
+    def rho(self, lams):
+        return rho_true(self.MF, lams, self.Jzz)
+
+
+    # def graphrho(self):
+    #     n = 10000
+    #     lams = np.linspace(0, 1, n)
+    #     lams = np.einsum('i, j->ij', lams, np.ones(2))
+    #     rho = np.zeros(n)
+    #     for i in range(n):
+    #         rho[i] = rho_true(self.MF, lams[i,:], self.Jzz)[0]
+    #     plt.plot(lams[:,0], rho)
+        # plt.show()
     def graphAlg(self, show):
         calAlgDispersion(self.lams, self.Jzz, self.h)
         if show:

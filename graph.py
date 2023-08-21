@@ -48,7 +48,7 @@ def graphPhase(filename):
 
 
 def graphMagPhase(filename, jpmax, hmax):
-    phases = np.loadtxt(filename + '.txt', delimiter=' ').T
+    phases = np.loadtxt('Files/' + filename + '.txt', delimiter=' ').T
 
 
     JP = np.linspace(0, jpmax, phases.shape[1])
@@ -58,13 +58,13 @@ def graphMagPhase(filename, jpmax, hmax):
 
     # plt.imshow(bigphase, cmap='gray', vmin=-3, vmax=3, interpolation='bilinear', extent=[-0.1, 0.1, -1, 1], aspect='auto')
 
-    cs = plt.contourf(X, Y, phases, levels=[0, 0.13,10000], colors=['#43AC63', '#B5E8C4'])
-    # cs = plt.contourf(X, Y, phases, levels=100)
+    # cs = plt.contourf(X, Y, phases, levels=[0, 0.13,10000], colors=['#43AC63', '#B5E8C4'])
+    cs = plt.contourf(X, Y, phases, levels=100)
     # plt.colorbar()
 
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
-    plt.savefig(filename+'phase')
+    plt.savefig('Files/'+filename+'phase')
 
 
 # graphPhase("Files/phase_diagram.txt")

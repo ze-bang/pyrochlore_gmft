@@ -3,7 +3,7 @@ from itertools import permutations
 import math
 
 
-graphres=5
+graphres=50
 
 
 def magnitude(vector):
@@ -36,7 +36,6 @@ def repcoord(a, b, c):
 def realcoord(r):
     r1, r2, r3 = r
     return r1*e1 +r2*e2 + r3* e3
-
 
 
 def z(mu):
@@ -109,14 +108,6 @@ def step(mu):
         return np.array([0,1,0])
     if mu == 3:
         return np.array([0,0,1])
-
-
-
-
-
-
-def drawLine(A, B, N):
-    return np.linspace(A, B, N)
 
 
 

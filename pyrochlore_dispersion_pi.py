@@ -115,7 +115,23 @@ def rho_true(Jzz, M, lams):
     return Ep
 
 
+def findminLam(M, Jzz, tol):
+    warnings.filterwarnings("error")
+    lamMin = np.zeros(2)
+    lamMax = 50*np.ones(2)
+    lams = (lamMin + lamMax) / 2
 
+    while not ((lamMax-lamMin<=tol).all()):
+        lams = (lamMin + lamMax) / 2
+        try:
+             rhoguess = rho_true(M, lams, Jzz)
+             for i in range(2):
+                 lamMax[i] = lams[i]
+        except:
+             lamMin = lams
+        # print([lams, lamMin, lamMax,lamMax-lamMin])
+
+    return lams
 
 def findlambda_pi(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
@@ -124,9 +140,8 @@ def findlambda_pi(M, Jzz, kappa, tol):
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(Jzz, M, lams)
     # print(self.kappa)
-    yes = True
 
-    while yes >= tol:
+    while not ((np.absolute(rhoguess-kappa)<=tol).all()):
         # for i in range(2):
          lams= (lamMin+lamMax)/2
          # rhoguess = rho_true(Jzz, M, lams)
@@ -142,8 +157,8 @@ def findlambda_pi(M, Jzz, kappa, tol):
              lamMin = lams
              # if lamMax == 0:
              #     break
-         if np.absolute(rhoguess[0]-kappa)<=tol and np.absolute(rhoguess[1]-kappa)<=tol:
-            yes = False
+         # if (lamMax - lamMin <= tol ** 2 * 10).all():
+         #     lams = -1000 * np.ones(2)
     return lams
 
 
@@ -265,7 +280,6 @@ def gap(M, lams):
     E,V = np.linalg.eigh(temp)
     # E = np.sqrt(E)
     temp = np.amin(E)
-    print("Gap is " + str(temp))
     return temp
 
 def EMAX(M, lams):
@@ -285,7 +299,7 @@ class piFluxSolver:
         self.Jpm = Jpm
         self.kappa = kappa
         self.eta = np.array([eta, 1], dtype=float)
-        self.tol = 1e-3
+        self.tol = 1e-5
         self.lams = np.array([lam, lam], dtype=float)
         self.h = h
         self.n = n
@@ -304,7 +318,12 @@ class piFluxSolver:
     def findLambda(self):
         self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
         warnings.resetwarnings()
+    def findminLam(self):
+        self. minLams = findminLam(self.MF, self.Jzz, 1e-10)
+        warnings.resetwarnings()
 
+    def condensed(self):
+        return np.absolute(self.minLams - self.lams) < 1e-5
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)
 
@@ -322,8 +341,13 @@ class piFluxSolver:
     def gap(self):
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 
+    def gapwhere(self):
+        temp = self.MF + np.diag(self.lams)
+        E, V = np.linalg.eigh(temp)
+        # E = np.sqrt(2*self.Jzz*E)
+        dex = np.argmin(E,axis=0)[0]
+        return np.mod(self.bigB[dex], 2*np.pi)
     def graph(self, show):
-        print(self.eta)
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
             plt.show()
