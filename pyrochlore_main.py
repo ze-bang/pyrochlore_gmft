@@ -450,27 +450,27 @@ h110 = np.array([1,1,0])/2
 #
 
 
-# spinon_continuum(50,50,50,0.046, 0.02, "spin_con_zero_flux_final")
+# spinon_continuum(50,50,50,0.046, 0.02,   "spin_con_zero_flux_final")
 #
 # # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
-# #
-# # SSSF(25, 0.2, h111,0.02,25, "SSSF_zero_0.02_h111=0.2")
-# # SSSF(25, 0.4, h111,0.02,25, "SSSF_zero_0.02_h111=0.4")
-# # SSSF(25, 0.6, h111,0.02,25, "SSSF_zero_0.02_h111=0.6")
-# #
-# # SSSF(25, 0.2, h001,0.02,25, "SSSF_zero_0.02_h001=0.2")
-# # SSSF(25, 0.4, h001,0.02,25, "SSSF_zero_0.02_h001=0.4")
-# # SSSF(25, 0.6, h001,0.02,25, "SSSF_zero_0.02_h001=0.6")
+SSSF(25, 0, np.array([1,1,1]),-0.45,20, "SSSF_pi_-0.45_dumb")
+
+# SSSF(25, 0.2, h111,0.02,25, "SSSF_zero_0.02_h111=0.2")
+# SSSF(25, 0.4, h111,0.02,25, "SSSF_zero_0.02_h111=0.4")
+# SSSF(25, 0.6, h111,0.02,25, "SSSF_zero_0.02_h111=0.6")
+#
+# SSSF(25, 0.2, h001,0.02,25, "SSSF_zero_0.02_h001=0.2")
+# SSSF(25, 0.4, h001,0.02,25, "SSSF_zero_0.02_h001=0.4")
+# SSSF(25, 0.6, h001,0.02,25, "SSSF_zero_0.02_h001=0.6")
 # #
 # SSSF(25, 0.8, h110,0.02,25, "SSSF_zero_0.02_h110=0.8")
 # SSSF(25, 1.6, h110,0.02,25, "SSSF_zero_0.02_h110=1.6")
 # SSSF(25, 2.4, h110,0.02,25, "SSSF_zero_0.02_h110=2.4")
 # #
 #
-# SSSF(25, 0, np.array([1,1,1]),-0.45,25, "SSSF_pi_-0.45_dumb")
-SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")
+# SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")
 # SSSF(25, 0, np.array([1,1,1]),-0.05,25, "SSSF_pi_-0.05_dumb")
 
 #

@@ -37,7 +37,6 @@ def M_zero_single(Jpm, eta, k, alpha):
     return temp
 
 
-@nb.njit
 def M_true(k, Jpm, eta, h, n):
     M = np.zeros((len(k), 2,2), dtype=np.complex128)
     M[:, 0, 0] = M_zero(Jpm, eta, k, 0)
