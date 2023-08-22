@@ -32,6 +32,7 @@ def M_pi_mag_sub(k, rs, alpha, h, n):
         index2 = findS(rs2)
         M[:,rs,index2] += M_pi_mag_term(k, alpha, rs2, i, h, n)
     return M
+
 def M_pi_sub(k, rs, alpha, eta, Jpm):
     M = np.zeros((len(k), 4, 4), dtype=complex)
     for i in range(4):
@@ -44,7 +45,6 @@ def M_pi_sub(k, rs, alpha, eta, Jpm):
                 index1 = findS(rs1)
                 index2 = findS(rs2)
                 M[:, index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
-
     return M
 
 
@@ -76,8 +76,8 @@ def M_pi_sub_single(k, rs, alpha, eta, Jpm, h, n):
                 index1 = findS(rs1)
                 index2 = findS(rs2)
                 M[index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
-                M[:,i,index2] += -M_pi_mag_term(k, alpha, rs2, j, h, n)
-                M[:, index2, i] += -np.conj(M_pi_mag_term(k, 1-alpha, rs2, j, h, n))
+                M[i,index2] += -M_pi_mag_term(k, alpha, rs2, j, h, n)
+                M[index2, i] += -np.conj(M_pi_mag_term(k, 1-alpha, rs2, j, h, n))
     return M
 
 
@@ -337,6 +337,7 @@ class piFluxSolver:
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n)
     def LV_zero(self, k):
         return E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)
+
     def LV_zero_old(self, k,alpha):
         bigM = np.zeros((len(k), 4, 4, 4), dtype=complex)
         for i in range(4):
@@ -359,6 +360,11 @@ class piFluxSolver:
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
             plt.show()
+
+    def M_single(self, k):
+        M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
+        return M
+
 
     def E_single(self, k):
         M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))

@@ -37,7 +37,7 @@ def green_f(k, omega, pyp0):
 
 def green_pi(k, pypi):
     E, V = pypi.LV_zero(k)
-    # Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
     green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
     green = np.einsum('ikjl, ik->ijl', Vt, green)
@@ -48,10 +48,10 @@ def green_pi_old(k, alpha, pypi):
     # Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
     green = np.zeros((len(k),4,4), dtype=np.complex128)
-    for i in range (4):
-        for j in range (4):
-            for k in range(4):
-                green[:,i,j] += pypi.Jzz*V[:,j,k]*(np.conj(np.transpose(V, (0, 2, 1))))[:,k,i]/np.sqrt(2*pypi.Jzz*E[:,k])
+    for mu in range (4):
+        for nu in range (4):
+            for gamma in range(4):
+                green[:,mu,nu] += pypi.Jzz*V[:,nu,gamma]*(np.conj(np.transpose(V, (0, 2, 1))))[:,gamma,mu]/np.sqrt(2*pypi.Jzz*E[:,gamma])
     return green
 
 def green_pi_branch(k, pypi):
@@ -268,7 +268,6 @@ def SSSF_pi_dumb(q, pyp0):
     # greenQ = green_pi(Qs, pyp0)
 
 
-
     greenpKA = green_pi_old(Ks, 0, pyp0)
     greenpKB = green_pi_old(Ks, 1, pyp0)
     greenpQA = green_pi_old(Qs, 0, pyp0)
@@ -287,14 +286,12 @@ def SSSF_pi_dumb(q, pyp0):
                     index1 = findS(rs1)
                     index2 = findS(rs2)
                     temp += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-                            *np.exp(1j  * np.dot(Ks, NN(i)-NN(j))) \
-                            * np.exp(-1j * np.dot(q, NN(i) - NN(j))/2)\
-                            *np.exp(1j  * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+                            *np.exp(1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
+                            *np.exp(1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
-                    temp += greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
-                            *np.exp(-1j  * np.dot(Ks, NN(i) -NN(j))) \
-                            * np.exp(1j  * np.dot(q, NN(i) - NN(j)) / 2) \
-                            *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+                    # temp += greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
+                    #         *np.exp(-1j * np.dot(Ks-q/2, NN(i) -NN(j))) \
+                    #         *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
     # print(np.mean(temp))
     return np.real(np.mean(temp))
@@ -375,23 +372,26 @@ def graph_SSSF_zero(pyp0, K):
 
 def graph_SSSF_pi(pyp0, K):
     el = "==:==:=="
-    totaltask = len(K)
+    h = K.shape[0]
+    l = K.shape[1]
+    totaltask = h*l
     increment = totaltask/50
     count = 0
-    temp = np.zeros(len(K))
+    temp = np.zeros((h,l))
 
-    for j in range(len(K)):
-        start = time.time()
-        count = count + 1
-        temp[j] = SSSF_pi_dumb(K[j], pyp0)
-        # if temp[i][j] > tempMax:
-        #     tempMax = temp[i][j]
-        end = time.time()
-        el = (end - start)*(totaltask-count)
-        el = telltime(el)
-        sys.stdout.write('\r')
-        sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-        sys.stdout.flush()
+    for i in range(h):
+        for j in range(l):
+            start = time.time()
+            count = count + 1
+            temp[i,j] = SSSF_pi_dumb(K[i,j], pyp0)
+            # if temp[i][j] > tempMax:
+            #     tempMax = temp[i][j]
+            end = time.time()
+            el = (end - start)*(totaltask-count)
+            el = telltime(el)
+            sys.stdout.write('\r')
+            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            sys.stdout.flush()
     return temp
     # E, K = np.meshgrid(e, K)
 

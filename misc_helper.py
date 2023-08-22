@@ -58,11 +58,11 @@ def z(mu):
 @nb.njit
 def BasisBZ(mu):
     if mu == 0:
-        return np.pi*np.array([-1,1,1])
+        return 2*np.pi*np.array([-1,1,1])
     if mu == 1:
-        return np.pi*np.array([1,-1,1])
+        return 2*np.pi*np.array([1,-1,1])
     if mu == 2:
-        return np.pi*np.array([1,1,-1])
+        return 2*np.pi*np.array([1,1,-1])
 
 
 @nb.njit
@@ -108,7 +108,7 @@ def ifFBZ(k):
 
 def genBZ(d):
     d = d*1j
-    b = np.mgrid[-1:1:d, -1:1:d, -1:1:d].reshape(3,-1).T
+    b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1).T
     basis = np.array([BasisBZ(0), BasisBZ(1), BasisBZ(2)])
     BZ = np.einsum('ij, jk->ik', b, basis)
     return BZ
@@ -128,30 +128,24 @@ def step(mu):
 
 
 @nb.njit
-def mod2pi(a):
-    while a>= 2*np.pi:
-        a = a - 2*np.pi
-    return a
-
-
-@nb.njit
 def A_pi(r1,r2):
     bond = r1-r2
     r1, r2, r3 = r1
     if np.all(bond == step(0)):
         return 0
     if np.all(bond == step(1)):
-        return mod2pi(np.pi*(r2+r3))
+        return np.pi*(r2+r3) % (2*np.pi)
     if np.all(bond == step(2)):
-        return mod2pi(np.pi*r3)
+        return np.pi*r3 % (2*np.pi)
     if np.all(bond == step(3)):
         return 0
     if np.all(bond == -step(1)):
-        return mod2pi(np.pi*(r2+r3))
+        return np.pi*(r2+r3) % (2*np.pi)
     if np.all(bond == -step(2)):
-        return mod2pi(np.pi*r3)
+        return np.pi*r3 % (2*np.pi)
     if np.all(bond == -step(3)):
         return 0
+
 
 @nb.njit
 def findS(r):

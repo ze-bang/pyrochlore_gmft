@@ -64,6 +64,7 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
     elif JP < 0:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
+        # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
 #endregion
 
@@ -382,13 +383,13 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     py0s.findLambda()
     # py0s.calAllDispersion()
 
-    H = np.linspace(-2.5,2.5,nK)
-    L = np.linspace(-2.5,2.5,nK)
+    H = np.linspace(-6,6,nK)
+    L = np.linspace(-6,6,nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A,B).reshape((nK*nK,3))
+    K = hkltoK(A,B)
 
 
-    d1 = graph_SSSF_pi(py0s, K).reshape((nK, nK))
+    d1 = graph_SSSF_pi(py0s, K)
     np.savetxt("Files/"+filename+".txt", d1)
 
 
@@ -434,7 +435,7 @@ h111=np.array([1,1,1])/np.sqrt(3)
 h001=np.array([0,0,1])
 h110 = np.array([1,1,0])/2
 
-# graphdispersion(0.02, 0, h111, 1, 2, 20, 20)
+# graphdispersion(-1/3, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.02,0.8, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
