@@ -64,7 +64,7 @@ def BasisBZ(mu):
     if mu == 2:
         return 2*np.pi*np.array([1,1,-1])
 
-
+BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 @nb.njit
 def neta(alpha):
     if alpha == 0:
@@ -109,9 +109,8 @@ def ifFBZ(k):
 def genBZ(d):
     d = d*1j
     b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1).T
-    basis = np.array([BasisBZ(0), BasisBZ(1), BasisBZ(2)])
-    BZ = np.einsum('ij, jk->ik', b, basis)
-    return BZ
+    basis = np.einsum('jl, ij->il',BasisBZA, b)
+    return basis
 
 
 @nb.njit
@@ -146,6 +145,25 @@ def A_pi(r1,r2):
     if np.all(bond == -step(3)):
         return 0
 
+
+piunitcell = np.array([
+    [[1,0,0,0],
+     [0,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]],
+    [[1,0,0,0],
+     [0,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]],
+    [[0,1,0,0],
+     [1,0,0,0],
+     [0,0,0,1],
+     [0,0,1,0]],
+    [[0,0,1,0],
+     [0,0,0,1],
+     [1,0,0,0],
+     [0,1,0,1]],
+])
 
 @nb.njit
 def findS(r):

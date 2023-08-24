@@ -347,6 +347,11 @@ class piFluxSolver:
         E,V = np.linalg.eigh(M)
         return [E,V]
 
+    def LV_zero_old_single(self, k, alpha):
+        M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))
+        E, V = np.linalg.eigh(M)
+        return [E,V]
+
     def gap(self):
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 

@@ -310,11 +310,11 @@ def spinon_continuum(nE, nK, BZres, Jpm, tol, filename):
 
 def BZbasis(mu):
     if mu == 0:
-        return np.pi*np.array([1,0,0])
+        return 2*np.pi*np.array([1,0,0])
     elif mu == 1:
-        return np.pi*np.array([0,1,0])
+        return 2*np.pi*np.array([0,1,0])
     elif mu == 2:
-        return np.pi*np.array([0,0,1])
+        return 2*np.pi*np.array([0,0,1])
 
 def BZbasisa(mu):
     if mu == 0:
@@ -382,9 +382,8 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK,h=h,n=n)
     py0s.findLambda()
     # py0s.calAllDispersion()
-
-    H = np.linspace(-6,6,nK)
-    L = np.linspace(-6,6,nK)
+    H = np.linspace(-2.5,2.5,nK)
+    L = np.linspace(-2.5,2.5,nK)
     A, B = np.meshgrid(H, L)
     K = hkltoK(A,B)
 
@@ -456,7 +455,9 @@ h110 = np.array([1,1,0])/2
 # # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
-SSSF(25, 0, np.array([1,1,1]),-0.45,20, "SSSF_pi_-0.45_dumb")
+SSSF(25, 0, np.array([1,1,1]),-0.05,20, "SSSF_pi_-0.05")
+# SSSF(50, 0, np.array([1,1,1]),-0.25,20, "SSSF_pi_-0.25")
+# SSSF(50, 0, np.array([1,1,1]),-0.45,20, "SSSF_pi_-0.45")
 
 # SSSF(25, 0.2, h111,0.02,25, "SSSF_zero_0.02_h111=0.2")
 # SSSF(25, 0.4, h111,0.02,25, "SSSF_zero_0.02_h111=0.4")

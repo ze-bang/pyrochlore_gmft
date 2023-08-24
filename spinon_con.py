@@ -48,10 +48,10 @@ def green_pi_old(k, alpha, pypi):
     # Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
     green = np.zeros((len(k),4,4), dtype=np.complex128)
-    for mu in range (4):
-        for nu in range (4):
-            for gamma in range(4):
-                green[:,mu,nu] += pypi.Jzz*V[:,nu,gamma]*(np.conj(np.transpose(V, (0, 2, 1))))[:,gamma,mu]/np.sqrt(2*pypi.Jzz*E[:,gamma])
+    for i in range (4):
+        for j in range (4):
+            for k in range(4):
+                green[:,i,j] += pypi.Jzz*V[:,j,k]*(np.conj(np.transpose(V, (0, 2, 1))))[:,k,i]/np.sqrt(2*pypi.Jzz*E[:,k])
     return green
 
 def green_pi_branch(k, pypi):
@@ -110,45 +110,46 @@ def formfactormm(K, Q, q, alpha):
     return M
 
 def gaugefieldpipm(alpha, K, q):
-    gauge = np.zeros((len(K), 4,4,4), dtype=complex)
+    gauge = np.zeros((len(K), 4,4,4,4), dtype=complex)
     for rs in range(4):
-        for i in range(4):
-            for j in range(4):
-                mu = unitCell(rs) + neta(alpha) * step(i)
-                nu = unitCell(rs) + neta(alpha) * step(j)
-                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                index1 = findS(rs1)
-                index2 = findS(rs2)
-                gauge[:, rs, index1, index2] += np.exp(1j * neta(alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1))) \
-                * np.exp(-1j * neta(alpha) * np.dot(K, NN(i)-NN(j))) * np.exp(1j * neta(alpha) * np.dot(q, NN(i)-NN(j))/2)
+        for rsp in range(4):
+            for i in range(4):
+                for j in range(4):
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rsp) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    gauge[:, rsp, rs, index1, index2] += np.exp(1j * neta(alpha) * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2))) \
+                    * np.exp(1j * neta(alpha) * np.dot(K-q/2, NN(i)-NN(j)))
     return gauge/4
 
 def gaugepipm(K, q):
-    gauge = np.zeros((len(K), 8, 8, 8), dtype=complex)
-    gauge[:,0:4,4:8,4:8] = gaugefieldpipm(0, K, q)
-    gauge[:,4:8,0:4,0:4] = gaugefieldpipm(1, K, q)
+    gauge = np.zeros((len(K), 8, 8, 8, 8), dtype=complex)
+    gauge[:,0:4,0:4,4:8,4:8] = gaugefieldpipm(0, K, q)
+    gauge[:,4:8,4:8, 0:4,0:4] = gaugefieldpipm(1, K, q)
     return gauge
 
 def gaugefieldpimp(alpha, K, q):
-    gauge = np.zeros((len(K), 4,4,4), dtype=complex)
+    gauge = np.zeros((len(K), 4,4,4,4), dtype=complex)
     for rs in range(4):
-        for i in range(4):
-            for j in range(4):
-                mu = unitCell(rs) + neta(alpha) * step(i)
-                nu = unitCell(rs) + neta(alpha) * step(j)
-                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                index1 = findS(rs1)
-                index2 = findS(rs2)
-                gauge[:, rs, index1, index2] += np.exp(-1j * neta(alpha) * (A_pi(unitCell(rs), rs2) - A_pi(unitCell(rs), rs1))) \
-                * np.exp(1j * neta(alpha) * np.dot(K, NN(i)-NN(j))) * np.exp(-1j * neta(alpha) * np.dot(q, NN(i)-NN(j))/2)
+        for rsp in range(4):
+            for i in range(4):
+                for j in range(4):
+                    mu = unitCell(rs) + neta(alpha) * step(i)
+                    nu = unitCell(rsp) + neta(alpha) * step(j)
+                    rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
+                    rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
+                    index1 = findS(rs1)
+                    index2 = findS(rs2)
+                    gauge[:, rs, rsp, index2, index1] += np.exp(-1j * neta(alpha) * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2))) \
+                    * np.exp(-1j * neta(alpha) * np.dot(K-q/2, NN(i)-NN(j)))
     return gauge/4
-
 def gaugepimp(K, q):
-    gauge = np.zeros((len(K), 8, 8, 8), dtype=complex)
-    gauge[:,0:4,4:8,4:8] = gaugefieldpipm(0, K, q)
-    gauge[:,4:8,0:4,0:4] = gaugefieldpipm(1, K, q)
+    gauge = np.zeros((len(K), 8, 8, 8, 8), dtype=complex)
+    gauge[:,0:4,0:4,4:8,4:8] = gaugefieldpipm(0, K, q)
+    gauge[:,4:8,4:8,0:4,0:4] = gaugefieldpipm(1, K, q)
     return gauge
 
 
@@ -247,15 +248,15 @@ def SSSF_pi(q, pyp0):
     greenpK = green_pi(Ks, pyp0)
     greenpQ = green_pi(Qs, pyp0)
 
-    greenp1 = np.einsum('ikl,a->iakl',greenpQ, np.ones(8))
-    greenp1 = np.einsum('iakl,iakl->iakl', greenp1, gaugepm)
+    greenp1 = np.einsum('ikl,a,b->iabkl', greenpQ, np.ones(8), np.ones(8))
+    greenp1 = np.einsum('iabkl,iabkl->iabkl', greenp1, gaugepm)
 
-    inte = np.einsum('ikk, ikjl->i', greenpK, greenp1)
+    inte = np.einsum('ijk, ijkla->i', greenpK, greenp1)
 
-    greenp2 = np.einsum('ikl,a->iakl', greenpK, np.ones(8))
-    greenp2 = np.einsum('iakl,iakl->iakl', greenp2, gaugemp)
-
-    inte += np.einsum('ikjl, ikk->i', greenp2, greenpQ)
+    # greenp2 = np.einsum('ikl,a,b->iabkl', greenpQ, np.ones(8), np.ones(8))
+    # greenp2 = np.einsum('iabkl,iabkl->iabkl', greenp2, gaugepm)
+    #
+    # inte += np.einsum('ijk, ijkla->i', greenpK, greenp2)
 
     return np.real(np.mean(inte))/4
 
@@ -264,8 +265,10 @@ def SSSF_pi_dumb(q, pyp0):
     Qs = Ks-q
     le = len(Ks)
 
+
     # greenK = green_pi(Ks, pyp0)
     # greenQ = green_pi(Qs, pyp0)
+
 
 
     greenpKA = green_pi_old(Ks, 0, pyp0)
@@ -285,13 +288,16 @@ def SSSF_pi_dumb(q, pyp0):
                     rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
                     index1 = findS(rs1)
                     index2 = findS(rs2)
-                    temp += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-                            *np.exp(1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
-                            *np.exp(1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
-                    # temp += greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
+                    temp += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
+                            *np.exp(-1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
+                            *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+
+                    # temp += greenpQA[:, rs, rsp] * greenpKB[:, index2, index1]\
                     #         *np.exp(-1j * np.dot(Ks-q/2, NN(i) -NN(j))) \
                     #         *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+
+
 
     # print(np.mean(temp))
     return np.real(np.mean(temp))
@@ -372,15 +378,13 @@ def graph_SSSF_zero(pyp0, K):
 
 def graph_SSSF_pi(pyp0, K):
     el = "==:==:=="
-    h = K.shape[0]
-    l = K.shape[1]
-    totaltask = h*l
+    totaltask = K.shape[0]*K.shape[1]
     increment = totaltask/50
     count = 0
-    temp = np.zeros((h,l))
+    temp = np.zeros((K.shape[0], K.shape[1]))
 
-    for i in range(h):
-        for j in range(l):
+    for i in range(len(K)):
+        for j in range(K.shape[1]):
             start = time.time()
             count = count + 1
             temp[i,j] = SSSF_pi_dumb(K[i,j], pyp0)
