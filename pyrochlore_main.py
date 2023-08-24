@@ -318,11 +318,11 @@ def BZbasis(mu):
 
 def BZbasisa(mu):
     if mu == 0:
-        return np.pi*np.array([-1,1,1])
+        return 2*np.pi*np.array([-1,1,1])
     elif mu == 1:
-        return np.pi*np.array([1,-1,1])
+        return 2*np.pi*np.array([1,-1,1])
     elif mu == 2:
-        return np.pi*np.array([1,1,-1])
+        return 2*np.pi*np.array([1,1,-1])
 
 def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
@@ -403,6 +403,7 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
 
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
     plt.contourf(A,B, d1, levels=100)
+    # plt.pcolormesh(A,B, d1)
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
 
@@ -455,7 +456,7 @@ h110 = np.array([1,1,0])/2
 # # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
-SSSF(25, 0, np.array([1,1,1]),-0.05,20, "SSSF_pi_-0.05")
+SSSF(25, 0, np.array([1,1,1]),-0.05,20, "SSSF_pi_-0.05_S")
 # SSSF(50, 0, np.array([1,1,1]),-0.25,20, "SSSF_pi_-0.25")
 # SSSF(50, 0, np.array([1,1,1]),-0.45,20, "SSSF_pi_-0.45")
 
