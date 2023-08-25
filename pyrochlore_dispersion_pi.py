@@ -64,34 +64,6 @@ def M_pi(k,eta,Jpm, h, n):
     return FM
 
 
-def M_pi_sub_single(k, rs, alpha, eta, Jpm, h, n):
-    M = np.zeros((4, 4), dtype=complex)
-    for i in range(4):
-        for j in range(4):
-            if not i == j:
-                mu = unitCell(rs) + neta(alpha) * step(i)
-                nu = unitCell(rs) + neta(alpha) * step(j)
-                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                index1 = findS(rs1)
-                index2 = findS(rs2)
-                M[index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
-                M[i,index2] += -M_pi_mag_term(k, alpha, rs2, j, h, n)
-                M[index2, i] += -np.conj(M_pi_mag_term(k, 1-alpha, rs2, j, h, n))
-    return M
-
-
-def M_pi_single(k, eta, Jpm, h, n):
-    bigM = np.zeros((4, 4, 4), dtype=complex)
-    bigM2 = np.zeros((4, 4, 4), dtype=complex)
-    for i in range(4):
-        bigM[i, :, :] = M_pi_sub_single(k, i, 0, eta, Jpm, h, n)
-        bigM2[i, :, :] = M_pi_sub_single(k, i, 1, eta, Jpm, h, n)
-    M = np.einsum('ijk->jk', bigM)
-    M1 = np.einsum('ijk->jk', bigM2)
-    FM = np.block([[M, np.zeros((4, 4))], [np.zeros((4, 4)), M1]])
-    return FM
-
 def E_pi_fixed(lams, M):
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)

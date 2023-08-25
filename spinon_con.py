@@ -45,13 +45,12 @@ def green_pi(k, pypi):
 
 def green_pi_old(k, alpha, pypi):
     E, V = pypi.LV_zero_old(k, alpha)
-    # Vt = np.einsum('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    V = np.conj(np.transpose(V, (0,2,1)))
     green = np.zeros((len(k),4,4), dtype=np.complex128)
     for i in range (4):
         for j in range (4):
             for k in range(4):
-                green[:,i,j] += pypi.Jzz*V[:,j,k]*(np.conj(np.transpose(V, (0, 2, 1))))[:,k,i]/np.sqrt(2*pypi.Jzz*E[:,k])
+                green[:,i,j] += pypi.Jzz*V[:,j,k]*np.conj(V[:,i,k])/np.sqrt(2*pypi.Jzz*E[:,k])
     return green
 
 def green_pi_branch(k, pypi):
@@ -299,8 +298,6 @@ def SSSF_pi_dumb(q, pyp0):
                             *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
 
-
-    # print(np.mean(temp))
     return [np.real(np.mean(temp1)),np.real(np.mean(temp2))]
 
 
