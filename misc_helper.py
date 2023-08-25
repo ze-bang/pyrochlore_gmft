@@ -84,7 +84,6 @@ def NN(mu):
         return np.array([1 / 4, 1 / 4, -1 / 4])
 
 
-@nb.njit
 def ifFBZ(k):
     b1, b2, b3 = k
     if np.any(abs(k) > 2*np.pi):
@@ -95,22 +94,25 @@ def ifFBZ(k):
         return False
 
 
-# def genBZ(d):
-#     d = d*1j
-#     b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
-#     BZ = []
-#     for x in b:
-#         if ifFBZ(x):
-#             BZ += [x]
-#     return BZ
-
-
-
 def genBZ(d):
     d = d*1j
-    b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1).T
-    basis = np.einsum('jl, ij->il',BasisBZA, b)
-    return basis
+    b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
+    BZ = []
+    for x in b:
+        if ifFBZ(x):
+            BZ += [x]
+    return BZ
+
+# @nb.njit
+# def genBZ(d):
+#     # d = d*1j
+#     temp = np.zeros((d*d*d, 3))
+#     s = np.linspace(0,1,d)
+#     for i in range(d):
+#         for j in range(d):
+#             for k in range(d):
+#                 temp[i*d*d+j*d+k] = s[i]*BasisBZA[0] + s[j]*BasisBZA[1] + s[k]*BasisBZA[2]
+#     return temp
 
 
 @nb.njit

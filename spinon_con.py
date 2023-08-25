@@ -272,8 +272,8 @@ def SSSF_pi_dumb(q, pyp0):
 
 
     greenpKA = green_pi_old(Ks, 0, pyp0)
-    # greenpKB = green_pi_old(Ks, 1, pyp0)
-    # greenpQA = green_pi_old(Qs, 0, pyp0)
+    greenpKB = green_pi_old(Ks, 1, pyp0)
+    greenpQA = green_pi_old(Qs, 0, pyp0)
     greenpQB = green_pi_old(Qs, 1, pyp0)
 
 
@@ -290,8 +290,8 @@ def SSSF_pi_dumb(q, pyp0):
                     index2 = findS(rs2)
 
                     temp += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-                            # *np.exp(-1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
-                            # *np.exp(1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+                            *np.exp(-1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
+                            *np.exp(1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
                     # temp += greenpQA[:, rs, rsp] * greenpKB[:, index2, index1]\
                     #         *np.exp(-1j * np.dot(Ks-q/2, NN(i) -NN(j))) \
