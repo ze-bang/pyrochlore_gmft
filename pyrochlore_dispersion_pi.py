@@ -341,10 +341,12 @@ class piFluxSolver:
     def LV_zero_old(self, k,alpha):
         bigM = np.zeros((len(k), 4, 4, 4), dtype=complex)
         for i in range(4):
-            bigM[:, i, :, :] = M_pi_sub(k, i, alpha, self.eta, self.Jpm)
+            bigM[:, i, :, :] = M_pi_sub(k, i, 0, self.eta, self.Jpm)
         M = np.einsum('ijkl->ikl', bigM)
-        M = M+np.diag(np.repeat(self.lams[alpha],4))
+        M = M+np.diag(np.repeat(self.lams[0],4))
         E,V = np.linalg.eigh(M)
+        if alpha == 1:
+            V = np.conj(V)
         return [E,V]
 
     def LV_zero_old_single(self, k, alpha):

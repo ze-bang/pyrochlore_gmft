@@ -277,7 +277,8 @@ def SSSF_pi_dumb(q, pyp0):
     greenpQB = green_pi_old(Qs, 1, pyp0)
 
 
-    temp = np.zeros(le, dtype=np.complex128)
+    temp1 = np.zeros(le, dtype=np.complex128)
+    temp2 = np.zeros(le, dtype=np.complex128)
     for rs in range(4):
         for rsp in range(4):
             for i in range(4):
@@ -289,18 +290,18 @@ def SSSF_pi_dumb(q, pyp0):
                     index1 = findS(rs1)
                     index2 = findS(rs2)
 
-                    temp += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-                            *np.exp(-1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
+                    temp1 += greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
+                            *np.exp(1j * np.dot(Ks-q/2, NN(i)-NN(j))) \
                             *np.exp(1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
-                    # temp += greenpQA[:, rs, rsp] * greenpKB[:, index2, index1]\
-                    #         *np.exp(-1j * np.dot(Ks-q/2, NN(i) -NN(j))) \
-                    #         *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
+                    temp2 += greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
+                            *np.exp(-1j * np.dot(Ks-q/2, NN(i) -NN(j))) \
+                            *np.exp(-1j * (A_pi(unitCell(rs), rs1) - A_pi(unitCell(rsp), rs2)))/4
 
 
 
     # print(np.mean(temp))
-    return np.real(np.mean(temp))
+    return [np.real(np.mean(temp1)),np.real(np.mean(temp2))]
 
 
 def graph_spin_cont_pi(pyp0, E, K, tol):
@@ -382,12 +383,13 @@ def graph_SSSF_pi(pyp0, K):
     increment = totaltask/50
     count = 0
     temp = np.zeros((K.shape[0], K.shape[1]))
+    temp1 = np.zeros((K.shape[0], K.shape[1]))
 
     for i in range(len(K)):
         for j in range(K.shape[1]):
             start = time.time()
             count = count + 1
-            temp[i,j] = SSSF_pi_dumb(K[i,j], pyp0)
+            temp[i,j], temp1[i,j] = SSSF_pi_dumb(K[i,j], pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             end = time.time()
@@ -396,7 +398,7 @@ def graph_SSSF_pi(pyp0, K):
             sys.stdout.write('\r')
             sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             sys.stdout.flush()
-    return temp
+    return [temp, temp1]
     # E, K = np.meshgrid(e, K)
 
 

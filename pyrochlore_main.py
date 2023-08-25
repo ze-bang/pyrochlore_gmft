@@ -388,7 +388,7 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     K = hkltoK(A,B)
 
 
-    d1 = graph_SSSF_pi(py0s, K)
+    d1,d2 = graph_SSSF_pi(py0s, K)
     np.savetxt("Files/"+filename+".txt", d1)
 
 
@@ -402,25 +402,27 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
 
 
     # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    plt.contourf(A,B, d1, levels=100)
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    ax[0].pcolormesh(A,B, d1)
+    ax[1].pcolormesh(A,B, d2)
     # plt.pcolormesh(A,B, d1)
-    plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
+    # plt.ylabel(r'$(0,0,L)$')
+    # plt.xlabel(r'$(H,H,0)$')
 
-    plt.plot([0],[0], marker='o', color='k')
-    plt.plot(np.linspace(X, U, 2).T[0], np.linspace(X, U, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(U, L, 2).T[0], np.linspace(U, L, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(K, L, 2).T[0], np.linspace(K, L, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(K, Up, 2).T[0], np.linspace(K, Up, 2).T[1], color='k')
-    plt.plot(np.linspace(-U, Up, 2).T[0], np.linspace(-U, Up, 2).T[1], color='k')
-    plt.plot(np.linspace(-U, -K, 2).T[0], np.linspace(-U, -K, 2).T[1], color='k')
-    plt.plot(np.linspace(-Up, -K, 2).T[0], np.linspace(-Up, -K, 2).T[1], color='k')
-    plt.plot(np.linspace(-Up, U, 2).T[0], np.linspace(-Up, U, 2).T[1], color='k')
-    plt.text(Gamma[0]+0.03,Gamma[1]+0.03, '$\Gamma$')
-    plt.text(L[0]+0.03,L[1]+0.03, '$L$')
-    plt.text(X[0]+0.03,X[1]+0.03, '$X$')
-    plt.text(K[0]+0.03,K[1]+0.03, '$K$')
-    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
+    # plt.plot([0],[0], marker='o', color='k')
+    # plt.plot(np.linspace(X, U, 2).T[0], np.linspace(X, U, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(U, L, 2).T[0], np.linspace(U, L, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(K, L, 2).T[0], np.linspace(K, L, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(K, Up, 2).T[0], np.linspace(K, Up, 2).T[1], color='k')
+    # plt.plot(np.linspace(-U, Up, 2).T[0], np.linspace(-U, Up, 2).T[1], color='k')
+    # plt.plot(np.linspace(-U, -K, 2).T[0], np.linspace(-U, -K, 2).T[1], color='k')
+    # plt.plot(np.linspace(-Up, -K, 2).T[0], np.linspace(-Up, -K, 2).T[1], color='k')
+    # plt.plot(np.linspace(-Up, U, 2).T[0], np.linspace(-Up, U, 2).T[1], color='k')
+    # plt.text(Gamma[0]+0.03,Gamma[1]+0.03, '$\Gamma$')
+    # plt.text(L[0]+0.03,L[1]+0.03, '$L$')
+    # plt.text(X[0]+0.03,X[1]+0.03, '$X$')
+    # plt.text(K[0]+0.03,K[1]+0.03, '$K$')
+    # plt.text(U[0]+0.03,U[1]+0.03, '$U$')
     plt.savefig("Files/"+filename+".png")
 
 def SSSF(nK,h, n, Jpm, BZres,  filename):
@@ -457,7 +459,7 @@ h110 = np.array([1,1,0])/2
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
 # SSSF(25, 0, np.array([1,1,1]),-0.05,20, "SSSF_pi_-0.05")
-SSSF(25, 0, np.array([1,1,1]),-0.40,40, "SSSF_pi_-0.40_1DETAILED")
+SSSF(25, 0, np.array([1,1,1]),-0.20,20, "SSSF_pi_-0.20_3")
 # SSSF(25, 0, np.array([1,1,1]),-0.40,20, "SSSF_pi_-0.40")
 
 # SSSF(25, 0.2, h111,0.02,25, "SSSF_zero_0.02_h111=0.2")
