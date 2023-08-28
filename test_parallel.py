@@ -2,21 +2,21 @@ from mpi4py import MPI
 import numpy as np
 import sys
 #
-comm = MPI.COMM_WORLD
-size = comm.Get_size() # new: gives number of ranks in comm
-rank = comm.Get_rank()
+# comm = MPI.COMM_WORLD
+# size = comm.Get_size() # new: gives number of ranks in comm
+# rank = comm.Get_rank()
 
-# print(size)
+# # print(size)
 
-a = np.linspace(0,10, 1000)
+# a = np.linspace(0,10, 1000)
 
-size = 1000/size
+# n = 1000/size
 
-left = int(rank*size)
-right = int((rank+1)*size)
+# left = int(rank*n)
+# right = int((rank+1)*n)
 
-for i in range(left, right):
-    print(i)
+# for i in range(left, right):
+#     print(i)
 
 
 #
@@ -30,3 +30,23 @@ for i in range(left, right):
 # comm.Scatter(data, recvbuf, root=0)
 #
 # print('Rank: ',rank, ', recvbuf received: ',recvbuf)
+
+from mpi4py import MPI
+import numpy as np
+
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+
+sendbuf = np.zeros(100, dtype='i') + rank
+recvbuf = None
+if rank == 0:
+    recvbuf = np.empty([size, 100], dtype='i')
+comm.Gather(sendbuf, recvbuf, root=0)
+# if rank == 0:
+#     for i in range(size):
+#         assert np.allclose(recvbuf[i,:], i)
+
+MPI.Finalize()
+
+print(recvbuf)

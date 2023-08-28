@@ -50,7 +50,7 @@ def DSSF_zero(q, omega, pyp0, tol):
     greenB = contract('ia, ib, iab->i',greenp1[:, :, 0,1], greenp2[:,:, 1,0], deltapm)
     greenpp = contract('i,ijk->ijk',greenB, (ffactpp+np.conj(np.transpose(ffactpp, (0,2,1)))))/4
 
-    S = (greenpp + greenpm)/4
+    S = (greenpp + greenpm)/2
     Sglobal = contract('ijk,jk->i', S, g(q))
     S = contract('ijk->i',S)
 
@@ -96,31 +96,38 @@ def DSSF_pi(q, omega, pyp0, tol):
     return np.real(np.mean(S)), np.real(np.mean(Sglobal))
 
 
-def graph_DSSF_zero(pyp0, E, K, tol):
+def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
     # el = "==:==:=="
     # totaltask = len(E)*len(K)
     # increment = totaltask/50
     # count = 0
 
-    temp = np.zeros((len(E), len(K)))
-    temp1 = np.zeros((len(E), len(K)))
-
-    if not MPI.Is_initialized():
-        MPI.Init()
     comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
     n = len(E)/size
 
     left = int(rank*n)
     right = int((rank+1)*n)
+    
+    currsize = right-left
+    
+    sendtemp = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, len(K)), dtype=np.float64)
 
-    for i in range(left, right):
+    currE = E[left:right]
+
+    rectemp = None
+    rectemp1 = None
+
+    if rank == 0:
+        rectemp = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp1 = np.zeros((len(E), len(K)), dtype=np.float64)
+
+
+    for i in range(currsize):
         for j in range(len(K)):
             # start = time.time()
             # count = count + 1
-            temp[i,j], temp1[i,j] = DSSF_zero(K[j], E[i], pyp0, tol)
+            sendtemp[i,j], sendtemp1[i,j] = DSSF_zero(K[j], currE[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -129,10 +136,20 @@ def graph_DSSF_zero(pyp0, E, K, tol):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+
+    # print(rank)
+
     if not MPI.Is_finalized():
         MPI.Finalize()
 
-    return temp, temp1
+    return rectemp, rectemp1
+
 
 
 def graph_DSSF_pi(pyp0, E, K, tol):
@@ -141,25 +158,31 @@ def graph_DSSF_pi(pyp0, E, K, tol):
     # increment = totaltask/50
     # count = 0
 
-    temp = np.zeros((len(E), len(K)))
-    temp1 = np.zeros((len(E), len(K)))
-
-    if not MPI.Is_initialized():
-        MPI.Init()
     comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
     n = len(E)/size
 
     left = int(rank*n)
     right = int((rank+1)*n)
+    
+    currsize = right-left
+    
+    sendtemp = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, len(K)), dtype=np.float64)
 
-    for i in range(left, right):
+    currE = E[left:right]
+
+    rectemp = None
+    rectemp1 = None
+
+    if rank == 0:
+        rectemp = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp1 = np.zeros((len(E), len(K)), dtype=np.float64)
+
+    for i in range(currsize):
         for j in range(len(K)):
             # start = time.time()
             # count = count + 1
-            temp[i,j], temp1[i,j] = DSSF_pi(K[j], E[i], pyp0, tol)
+            sendtemp[i,j], sendtemp1[i,j] = DSSF_pi(K[j], currE[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -168,9 +191,19 @@ def graph_DSSF_pi(pyp0, E, K, tol):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+
+    # print(rank)
+
     if not MPI.Is_finalized():
         MPI.Finalize()
-    return temp, temp1
+
+    return rectemp, rectemp1
 
 #endregion
 
@@ -202,7 +235,7 @@ def SSSF_zero(q, v, pyp0):
     greenB = greenp1[:,0,1] * greenp2[:,1,0]
     greenpp = contract('i,ijk->ijk',greenB, (ffactpp+np.conj(np.transpose(ffactpp, (0,2,1)))))/4
 
-    S = (greenpp + greenpm)/4
+    S = (greenpp + greenpm)/2
     Sglobal = contract('ijk,jk->i',S, g(q))
     SNSF = contract('ijk,jk->i',S, gNSF(v))
     S = contract('ijk->i',S)
@@ -283,31 +316,41 @@ def SSSF_pi(q, v, pyp0):
 #     return np.real(np.mean(temp)), np.real(np.mean(temp1)), np.real(np.mean(temp2))
 
 
-def graph_SSSF_zero(pyp0, K, V):
+def graph_SSSF_zero(pyp0, K, V, rank, size):
     # el = "==:==:=="
     # totaltask =  K.shape[0]*K.shape[1]
     # increment = totaltask/50
     # count = 0
-    temp = np.zeros((K.shape[0], K.shape[1]))
-    temp1 = np.zeros((K.shape[0], K.shape[1]))
-    temp2 = np.zeros((K.shape[0], K.shape[1]))
 
-    if not MPI.Is_initialized():
-        MPI.Init()
     comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
     n = len(K)/size
 
     left = int(rank*n)
     right = int((rank+1)*n)
+    
+    currsize = right-left
+    
+    sendtemp = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
 
-    for i in range(left, right):
+    currK = K[left:right, :, :]
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+
+
+    for i in range(currsize):
         for j in range(K.shape[1]):
             # start = time.time()
             # count = count + 1
-            temp[i,j], temp1[i,j], temp2[i,j] = SSSF_zero(K[i,j],V, pyp0)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j] = SSSF_zero(currK[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -316,41 +359,63 @@ def graph_SSSF_zero(pyp0, K, V):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
+        # print(sendtemp[i])
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
+
+    # print("h-----------------------------------------")
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    # print(rank)
 
     if not MPI.Is_finalized():
         MPI.Finalize()
 
-    return temp, temp1, temp2
+    return rectemp, rectemp1, rectemp2
     # E, K = np.meshgrid(e, K)
 
 
-def graph_SSSF_pi(pyp0, K, V):
+def graph_SSSF_pi(pyp0, K, V, rank, size):
     # el = "==:==:=="
     # totaltask = K.shape[0]*K.shape[1]
     # increment = totaltask/50
     # count = 0
 
-
-    temp = np.zeros((K.shape[0], K.shape[1]))
-    temp1 = np.zeros((K.shape[0], K.shape[1]))
-    temp2 = np.zeros((K.shape[0], K.shape[1]))
-
-    if not MPI.Is_initialized():
-        MPI.Init()
     comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
     n = len(K)/size
 
     left = int(rank*n)
     right = int((rank+1)*n)
+    
+    currsize = right-left
+    
+    sendtemp = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
 
-    for i in range(left, right):
+    currK = K[left:right, :, :]
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+
+
+
+    for i in range(currsize):
         for j in range(K.shape[1]):
             # start = time.time()
             # count = count + 1
-            temp[i,j], temp1[i,j], temp2[i,j] = SSSF_pi(K[i,j],V, pyp0)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j] = SSSF_pi(currK[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -360,10 +425,18 @@ def graph_SSSF_pi(pyp0, K, V):
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
 
+    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
     if not MPI.Is_finalized():
         MPI.Finalize()
 
-    return temp, temp1, temp2
+    return rectemp, rectemp1, rectemp2
     # E, K = np.meshgrid(e, K)
 
 
@@ -426,22 +499,31 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
     e = np.arange(py0s.TWOSPINON_GAP(kk)-0.1, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
     if Jpm >= 0:
-        d1, d2 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
+        d1, d2 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
     else:
-        d1, d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
+        d1, d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
 
+    if rank == 0:
+        f1 = "Files/"+filename+"_local"
+        f2 = "Files/"+filename+"_global"
+        np.savetxt(f1+".txt", d1)
+        np.savetxt(f2+".txt", d2)
+        # d1 = np.loadtxt("Files/"+filename+".txt")
 
-    f1 = "Files/"+filename+"_local"
-    f2 = "Files/"+filename+"_global"
-    np.savetxt(f1+".txt", d1)
-    np.savetxt(f2+".txt", d2)
-    # d1 = np.loadtxt("Files/"+filename+".txt")
-
-    X,Y = np.meshgrid(kk, e)
-    DSSFgraph(X, Y, d1, py0s, f1)
-    DSSFgraph(X, Y, d2, py0s, f2)
-    # plt.show()
+        X,Y = np.meshgrid(kk, e)
+        DSSFgraph(X, Y, d1, py0s, f1)
+        DSSFgraph(X, Y, d2, py0s, f2)
+        # plt.show()
 
 def SSSF(nK, h, n, v, Jpm, BZres, filename):
     if Jpm >= 0:
@@ -456,22 +538,32 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     A, B = np.meshgrid(H, L)
     K = hkltoK(A, B)
 
+    
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
     if Jpm >= 0:
-        d1, d2, d3 = graph_SSSF_zero(py0s, K, v)
+        d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
     else:
-        d1, d2, d3 = graph_SSSF_pi(py0s, K, v)
-    f1 = "Files/" + filename + "_local"
-    f2 = "Files/" + filename + "_global"
-    f3 = "Files/" + filename + "_NSF"
-    np.savetxt(f1 + '.txt', d1)
-    np.savetxt(f2 + '.txt', d2)
-    np.savetxt(f3 + '.txt', d3)
-    # d1 = np.loadtxt(f1+'.txt')
-    # d2 = np.loadtxt(f2 + '.txt')
-    # d3 = np.loadtxt(f3 + '.txt')
-    SSSFGraph(A, B, d1, f1)
-    SSSFGraph(A, B, d2, f2)
-    SSSFGraph(A, B, d3, f3)
+        d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
+
+    if rank == 0:
+        f1 = "Files/" + filename + "_local"
+        f2 = "Files/" + filename + "_global"
+        f3 = "Files/" + filename + "_NSF"
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        # d1 = np.loadtxt(f1+'.txt')
+        # d2 = np.loadtxt(f2 + '.txt')
+        # d3 = np.loadtxt(f3 + '.txt')
+        SSSFGraph(A, B, d1, f1)
+        SSSFGraph(A, B, d2, f2)
+        SSSFGraph(A, B, d3, f3)
 
 
 #endregion

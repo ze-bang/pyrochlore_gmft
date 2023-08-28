@@ -11,7 +11,7 @@ from numba import jit
 from numba.experimental import jitclass
 from mpi4py import MPI
 
-graphres=30
+graphres=10
 
 @nb.njit
 def magnitude(vector):
