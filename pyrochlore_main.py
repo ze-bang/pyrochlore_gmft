@@ -72,7 +72,7 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
 
 # SSSF(50, 0, np.array([1,1,1]),-0.40,30, "SSSF_pi_-0.40_DETAILED")
 
-# SSSF(25, 0, h111,0.04,10, "SSSF_zero_0.02")
+SSSF(25, 0, h111,hb110, 0.04,10, "SSSF_zero_0.02")
 
 SSSF(50, 0.2, h111,hb110,  -1/3,30, "SSSF_pi_-0.33_h111=0.2")
 SSSF(50, 0.3, h111,hb110, -1/3,30, "SSSF_pi_-0.33_h111=0.3")

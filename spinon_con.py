@@ -105,8 +105,8 @@ def graph_DSSF_zero(pyp0, E, K, tol):
     temp = np.zeros((len(E), len(K)))
     temp1 = np.zeros((len(E), len(K)))
 
-
-    MPI.Init()
+    if not MPI.Is_initialized():
+        MPI.Init()
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -129,7 +129,8 @@ def graph_DSSF_zero(pyp0, E, K, tol):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
-    MPI.Finalize()
+    if not MPI.Is_finalized():
+        MPI.Finalize()
 
     return temp, temp1
 
@@ -143,8 +144,8 @@ def graph_DSSF_pi(pyp0, E, K, tol):
     temp = np.zeros((len(E), len(K)))
     temp1 = np.zeros((len(E), len(K)))
 
-    
-    MPI.Init()
+    if not MPI.Is_initialized():
+        MPI.Init()
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -167,7 +168,8 @@ def graph_DSSF_pi(pyp0, E, K, tol):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
-    MPI.Finalize()
+    if not MPI.Is_finalized():
+        MPI.Finalize()
     return temp, temp1
 
 #endregion
@@ -290,7 +292,8 @@ def graph_SSSF_zero(pyp0, K, V):
     temp1 = np.zeros((K.shape[0], K.shape[1]))
     temp2 = np.zeros((K.shape[0], K.shape[1]))
 
-    MPI.Init()
+    if not MPI.Is_initialized():
+        MPI.Init()
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -314,7 +317,8 @@ def graph_SSSF_zero(pyp0, K, V):
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
 
-    MPI.Finalize()
+    if not MPI.Is_finalized():
+        MPI.Finalize()
 
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
@@ -331,7 +335,8 @@ def graph_SSSF_pi(pyp0, K, V):
     temp1 = np.zeros((K.shape[0], K.shape[1]))
     temp2 = np.zeros((K.shape[0], K.shape[1]))
 
-    MPI.Init()
+    if not MPI.Is_initialized():
+        MPI.Init()
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -355,7 +360,8 @@ def graph_SSSF_pi(pyp0, K, V):
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
 
-    MPI.Finalize()
+    if not MPI.Is_finalized():
+        MPI.Finalize()
 
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
@@ -437,11 +443,11 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
     DSSFgraph(X, Y, d2, py0s, f2)
     # plt.show()
 
-def SSSF(nK,h, n, v, BZres, Jpm, filename):
+def SSSF(nK, h, n, v, Jpm, BZres, filename):
     if Jpm >= 0:
-        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
     else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK, h=h, n=n)
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
 
