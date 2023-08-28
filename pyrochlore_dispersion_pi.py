@@ -4,61 +4,30 @@ import warnings
 from numba import jit
 from numba.experimental import jitclass
 from misc_helper import *
+from opt_einsum import contract
 
 
-def exponent_pi(k, alpha, mu, nu, rs1, rs2):
-    rs = rs1 - neta(alpha) * step(mu)
+def M_pi_mag_sub(k, alpha, h, n):
 
-    f = np.real(np.exp(1j * neta(alpha) * (A_pi(rs, rs2) - A_pi(rs, rs1))))
-    return f * np.exp(1j * neta(alpha) * (np.dot(k, NN(nu) - NN(mu))))
-
-
-def M_pi_term(k, alpha, rs1, rs2, mu, nu, eta, Jpm):
-    temp = -Jpm / 4 * eta[alpha] * exponent_pi(k, alpha, mu, nu, rs1, rs2)
-    return temp
-
-
-def M_pi_mag_term(k, alpha, rs1, mu, h, n):
-    rs = rs1 - neta(alpha) * step(mu)
-    temp = -1 / 4 * h * np.dot(n, z(mu)) * np.exp(1j * A_pi(rs, rs1)) * np.exp(
-        1j * np.dot(k, neta(alpha) * NN(mu)))
-    return temp
-
-def M_pi_mag_sub(k, rs, alpha, h, n):
-    M = np.zeros((len(k), 4, 4), dtype=complex)
-    for i in range(4):
-        nu = unitCell(rs) + neta(alpha) * step(i)
-        rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-        index2 = findS(rs2)
-        M[:,rs,index2] += M_pi_mag_term(k, alpha, rs2, i, h, n)
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*neta(alpha)*ffact)
+    M = contract('kj,ij,j->ikj',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag)
+    M = contract('ikj, kja->ika', M, piunitcell)
     return M
 
-def M_pi_sub(k, rs, alpha, eta, Jpm):
-    M = np.zeros((len(k), 4, 4), dtype=complex)
-    for i in range(4):
-        for j in range(4):
-            if not i == j:
-                mu = unitCell(rs) + neta(alpha) * step(i)
-                nu = unitCell(rs) + neta(alpha) * step(j)
-                rs1 = np.array([mu[0] % 1, mu[1] % 2, mu[2] % 2])
-                rs2 = np.array([nu[0] % 1, nu[1] % 2, nu[2] % 2])
-                index1 = findS(rs1)
-                index2 = findS(rs2)
-                M[:, index1, index2] += M_pi_term(k, alpha, mu, nu, i, j, eta, Jpm)
+def M_pi_sub(k, alpha, eta, Jpm):
+    ffact = contract('ik, jlk->ijl', k,NNminus)
+    ffact = np.exp(1j*neta(alpha)*ffact)
+    M = contract('jl,kjl,ijl->ikjl', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact)
+    M = contract('ikjl, jka, lkb->iab', M, piunitcell, piunitcell)
     return M
 
 
 def M_pi(k,eta,Jpm, h, n):
-    bigM1 = np.zeros((len(k), 4, 4, 4), dtype=complex)
-    bigM2 = np.zeros((len(k), 4, 4, 4), dtype=complex)
-    bigMag1 = np.zeros((len(k), 4, 4, 4), dtype=complex)
-    for i in range(4):
-        bigM1[:, i, :, :] = M_pi_sub(k, i, 0,eta,Jpm)
-        bigM2[:, i, :, :] = M_pi_sub(k, i, 1,eta,Jpm)
-        bigMag1[:, i, :, :] = M_pi_mag_sub(k, i, 0,h,n)
-    M1 = np.einsum('ijkl->ikl', bigM1)
-    M2 = np.einsum('ijkl->ikl', bigM2)
-    Mag1 = np.einsum('ijkl->ikl', bigMag1)
+    M1 = M_pi_sub(k, 0,eta,Jpm)
+    M2 = M_pi_sub(k, 1,eta,Jpm)
+    Mag1 = M_pi_mag_sub(k, 0,h,n)
     Mag2 = np.transpose(np.conj(Mag1), (0,2,1))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
     return FM
@@ -68,6 +37,7 @@ def E_pi_fixed(lams, M):
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
     return [E, V]
+
 
 
 def E_pi(lams, k, eta, Jpm, h, n):
@@ -81,9 +51,9 @@ def rho_true(Jzz, M, lams):
     dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     temp = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(temp)
-    Vt = np.real(np.einsum('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = np.einsum('ijk, ik->ij', Vt, 1/np.sqrt(2*Jzz*E))
-    Ep = np.mean(np.einsum('jk, ik->ij', dumb, Ep), axis=0)/4
+    Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, 1/np.sqrt(2*Jzz*E))
+    Ep = np.mean(contract('jk, ik->ij', dumb, Ep), axis=0)/4
     return Ep
 
 
@@ -172,80 +142,81 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
 
-#
-# def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
-#     temp = np.zeros((len(q),2))
-#     mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
-#     for i in range(len(q)):
-#         temp[i] = np.amin(np.sqrt(2 * Jzz * E_zero_true(lams, q[i]+K, Jpm, eta, h, n)[0]) + mins, axis=0)
-#     return temp
-#
-# def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
-#     temp = np.zeros((len(q),2))
-#     mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
-#     for i in range(len(q)):
-#         temp[i] = np.amax(np.sqrt(2 * Jzz * E_zero_true(lams, q[i]+K, Jpm, eta, h, n)[0]) + mins, axis=0)
-#     return temp
-#
-# def loweredge(lams, Jzz, Jpm, eta, h, n, K):
-#     dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
-#     dXW= minCal(lams, XW, Jzz, Jpm, eta, h, n, K)
-#     dWK = minCal(lams, WK, Jzz, Jpm, eta, h, n, K)
-#     dKGamma = minCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
-#     dGammaL = minCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
-#     dLU= minCal(lams, LU, Jzz, Jpm, eta, h, n, K)
-#     dUW = minCal(lams, UW, Jzz, Jpm, eta, h, n, K)
-#
-#     for i in range(8):
-#         plt.plot(np.linspace(gGamma1, gX, graphres), dGammaX[:,i], 'w')
-#         plt.plot(np.linspace(gX, gW1, graphres), dXW[:, i] , 'w')
-#         plt.plot(np.linspace(gW1, gK, graphres), dWK[:, i], 'w')
-#         plt.plot(np.linspace(gK, gGamma2, graphres), dKGamma[:, i], 'w')
-#         plt.plot(np.linspace(gGamma2, gL, graphres), dGammaL[:, i], 'w')
-#         plt.plot(np.linspace(gL, gU, graphres), dLU[:, i], 'w')
-#         plt.plot(np.linspace(gU, gW2, graphres),dUW[:, i], 'w')
-#     plt.ylabel(r'$\omega/J_{zz}$')
-#     plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
-#     xlabpos = [gGamma1,gX,gW1,gK,gGamma2,gL,gU,gW2]
-#     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-#     plt.xticks(xlabpos, labels)
-#
-# def upperedge(lams, Jzz, Jpm, eta, h, n, K):
-#     dGammaX= maxCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
-#     dXW= maxCal(lams, XW, Jzz, Jpm, eta, h, n, K)
-#     dWK = maxCal(lams, WK, Jzz, Jpm, eta, h, n, K)
-#     dKGamma = maxCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
-#     dGammaL = maxCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
-#     dLU= maxCal(lams, LU, Jzz, Jpm, eta, h, n, K)
-#     dUW = maxCal(lams, UW, Jzz, Jpm, eta, h, n, K)
-#
-#     for i in range(8):
-#         plt.plot(np.linspace(gGamma1, gX, graphres), dGammaX[:,i], 'w')
-#         plt.plot(np.linspace(gX, gW1, graphres), dXW[:, i] , 'w')
-#         plt.plot(np.linspace(gW1, gK, graphres), dWK[:, i], 'w')
-#         plt.plot(np.linspace(gK, gGamma2, graphres), dKGamma[:, i], 'w')
-#         plt.plot(np.linspace(gGamma2, gL, graphres), dGammaL[:, i], 'w')
-#         plt.plot(np.linspace(gL, gU, graphres), dLU[:, i], 'w')
-#         plt.plot(np.linspace(gU, gW2, graphres),dUW[:, i], 'w')
-#     plt.ylabel(r'$\omega/J_{zz}$')
-#     plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
-#     plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
-#     xlabpos = [gGamma1,gX,gW1,gK,gGamma2,gL,gU,gW2]
-#     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-#     plt.xticks(xlabpos, labels)
+# @nb.njit(parallel=True, cache=True)
+def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
+    temp = np.zeros(len(q))
+    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    for i in range(len(q)):
+        temp[i] = np.min(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + mins)
+    return temp
+
+# @nb.njit(parallel=True, cache=True)
+def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+    temp = np.zeros(len(q))
+    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    for i in range(len(q)):
+        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + mins)
+    return temp
+
+def loweredge(lams, Jzz, Jpm, eta, h, n, K):
+    dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
+    dXW= minCal(lams, XW, Jzz, Jpm, eta, h, n, K)
+    dWK = minCal(lams, WK, Jzz, Jpm, eta, h, n, K)
+    dKGamma = minCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
+    dGammaL = minCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
+    dLU= minCal(lams, LU, Jzz, Jpm, eta, h, n, K)
+    dUW = minCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+
+    plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
+    plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
+    plt.plot(np.linspace(gW1, gK, len(dWK)), dWK, 'b')
+    plt.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b')
+    plt.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b')
+    plt.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b')
+    plt.plot(np.linspace(gU, gW2, len(dUW)),dUW, 'b')
+
+    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW2, color='w', label='axvline - full height', linestyle='dashed')
+    xlabpos = [gGamma1,gX,gW1,gK,gGamma2,gL,gU,gW2]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.xticks(xlabpos, labels)
+
+def upperedge(lams, Jzz, Jpm, eta, h, n, K):
+    dGammaX= maxCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
+    dXW= maxCal(lams, XW, Jzz, Jpm, eta, h, n, K)
+    dWK = maxCal(lams, WK, Jzz, Jpm, eta, h, n, K)
+    dKGamma = maxCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
+    dGammaL = maxCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
+    dLU= maxCal(lams, LU, Jzz, Jpm, eta, h, n, K)
+    dUW = maxCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+
+    plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
+    plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
+    plt.plot(np.linspace(gW1, gK, len(dWK)), dWK, 'b')
+    plt.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b')
+    plt.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b')
+    plt.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b')
+    plt.plot(np.linspace(gU, gW2, len(dUW)),dUW, 'b')
+
+    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW2, color='w', label='axvline - full height', linestyle='dashed')
+    xlabpos = [gGamma1,gX,gW1,gK,gGamma2,gL,gU,gW2]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.xticks(xlabpos, labels)
 
 def gap(M, lams):
     temp = M + np.diag(np.repeat(lams,4))
@@ -311,20 +282,17 @@ class piFluxSolver:
         return E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)
 
     def LV_zero_old(self, k,alpha):
-        bigM = np.zeros((len(k), 4, 4, 4), dtype=complex)
-        for i in range(4):
-            bigM[:, i, :, :] = M_pi_sub(k, i, 0, self.eta, self.Jpm)
-        M = np.einsum('ijkl->ikl', bigM)
+        M = M_pi_sub(k, alpha, self.eta, self.Jpm)
         M = M+np.diag(np.repeat(self.lams[0],4))
         E,V = np.linalg.eigh(M)
         if alpha == 1:
             V = np.conj(V)
         return [E,V]
 
-    def LV_zero_old_single(self, k, alpha):
-        M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))
-        E, V = np.linalg.eigh(M)
-        return [E,V]
+    # def LV_zero_old_single(self, k, alpha):
+    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))
+    #     E, V = np.linalg.eigh(M)
+    #     return [E,V]
 
     def gap(self):
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
@@ -340,15 +308,32 @@ class piFluxSolver:
         if show:
             plt.show()
 
-    def M_single(self, k):
-        M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-        return M
-
-
-    def E_single(self, k):
-        M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-        E, V = np.linalg.eigh(M)
-        return np.sqrt(2*self.Jzz*E)
+    # def M_single(self, k):
+    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
+    #     return M
+    #
+    #
+    # def E_single(self, k):
+    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
+    #     E, V = np.linalg.eigh(M)
+    #     return np.sqrt(2*self.Jzz*E)
 
     def EMAX(self):
         return np.sqrt(2*self.Jzz*EMAX(self.MF, self.lams))
+
+    def TWOSPINON_GAP(self, k):
+        return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
+
+    def TWOSPINON_MAX(self, k):
+        return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
+
+
+    def graph_loweredge(self, show):
+        loweredge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        if show:
+            plt.show()
+
+    def graph_upperedge(self, show):
+        upperedge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        if show:
+            plt.show()

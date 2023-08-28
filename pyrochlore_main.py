@@ -241,72 +241,99 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 #endregion
 
 #region DSSF
-def spinon_continuum_zero(nE, nK, Jpm, filename, BZres, tol):
-    py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK)
-    py0s.findLambda()
-    e = np.linspace(py0s.gap(), py0s.EMAX()*2.1, nE)
-    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
-                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    d1 = graph_spin_cont_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
 
 
-    np.savetxt("Files/"+filename+".txt", d1)
-
-    # d1 = np.loadtxt("Files/"+filename+".txt")
-
-    X,Y = np.meshgrid(kk, e)
-    plt.contourf(X,Y, d1, levels=100)
+def DSSFgraph(A,B,D, py0s, filename):
+    plt.pcolormesh(A,B,D)
     plt.ylabel(r'$\omega/J_{zz}$')
     py0s.graph_loweredge(False)
     py0s.graph_upperedge(False)
-    plt.savefig("Files/"+filename+".png")
-    plt.show()
-
-def spinon_continuum_pi(nE, nK, Jpm, filename, BZres, tol):
-
-    py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK)
+    plt.savefig(filename+".png")
+def spinon_continuum_zero(nE, Jpm, filename, BZres, tol):
+    py0s = py0.zeroFluxSolver(Jpm, BZres=BZres)
     py0s.findLambda()
 
-    e = np.linspace(py0s.gap(), py0s.EMAX()*2.1, nE)
-    kk = np.concatenate((np.linspace(gGamma1, gX, nK), np.linspace(gX, gW1, nK), np.linspace(gW1, gK, nK), np.linspace(gK,gGamma2, nK), np.linspace(gGamma2, gL, nK), np.linspace(gL, gU, nK), np.linspace(gU, gW2, nK)))
-    d1 = graph_spin_cont_pi(py0s, e, np.concatenate((py0s.GammaX, py0s.XW, py0s.WK, py0s.KGamma, py0s.GammaL, py0s.LU, py0s.UW)), tol)
-    # d1 = graph_spin_cont_pi(py0s, e, py0s.GammaX, 0.02)
-    # kk = np.linspace(gGamma1, gX, nK)
+    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
+                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
+    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.1, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    d1,d2 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
 
 
-    np.savetxt("Files/"+filename+".txt", d1)
-
-    # d1 = np.loadtxt("Files/spin_cont_test.txt")
+    f1 = "Files/"+filename+"_local"
+    f2 = "Files/"+filename+"_global"
+    np.savetxt(f1+".txt", d1)
+    np.savetxt(f2+".txt", d2)
+    # d1 = np.loadtxt("Files/"+filename+".txt")
 
     X,Y = np.meshgrid(kk, e)
-    plt.contourf(X,Y, d1, levels=100)
-    plt.ylabel(r'$\omega/J_{zz}$')
-    # py0s.graph_loweredge(False)
-    # plt.axvline(x=gGamma1, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gX, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gW1, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gK, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gGamma2, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gL, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gU, color='b', label='axvline - full height', linestyle='dashed')
-    # plt.axvline(x=gW2, color='b', label='axvline - full height', linestyle='dashed')
-    # xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
-    # labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
-    # plt.xticks(xlabpos, labels)
-    # dex = edges(d1, e, 5e-2)
-    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
-    plt.savefig("Files/"+filename+".png")
-    plt.show()
+    DSSFgraph(X,Y,d1, py0s, f1)
+    DSSFgraph(X, Y, d2, py0s, f2)
+    # plt.show()
 
-def spinon_continuum(nE, nK, BZres, Jpm, tol, filename):
+def spinon_continuum_pi(nE, Jpm, filename, BZres, tol):
+
+    py0s = pypi.piFluxSolver(Jpm, BZres=BZres)
+    py0s.findLambda()
+
+
+    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
+                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
+    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.1, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    d1,d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
+
+    # kk = np.linspace(gGamma1, gX, nK)
+
+    f1 = "Files/"+filename+"_local"
+    f2 = "Files/"+filename+"_global"
+    # np.savetxt(f1+".txt", d1)
+    # np.savetxt(f2+".txt, d2)
+    # d1 = np.loadtxt("Files/"+filename+"_local.txt")
+    # d2 = np.loadtxt("Files/"+filename+"_global.txt")
+
+    X,Y = np.meshgrid(kk, e)
+    DSSFgraph(X, Y, d1, py0s, f1)
+    DSSFgraph(X, Y, d2, py0s, f2)
+    # plt.show()
+
+def spinon_continuum(nE, BZres, Jpm, tol, filename):
     if Jpm >= 0:
-        spinon_continuum_zero(nE, nK, Jpm, filename, BZres, tol)
+        spinon_continuum_zero(nE, Jpm, filename, BZres, tol)
     else:
-        spinon_continuum_pi(nE, nK, Jpm, filename, BZres, tol)
+        spinon_continuum_pi(nE, Jpm, filename, BZres, tol)
 
 #endregion
 
 #region SSSF
+
+def SSSFGraph(A,B,d1, filename):
+    plt.pcolormesh(A,B, d1)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
+
+
+    # GammaH = np.array([0, 0])
+    # LH =  np.array([1, 1])/2
+    # XH = np.array([0, 1])
+    # KH = np.array([3/4,0])
+    # UH = np.array([1 / 4, 1])
+    # UpH = np.array([1 / 4, -1])
+    #
+    # plt.plot([0],[0], marker='o', color='k')
+    # plt.plot(np.linspace(XH, UH, 2).T[0], np.linspace(XH, UH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(UH, LH, 2).T[0], np.linspace(UH, LH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(KH, LH, 2).T[0], np.linspace(KH, LH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(KH, UpH, 2).T[0], np.linspace(KH, UpH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UH, UpH, 2).T[0], np.linspace(-UH, UpH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UH, -KH, 2).T[0], np.linspace(-UH, -KH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UpH, -KH, 2).T[0], np.linspace(-UpH, -KH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UpH, UH, 2).T[0], np.linspace(-UpH, UH, 2).T[1], color='k')
+    # plt.text(GammaH[0]+0.03,GammaH[1]+0.03, '$\Gamma$')
+    # plt.text(LH[0]+0.03,LH[1]+0.03, '$L$')
+    # plt.text(XH[0]+0.03,XH[1]+0.03, '$X$')
+    # plt.text(KH[0]+0.03,KH[1]+0.03, '$K$')
+    # plt.text(UH[0] + 0.03, UH[1] + 0.03, '$U$')
+    plt.savefig(filename+".png")
+    # plt.show()
 
 def BZbasis(mu):
     if mu == 0:
@@ -316,65 +343,34 @@ def BZbasis(mu):
     elif mu == 2:
         return 2*np.pi*np.array([0,0,1])
 
-def BZbasisa(mu):
-    if mu == 0:
-        return 2*np.pi*np.array([-1,1,1])
-    elif mu == 1:
-        return 2*np.pi*np.array([1,-1,1])
-    elif mu == 2:
-        return 2*np.pi*np.array([1,1,-1])
+
 
 def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
 
-def hkltoKtest(H, L):
-    return np.einsum('ij,k->ijk',H, BZbasisa(0)+BZbasisa(1)) + np.einsum('ij,k->ijk',L, BZbasisa(2))
 
 def SSSF_zero_cal(nK,h, n, BZres, Jpm, filename):
     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
     py0s.findLambda()
 
-    H = np.linspace(-2.5,2.5,nK)
-    L = np.linspace(-2.5,2.5,nK)
-
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A,B).reshape((nK*nK,3))
+    K = hkltoK(A, B)
 
-
-    d1 = graph_SSSF_zero(py0s, K).reshape((nK, nK))
-    np.savetxt("Files/"+filename+".txt", d1)
-
-    GammaH = np.array([0, 0])
-    LH =  np.array([1, 1])
-    XH = np.array([0, 1])*2
-    KH = np.array([3/4,0])*2
-    UH = np.array([1 / 4, 1])*2
-    UpH = np.array([1 / 4, -1])*2
-
-
-    plt.text(U[0]+0.03,U[1]+0.03, '$U$')
-    # d1 = np.loadtxt("Files/"+filename+".txt")
-    plt.contourf(A,B, d1, levels=100)
-    plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
-
-    # dex = edges(d1, e, 5e-2)
-    # plt.plot(kk, dex[0], 'b', kk, dex[1], 'b')
-    plt.plot([0],[0], marker='o', color='k')
-    plt.plot(np.linspace(XH, UH, 2).T[0], np.linspace(XH, UH, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(UH, LH, 2).T[0], np.linspace(UH, LH, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(KH, LH, 2).T[0], np.linspace(KH, LH, 2).T[1], marker='o', color='k')
-    plt.plot(np.linspace(KH, UpH, 2).T[0], np.linspace(KH, UpH, 2).T[1], color='k')
-    plt.plot(np.linspace(-UH, UpH, 2).T[0], np.linspace(-UH, UpH, 2).T[1], color='k')
-    plt.plot(np.linspace(-UH, -KH, 2).T[0], np.linspace(-UH, -KH, 2).T[1], color='k')
-    plt.plot(np.linspace(-UpH, -KH, 2).T[0], np.linspace(-UpH, -KH, 2).T[1], color='k')
-    plt.plot(np.linspace(-UpH, UH, 2).T[0], np.linspace(-UpH, UH, 2).T[1], color='k')
-    plt.text(GammaH[0]+0.03,GammaH[1]+0.03, '$\Gamma$')
-    plt.text(LH[0]+0.03,LH[1]+0.03, '$L$')
-    plt.text(XH[0]+0.03,XH[1]+0.03, '$X$')
-    plt.text(KH[0]+0.03,KH[1]+0.03, '$K$')
-    plt.text(UH[0] + 0.03, UH[1] + 0.03, '$U$')
-    plt.savefig("Files/"+filename+".png")
+    d1, d2, d3 = graph_SSSF_zero(py0s, K, n)
+    f1 = "Files/" + filename + "_local"
+    f2 = "Files/" + filename + "_global"
+    f3 = "Files/" + filename + "_NSF"
+    np.savetxt(f1 + '.txt', d1)
+    np.savetxt(f2 + '.txt', d2)
+    np.savetxt(f3 + '.txt', d3)
+    # d1 = np.loadtxt(f1+'.txt')
+    # d2 = np.loadtxt(f2 + '.txt')
+    # d3 = np.loadtxt(f3 + '.txt')
+    SSSFGraph(A, B, d1, f1)
+    SSSFGraph(A, B, d2, f2)
+    SSSFGraph(A, B, d3, f3)
 
 
 def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
@@ -387,43 +383,21 @@ def SSSF_pi_cal(nK,h, n, BZres, Jpm, filename):
     A, B = np.meshgrid(H, L)
     K = hkltoK(A,B)
 
+    d1, d2,d3= graph_SSSF_pi(py0s, K, n)
+    f1 = "Files/"+filename+"_local"
+    f2 = "Files/" + filename + "_global"
+    f3 = "Files/" + filename + "_NSF"
+    np.savetxt(f1+'.txt', d1)
+    np.savetxt(f2+'.txt', d2)
+    np.savetxt(f3+'.txt', d3)
+    # d1 = np.loadtxt(f1+'.txt')
+    # d2 = np.loadtxt(f2 + '.txt')
+    # d3 = np.loadtxt(f3 + '.txt')
+    SSSFGraph(A, B, d1, f1)
+    SSSFGraph(A, B, d2, f2)
+    SSSFGraph(A, B, d3, f3)
 
-    d1,d2 = graph_SSSF_pi(py0s, K)
-    np.savetxt("Files/"+filename+".txt", d1)
 
-
-    Gamma = np.array([0, 0])
-    L =  np.array([1, 1])/2
-    X = np.array([0, 1])
-    K = np.array([3/4,0])
-    U = np.array([1 / 4, 1])
-    Up = np.array([1 / 4, -1])
-
-
-
-    # d1 = np.loadtxt("Files/spin_cont_test.txt")
-    fig, ax = plt.subplots(nrows=1, ncols=2)
-    ax[0].pcolormesh(A,B, d1)
-    ax[1].pcolormesh(A,B, d2)
-    # plt.pcolormesh(A,B, d1)
-    # plt.ylabel(r'$(0,0,L)$')
-    # plt.xlabel(r'$(H,H,0)$')
-
-    # plt.plot([0],[0], marker='o', color='k')
-    # plt.plot(np.linspace(X, U, 2).T[0], np.linspace(X, U, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(U, L, 2).T[0], np.linspace(U, L, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(K, L, 2).T[0], np.linspace(K, L, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(K, Up, 2).T[0], np.linspace(K, Up, 2).T[1], color='k')
-    # plt.plot(np.linspace(-U, Up, 2).T[0], np.linspace(-U, Up, 2).T[1], color='k')
-    # plt.plot(np.linspace(-U, -K, 2).T[0], np.linspace(-U, -K, 2).T[1], color='k')
-    # plt.plot(np.linspace(-Up, -K, 2).T[0], np.linspace(-Up, -K, 2).T[1], color='k')
-    # plt.plot(np.linspace(-Up, U, 2).T[0], np.linspace(-Up, U, 2).T[1], color='k')
-    # plt.text(Gamma[0]+0.03,Gamma[1]+0.03, '$\Gamma$')
-    # plt.text(L[0]+0.03,L[1]+0.03, '$L$')
-    # plt.text(X[0]+0.03,X[1]+0.03, '$X$')
-    # plt.text(K[0]+0.03,K[1]+0.03, '$K$')
-    # plt.text(U[0]+0.03,U[1]+0.03, '$U$')
-    plt.savefig("Files/"+filename+".png")
 
 def SSSF(nK,h, n, Jpm, BZres,  filename):
     if Jpm >= 0:
@@ -435,8 +409,8 @@ def SSSF(nK,h, n, Jpm, BZres,  filename):
 
 h111=np.array([1,1,1])/np.sqrt(3)
 h001=np.array([0,0,1])
-h110 = np.array([1,1,0])/2
-
+h110 = np.array([1,1,0])/np.sqrt(2)
+hb110 = np.array([-1,1,0])/np.sqrt(2)
 # graphdispersion(-1/3, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.02,0.8, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
@@ -453,26 +427,44 @@ h110 = np.array([1,1,0])/2
 #
 
 
-# spinon_continuum(50,50,50,0.046, 0.02,   "spin_con_zero_flux_final")
 #
 # # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
-# SSSF(25, 0, np.array([1,1,1]),-0.05,20, "SSSF_pi_-0.05")
-SSSF(25, 0, np.array([1,1,1]),-0.20,20, "SSSF_pi_-0.20_3")
-# SSSF(25, 0, np.array([1,1,1]),-0.40,20, "SSSF_pi_-0.40")
 
-# SSSF(25, 0.2, h111,0.02,25, "SSSF_zero_0.02_h111=0.2")
-# SSSF(25, 0.4, h111,0.02,25, "SSSF_zero_0.02_h111=0.4")
-# SSSF(25, 0.6, h111,0.02,25, "SSSF_zero_0.02_h111=0.6")
+# SSSF(25, 0, np.array([1,1,1]),0.04,10, "SSSF_zero_test")
 #
-# SSSF(25, 0.2, h001,0.02,25, "SSSF_zero_0.02_h001=0.2")
-# SSSF(25, 0.4, h001,0.02,25, "SSSF_zero_0.02_h001=0.4")
-# SSSF(25, 0.6, h001,0.02,25, "SSSF_zero_0.02_h001=0.6")
-# #
-# SSSF(25, 0.8, h110,0.02,25, "SSSF_zero_0.02_h110=0.8")
-# SSSF(25, 1.6, h110,0.02,25, "SSSF_zero_0.02_h110=1.6")
-# SSSF(25, 2.4, h110,0.02,25, "SSSF_zero_0.02_h110=2.4")
+#
+# SSSF(100, 0, hb110,-0.05,30, "SSSF_pi_-0.05_DETAILED")
+# SSSF(100, 0, hb110,-0.20,30, "SSSF_pi_-0.20_DETAILED")
+# SSSF(100, 0, hb110,-0.40,30, "SSSF_pi_-0.40_DETAILED")
+# SSSF(100, 0, hb110,0.02,30, "SSSF_pi_0.02_DETAILED")
+# SSSF(100, 0, hb110,0.03,30, "SSSF_pi_0.03_DETAILED")
+# SSSF(100, 0, hb110,0.04,30, "SSSF_pi_0.04_DETAILED")
+
+
+
+# SSSF(50, 0, np.array([1,1,1]),-0.40,30, "SSSF_pi_-0.40_DETAILED")
+
+# SSSF(25, 0, h111,0.04,10, "SSSF_zero_0.02")
+
+spinon_continuum(0.02,30,-1/3, 0.02, "DSSF_-0.33_detailed")
+spinon_continuum(0.02,30,0.046, 0.02, "DSSF_0.046_detailed")
+
+SSSF(100, 0.2, h111,0.02,30, "SSSF_zero_0.02_h111=0.2")
+SSSF(100, 0.3, h111,0.02,30, "SSSF_zero_0.02_h111=0.3")
+SSSF(100, 0.4, h111,0.02,30, "SSSF_zero_0.02_h111=0.4")
+
+SSSF(100, 0.2, h001,0.02,30, "SSSF_zero_0.02_h001=0.2")
+SSSF(100, 0.3, h001,0.02,30, "SSSF_zero_0.02_h001=0.3")
+SSSF(100, 0.4, h001,0.02,30, "SSSF_zero_0.02_h001=0.4")
+#
+SSSF(100, 0.8, h110,0.02,30, "SSSF_zero_0.02_h110=0.8")
+SSSF(100, 1.2, h110,0.02,30, "SSSF_zero_0.02_h110=1.2")
+SSSF(100, 1.6, h110,0.02,30, "SSSF_zero_0.02_h110=1.6")
+
+
+
 # #
 #
 # SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")

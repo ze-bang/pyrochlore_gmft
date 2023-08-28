@@ -2,6 +2,7 @@ import numpy as np
 from itertools import permutations
 import math
 import numba as nb
+from opt_einsum import contract
 
 graphres=50
 
@@ -44,17 +45,8 @@ def realcoord(r):
     r1, r2, r3 = r
     return r1*e1 +r2*e2 + r3* e3
 
-@nb.njit
-def z(mu):
-    if mu == 0:
-        return -np.array([1,1,1])/np.sqrt(3)
-    if mu == 1:
-        return np.array([-1,1,1])/np.sqrt(3)
-    if mu == 2:
-        return np.array([1,-1,1])/np.sqrt(3)
-    if mu == 3:
-        return np.array([1,1,-1])/np.sqrt(3)
 
+z = np.array([-np.array([1,1,1])/np.sqrt(3), np.array([-1,1,1])/np.sqrt(3), np.array([1,-1,1])/np.sqrt(3), np.array([1,1,-1])/np.sqrt(3)])
 @nb.njit
 def BasisBZ(mu):
     if mu == 0:
@@ -72,54 +64,28 @@ def neta(alpha):
     else:
         return -1
 
-@nb.njit
-def NN(mu):
-    if mu == 0:
-        return np.array([-1 / 4, -1 / 4, -1 / 4])
-    if mu == 1:
-        return np.array([-1 / 4, 1 / 4, 1 / 4])
-    if mu == 2:
-        return np.array([1 / 4, -1 / 4, 1 / 4])
-    if mu == 3:
-        return np.array([1 / 4, 1 / 4, -1 / 4])
 
 
-# def ifFBZ(k):
-#     b1, b2, b3 = k
-#     if np.any(abs(k) > 2*np.pi):
-#         return False
-#     elif abs(b1+b2+b3)<3*np.pi and abs(b1-b2+b3)<3*np.pi and abs(-b1+b2+b3)<3*np.pi and abs(b1+b2-b3)<3*np.pi:
-#         return True
-#     else:
-#         return False
-#
-#
-# def genBZ(d):
-#     d = d*1j
-#     b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3,-1).T
-#     BZ = []
-#     for x in b:
-#         if ifFBZ(x):
-#             BZ += [x]
-#     return BZ
+NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
 
-@nb.njit
-def genBZ(d):
-    # d = d*1j
-    temp = np.zeros((d*d*d, 3))
-    s = np.linspace(0,1,d)
-    for i in range(d):
-        for j in range(d):
-            for k in range(d):
-                temp[i*d*d+j*d+k] = s[i]*BasisBZA[0] + s[j]*BasisBZA[1] + s[k]*BasisBZA[2]
-    return temp
+
+NNminus = np.zeros((4,4,3), dtype=float)
+for i in range(4):
+    for j in range(4):
+        NNminus[i,j,:] = NN[i]-NN[j]
+
+
+NNplus = np.zeros((4,4,3), dtype=float)
+for i in range(4):
+    for j in range(4):
+        NNplus[i,j,:] = NN[i]+NN[j]
 
 
 # @nb.njit
 def genBZ(d):
     d = d*1j
     b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1)
-    temp = np.einsum('ij, ik->jk', b, BasisBZA)
+    temp = contract('ij, ik->jk', b, BasisBZA)
     return temp
 
 
@@ -136,25 +102,11 @@ def step(mu):
 
 
 
-@nb.njit
-def A_pi(r1,r2):
-    bond = r1-r2
-    r1, r2, r3 = r1
-    if np.all(bond == step(0)):
-        return 0
-    if np.all(bond == step(1)):
-        return np.pi*(r2+r3) % (2*np.pi)
-    if np.all(bond == step(2)):
-        return np.pi*r3 % (2*np.pi)
-    if np.all(bond == step(3)):
-        return 0
-    if np.all(bond == -step(1)):
-        return np.pi*(r2+r3) % (2*np.pi)
-    if np.all(bond == -step(2)):
-        return np.pi*r3 % (2*np.pi)
-    if np.all(bond == -step(3)):
-        return 0
 
+A_pi = np.array([[0,0,0,0],
+                  [0,np.pi,0,0],
+                  [0,np.pi,np.pi,0],
+                  [0,0,np.pi,0]])
 
 piunitcell = np.array([
     [[1,0,0,0],
@@ -172,8 +124,29 @@ piunitcell = np.array([
     [[0,0,1,0],
      [0,0,0,1],
      [1,0,0,0],
-     [0,1,0,1]],
+     [0,1,0,0]],
 ])
+
+
+notrace = np.ones((4,4))-np.diag([1,1,1,1])
+
+A_pi_rs_traced = np.zeros((4,4,4))
+
+
+for i in range(4):
+    for j in range(4):
+        for k in range(4):
+            A_pi_rs_traced[i,j,k] = np.real(np.exp(1j * (A_pi[i,j] - A_pi[i,k])))
+
+A_pi_rs_rsp = np.zeros((4,4,4,4))
+
+for i in range(4):
+    for j in range(4):
+        for k in range(4):
+            for l in range(4):
+                A_pi_rs_rsp[i,j,k,l] = np.real(np.exp(1j * (A_pi[i,k] - A_pi[j,l])))
+
+
 
 @nb.njit
 def findS(r):
