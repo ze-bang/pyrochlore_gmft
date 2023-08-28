@@ -315,6 +315,7 @@ def graph_SSSF_zero(pyp0, K, V):
             # sys.stdout.flush()
 
     MPI.Finalize()
+
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
 
@@ -436,7 +437,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
     DSSFgraph(X, Y, d2, py0s, f2)
     # plt.show()
 
-def SSSF(nK,h, n, BZres, Jpm, filename):
+def SSSF(nK,h, n, v, BZres, Jpm, filename):
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
     else:
@@ -450,9 +451,9 @@ def SSSF(nK,h, n, BZres, Jpm, filename):
     K = hkltoK(A, B)
 
     if Jpm >= 0:
-        d1, d2, d3 = graph_SSSF_zero(py0s, K, n)
+        d1, d2, d3 = graph_SSSF_zero(py0s, K, v)
     else:
-        d1, d2, d3 = graph_SSSF_pi(py0s, K, n)
+        d1, d2, d3 = graph_SSSF_pi(py0s, K, v)
     f1 = "Files/" + filename + "_local"
     f2 = "Files/" + filename + "_global"
     f3 = "Files/" + filename + "_NSF"
