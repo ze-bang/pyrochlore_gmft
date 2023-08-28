@@ -95,7 +95,6 @@ def DSSF_pi(q, omega, pyp0, tol):
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal))
 
-
 def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
     # el = "==:==:=="
     # totaltask = len(E)*len(K)
@@ -145,14 +144,12 @@ def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
 
     # print(rank)
 
-    if not MPI.Is_finalized():
-        MPI.Finalize()
+    # if not MPI.Is_finalized():
+    #     MPI.Finalize()
 
     return rectemp, rectemp1
 
-
-
-def graph_DSSF_pi(pyp0, E, K, tol):
+def graph_DSSF_pi(pyp0, E, K, tol, rank, size):
     # el = "==:==:=="
     # totaltask = len(E)*len(K)
     # increment = totaltask/50
@@ -200,8 +197,8 @@ def graph_DSSF_pi(pyp0, E, K, tol):
 
     # print(rank)
 
-    if not MPI.Is_finalized():
-        MPI.Finalize()
+    # if not MPI.Is_finalized():
+    #     MPI.Finalize()
 
     return rectemp, rectemp1
 
@@ -373,8 +370,8 @@ def graph_SSSF_zero(pyp0, K, V, rank, size):
 
     # print(rank)
 
-    if not MPI.Is_finalized():
-        MPI.Finalize()
+    # if not MPI.Is_finalized():
+    #     MPI.Finalize()
 
     return rectemp, rectemp1, rectemp2
     # E, K = np.meshgrid(e, K)
@@ -433,8 +430,8 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
-    if not MPI.Is_finalized():
-        MPI.Finalize()
+    # if not MPI.Is_finalized():
+    #     MPI.Finalize()
 
     return rectemp, rectemp1, rectemp2
     # E, K = np.meshgrid(e, K)
