@@ -3,8 +3,15 @@ from itertools import permutations
 import math
 import numba as nb
 from opt_einsum import contract
+import time
+import math
+import sys
+from opt_einsum import contract
+from numba import jit
+from numba.experimental import jitclass
+from mpi4py import MPI
 
-graphres=50
+graphres=30
 
 @nb.njit
 def magnitude(vector):
@@ -64,7 +71,39 @@ def neta(alpha):
     else:
         return -1
 
+def telltime(sec):
+    hours = math.floor(sec/3600)
+    sec = sec-hours*3600
+    minus = math.floor(sec/60)
+    sec = int(sec - minus * 60)
+    return str(hours) + ':' + str(minus) + ':' + str(sec)
 
+
+def gaussian(mu, tol):
+    return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
+
+def cauchy(mu, tol):
+    return tol/(mu**2+tol**2)/np.pi
+
+def bose(beta, omega):
+    if beta == 0:
+        return np.zeros(omega.shape)
+    else:
+        return 1/(np.exp(beta*omega)-1)
+
+def g(q):
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+    return M
+
+def gNSF(v):
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            M[i,j] = np.dot(z[i], v) * np.dot(z[j], v)
+    return M
 
 NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
 
@@ -147,6 +186,13 @@ for i in range(4):
                 A_pi_rs_rsp[i,j,k,l] = np.real(np.exp(1j * (A_pi[i,k] - A_pi[j,l])))
 
 
+A_pi_rs_rsp_pp = np.zeros((4,4,4,4))
+
+for i in range(4):
+    for j in range(4):
+        for k in range(4):
+            for l in range(4):
+                A_pi_rs_rsp_pp[i,j,k,l] = np.real(np.exp(1j * (A_pi[i,k] + A_pi[j,l])))
 
 @nb.njit
 def findS(r):
@@ -313,12 +359,54 @@ def genALLSymPoints():
 
 symK = genALLSymPoints()
 
-# graphres = 20
-#
-# GammaX = drawLine(Gamma, X, graphres)
-# XW = drawLine(X, W, graphres)
-# WK = drawLine(W, K, graphres)
-# KGamma = drawLine(K, Gamma, graphres)
-# GammaL = drawLine(Gamma, L, graphres)
-# LU = drawLine(L, U, graphres)
-# UW = drawLine(U, W, graphres)
+def phase0(lams, minLams, pi):
+    lamA, lamB = lams
+    if np.all(lams < minLams):
+        print("AFM Phase")
+        return 0
+    elif lamA < minLams[0]:
+        print("PMu Phase")
+        return 1+pi
+    elif lamB < minLams[1]:
+        print("PMu Phase")
+        return -(1+pi)
+    else:
+        print("QSL Phase")
+        print(3*(-1)**pi)
+        return 3*(-1)**pi
+
+
+def phaseMag(lams, minLams, pi):
+    lamA, lamB = lams
+    if np.all(lams < minLams):
+        print("AFM Phase")
+        return 0
+    elif lamA - minLams[0] < 0:
+        print("PMu Phase")
+        return 1+pi
+    elif lamB - minLams[1]< 0:
+        print("PMu Phase")
+        return -(1+pi)
+    else:
+        print("QSL Phase")
+        print(3*(-1)**pi)
+        return 3*(-1)**pi
+
+def BZbasis(mu):
+    if mu == 0:
+        return 2*np.pi*np.array([1,0,0])
+    elif mu == 1:
+        return 2*np.pi*np.array([0,1,0])
+    elif mu == 2:
+        return 2*np.pi*np.array([0,0,1])
+
+
+
+def hkltoK(H, L):
+    return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
+
+
+h111=np.array([1,1,1])/np.sqrt(3)
+h001=np.array([0,0,1])
+h110 = np.array([1,1,0])/np.sqrt(2)
+hb110 = np.array([-1,1,0])/np.sqrt(2)

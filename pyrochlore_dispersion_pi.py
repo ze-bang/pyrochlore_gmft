@@ -1,10 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import warnings
-from numba import jit
-from numba.experimental import jitclass
 from misc_helper import *
-from opt_einsum import contract
 
 
 def M_pi_mag_sub(k, alpha, h, n):
@@ -12,8 +8,7 @@ def M_pi_mag_sub(k, alpha, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('kj,ij,j->ikj',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag)
-    M = contract('ikj, kja->ika', M, piunitcell)
+    M = contract('kj,ij,j, jka->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):
@@ -48,13 +43,12 @@ def E_pi(lams, k, eta, Jpm, h, n):
 
 
 def rho_true(Jzz, M, lams):
-    dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
+    # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     temp = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = contract('ijk, ik->ij', Vt, 1/np.sqrt(2*Jzz*E))
-    Ep = np.mean(contract('jk, ik->ij', dumb, Ep), axis=0)/4
-    return Ep
+    Ep = contract('ijk, ik, a->ia', Vt, 1/np.sqrt(2*Jzz*E), np.ones(2))/8
+    return np.mean(Ep, axis=0)
 
 
 def findminLam(M, Jzz, tol):
@@ -78,7 +72,7 @@ def findminLam(M, Jzz, tol):
 def findlambda_pi(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
     lamMin = np.zeros(2)
-    lamMax = 10*np.ones(2)
+    lamMax = 50*np.ones(2)
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(Jzz, M, lams)
     # print(self.kappa)
@@ -99,6 +93,7 @@ def findlambda_pi(M, Jzz, kappa, tol):
              lamMin = lams
              # if lamMax == 0:
              #     break
+         # print([lams, rhoguess])
          # if (lamMax - lamMin <= tol ** 2 * 10).all():
          #     lams = -1000 * np.ones(2)
     return lams
@@ -231,6 +226,38 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
+def green_pi(k, pypi):
+    E, V = pypi.LV_zero(k)
+    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = contract('ikjl, ik->ijl', Vt, green)
+    return green
+
+def green_pi_old(k, alpha, pypi):
+    E, V = pypi.LV_zero_old(k, alpha)
+    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = contract('ikjl, ik->ijl', Vt, green)
+    return green
+
+def green_pi_branch(k, pypi):
+    E, V = pypi.LV_zero(k)
+    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = contract('ikjl, ik->ikjl', Vt, green)
+    return green
+
+def green_pi_old_branch(k, alpha, pypi):
+    E, V = pypi.LV_zero_old(k, alpha)
+    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
+    green = contract('ikjl, ik->ikjl', Vt, green)
+    return green
+
 #
 # def GS(lams, k, Jzz, Jpm, eta, h, n):
 #     return np.mean(dispersion_pi(lams, k, Jzz, Jpm, eta), axis=0) - np.repeat(lams)
@@ -267,6 +294,7 @@ class piFluxSolver:
 
     def condensed(self):
         return np.absolute(self.minLams - self.lams) < 1e-5
+
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)
 

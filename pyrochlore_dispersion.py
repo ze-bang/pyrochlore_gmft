@@ -331,6 +331,20 @@ def EMAX(M, lams, Jzz):
 def GS(lams, k, Jzz, Jpm, eta, h, n):
     return np.mean(dispersion_zero(lams, k, Jzz, Jpm, eta, h, n), axis=0) - lams
 
+def green_zero(k, pyp0):
+    E, V = pyp0.LV_zero(k)
+    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = contract('ikjl, ik->ijl', Vt, green)
+    return green
+
+def green_zero_branch(k, pyp0):
+    E, V = pyp0.LV_zero(k)
+    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = contract('ikjl, ik->ikjl', Vt, green)
+    return green
+
 
 class zeroFluxSolver:
     def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, Jzz=1):

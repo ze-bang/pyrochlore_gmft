@@ -1,91 +1,12 @@
 
-import numpy as np
-from pyrochlore_dispersion_pi import *
-from numpy import ndarray
-# from mpi4py import MPI
-import time
-import math
-import sys
-from numba import jit
+from pyrochlore_dispersion_pi import green_pi, green_pi_branch
+from pyrochlore_dispersion import green_zero_branch, green_zero
 from misc_helper import *
-
-class myarray(ndarray):
-    @property
-    def H(self):
-        return self.conj().T
+import matplotlib.pyplot as plt
+import pyrochlore_dispersion as py0
+import pyrochlore_dispersion_pi as pypi
 
 
-
-
-def green_zero(k, pyp0):
-    E, V = pyp0.LV_zero(k)
-    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
-    green = contract('ikjl, ik->ijl', Vt, green)
-    return green
-
-def green_zero_branch(k, pyp0):
-    E, V = pyp0.LV_zero(k)
-    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
-    green = contract('ikjl, ik->ikjl', Vt, green)
-    return green
-
-def green_pi(k, pypi):
-    E, V = pypi.LV_zero(k)
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
-    green = contract('ikjl, ik->ijl', Vt, green)
-    return green
-
-def green_pi_old(k, alpha, pypi):
-    E, V = pypi.LV_zero_old(k, alpha)
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
-    green = contract('ikjl, ik->ijl', Vt, green)
-    return green
-
-def green_pi_branch(k, pypi):
-    E, V = pypi.LV_zero(k)
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
-    green = contract('ikjl, ik->ikjl', Vt, green)
-    return green
-
-def green_pi_old_branch(k, alpha, pypi):
-    E, V = pypi.LV_zero_old(k, alpha)
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = pypi.Jzz/np.sqrt(2*pypi.Jzz*E)
-    green = contract('ikjl, ik->ikjl', Vt, green)
-    return green
-
-
-# def green_pi_test_1(k, omega, alpha, pypi):
-#     V = pypi.V[alpha]
-#     E = pypi.E_pi(k, alpha, pypi.lams)
-#     temp = np.zeros((len(k),4,4,4), dtype=complex)
-#     for i in range(4):
-#         for mu in range(4):
-#             for nu in range(4):
-#                 if not mu == nu:
-#                     temp[:, i, mu, nu] =  E[:, i]
-#     return temp
-
-def gaussian(mu, tol):
-    return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
-
-def cauchy(mu, tol):
-    return tol/(mu**2+tol**2)/np.pi
-
-def bose(beta, omega):
-    if beta == 0:
-        return np.zeros(omega.shape)
-    else:
-        return 1/(np.exp(beta*omega)-1)
 
 def delta(Ek, Eq, omega, tol):
     beta = 0
@@ -100,19 +21,7 @@ def delta(Ek, Eq, omega, tol):
 
 
 
-def g(q):
-    M = np.zeros((4,4))
-    for i in range(4):
-        for j in range(4):
-            M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
-    return M
-
-def gNSF(v):
-    M = np.zeros((4,4))
-    for i in range(4):
-        for j in range(4):
-            M[i,j] = np.dot(z[i], v) * np.dot(z[j], v)
-    return M
+#region DSSF
 
 def DSSF_zero(q, omega, pyp0, tol):
     Ks = pyp0.bigB
@@ -147,6 +56,99 @@ def DSSF_zero(q, omega, pyp0, tol):
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal))
 
+
+def DSSF_pi(q, omega, pyp0, tol):
+    Ks = pyp0.bigB
+    Qs = Ks - q
+
+    tempE = pyp0.LV_zero_old(Ks, 0)[0]
+    tempQ = pyp0.LV_zero_old(Qs, 1)[0]
+
+    greenpK = green_pi_branch(Ks, pyp0)
+    greenpQ = green_pi_branch(Qs, pyp0)
+
+
+    deltapm = delta(tempE, tempQ, omega, tol)
+    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
+    ffactpm = np.exp(1j * ffact)
+    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
+    ffactpp = np.exp(1j * ffact)
+
+
+    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,0:4], greenpQ[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+                    ffactpm)/4
+
+    Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+                    np.conj(ffactpm))/4
+
+    Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,4:8], greenpQ[:,:,0:4, 4:8], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                    ffactpp)/4
+    Smm = contract('ipxa, ioyb, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,4:8,0:4], greenpK[:,:,4:8,0:4], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                    np.conj(ffactpp))/4
+
+
+    S = (Spm + Smp + Spp + Smm)/4
+
+    Sglobal = contract('ijk,jk->i', S, g(q))
+    S = contract('ijk->i',S)
+
+
+    return np.real(np.mean(S)), np.real(np.mean(Sglobal))
+
+
+def graph_DSSF_zero(pyp0, E, K, tol):
+    el = "==:==:=="
+    totaltask = len(E)*len(K)
+    increment = totaltask/50
+    count = 0
+    temp = np.zeros((len(E), len(K)))
+    temp1 = np.zeros((len(E), len(K)))
+    for i in range(len(E)):
+        for j in range(len(K)):
+            start = time.time()
+            count = count + 1
+            temp[i,j], temp1[i,j] = DSSF_zero(K[j], E[i], pyp0, tol)
+            # if temp[i][j] > tempMax:
+            #     tempMax = temp[i][j]
+            end = time.time()
+            el = (end - start)*(totaltask-count)
+            el = telltime(el)
+            sys.stdout.write('\r')
+            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            sys.stdout.flush()
+    return temp, temp1
+
+
+def graph_DSSF_pi(pyp0, E, K, tol):
+    el = "==:==:=="
+    totaltask = len(E)*len(K)
+    increment = totaltask/50
+    count = 0
+
+    temp = np.zeros((len(E), len(K)))
+    temp1 = np.zeros((len(E), len(K)))
+
+    for i in range(len(E)):
+        for j in range(len(K)):
+            start = time.time()
+            count = count + 1
+            temp[i,j], temp1[i,j] = DSSF_pi(K[j], E[i], pyp0, tol)
+            # if temp[i][j] > tempMax:
+            #     tempMax = temp[i][j]
+            end = time.time()
+            el = (end - start)*(totaltask-count)
+            el = telltime(el)
+            sys.stdout.write('\r')
+            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            sys.stdout.flush()
+    return temp, temp1
+
+#endregion
+
+
+
+#region SSSF
+
 def SSSF_zero(q, v, pyp0):
     Ks = pyp0.bigB
     Qs = Ks-q
@@ -178,37 +180,6 @@ def SSSF_zero(q, v, pyp0):
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal)), np.real(np.mean(SNSF))
 
-def DSSF_pi(q, omega, pyp0, tol):
-    Ks = pyp0.bigB
-    Qs = Ks - q
-
-    tempE = pyp0.LV_zero_old(Ks, 0)[0]
-    tempQ = pyp0.LV_zero_old(Qs, 0)[0]
-
-    greenpKA = green_pi_old_branch(Ks, 0, pyp0)
-    greenpKB = np.conj(greenpKA)
-    greenpQA = green_pi_old_branch(Qs, 0, pyp0)
-    greenpQB = np.conj(greenpQA)
-
-    deltapm = delta(tempE, tempQ, omega, tol)
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
-    ffactpm = np.exp(1j * ffact)
-
-
-    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpKA, greenpQB, deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
-                    ffactpm)/4
-
-    Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQA, greenpKB, deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
-                    np.conj(ffactpm))/4
-
-    S = (Spm + Smp)/4
-
-    Sglobal = contract('ijk,jk->i', S, g(q))
-    S = contract('ijk->i',S)
-
-
-    return np.real(np.mean(S)), np.real(np.mean(Sglobal))
-
 
 def SSSF_pi(q, v, pyp0):
     Ks = pyp0.bigB
@@ -216,20 +187,29 @@ def SSSF_pi(q, v, pyp0):
     v = v / magnitude(v)
     le = len(Ks)
 
-    greenpKA = green_pi_old(Ks, 0, pyp0)
-    greenpKB = np.conj(greenpKA)
-    greenpQA = green_pi_old(Qs, 0, pyp0)
-    greenpQB = np.conj(greenpQA)
+    greenpK = green_pi(Ks, pyp0)
+    greenpQ = green_pi(Qs, pyp0)
 
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)
 
-    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpKA, greenpQB, A_pi_rs_rsp, piunitcell, piunitcell,
+    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
+    ffactpp = np.exp(1j * ffact)
+
+
+    #a = rs, b = rsp, y=index2, x=index1
+    #
+    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,0:4], greenpQ[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
-    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQA, greenpKB, A_pi_rs_rsp, piunitcell, piunitcell,
+    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,4:8], greenpK[:,0:4,0:4], A_pi_rs_rsp, piunitcell, piunitcell,
                     np.conj(ffactpm))/4
 
-    S = (Spm + Smp)/4
+    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,4:8], greenpQ[:,0:4, 4:8], A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                    ffactpp)/4
+    Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                    np.conj(ffactpp))/4
+
+    S = (Spm + Smp + Spp + Smm)/4
 
     Sglobal = contract('ijk,jk->i',S, g(q))
     SNSF = contract('ijk,jk->i',S, gNSF(v))
@@ -237,112 +217,72 @@ def SSSF_pi(q, v, pyp0):
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal)), np.real(np.mean(SNSF))
 
-def SSSF_pi_dumb(q, v, pyp0):
-    Ks = pyp0.bigB
-    Qs = Ks-q
-    v = v/magnitude(v)
-    le = len(Ks)
-
-    greenpKA = green_pi_old(Ks, 0, pyp0)
-    greenpKB = np.conj(greenpKA)
-    greenpQA = green_pi_old(Qs, 0, pyp0)
-    greenpQB = np.conj(greenpQA)
-
-
-    temp = np.zeros(le, dtype=np.complex128)
-    temp1 = np.zeros(le, dtype=np.complex128)
-    temp2 = np.zeros(le, dtype=np.complex128)
-    for rs in range(4):
-        for rsp in range(4):
-            for i in range(4):
-                for j in range(4):
-                    index1 = np.array(np.where(piunitcell[i, rs] == 1))[0, 0]
-                    index2 = np.array(np.where(piunitcell[j, rsp] == 1))[0, 0]
-
-                    Spm = greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-                            *np.exp(1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
-                            *np.exp(1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
-                    Smp = greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
-                            *np.exp(-1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
-                            *np.exp(-1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
-
-                    temp += (Spm + Smp)/4
-                    temp1 += (Spm + Smp) * (np.dot(z[i], z[j]) - np.dot(z[i], q) * np.dot(z[j], q) / np.dot(q, q))/4
-                    temp2 += (Spm + Smp) * (np.dot(z[i], v) * np.dot(z[j], v))/4
-
-
-    return np.real(np.mean(temp)), np.real(np.mean(temp1)), np.real(np.mean(temp2))
-
-def graph_DSSF_pi(pyp0, E, K, tol):
-    el = "==:==:=="
-    totaltask = len(E)*len(K)
-    increment = totaltask/50
-    count = 0
-
-    temp = np.zeros((len(E), len(K)))
-    temp1 = np.zeros((len(E), len(K)))
-
-    for i in range(len(E)):
-        for j in range(len(K)):
-            start = time.time()
-            count = count + 1
-            temp[i,j], temp1[i,j] = DSSF_pi(K[j], E[i], pyp0, tol)
-            # if temp[i][j] > tempMax:
-            #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
-    return temp, temp1
-
-
-def graph_DSSF_zero(pyp0, E, K, tol):
-    el = "==:==:=="
-    totaltask = len(E)*len(K)
-    increment = totaltask/50
-    count = 0
-    temp = np.zeros((len(E), len(K)))
-    temp1 = np.zeros((len(E), len(K)))
-    for i in range(len(E)):
-        for j in range(len(K)):
-            start = time.time()
-            count = count + 1
-            temp[i,j], temp1[i,j] = DSSF_zero(K[j], E[i], pyp0, tol)
-            # if temp[i][j] > tempMax:
-            #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
-    return temp, temp1
+# def SSSF_pi_dumb(q, v, pyp0):
+#     Ks = pyp0.bigB
+#     Qs = Ks-q
+#     v = v/magnitude(v)
+#     le = len(Ks)
+#
+#     greenpKA = green_pi_old(Ks, 0, pyp0)
+#     greenpKB = np.conj(greenpKA)
+#     greenpQA = green_pi_old(Qs, 0, pyp0)
+#     greenpQB = np.conj(greenpQA)
+#
+#
+#     temp = np.zeros(le, dtype=np.complex128)
+#     temp1 = np.zeros(le, dtype=np.complex128)
+#     temp2 = np.zeros(le, dtype=np.complex128)
+#     for rs in range(4):
+#         for rsp in range(4):
+#             for i in range(4):
+#                 for j in range(4):
+#                     index1 = np.array(np.where(piunitcell[i, rs] == 1))[0, 0]
+#                     index2 = np.array(np.where(piunitcell[j, rsp] == 1))[0, 0]
+#
+#                     Spm = greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
+#                             *np.exp(1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
+#                             *np.exp(1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
+#                     Smp = greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
+#                             *np.exp(-1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
+#                             *np.exp(-1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
+#
+#                     temp += (Spm + Smp)/4
+#                     temp1 += (Spm + Smp) * (np.dot(z[i], z[j]) - np.dot(z[i], q) * np.dot(z[j], q) / np.dot(q, q))/4
+#                     temp2 += (Spm + Smp) * (np.dot(z[i], v) * np.dot(z[j], v))/4
+#
+#
+#     return np.real(np.mean(temp)), np.real(np.mean(temp1)), np.real(np.mean(temp2))
 
 
 def graph_SSSF_zero(pyp0, K, V):
-    el = "==:==:=="
-    totaltask =  K.shape[0]*K.shape[1]
-    increment = totaltask/50
-    count = 0
+    # el = "==:==:=="
+    # totaltask =  K.shape[0]*K.shape[1]
+    # increment = totaltask/50
+    # count = 0
     temp = np.zeros((K.shape[0], K.shape[1]))
     temp1 = np.zeros((K.shape[0], K.shape[1]))
     temp2 = np.zeros((K.shape[0], K.shape[1]))
 
+    # MPI.Init()
+    # comm = MPI.COMM_WORLD
+    # size = comm.Get_size()
+    # rank = comm.Get_rank()
+
+
     for i in range(len(K)):
         for j in range(K.shape[1]):
-            start = time.time()
-            count = count + 1
+            # start = time.time()
+            # count = count + 1
             temp[i,j], temp1[i,j], temp2[i,j] = SSSF_zero(K[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
+            # end = time.time()
+            # el = (end - start)*(totaltask-count)
+            # el = telltime(el)
+            # sys.stdout.write('\r')
+            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            # sys.stdout.flush()
+    MPI.Finalize()
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
 
@@ -372,15 +312,115 @@ def graph_SSSF_pi(pyp0, K, V):
     # E, K = np.meshgrid(e, K)
 
 
+#endregion
 
 
 
-def telltime(sec):
-    hours = math.floor(sec/3600)
-    sec = sec-hours*3600
-    minus = math.floor(sec/60)
-    sec = int(sec - minus * 60)
-    return str(hours) + ':' + str(minus) + ':' + str(sec)
+#region Graphing
+def DSSFgraph(A,B,D, py0s, filename):
+    plt.pcolormesh(A,B,D)
+    plt.ylabel(r'$\omega/J_{zz}$')
+    py0s.graph_loweredge(False)
+    py0s.graph_upperedge(False)
+    plt.savefig(filename+".png")
+
+
+def SSSFGraph(A,B,d1, filename):
+    plt.pcolormesh(A,B, d1)
+    plt.ylabel(r'$(0,0,L)$')
+    plt.xlabel(r'$(H,H,0)$')
+
+
+    # GammaH = np.array([0, 0])
+    # LH =  np.array([1, 1])/2
+    # XH = np.array([0, 1])
+    # KH = np.array([3/4,0])
+    # UH = np.array([1 / 4, 1])
+    # UpH = np.array([1 / 4, -1])
+    #
+    # plt.plot([0],[0], marker='o', color='k')
+    # plt.plot(np.linspace(XH, UH, 2).T[0], np.linspace(XH, UH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(UH, LH, 2).T[0], np.linspace(UH, LH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(KH, LH, 2).T[0], np.linspace(KH, LH, 2).T[1], marker='o', color='k')
+    # plt.plot(np.linspace(KH, UpH, 2).T[0], np.linspace(KH, UpH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UH, UpH, 2).T[0], np.linspace(-UH, UpH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UH, -KH, 2).T[0], np.linspace(-UH, -KH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UpH, -KH, 2).T[0], np.linspace(-UpH, -KH, 2).T[1], color='k')
+    # plt.plot(np.linspace(-UpH, UH, 2).T[0], np.linspace(-UpH, UH, 2).T[1], color='k')
+    # plt.text(GammaH[0]+0.03,GammaH[1]+0.03, '$\Gamma$')
+    # plt.text(LH[0]+0.03,LH[1]+0.03, '$L$')
+    # plt.text(XH[0]+0.03,XH[1]+0.03, '$X$')
+    # plt.text(KH[0]+0.03,KH[1]+0.03, '$K$')
+    # plt.text(UH[0] + 0.03, UH[1] + 0.03, '$U$')
+    plt.savefig(filename+".png")
+
+#endregion
+
+
+#region SSSF DSSF Admin
+
+
+def DSSF(nE, h,n,Jpm, filename, BZres, tol):
+    if Jpm >= 0:
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+
+    py0s.findLambda()
+
+    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
+                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
+    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.1, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    if Jpm >= 0:
+        d1, d2 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
+    else:
+        d1, d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol)
+
+
+    f1 = "Files/"+filename+"_local"
+    f2 = "Files/"+filename+"_global"
+    np.savetxt(f1+".txt", d1)
+    np.savetxt(f2+".txt", d2)
+    # d1 = np.loadtxt("Files/"+filename+".txt")
+
+    X,Y = np.meshgrid(kk, e)
+    DSSFgraph(X, Y, d1, py0s, f1)
+    DSSFgraph(X, Y, d2, py0s, f2)
+    # plt.show()
+
+def SSSF(nK,h, n, BZres, Jpm, filename):
+    if Jpm >= 0:
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, graphres=nK, h =h, n=n)
+    else:
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, graphres=nK, h=h, n=n)
+
+    py0s.findLambda()
+
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, L)
+    K = hkltoK(A, B)
+
+    if Jpm >= 0:
+        d1, d2, d3 = graph_SSSF_zero(py0s, K, n)
+    else:
+        d1, d2, d3 = graph_SSSF_pi(py0s, K, n)
+    f1 = "Files/" + filename + "_local"
+    f2 = "Files/" + filename + "_global"
+    f3 = "Files/" + filename + "_NSF"
+    np.savetxt(f1 + '.txt', d1)
+    np.savetxt(f2 + '.txt', d2)
+    np.savetxt(f3 + '.txt', d3)
+    # d1 = np.loadtxt(f1+'.txt')
+    # d2 = np.loadtxt(f2 + '.txt')
+    # d3 = np.loadtxt(f3 + '.txt')
+    SSSFGraph(A, B, d1, f1)
+    SSSFGraph(A, B, d2, f2)
+    SSSFGraph(A, B, d3, f3)
+
+
+#endregion
+
 
 
 
