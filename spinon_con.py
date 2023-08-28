@@ -97,50 +97,77 @@ def DSSF_pi(q, omega, pyp0, tol):
 
 
 def graph_DSSF_zero(pyp0, E, K, tol):
-    el = "==:==:=="
-    totaltask = len(E)*len(K)
-    increment = totaltask/50
-    count = 0
+    # el = "==:==:=="
+    # totaltask = len(E)*len(K)
+    # increment = totaltask/50
+    # count = 0
+
     temp = np.zeros((len(E), len(K)))
     temp1 = np.zeros((len(E), len(K)))
-    for i in range(len(E)):
+
+
+    MPI.Init()
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
+    n = len(E)/size
+
+    left = int(rank*n)
+    right = int((rank+1)*n)
+
+    for i in range(left, right):
         for j in range(len(K)):
-            start = time.time()
-            count = count + 1
+            # start = time.time()
+            # count = count + 1
             temp[i,j], temp1[i,j] = DSSF_zero(K[j], E[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
+            # end = time.time()
+            # el = (end - start)*(totaltask-count)
+            # el = telltime(el)
+            # sys.stdout.write('\r')
+            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            # sys.stdout.flush()
+    MPI.Finalize()
+
     return temp, temp1
 
 
 def graph_DSSF_pi(pyp0, E, K, tol):
-    el = "==:==:=="
-    totaltask = len(E)*len(K)
-    increment = totaltask/50
-    count = 0
+    # el = "==:==:=="
+    # totaltask = len(E)*len(K)
+    # increment = totaltask/50
+    # count = 0
 
     temp = np.zeros((len(E), len(K)))
     temp1 = np.zeros((len(E), len(K)))
 
-    for i in range(len(E)):
+    
+    MPI.Init()
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
+    n = len(E)/size
+
+    left = int(rank*n)
+    right = int((rank+1)*n)
+
+    for i in range(left, right):
         for j in range(len(K)):
-            start = time.time()
-            count = count + 1
+            # start = time.time()
+            # count = count + 1
             temp[i,j], temp1[i,j] = DSSF_pi(K[j], E[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
+            # end = time.time()
+            # el = (end - start)*(totaltask-count)
+            # el = telltime(el)
+            # sys.stdout.write('\r')
+            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            # sys.stdout.flush()
+    MPI.Finalize()
     return temp, temp1
 
 #endregion
@@ -263,13 +290,17 @@ def graph_SSSF_zero(pyp0, K, V):
     temp1 = np.zeros((K.shape[0], K.shape[1]))
     temp2 = np.zeros((K.shape[0], K.shape[1]))
 
-    # MPI.Init()
-    # comm = MPI.COMM_WORLD
-    # size = comm.Get_size()
-    # rank = comm.Get_rank()
+    MPI.Init()
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
+    n = len(K)/size
 
+    left = int(rank*n)
+    right = int((rank+1)*n)
 
-    for i in range(len(K)):
+    for i in range(left, right):
         for j in range(K.shape[1]):
             # start = time.time()
             # count = count + 1
@@ -282,32 +313,49 @@ def graph_SSSF_zero(pyp0, K, V):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
+
     MPI.Finalize()
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
 
 
 def graph_SSSF_pi(pyp0, K, V):
-    el = "==:==:=="
-    totaltask = K.shape[0]*K.shape[1]
-    increment = totaltask/50
-    count = 0
+    # el = "==:==:=="
+    # totaltask = K.shape[0]*K.shape[1]
+    # increment = totaltask/50
+    # count = 0
+
+
     temp = np.zeros((K.shape[0], K.shape[1]))
     temp1 = np.zeros((K.shape[0], K.shape[1]))
     temp2 = np.zeros((K.shape[0], K.shape[1]))
-    for i in range(len(K)):
+
+    MPI.Init()
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    
+    n = len(K)/size
+
+    left = int(rank*n)
+    right = int((rank+1)*n)
+
+    for i in range(left, right):
         for j in range(K.shape[1]):
-            start = time.time()
-            count = count + 1
+            # start = time.time()
+            # count = count + 1
             temp[i,j], temp1[i,j], temp2[i,j] = SSSF_pi(K[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
-            end = time.time()
-            el = (end - start)*(totaltask-count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
-            sys.stdout.flush()
+            # end = time.time()
+            # el = (end - start)*(totaltask-count)
+            # el = telltime(el)
+            # sys.stdout.write('\r')
+            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
+            # sys.stdout.flush()
+
+    MPI.Finalize()
+
     return temp, temp1, temp2
     # E, K = np.meshgrid(e, K)
 
