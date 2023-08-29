@@ -584,8 +584,8 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
 
     py0s.findLambda()
 
-    H = np.linspace(-2.5, 2.5, nK)
-    L = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(0, 1, nK)
+    L = np.linspace(0, 1, nK)
     A, B = np.meshgrid(H, L)
     K = hkltoK(A, B).reshape((nK*nK,3))
 

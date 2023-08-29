@@ -406,6 +406,18 @@ def hkltoK(H, L):
     return np.einsum('ij,k->ijk',H, BZbasis(0)+BZbasis(1)) + np.einsum('ij,k->ijk',L, BZbasis(2))
 
 
+def gangchen(mu):
+    if mu == 0:
+        return 2*np.pi*np.array([1,1,1])
+    elif mu == 1:
+        return 2*np.pi*np.array([-1,-1,1])
+
+
+
+def twospinon_gangchen(H, L):
+    return np.einsum('ij,k->ijk',H, gangchen(0)) + np.einsum('ij,k->ijk',L, gangchen(1))
+
+
 h111=np.array([1,1,1])/np.sqrt(3)
 h001=np.array([0,0,1])
 h110 = np.array([1,1,0])/np.sqrt(2)
