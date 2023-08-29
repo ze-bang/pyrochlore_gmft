@@ -102,19 +102,24 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
 # DSSF(0.01,0, h111, 0.046, "DSSF_0.046_detailed", 30, 0.02)
 
 
+TWOSPINCON(30, 0, h111, -1/3, 25, "TSC_-0.33_h111=0")
+TWOSPINCON(30, 0.2, h111, -1/3, 25, "TSC_-0.33_h111=0.2")
+TWOSPINCON(30, 1, h111, -1/3, 25, "TSC_-0.33_h111=1.0")
 
-#
-#
-# SSSF(25, 0, np.array([1,1,1]),-0.25,25, "SSSF_pi_-0.25_dumb")
-# SSSF(25, 0, np.array([1,1,1]),-0.05,25, "SSSF_pi_-0.05_dumb")
+TWOSPINCON(30, 0, h111, -1/3, 25, "TSC_-0.33_h001=0")
+TWOSPINCON(30, 0.2, h111, -1/3, 25, "TSC_-0.33_h001=0.2")
+TWOSPINCON(30, 1, h111, -1/3, 25, "TSC_-0.33_h001=1.0")
 
+TWOSPINCON(30, 0, h111, -1/3, 25, "TSC_-0.33_h110=0")
+TWOSPINCON(30, 0.2, h111, -1/3, 25, "TSC_-0.33_h110=0.2")
+TWOSPINCON(30, 1, h111, -1/3, 25, "TSC_-0.33_h110=1.0")
 #
 # graphPhase("Files/phase_diagram.txt")
 
 
-findPhaseMag(-1, 0.1, 70, 0, 1, 40, h111, 25, 2, "phase_test_111_kappa=2")
-findPhaseMag(-1, 0.1, 70, 0, 1, 40, h001, 25, 2, "phase_test_001_kappa=2")
-findPhaseMag(-1, 0.1, 70, 0, 4, 40, h110, 25, 2, "phase_test_110_kappa=2")
+# findPhaseMag(-1, 0.1, 70, 0, 1, 40, h111, 25, 2, "phase_test_111_kappa=2")
+# findPhaseMag(-1, 0.1, 70, 0, 1, 40, h001, 25, 2, "phase_test_001_kappa=2")
+# findPhaseMag(-1, 0.1, 70, 0, 4, 40, h110, 25, 2, "phase_test_110_kappa=2")
 
 
 # graphMagPhase("phase_test_111_kappa=1", 0.25,3)

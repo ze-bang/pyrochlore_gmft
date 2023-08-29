@@ -445,6 +445,12 @@ class zeroFluxSolver:
         if show:
             plt.show()
 
+    def minCal(self, K):
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
+    def maxCal(self, K):
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
     def TWOSPINON_GAP(self, k):
         return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
 

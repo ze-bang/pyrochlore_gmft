@@ -346,6 +346,12 @@ class piFluxSolver:
     #     E, V = np.linalg.eigh(M)
     #     return np.sqrt(2*self.Jzz*E)
 
+    def minCal(self, K):
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
+    def maxCal(self, K):
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
     def EMAX(self):
         return np.sqrt(2*self.Jzz*EMAX(self.MF, self.lams))
 

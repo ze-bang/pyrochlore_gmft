@@ -442,7 +442,6 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
 #endregion
 
 
-
 #region Graphing
 def DSSFgraph(A,B,D, py0s, filename):
     plt.pcolormesh(A,B,D)
@@ -563,7 +562,34 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
         SSSFGraph(A, B, d1, f1)
         SSSFGraph(A, B, d2, f2)
         SSSFGraph(A, B, d3, f3)
+#endregion
 
+#region two spinon continuum
+def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
+    if Jpm >= 0:
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+
+    py0s.findLambda()
+
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, L)
+    K = hkltoK(A, B).reshape((nK*nK,3))
+
+    lower = py0s.minCal(K).reshape((nK, nK))
+    upper = py0s.maxCal(K).reshape((nK, nK))
+
+    f1 = "Files/" + filename + "_lower"
+    f2 = "Files/" + filename + "_upper"
+    np.savetxt(f1 + '.txt', lower)
+    np.savetxt(f2 + '.txt', upper)
+    # d1 = np.loadtxt(f1+'.txt')
+    # d2 = np.loadtxt(f2 + '.txt')
+    # d3 = np.loadtxt(f3 + '.txt')
+    SSSFGraph(A, B, lower, f1)
+    SSSFGraph(A, B, upper, f2)
 
 #endregion
 
