@@ -1,5 +1,5 @@
 
-from pyrochlore_dispersion_pi import green_pi, green_pi_branch
+from pyrochlore_dispersion_pi import green_pi, green_pi_branch, green_pi_old
 from pyrochlore_dispersion import green_zero_branch, green_zero
 from misc_helper import *
 import matplotlib.pyplot as plt
@@ -257,12 +257,18 @@ def SSSF_pi(q, v, pyp0):
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
     ffactpp = np.exp(1j * ffact)
 
+    # Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpKA, greenpQB, A_pi_rs_rsp, piunitcell, piunitcell,
+    #                 ffactpm)/4
+    # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQA, greenpKB, A_pi_rs_rsp, piunitcell, piunitcell,
+    #                 np.conj(ffactpm))/4
+    #
+    # S = (Spm + Smp ) / 4
 
     #a = rs, b = rsp, y=index2, x=index1
     #
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,0:4], greenpQ[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
-    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,4:8], greenpK[:,0:4,0:4], A_pi_rs_rsp, piunitcell, piunitcell,
+    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
                     np.conj(ffactpm))/4
 
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,4:8], greenpQ[:,0:4, 4:8], A_pi_rs_rsp_pp, piunitcell, piunitcell,
@@ -270,7 +276,12 @@ def SSSF_pi(q, v, pyp0):
     Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
                     np.conj(ffactpp))/4
 
+    # print(Spm + Smp)
+    # print('------------------------------')
+    # print(Spm + Smp + Spp + Smm)
+    # print('******************************')
     S = (Spm + Smp + Spp + Smm)/4
+
 
     Sglobal = contract('ijk,jk->i',S, g(q))
     SNSF = contract('ijk,jk->i',S, gNSF(v))
@@ -390,7 +401,7 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
 
     left = int(rank*n)
     right = int((rank+1)*n)
-    
+
     currsize = right-left
     
     sendtemp = np.zeros((currsize, K.shape[1]), dtype=np.float64)
