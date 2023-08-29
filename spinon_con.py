@@ -61,12 +61,12 @@ def DSSF_pi(q, omega, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks - q
 
-    tempE = pyp0.LV_zero_old(Ks, 0)[0]
-    tempQ = pyp0.LV_zero_old(Qs, 1)[0]
+    tempE = pyp0.LV_zero(Ks)[0]
+    tempQ = pyp0.LV_zero(Qs)[0]
+
 
     greenpK = green_pi_branch(Ks, pyp0)
     greenpQ = green_pi_branch(Qs, pyp0)
-
 
     deltapm = delta(tempE, tempQ, omega, tol)
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
@@ -77,6 +77,8 @@ def DSSF_pi(q, omega, pyp0, tol):
 
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,0:4], greenpQ[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
+
+    # print("we good")
 
     Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
                     np.conj(ffactpm))/4
@@ -495,7 +497,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
 
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.1, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    e = np.arange(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
 
 
     if not MPI.Is_initialized():
