@@ -50,24 +50,26 @@ def graphPhase(filename):
     # plt.show()
 
 
-def graphMagPhase(filename, jpmax, hmax):
-    phases = np.loadtxt('Files/' + filename + '.txt', delimiter=' ').T
-
-
-    JP = np.linspace(0, jpmax, phases.shape[1])
-    h = np.linspace(0, hmax, phases.shape[0])
+def graphMagPhase(JP, h, phases, filename):
 
     X,Y = np.meshgrid(JP, h)
 
     # plt.imshow(bigphase, cmap='gray', vmin=-3, vmax=3, interpolation='bilinear', extent=[-0.1, 0.1, -1, 1], aspect='auto')
 
     # cs = plt.contourf(X, Y, phases, levels=[0, 0.13,10000], colors=['#43AC63', '#B5E8C4'])
-    plt.contourf(X, Y, phases, levels=100)
+    plt.contourf(X, Y, phases.T, levels=100)
     # plt.colorbar()
 
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
-    plt.savefig('Files/'+filename+'phase.png')
+    plt.savefig(filename +'.png')
+
+    plt.contourf(X, Y, phases.T, levels=[0, 0.05,10000], colors=['#43AC63', '#B5E8C4'])
+    # plt.colorbar()
+
+    plt.xlabel(r'$J_\pm/J_{y}$')
+    plt.ylabel(r'$h/J_{y}$')
+    plt.savefig(filename+'_split.png')
 
 
 #region Phase for Anisotropy
@@ -156,12 +158,22 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             print("Finding 0 Flux Lambda")
             # phases[i][j] = py0s.phase_test()
             py0s.findLambda()
-            py0s.findminLam()
+            # py0s.findminLam()
             gap[i] = py0s.gap()
-            condensed[i] = py0s.condensed()[0]
+            # condensed[i] = py0s.condensed()[0]
+            # dev[i] = py0s.rho_dev()
+
+        else:
+            py0s = pypi.piFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
+            print("Finding pi Flux Lambda")
+            # phases[i][j] = py0s.phase_test()
+            py0s.findLambda()
+            # py0s.findminLam()
+            gap[i] = py0s.gap()
+            # condensed[i] = py0s.condensed()[0]
             # dev[i] = py0s.rho_dev()
     plt.plot(JP, gap, color='b')
-    plt.plot(JP, condensed, color='b')
+    # plt.plot(JP, condensed, color='b')
     # plt.plot(JP, dev, color='black')
     plt.show()
 
@@ -211,6 +223,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     JP = np.linspace(JPm, JPmax, nK)
     h = np.linspace(hm, hmax, nH)
     phases = np.zeros((nK, nH), dtype=float)
+    gap = np.zeros((nK, nH), dtype=float)
 
     con = np.array([0,0,0])
 
@@ -218,23 +231,25 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         for j in range (nH):
             start = time.time()
             count = count + 1
-            if JP[0] >= 0:
+            if JP[i] >= 0:
                 py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=BZres)
-                # phases[i][j] = py0s.phase_test()
-                py0s.findLambda()
-                py0s.findminLam()
-                phases[i,j] = py0s.condensed()[0]
-                temp = py0s.gapwhere()
-                tempb = False
-                if phases[i,j]:
-                    for k in range(len(con)):
-                        if (con[k] == temp).all():
-                            phases[i,j] = k+10
-                            tempb = True
-                if tempb:
-                    np.append(con, temp)
+            else:
+                py0s = pypi.piFluxSolver(JP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
+            py0s.findLambda()
+            # py0s.findminLam()
+            # phases[i,j] = py0s.condensed()[0]
+            # temp = py0s.gapwhere()
+            # tempb = False
+            # if phases[i,j]:
+            #     for k in range(len(con)):
+            #         if (con[k] == temp).all():
+            #             phases[i,j] = k+10
+            #             tempb = True
+            # if tempb:
+            #     np.append(con, temp)
 
+            gap[i,j] = py0s.gap()
             end = time.time()
             el = (end - start) * (totaltask - count)
             el = telltime(el)
@@ -242,6 +257,9 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count / increment) + '-' * (50 - int(count / increment)), count / totaltask * 100, el))
             sys.stdout.flush()
     np.savetxt('Files/' + filename+'.txt', phases)
-    graphPhase(filename)
+    np.savetxt('Files/' + filename + '_gap.txt', gap)
+    np.savetxt('Files/' + filename + '_q_condensed.txt', con)
+    gap = np.loadtxt('Files/' + filename + '_gap.txt')
+    graphMagPhase(JP, h, gap,'Files/' + filename + '_gap')
 
 #endregion

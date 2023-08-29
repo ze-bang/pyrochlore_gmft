@@ -392,9 +392,7 @@ class zeroFluxSolver:
     def gap(self):
         temp = self.MF + np.diag(self.lams)
         E, V = np.linalg.eigh(temp)
-        # E = np.sqrt(2*self.Jzz*E)
         dex = np.argmin(E,axis=0)[0]
-        # print("Gap at " + str(self.bigB[dex]) + " with " + str(E[dex, 0]))
         return np.sqrt(2*self.Jzz*E[dex, 0])
     def gapwhere(self):
         temp = self.MF + np.diag(self.lams)

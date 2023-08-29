@@ -326,7 +326,7 @@ class piFluxSolver:
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 
     def gapwhere(self):
-        temp = self.MF + np.diag(self.lams)
+        temp = self.MF + np.diag(np.repeat(self.lams,4))
         E, V = np.linalg.eigh(temp)
         # E = np.sqrt(2*self.Jzz*E)
         dex = np.argmin(E,axis=0)[0]

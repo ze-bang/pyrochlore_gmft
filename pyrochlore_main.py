@@ -48,7 +48,7 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
-# PhaseMagtestJP(0, 0.25, 25, 0, 3, 25, h111, 35, 1, "0.txt")
+# PhaseMagtestJP(-1, 0.1, 25, 0, 3, 25, h111, 35, 2, "0.txt")
 #
 #
 
@@ -112,9 +112,9 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
 # graphPhase("Files/phase_diagram.txt")
 
 
-# findPhaseMag(0, 0.1, 35, 0, 3, 35, h111, 35, 2, "phase_test_111_kappa=1")
-# findPhaseMag(0, 0.1, 35, 0, 3, 35, h001, 35, 2, "phase_test_001_kappa=1")
-# findPhaseMag(0, 0.1, 35, 0, 12, 35, h110, 35, 2, "phase_test_110_kappa=1")
+findPhaseMag(-1, 0.1, 70, 0, 1, 40, h111, 25, 2, "phase_test_111_kappa=2")
+findPhaseMag(-1, 0.1, 70, 0, 1, 40, h001, 25, 2, "phase_test_001_kappa=2")
+findPhaseMag(-1, 0.1, 70, 0, 4, 40, h110, 25, 2, "phase_test_110_kappa=2")
 
 
 # graphMagPhase("phase_test_111_kappa=1", 0.25,3)
