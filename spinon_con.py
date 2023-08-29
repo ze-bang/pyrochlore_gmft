@@ -234,7 +234,7 @@ def SSSF_zero(q, v, pyp0):
     greenB = greenp1[:,0,1] * greenp2[:,1,0]
     greenpp = contract('i,ijk->ijk',greenB, (ffactpp+np.conj(np.transpose(ffactpp, (0,2,1)))))/4
 
-    S = (greenpp + greenpm)/2
+    S = (greenpp + greenpm)/4
     Sglobal = contract('ijk,jk->i',S, g(q))
     SNSF = contract('ijk,jk->i',S, gNSF(v))
     S = contract('ijk->i',S)
