@@ -78,8 +78,6 @@ def DSSF_pi(q, omega, pyp0, tol):
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,0:4], greenpQ[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
 
-    # print("we good")
-
     Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
                     np.conj(ffactpm))/4
 
@@ -426,11 +424,9 @@ def DSSFgraph(A,B,D, py0s, filename):
 
 def SSSFGraph(A,B,d1, filename):
     plt.pcolormesh(A,B, d1)
+    plt.colorbar()
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.clf()
-
-
     # GammaH = np.array([0, 0])
     # LH =  np.array([1, 1])/2
     # XH = np.array([0, 1])
@@ -453,7 +449,7 @@ def SSSFGraph(A,B,d1, filename):
     # plt.text(KH[0]+0.03,KH[1]+0.03, '$K$')
     # plt.text(UH[0] + 0.03, UH[1] + 0.03, '$U$')
     plt.savefig(filename+".png")
-
+    plt.clf()
 #endregion
 
 
@@ -468,9 +464,10 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
 
     py0s.findLambda()
 
+
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    e = np.arange(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    e = np.linspace(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
 
 
     if not MPI.Is_initialized():
@@ -486,24 +483,25 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
         d1, d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
 
     if rank == 0:
+
         f1 = "Files/"+filename+"_local"
         f2 = "Files/"+filename+"_global"
         np.savetxt(f1+".txt", d1)
         np.savetxt(f2+".txt", d2)
-        # d1 = np.loadtxt("Files/"+filename+".txt")
-
+        # d1 = np.loadtxt(f1+".txt")
+        # d2 = np.loadtxt(f2+".txt")
         X,Y = np.meshgrid(kk, e)
         DSSFgraph(X, Y, d1, py0s, f1)
         DSSFgraph(X, Y, d2, py0s, f2)
         # plt.show()
 
 def SSSF(nK, h, n, v, Jpm, BZres, filename):
-    if Jpm >= 0:
-        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
-    else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+    # if Jpm >= 0:
+    #     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+    # else:
+    #     py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
-    py0s.findLambda()
+    # py0s.findLambda()
 
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
@@ -518,21 +516,21 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    if Jpm >= 0:
-        d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
-    else:
-        d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
+    # if Jpm >= 0:
+    #     d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
+    # else:
+    #     d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
 
     if rank == 0:
         f1 = "Files/" + filename + "_local"
         f2 = "Files/" + filename + "_global"
         f3 = "Files/" + filename + "_NSF"
-        np.savetxt(f1 + '.txt', d1)
-        np.savetxt(f2 + '.txt', d2)
-        np.savetxt(f3 + '.txt', d3)
-        # d1 = np.loadtxt(f1+'.txt')
-        # d2 = np.loadtxt(f2 + '.txt')
-        # d3 = np.loadtxt(f3 + '.txt')
+        # np.savetxt(f1 + '.txt', d1)
+        # np.savetxt(f2 + '.txt', d2)
+        # np.savetxt(f3 + '.txt', d3)
+        d1 = np.loadtxt(f1+'.txt')
+        d2 = np.loadtxt(f2 + '.txt')
+        d3 = np.loadtxt(f3 + '.txt')
         SSSFGraph(A, B, d1, f1)
         SSSFGraph(A, B, d2, f2)
         SSSFGraph(A, B, d3, f3)
@@ -561,7 +559,6 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     np.savetxt(f2 + '.txt', upper)
     # d1 = np.loadtxt(f1+'.txt')
     # d2 = np.loadtxt(f2 + '.txt')
-    # d3 = np.loadtxt(f3 + '.txt')
     SSSFGraph(A, B, lower, f1)
     SSSFGraph(A, B, upper, f2)
 
