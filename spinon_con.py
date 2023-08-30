@@ -421,12 +421,14 @@ def DSSFgraph(A,B,D, py0s, filename):
     py0s.graph_loweredge(False)
     py0s.graph_upperedge(False)
     plt.savefig(filename+".png")
+    plt.clf()
 
 
 def SSSFGraph(A,B,d1, filename):
     plt.pcolormesh(A,B, d1)
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
+    plt.clf()
 
 
     # GammaH = np.array([0, 0])
