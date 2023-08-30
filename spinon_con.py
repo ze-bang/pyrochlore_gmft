@@ -61,8 +61,8 @@ def DSSF_pi(q, omega, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks - q
 
-    tempE = pyp0.LV_zero(Ks)[0]
-    tempQ = pyp0.LV_zero(Qs)[0]
+    tempE = pyp0.E_pi(Ks)
+    tempQ = pyp0.E_pi(Qs)
 
 
     greenpK = green_pi_branch(Ks, pyp0)
@@ -276,10 +276,7 @@ def SSSF_pi(q, v, pyp0):
     Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
                     np.conj(ffactpp))/4
 
-    # print(Spm + Smp)
-    # print('------------------------------')
-    # print(Spm + Smp + Spp + Smm)
-    # print('******************************')
+
     S = (Spm + Smp + Spp + Smm)/4
 
 
@@ -288,42 +285,6 @@ def SSSF_pi(q, v, pyp0):
     S = contract('ijk->i',S)
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal)), np.real(np.mean(SNSF))
-
-# def SSSF_pi_dumb(q, v, pyp0):
-#     Ks = pyp0.bigB
-#     Qs = Ks-q
-#     v = v/magnitude(v)
-#     le = len(Ks)
-#
-#     greenpKA = green_pi_old(Ks, 0, pyp0)
-#     greenpKB = np.conj(greenpKA)
-#     greenpQA = green_pi_old(Qs, 0, pyp0)
-#     greenpQB = np.conj(greenpQA)
-#
-#
-#     temp = np.zeros(le, dtype=np.complex128)
-#     temp1 = np.zeros(le, dtype=np.complex128)
-#     temp2 = np.zeros(le, dtype=np.complex128)
-#     for rs in range(4):
-#         for rsp in range(4):
-#             for i in range(4):
-#                 for j in range(4):
-#                     index1 = np.array(np.where(piunitcell[i, rs] == 1))[0, 0]
-#                     index2 = np.array(np.where(piunitcell[j, rsp] == 1))[0, 0]
-#
-#                     Spm = greenpKA[:, rs, rsp] * greenpQB[:, index2, index1]\
-#                             *np.exp(1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
-#                             *np.exp(1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
-#                     Smp = greenpQA[:, rsp, rs] * greenpKB[:, index1, index2]\
-#                             *np.exp(-1j * np.dot(Ks-q/2, NN[i]-NN[j])) \
-#                             *np.exp(-1j * (A_pi[rs, i] - A_pi[rsp, j]))/4
-#
-#                     temp += (Spm + Smp)/4
-#                     temp1 += (Spm + Smp) * (np.dot(z[i], z[j]) - np.dot(z[i], q) * np.dot(z[j], q) / np.dot(q, q))/4
-#                     temp2 += (Spm + Smp) * (np.dot(z[i], v) * np.dot(z[j], v))/4
-#
-#
-#     return np.real(np.mean(temp)), np.real(np.mean(temp1)), np.real(np.mean(temp2))
 
 
 def graph_SSSF_zero(pyp0, K, V, rank, size):
@@ -587,7 +548,7 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     H = np.linspace(0, 1, nK)
     L = np.linspace(0, 1, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape((nK*nK,3))
+    K = twospinon_gangchen(A, B).reshape((nK*nK,3))
 
     lower = py0s.minCal(K).reshape((nK, nK))
     upper = py0s.maxCal(K).reshape((nK, nK))
