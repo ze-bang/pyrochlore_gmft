@@ -285,9 +285,9 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
-        np.savetxt('Files/' + filename+'.txt', sendtemp)
-        np.savetxt('Files/' + filename + '_gap.txt', sendtemp1)
-        np.savetxt('Files/' + filename + '_q_condensed.txt', sendcounts2.reshape(3,-1))
-        graphMagPhase(JP, h, sendtemp1,'Files/' + filename + '_gap')
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
+        np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp2.reshape(3,-1))
+        graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
 
 #endregion
