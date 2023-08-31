@@ -520,6 +520,7 @@ def samplegraph(nK, filenames):
             axs[j, i].set_ylabel(r'$(0,0,L)$')
             axs[j, i].set_xlabel(r'$(H,H,0)$')
     plt.show()
+
 def SSSF(nK, h, n, v, Jpm, BZres, filename):
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
@@ -563,6 +564,14 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
 
 #region two spinon continuum
 def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+
+
+
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
     else:
@@ -575,17 +584,41 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     A, B = np.meshgrid(H, L)
     K = twospinon_gangchen(A, B).reshape((nK*nK,3))
 
-    lower = py0s.minCal(K).reshape((nK, nK))
-    upper = py0s.maxCal(K).reshape((nK, nK))
+    n = len(K)/size
+    left = int(rank*n)
+    right = int((rank+1)*n)
 
-    f1 = "Files/" + filename + "_lower"
-    f2 = "Files/" + filename + "_upper"
-    np.savetxt(f1 + '.txt', lower)
-    np.savetxt(f2 + '.txt', upper)
-    # d1 = np.loadtxt(f1+'.txt')
-    # d2 = np.loadtxt(f2 + '.txt')
-    SSSFGraph(A, B, lower, f1)
-    SSSFGraph(A, B, upper, f2)
+    currK = K[left:right, :]
+
+    sendbuf1 = py0s.minCal(currK)
+    sendbuf2 = py0s.maxCal(currK)
+
+    recvbuf1 = None
+    recvbuf2 = None
+
+    if rank == 0:
+        recvbuf1 = np.zeros((nK*nK, 3))
+        recvbuf2 = np.zeros((nK*nK, 3))
+
+    
+    sendcounts = np.array(comm.gather(sendbuf1.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendbuf2.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendbuf1, recvbuf=(recvbuf1, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendbuf2, recvbuf=(recvbuf2, sendcounts1), root=0)
+
+    if rank == 0:
+
+        f1 = "Files/" + filename + "_lower"
+        f2 = "Files/" + filename + "_upper"
+        recvbuf1 = recvbuf1.reshape((nK, nK))
+        recvbuf2 = recvbuf2.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', recvbuf1)
+        np.savetxt(f2 + '.txt', recvbuf2)
+        # d1 = np.loadtxt(f1+'.txt')
+        # d2 = np.loadtxt(f2 + '.txt')
+        SSSFGraph(A, B, recvbuf1, f1)
+        SSSFGraph(A, B, recvbuf2, f2)
 
 #endregion
 
