@@ -238,8 +238,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     phases = np.zeros((nK, nH), dtype=float)
     gap = np.zeros((nK, nH), dtype=float)
 
-    con = np.array([0,0,0])
-
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
