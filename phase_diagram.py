@@ -263,8 +263,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s.findLambda()
             py0s.findminLam()
             sendtemp[i,j] = py0s.condensed()[0]
-            temp = py0s.gapwhere()
-            tempb = False
 
             if phases[i,j]:
                 sendtemp2[i,j] = py0s.gapwhere()
