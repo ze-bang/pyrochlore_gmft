@@ -47,8 +47,8 @@ def rho_true(Jzz, M, lams):
     temp = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = contract('ijk, ik, a->ia', Vt, 1/np.sqrt(2*Jzz*E), np.ones(2))/8
-    return np.mean(Ep, axis=0)
+    Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
+    return np.array([np.mean(Ep[:,0:4]), np.mean(Ep[:,4:8])])
 
 
 def findminLam(M, Jzz, tol):
@@ -331,6 +331,7 @@ class piFluxSolver:
         # E = np.sqrt(2*self.Jzz*E)
         dex = np.argmin(E,axis=0)[0]
         return np.mod(self.bigB[dex], 2*np.pi)
+
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:

@@ -63,6 +63,7 @@ def graphMagPhase(JP, h, phases, filename):
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
     plt.savefig(filename +'.png')
+    plt.clf()
 
     plt.contourf(X, Y, phases.T, levels=[0, 0.05,10000], colors=['#43AC63', '#B5E8C4'])
     # plt.colorbar()
@@ -111,7 +112,7 @@ def findPhase(nK, nE, res, filename):
 
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
-                pyps = pypi.piFluxSolver(JP[i], kappa=kappa[j], BZres=res, lam=abs(JP[i])*2)
+                pyps = pypi.piFluxSolver(JP[i], kappa=kappa[j], BZres=res)
                 print("Finding pi Flux Lambda")
                 pyps.findLambda()
 
@@ -216,50 +217,81 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 
 def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
-    totaltask = nK*nH
-    increment = totaltask/50
-    count = 0
+    # totaltask = nK*nH
+    # increment = totaltask/50
+    # count = 0
+    #
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = nK/size
+
+    left = int(rank*nb)
+    right = int((rank+1)*nb)
+    currsize = right-left
 
     JP = np.linspace(JPm, JPmax, nK)
+    currJP = JP[left:right]
     h = np.linspace(hm, hmax, nH)
     phases = np.zeros((nK, nH), dtype=float)
     gap = np.zeros((nK, nH), dtype=float)
 
     con = np.array([0,0,0])
 
-    for i in range (nK):
+    sendtemp = np.zeros((currsize, nH), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros((currsize, nH), dtype=np.float64)
+        rectemp1 = np.zeros((currsize, nH), dtype=np.float64)
+        rectemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
+
+    for i in range (currsize):
         for j in range (nH):
-            start = time.time()
-            count = count + 1
-            if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], h = h[j], n=n, kappa=kappa, BZres=BZres)
+            # start = time.time()
+            # count = count + 1
+            if currJP[i] >= 0:
+                py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
             else:
-                py0s = pypi.piFluxSolver(JP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
+                py0s = pypi.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()
-            # py0s.findminLam()
-            # phases[i,j] = py0s.condensed()[0]
-            # temp = py0s.gapwhere()
-            # tempb = False
-            # if phases[i,j]:
-            #     for k in range(len(con)):
-            #         if (con[k] == temp).all():
-            #             phases[i,j] = k+10
-            #             tempb = True
-            # if tempb:
-            #     np.append(con, temp)
+            py0s.findminLam()
+            sendtemp[i,j] = py0s.condensed()[0]
+            temp = py0s.gapwhere()
+            tempb = False
 
-            gap[i,j] = py0s.gap()
-            end = time.time()
-            el = (end - start) * (totaltask - count)
-            el = telltime(el)
-            sys.stdout.write('\r')
-            sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count / increment) + '-' * (50 - int(count / increment)), count / totaltask * 100, el))
-            sys.stdout.flush()
-    np.savetxt('Files/' + filename+'.txt', phases)
-    np.savetxt('Files/' + filename + '_gap.txt', gap)
-    np.savetxt('Files/' + filename + '_q_condensed.txt', con)
-    gap = np.loadtxt('Files/' + filename + '_gap.txt')
-    graphMagPhase(JP, h, gap,'Files/' + filename + '_gap')
+            if phases[i,j]:
+                sendtemp2[i,j] = py0s.gapwhere()
+            else:
+                sendtemp2[i,j] = -1000*np.ones(3)
+
+            sendtemp1[i,j] = py0s.gap()
+            # end = time.time()
+            # el = (end - start) * (totaltask - count)
+            # el = telltime(el)
+            # sys.stdout.write('\r')
+            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count / increment) + '-' * (50 - int(count / increment)), count / totaltask * 100, el))
+            # sys.stdout.flush()
+    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+
+    np.savetxt('Files/' + filename+'.txt', sendtemp)
+    np.savetxt('Files/' + filename + '_gap.txt', sendtemp1)
+    np.savetxt('Files/' + filename + '_q_condensed.txt', sendcounts2)
+    graphMagPhase(JP, h, gap,'Files/' + filename)
 
 #endregion

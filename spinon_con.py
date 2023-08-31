@@ -40,7 +40,7 @@ def DSSF_zero(q, omega, pyp0, tol):
     ffactpm = np.exp(1j * ffact)
 
     greenA = contract('ia, ib, iab->i',greenp1[:, :, 0,0], greenp2[:,:, 1,1], deltapm)
-    greenpm = contract('i,ijk->ijk',greenA, (ffactpm+np.conj(np.transpose(ffactpm, (0,2,1)))))/4
+    greenpm = contract('i,ijk->ijk',greenA, ffactpm)/4
     #endregion
 
     #region S++ and S--
@@ -48,7 +48,7 @@ def DSSF_zero(q, omega, pyp0, tol):
     ffactpp = np.exp(1j * ffact)
 
     greenB = contract('ia, ib, iab->i',greenp1[:, :, 0,1], greenp2[:,:, 1,0], deltapm)
-    greenpp = contract('i,ijk->ijk',greenB, (ffactpp+np.conj(np.transpose(ffactpp, (0,2,1)))))/4
+    greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
 
     S = (greenpp + greenpm)/2
     Sglobal = contract('ijk,jk->i', S, g(q))
@@ -87,7 +87,7 @@ def DSSF_pi(q, omega, pyp0, tol):
                     np.conj(ffactpp))/4
 
 
-    S = (Spm + Smp + Spp + Smm)/4
+    S = (Spm + Smp + Spp + Smm)/4/4
 
     Sglobal = contract('ijk,jk->i', S, g(q))
     S = contract('ijk->i',S)
@@ -222,7 +222,7 @@ def SSSF_zero(q, v, pyp0):
     ffactpm = np.exp(1j * ffact)
 
     greenA = greenp1[:,0,0] * greenp2[:,1,1]
-    greenpm = contract('i,ijk->ijk',greenA, (ffactpm+np.conj(np.transpose(ffactpm, (0,2,1)))))/4
+    greenpm = contract('i,ijk->ijk',greenA,ffactpm)/4
     #endregion
 
     #region S++ and S--
@@ -230,9 +230,10 @@ def SSSF_zero(q, v, pyp0):
     ffactpp = np.exp(1j * ffact)
 
     greenB = greenp1[:,0,1] * greenp2[:,1,0]
-    greenpp = contract('i,ijk->ijk',greenB, (ffactpp+np.conj(np.transpose(ffactpp, (0,2,1)))))/4
+    greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
 
-    S = (greenpp + greenpm)/4
+    S = (greenpp + greenpm)/2
+
     Sglobal = contract('ijk,jk->i',S, g(q))
     SNSF = contract('ijk,jk->i',S, gNSF(v))
     S = contract('ijk->i',S)
@@ -255,27 +256,19 @@ def SSSF_pi(q, v, pyp0):
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
     ffactpp = np.exp(1j * ffact)
 
-    # Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpKA, greenpQB, A_pi_rs_rsp, piunitcell, piunitcell,
-    #                 ffactpm)/4
-    # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQA, greenpKB, A_pi_rs_rsp, piunitcell, piunitcell,
-    #                 np.conj(ffactpm))/4
-    #
-    # S = (Spm + Smp ) / 4
 
-    #a = rs, b = rsp, y=index2, x=index1
-    #
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,0:4], greenpQ[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
-    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
-                    np.conj(ffactpm))/4
+    # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
+    #                 np.conj(ffactpm))/4
 
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,4:8], greenpQ[:,0:4, 4:8], A_pi_rs_rsp_pp, piunitcell, piunitcell,
                     ffactpp)/4
-    Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
-                    np.conj(ffactpp))/4
+    # Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
+    #                 np.conj(ffactpp))/4
 
 
-    S = (Spm + Smp + Spp + Smm)/4
+    S = (Spm + Spp )/2/4
 
 
     Sglobal = contract('ijk,jk->i',S, g(q))
@@ -495,13 +488,45 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
         DSSFgraph(X, Y, d2, py0s, f2)
         # plt.show()
 
-def SSSF(nK, h, n, v, Jpm, BZres, filename):
-    # if Jpm >= 0:
-    #     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
-    # else:
-    #     py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+def samplegraph(nK, filenames):
+    fig, axs = plt.subplots(3, len(filenames))
 
-    # py0s.findLambda()
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, L)
+
+
+    # maxs = np.zeros(3)
+    # mins = np.ones(3)*20
+    # for i in range(len(filenames)):
+    #     f1 = "Files/" + filenames[i] + "_local"
+    #     f2 = "Files/" + filenames[i] + "_global"
+    #     f3 = "Files/" + filenames[i] + "_NSF"
+    #     d1 = np.loadtxt(f1+'.txt')
+    #     d2 = np.loadtxt(f2 + '.txt')
+    #     d3 = np.loadtxt(f3 + '.txt')
+    #     d = [d1,d2,d3]
+
+    for i in range(len(filenames)):
+        f1 = "Files/" + filenames[i] + "_local"
+        f2 = "Files/" + filenames[i] + "_global"
+        f3 = "Files/" + filenames[i] + "_NSF"
+        d1 = np.loadtxt(f1+'.txt')
+        d2 = np.loadtxt(f2 + '.txt')
+        d3 = np.loadtxt(f3 + '.txt')
+        d = [d1/np.max(d1),d2/np.max(d2),d3/np.max(d3)]
+        for j in range(3):
+            axs[j, i].pcolormesh(A,B, d[j])
+            axs[j, i].set_ylabel(r'$(0,0,L)$')
+            axs[j, i].set_xlabel(r'$(H,H,0)$')
+    plt.show()
+def SSSF(nK, h, n, v, Jpm, BZres, filename):
+    if Jpm >= 0:
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+
+    py0s.findLambda()
 
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
@@ -516,21 +541,21 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    # if Jpm >= 0:
-    #     d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
-    # else:
-    #     d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
+    if Jpm >= 0:
+        d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
+    else:
+        d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
 
     if rank == 0:
         f1 = "Files/" + filename + "_local"
         f2 = "Files/" + filename + "_global"
         f3 = "Files/" + filename + "_NSF"
-        # np.savetxt(f1 + '.txt', d1)
-        # np.savetxt(f2 + '.txt', d2)
-        # np.savetxt(f3 + '.txt', d3)
-        d1 = np.loadtxt(f1+'.txt')
-        d2 = np.loadtxt(f2 + '.txt')
-        d3 = np.loadtxt(f3 + '.txt')
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        # d1 = np.loadtxt(f1+'.txt')
+        # d2 = np.loadtxt(f2 + '.txt')
+        # d3 = np.loadtxt(f3 + '.txt')
         SSSFGraph(A, B, d1, f1)
         SSSFGraph(A, B, d2, f2)
         SSSFGraph(A, B, d3, f3)
