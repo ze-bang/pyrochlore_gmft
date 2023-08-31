@@ -276,8 +276,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count / increment) + '-' * (50 - int(count / increment)), count / totaltask * 100, el))
             # sys.stdout.flush()
-    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
@@ -285,9 +285,9 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
-        np.savetxt('Files/' + filename+'.txt', sendtemp)
-        np.savetxt('Files/' + filename + '_gap.txt', sendtemp1)
-        np.savetxt('Files/' + filename + '_q_condensed.txt', sendcounts2.reshape(3,-1))
-        graphMagPhase(JP, h, sendtemp1,'Files/' + filename + '_gap')
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
+        np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp2.reshape(3,-1))
+        graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
 
 #endregion
