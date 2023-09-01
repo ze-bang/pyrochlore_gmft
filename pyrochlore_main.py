@@ -1,3 +1,4 @@
+import pyrochlore_dispersion
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import numpy as np
@@ -20,7 +21,7 @@ from misc_helper import *
 
 
 
-graphdispersion(-1/3, 1, h001, 1, 2, 20, 20)
+# graphdispersion(-1/3, 0.2, h001, 1, 2, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
@@ -117,9 +118,10 @@ graphdispersion(-1/3, 1, h001, 1, 2, 20, 20)
 # graphPhase("Files/phase_diagram.txt")
 
 
-findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2")
-findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
-findPhaseMag(-0.5, 0.1, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2")
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
+# findPhaseMag(-0.5, 0.1, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 
 
 # graphMagPhase("phase_test_111_kappa=1", 0.25,3)

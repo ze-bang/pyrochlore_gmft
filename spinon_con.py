@@ -31,8 +31,8 @@ def DSSF_zero(q, omega, pyp0, tol):
     tempQ = pyp0.E_zero(Qs)
 
 
-    greenp1 = green_zero_branch(Ks, pyp0)
-    greenp2 = green_zero_branch(Qs, pyp0)
+    greenp1 = pyp0.green_zero_branch(Ks)
+    greenp2 = pyp0.green_zero_branch(Qs)
 
     #region S+- and S-+
     deltapm = delta(tempE, tempQ, omega,tol)
@@ -65,8 +65,8 @@ def DSSF_pi(q, omega, pyp0, tol):
     tempQ = pyp0.E_pi(Qs)
 
 
-    greenpK = green_pi_branch(Ks, pyp0)
-    greenpQ = green_pi_branch(Qs, pyp0)
+    greenpK = pyp0.green_pi_branch(Ks)
+    greenpQ = pyp0.green_pi_branch(Qs)
 
     deltapm = delta(tempE, tempQ, omega, tol)
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
@@ -78,16 +78,17 @@ def DSSF_pi(q, omega, pyp0, tol):
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,0:4], greenpQ[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
 
-    Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
-                    np.conj(ffactpm))/4
+    # Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+    #                 np.conj(ffactpm))/4
 
     Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,4:8], greenpQ[:,:,0:4, 4:8], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
                     ffactpp)/4
-    Smm = contract('ipxa, ioyb, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,4:8,0:4], greenpK[:,:,4:8,0:4], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
-                    np.conj(ffactpp))/4
+
+    # Smm = contract('ipxa, ioyb, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,4:8,0:4], greenpK[:,:,4:8,0:4], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+    #                 np.conj(ffactpp))/4
 
 
-    S = (Spm + Smp + Spp + Smm)/4/4
+    S = (Spm + Spp)/2/4
 
     Sglobal = contract('ijk,jk->i', S, g(q))
     S = contract('ijk->i',S)
@@ -214,8 +215,8 @@ def SSSF_zero(q, v, pyp0):
     le = len(Ks)
     # sQ = contract('i,j->ij', np.ones(le), q)
 
-    greenp1 = green_zero(Ks, pyp0)
-    greenp2 = green_zero(Qs, pyp0)
+    greenp1 = pyp0.green_zero(Ks)
+    greenp2 = pyp0.green_zero(Qs)
 
     #region S+- and S-+
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
@@ -247,8 +248,8 @@ def SSSF_pi(q, v, pyp0):
     v = v / magnitude(v)
     le = len(Ks)
 
-    greenpK = green_pi(Ks, pyp0)
-    greenpQ = green_pi(Qs, pyp0)
+    greenpK = pyp0.green_pi(Ks)
+    greenpQ = pyp0.green_pi(Qs)
 
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)

@@ -331,19 +331,18 @@ def EMAX(M, lams, Jzz):
 def GS(lams, k, Jzz, Jpm, eta, h, n):
     return np.mean(dispersion_zero(lams, k, Jzz, Jpm, eta, h, n), axis=0) - lams
 
-def green_zero(k, pyp0):
-    E, V = pyp0.LV_zero(k)
+def green_zero(k, E, V, Jzz):
     Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_zero_branch(k, pyp0):
-    E, V = pyp0.LV_zero(k)
+def green_zero_branch(k, E, V, Jzz):
     Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = pyp0.Jzz/np.sqrt(2*pyp0.Jzz*E)
+    green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
+
 
 
 class zeroFluxSolver:
@@ -456,3 +455,24 @@ class zeroFluxSolver:
 
     def TWOSPINON_MAX(self, k):
         return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
+
+    def green_zero(self, k):
+        E, V = self.LV_zero(k)
+        return green_zero(k, E, V, self.Jzz)
+
+    def green_zero_branch(self, k):
+        E, V = self.LV_zero(k)
+        return green_zero_branch(k, E, V, self.Jzz)
+
+
+    def magnetization(self):
+        green = self.green_zero(self.bigB)
+        zmag = contract('k,ik->i',self.n,z)
+        ffact = contract('ik, jk->ij', k, NN)
+        ffactp = np.exp(1j*ffact)
+        ffactm = np.exp(-1j * ffact)
+
+        magp = contract('j, ij, i->i', zmag, ffactp, green[:,0,1]) / 4
+        magm = contract('j, ij, i->i', zmag, ffactm, green[:,1,0]) / 4
+
+        return np.real(np.mean(magp + magm))
