@@ -8,7 +8,7 @@ def M_pi_mag_sub(k, alpha, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('kj,ij,j, jka, ka->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell, notrace)
+    M = contract('kj,ij,j, jka, kj->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell, notrace)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):
@@ -48,7 +48,7 @@ def rho_true(Jzz, M, lams):
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
-    return np.array([np.mean(Ep[:,0:4]), np.mean(Ep[:,4:8])])
+    return np.mean(Ep)*np.ones(2)
 
 
 def findminLam(M, Jzz, tol):
@@ -289,11 +289,11 @@ class piFluxSolver:
         self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
         warnings.resetwarnings()
     def findminLam(self):
-        self. minLams = findminLam(self.MF, self.Jzz, 1e-10)
+        self.minLams = findminLam(self.MF, self.Jzz, 1e-10)
         warnings.resetwarnings()
 
     def condensed(self):
-        return np.absolute(self.minLams - self.lams) < 1e-5
+        return np.absolute(self.minLams - self.lams) < 1e-3
 
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)

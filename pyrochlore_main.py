@@ -117,9 +117,9 @@ graphdispersion(-1/3, 1, h001, 1, 2, 20, 20)
 # graphPhase("Files/phase_diagram.txt")
 
 
-findPhaseMag(0, 0.1, 70, 0, 1, 40, h111, 25, 2, "phase_test_111_kappa=2")
-findPhaseMag(0, 0.1, 70, 0, 1, 40, h001, 25, 2, "phase_test_001_kappa=2")
-findPhaseMag(0, 0.1, 70, 0, 4, 40, h110, 25, 2, "phase_test_110_kappa=2")
+findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2")
+findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
+findPhaseMag(-0.5, 0.1, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 
 
 # graphMagPhase("phase_test_111_kappa=1", 0.25,3)

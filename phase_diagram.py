@@ -279,13 +279,14 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
             py0s.findLambda()
             py0s.findminLam()
-            sendtemp[i,j] = py0s.condensed()[0]
+            temp = py0s.condensed()[0]
 
-            if sendtemp[i,j]:
+            if temp:
                 sendtemp2[i,j] = py0s.gapwhere()
             else:
                 sendtemp2[i,j] = -1000*np.ones(3)
 
+            sendtemp[i,j] = temp
             sendtemp1[i,j] = py0s.gap()
             # end = time.time()
             # el = (end - start) * (totaltask - count)

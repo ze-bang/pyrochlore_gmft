@@ -408,9 +408,9 @@ def hkltoK(H, L):
 
 def gangchen(mu):
     if mu == 0:
-        return 2*np.pi*np.array([1,1,1])
+        return 2*np.pi*np.array([-1,1,1])
     elif mu == 1:
-        return 2*np.pi*np.array([-1,-1,1])
+        return 2*np.pi*np.array([1,-1,1])
 
 
 
