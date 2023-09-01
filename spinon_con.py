@@ -597,8 +597,8 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     recvbuf2 = None
 
     if rank == 0:
-        recvbuf1 = np.zeros((nK*nK, 3))
-        recvbuf2 = np.zeros((nK*nK, 3))
+        recvbuf1 = np.zeros((nK*nK))
+        recvbuf2 = np.zeros((nK*nK))
 
     
     sendcounts = np.array(comm.gather(sendbuf1.shape[0], 0))

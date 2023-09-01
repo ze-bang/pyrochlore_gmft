@@ -235,8 +235,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     JP = np.linspace(JPm, JPmax, nK)
     currJP = JP[left:right]
     h = np.linspace(hm, hmax, nH)
-    phases = np.zeros((nK, nH), dtype=float)
-    gap = np.zeros((nK, nH), dtype=float)
+    # phases = np.zeros((nK, nH), dtype=float)
+    # gap = np.zeros((nK, nH), dtype=float)
 
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
@@ -247,9 +247,9 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     rectemp2 = None
 
     if rank == 0:
-        rectemp = np.zeros((currsize, nH), dtype=np.float64)
-        rectemp1 = np.zeros((currsize, nH), dtype=np.float64)
-        rectemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
+        rectemp = np.zeros((nK, nH), dtype=np.float64)
+        rectemp1 = np.zeros((nK, nH), dtype=np.float64)
+        rectemp2 = np.zeros((nK, nH, 3), dtype=np.float64)
 
     for i in range (currsize):
         for j in range (nH):
@@ -264,7 +264,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s.findminLam()
             sendtemp[i,j] = py0s.condensed()[0]
 
-            if phases[i,j]:
+            if sendtemp[i,j]:
                 sendtemp2[i,j] = py0s.gapwhere()
             else:
                 sendtemp2[i,j] = -1000*np.ones(3)
