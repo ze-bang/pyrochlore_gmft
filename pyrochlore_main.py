@@ -21,7 +21,7 @@ from misc_helper import *
 
 
 
-# graphdispersion(-1/3, 0.2, h001, 1, 2, 20, 20)
+graphdispersion(-1/3, 0.2, h001, 1, 2, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)

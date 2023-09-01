@@ -570,9 +570,6 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-
-
-
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
     else:

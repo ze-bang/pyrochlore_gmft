@@ -8,7 +8,7 @@ def M_pi_mag_sub(k, alpha, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('kj,ij,j, jka, kj->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell, notrace)
+    M = contract('kj,ij,j, jka->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):
@@ -390,9 +390,9 @@ class piFluxSolver:
         ffactp = np.exp(1j * ffact)
         ffactm = np.exp(-1j * ffact)
 
-        magp = contract('j, ij, ika, ikj, jka, kj->i', zmag, ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi),
-                        piunitcell, notrace) / 4
+        magp = contract('j, ij, ika, ikj, jka->i', zmag, ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi),
+                        piunitcell) / 4
         magm = contract('j, ij, iak, ikj, jka, kj->i', zmag, ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi),
-                        piunitcell, notrace) / 4
+                        piunitcell) / 4
 
         return np.real(np.mean(magp + magm)) / 4
