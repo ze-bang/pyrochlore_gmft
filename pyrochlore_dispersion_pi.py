@@ -8,7 +8,7 @@ def M_pi_mag_sub(k, alpha, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('kj,ij,j, jka->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell)
+    M = contract('kj,ij,j, jka, ka->ika',np.exp(1j*neta(alpha)*A_pi), -1/4*h*ffact, zmag, piunitcell, notrace)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):

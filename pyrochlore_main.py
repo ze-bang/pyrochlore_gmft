@@ -14,30 +14,13 @@ from misc_helper import *
 
 
 #region graph dispersion
-def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
-    if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findminLam()
-        py0s.findLambda()
-        # print(py0s.lams, py0s.minLams, py0s.condensed())
-        # plt.axvline(x=py0s.lams[0], color='b', label='axvline - full height', linestyle='dashed')
-        # plt.plot(py0s.lams[0], py0s.rho(py0s.lams)[0], marker='o')
-        py0s.graph(False)
-        # py0s.graphAlg(False)
-        # py0s.graphAlg(False)
-        # plt.legend(['Num', 'Alg'])
-        plt.show()
-    elif JP < 0:
-        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findLambda()
-        # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
-        py0s.graph(True)
+
 #endregion
 
 
 
 
-# graphdispersion(-1/3, 0, h001, 1, 2, 20, 20)
+graphdispersion(-1/3, 1, h001, 1, 2, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
