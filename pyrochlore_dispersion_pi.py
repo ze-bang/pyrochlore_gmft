@@ -8,13 +8,7 @@ def M_pi_mag_sub(k, alpha, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    # M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*neta(alpha)*A_pi), piunitcell)
-    M = np.zeros((len(k),4,4), dtype=np.complex128)
-    for i in range(4):
-        for j in range(4):
-            index1 = np.array(np.where(piunitcell[j,i]==1))[0,0]
-            # print(i,index1)
-            M[:, i, index1] = -1/4*h*ffact[:,j]*zmag[j]*np.exp(1j*neta(alpha)*A_pi[i,j])
+    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*neta(alpha)*A_pi), piunitcell)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):
@@ -398,7 +392,7 @@ class piFluxSolver:
 
         magp = contract('j, ij, ika, ikj, jka->i', zmag, ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi),
                         piunitcell) / 4
-        magm = contract('j, ij, iak, ikj, jka, kj->i', zmag, ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi),
+        magm = contract('j, ij, iak, ikj, jka->i', zmag, ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi),
                         piunitcell) / 4
 
         return np.real(np.mean(magp + magm)) / 4
