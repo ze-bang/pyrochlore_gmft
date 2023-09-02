@@ -5,7 +5,7 @@ from misc_helper import *
 import matplotlib.pyplot as plt
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
-
+from matplotlib import cm
 
 
 def delta(Ek, Eq, omega, tol):
@@ -615,8 +615,16 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
         np.savetxt(f2 + '.txt', recvbuf2)
         # d1 = np.loadtxt(f1+'.txt')
         # d2 = np.loadtxt(f2 + '.txt')
-        SSSFGraph(A, B, recvbuf1, f1)
-        SSSFGraph(A, B, recvbuf2, f2)
+        TWOSPINONGRAPH(A, B, recvbuf1, f1)
+        TWOSPINONGRAPH(A, B, recvbuf2, f2)
+
+def TWOSPINONGRAPH(A,B,d1, filename):
+    fig = plt.figure(figsize=(10, 8))
+    ax = plt.axes(projection='3d')
+    ax.plot_surface(A,B, d1, cmap=cm.coolwarm)
+    plt.savefig(filename+".png")
+    plt.clf()
+#endregion
 
 #endregion
 
