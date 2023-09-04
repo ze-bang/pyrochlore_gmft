@@ -21,7 +21,7 @@ from misc_helper import *
 
 
 
-# graphdispersion(-1/3, 0.2, h001, 1, 2, 20, 20)
+graphdispersion(-1/3, 0.2, h111, 1, 2, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
@@ -48,15 +48,15 @@ from misc_helper import *
 
 # samplegraph(100, ["SSSF_pi_0.02_DETAILED", "SSSF_pi_0.03_DETAILED", "SSSF_pi_0.04_DETAILED"])
 
-SSSF(100, 0, h001, hb110, -0.05, 50, "SSSF_pi_-0.05_DETAILED")
-SSSF(100, 0, h111, hb110, -0.20, 50, "SSSF_pi_-0.20_DETAILED")
-SSSF(100, 0, h111, hb110, -0.40, 50, "SSSF_pi_-0.40_DETAILED")
-
-
-
-SSSF(100, 0, h111, hb110, 0.02, 50, "SSSF_pi_0.02_DETAILED")
-SSSF(100, 0, h111, hb110, 0.03, 50, "SSSF_pi_0.03_DETAILED")
-SSSF(100, 0, h111, hb110, 0.04, 50, "SSSF_pi_0.04_DETAILED")
+# SSSF(100, 0, h001, hb110, -0.05, 50, "SSSF_pi_-0.05_DETAILED")
+# SSSF(100, 0, h111, hb110, -0.20, 50, "SSSF_pi_-0.20_DETAILED")
+# SSSF(100, 0, h111, hb110, -0.40, 50, "SSSF_pi_-0.40_DETAILED")
+#
+#
+#
+# SSSF(100, 0, h111, hb110, 0.02, 50, "SSSF_pi_0.02_DETAILED")
+# SSSF(100, 0, h111, hb110, 0.03, 50, "SSSF_pi_0.03_DETAILED")
+# SSSF(100, 0, h111, hb110, 0.04, 50, "SSSF_pi_0.04_DETAILED")
 
 
 
@@ -64,29 +64,29 @@ SSSF(100, 0, h111, hb110, 0.04, 50, "SSSF_pi_0.04_DETAILED")
 
 # SSSF(25, 0, h111,hb110, 0.04,10, "SSSF_zero_0.02")
 
-SSSF(100, 0.2, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.2")
-SSSF(100, 0.3, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.3")
-SSSF(100, 0.4, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.4")
-
-SSSF(100, 0.2, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.2")
-SSSF(100, 0.3, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.3")
-SSSF(100, 0.4, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.4")
-
-SSSF(100, 0.4, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.4")
-SSSF(100, 0.6, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.6")
-SSSF(100, 0.8, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.8")
+# SSSF(100, 0.2, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.2")
+# SSSF(100, 0.3, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.3")
+# SSSF(100, 0.4, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.4")
 #
-SSSF(100, 0.2, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.2")
-SSSF(100, 0.3, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.3")
-SSSF(100, 0.4, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.4")
-
-SSSF(100, 0.2, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.2")
-SSSF(100, 0.3, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.3")
-SSSF(100, 0.4, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.4")
+# SSSF(100, 0.2, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.2")
+# SSSF(100, 0.3, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.3")
+# SSSF(100, 0.4, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.4")
 #
-SSSF(100, 0.4, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.4")
-SSSF(100, 0.6, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.6")
-SSSF(100, 0.8, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.8")
+# SSSF(100, 0.4, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.4")
+# SSSF(100, 0.6, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.6")
+# SSSF(100, 0.8, h110,hb110, -1/3,50, "SSSF_pi_-0.33_h110=0.8")
+# #
+# SSSF(100, 0.2, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.2")
+# SSSF(100, 0.3, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.3")
+# SSSF(100, 0.4, h111,hb110, 0.02,50, "SSSF_zero_0.02_h111=0.4")
+#
+# SSSF(100, 0.2, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.2")
+# SSSF(100, 0.3, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.3")
+# SSSF(100, 0.4, h001,hb110, 0.02,50, "SSSF_zero_0.02_h001=0.4")
+# #
+# SSSF(100, 0.4, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.4")
+# SSSF(100, 0.6, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.6")
+# SSSF(100, 0.8, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.8")
 
 # DSSF(0.02, 0, h111,-1/3, "DSSF_-0.33_detailed", 30, 0.02)
 

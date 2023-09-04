@@ -3,12 +3,19 @@ import warnings
 from misc_helper import *
 
 
-def M_pi_mag_sub(k, alpha, h, n):
+def M_pi_mag_sub_0(k, h, n):
 
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*neta(alpha)*A_pi), piunitcell)
+    ffact = np.exp(1j*ffact)
+    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi), piunitcell)
+    return M
+
+def M_pi_mag_sub_1(k, h, n):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(-1j*ffact)
+    M = contract('ku, u, ru, urx->kxr',-1/4*h*ffact, zmag, np.exp(-1j*A_pi), piunitcell)
     return M
 
 def M_pi_sub(k, alpha, eta, Jpm):
@@ -22,8 +29,8 @@ def M_pi_sub(k, alpha, eta, Jpm):
 def M_pi(k,eta,Jpm, h, n):
     M1 = M_pi_sub(k, 0,eta,Jpm)
     M2 = M_pi_sub(k, 1,eta,Jpm)
-    Mag1 = M_pi_mag_sub(k, 0,h,n)
-    Mag2 = np.transpose(np.conj(Mag1), (0,2,1))
+    Mag1 = M_pi_mag_sub_0(k,h,n)
+    Mag2 = M_pi_mag_sub_1(k,h,n)
     FM = np.block([[M1, Mag1], [Mag2, M2]])
     return FM
 
@@ -39,6 +46,7 @@ def E_pi(lams, k, eta, Jpm, h, n):
     M = M_pi(k,eta,Jpm, h, n)
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
+    print(E)
     return [E,V]
 
 
@@ -140,17 +148,17 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
 # @nb.njit(parallel=True, cache=True)
 def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros(len(q))
-    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    mins = np.amin(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0]), axis=0)
     for i in range(len(q)):
-        temp[i] = np.min(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + mins)
+        temp[i] = np.min(np.amin(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0], axis=0)) + mins)
     return temp
 
 # @nb.njit(parallel=True, cache=True)
 def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros(len(q))
-    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    maxs = np.amax(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0]), axis=0)
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + mins)
+        temp[i] = np.max(np.amax(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]), axis=0) + maxs)
     return temp
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):

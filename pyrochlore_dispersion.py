@@ -248,16 +248,16 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
 
 def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros((len(q),2))
-    mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
+    mins = np.amin(np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0]), axis=0)
     for i in range(len(q)):
-        temp[i] = np.min(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i], Jpm, eta, h, n)[0]) + mins)
+        temp[i] = np.min(np.amin(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i], Jpm, eta, h, n)[0]), axis=0) + mins)
     return temp
 
 def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros((len(q),2))
-    mins = np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0])
+    mins = np.amax(np.sqrt(2 * Jzz * E_zero_true(lams, K, Jpm, eta, h, n)[0]), axis=0)
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i], Jpm, eta, h, n)[0]) + mins)
+        temp[i] = np.max(np.amax(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i], Jpm, eta, h, n)[0]),axis=0) + mins)
     return temp
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):
