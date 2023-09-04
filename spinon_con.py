@@ -61,12 +61,8 @@ def DSSF_pi(q, omega, pyp0, tol):
     Ks = pyp0.bigB
     Qs = Ks - q
 
-    tempE = pyp0.E_pi(Ks)
-    tempQ = pyp0.E_pi(Qs)
-
-
-    greenpK = pyp0.green_pi_branch(Ks)
-    greenpQ = pyp0.green_pi_branch(Qs)
+    greenpK, tempE = pyp0.green_pi_branch(Ks)
+    greenpQ, tempQ = pyp0.green_pi_branch(Qs)
 
     deltapm = delta(tempE, tempQ, omega, tol)
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
@@ -461,7 +457,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
 
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    e = np.linspace(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    e = np.arange(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
 
 
     if not MPI.Is_initialized():
@@ -571,9 +567,9 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     rank = comm.Get_rank()
 
     if Jpm >= 0:
-        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
     else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
 
     py0s.findLambda()
 

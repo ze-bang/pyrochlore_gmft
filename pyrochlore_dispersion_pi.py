@@ -373,7 +373,7 @@ class piFluxSolver:
 
     def green_pi_branch(self, k):
         E, V = self.LV_zero(k)
-        return green_pi_branch(k, E, V, self.Jzz)
+        return green_pi_branch(k, E, V, self.Jzz), E
 
     def green_pi_old(self, k, alpha):
         E, V = self.LV_zero_old(k,alpha)

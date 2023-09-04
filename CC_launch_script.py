@@ -6,6 +6,8 @@ from spinon_con import *
 from phase_diagram import *
 from misc_helper import *
 
+
+TWOSPINCON(80, 0, h111, -1/3, 25, "TSC_-0.33_h111=0")
 TWOSPINCON(80, 0.2, h111, -1/3, 25, "TSC_-0.33_h111=0.2")
 TWOSPINCON(80, 1, h111, -1/3, 25, "TSC_-0.33_h111=1.0")
 
