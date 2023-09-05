@@ -1,6 +1,7 @@
 import pyrochlore_dispersion
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
+import pyrochlore_dispersion_pi as pygang
 import numpy as np
 import matplotlib.pyplot as plt
 from spinon_con import *
@@ -21,7 +22,7 @@ from misc_helper import *
 
 
 
-graphdispersion(-1/3, 0.2, h111, 1, 2, 20, 20)
+graphdispersion(-1/3, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
@@ -103,7 +104,7 @@ graphdispersion(-1/3, 0.2, h111, 1, 2, 20, 20)
 # DSSF(0.01,0, h111, 0.046, "DSSF_0.046_detailed", 30, 0.02)
 
 
-# TWOSPINCON(40, 0, h111, -1/3, 25, "TSC_-0.33_h111=0")
+# TWOSPINCON(40, 0.4, h111, -1/3, 25, "TSC_-0.33_h111=0")
 # TWOSPINCON(40, 0.2, h111, -1/3, 25, "TSC_-0.33_h111=0.2")
 # TWOSPINCON(40, 1, h111, -1/3, 25, "TSC_-0.33_h111=1.0")
 #
