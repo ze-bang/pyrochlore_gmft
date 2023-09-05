@@ -584,37 +584,32 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
 
     currK = K[left:right, :]
 
-    tempor = py0s.minMaxCal(currK)
-
-    sendbuf1 = tempor[:,0]
-    sendbuf2 = tempor[:,1]
+    sendbuf1 = py0s.minMaxCal(currK)
 
     recvbuf1 = None
-    recvbuf2 = None
 
     if rank == 0:
-        recvbuf1 = np.zeros((nK*nK))
-        recvbuf2 = np.zeros((nK*nK))
+        recvbuf1 = np.zeros((nK*nK,2))
 
     
-    sendcounts = np.array(comm.gather(sendbuf1.shape[0], 0))
-    sendcounts1 = np.array(comm.gather(sendbuf2.shape[0], 0))
+    sendcounts = np.array(comm.gather(sendbuf1.shape[0]*sendbuf1.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendbuf1, recvbuf=(recvbuf1, sendcounts), root=0)
-    comm.Gatherv(sendbuf=sendbuf2, recvbuf=(recvbuf2, sendcounts1), root=0)
 
     if rank == 0:
 
         f1 = "Files/" + filename + "_lower"
         f2 = "Files/" + filename + "_upper"
-        recvbuf1 = recvbuf1.reshape((nK, nK))
-        recvbuf2 = recvbuf2.reshape((nK, nK))
-        np.savetxt(f1 + '.txt', recvbuf1)
-        np.savetxt(f2 + '.txt', recvbuf2)
+        loweredge = recvbuf1[:,0]
+        upperedge = recvbuf1[:,1]
+        loweredge = loweredge.reshape((nK, nK))
+        upperedge = upperedge.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', loweredge)
+        np.savetxt(f2 + '.txt', upperedge)
         # d1 = np.loadtxt(f1+'.txt')
         # d2 = np.loadtxt(f2 + '.txt')
-        TWOSPINONGRAPH(A, B, recvbuf1, f1)
-        TWOSPINONGRAPH(A, B, recvbuf2, f2)
+        TWOSPINONGRAPH(A, B, loweredge, f1)
+        TWOSPINONGRAPH(A, B, upperedge, f2)
 
 def TWOSPINONGRAPH(A,B,d1, filename):
     fig = plt.figure(figsize=(10, 8))

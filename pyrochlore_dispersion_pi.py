@@ -157,14 +157,14 @@ def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros(len(q))
     maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,7]
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,7] + maxs)
+        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0])[:,7] + maxs)
     return temp
 
 def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros((len(q),2))
     maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
     for i in range(len(q)):
-        stuff = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0]) + maxs
+        stuff = np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + maxs
         temp[i,0] = np.min(stuff[:,0])
         temp[i,1] = np.max(stuff[:,7])
     return temp

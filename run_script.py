@@ -7,5 +7,5 @@ from phase_diagram import *
 from misc_helper import *
 
 
-DSSF(0.01, 0, h111,-1/3, "DSSF_-0.33_detailed", 40, 0.02)
-DSSF(0.01,0, h111, 0.046, "DSSF_0.046_detailed", 40, 0.02)
+DSSF(0.01, 0, h111,-1/3, "DSSF_-0.33_detailed", 35, 0.02)
+DSSF(0.01,0, h111, 0.046, "DSSF_0.046_detailed", 35, 0.02)
