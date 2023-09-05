@@ -569,7 +569,7 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
     else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
+        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1) 
 
     py0s.findLambda()
 
@@ -619,6 +619,9 @@ def TWOSPINONGRAPH(A,B,d1, filename):
     ax = plt.axes(projection='3d')
     ax.plot_surface(A,B, d1, cmap=cm.coolwarm)
     plt.savefig(filename+".png")
+    plt.clf()
+    plt.pcolormesh(A, B, d1)
+    plt.savefig(filename+"_flatmesh.png")
     plt.clf()
 #endregion
 
