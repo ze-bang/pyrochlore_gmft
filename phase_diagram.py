@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
-
+import pyrochlore_dispersion_pi_gang_chen as pygang
 # JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
 #
 # plt.plot(JP, 0.5-zlambdas, JP, 0.5-plambdas)
@@ -13,7 +13,7 @@ import pyrochlore_dispersion_pi as pypi
 # plt.show()
 
 
-def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
+def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
@@ -26,8 +26,13 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres):
         # py0s.graphAlg(False)
         # plt.legend(['Num', 'Alg'])
         plt.show()
-    elif JP < 0:
+    elif JP < 0 and not old:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.findLambda()
+        # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
+        py0s.graph(True)
+    else:
+        py0s = pygang.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)

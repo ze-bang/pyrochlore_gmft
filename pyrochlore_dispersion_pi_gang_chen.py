@@ -4,31 +4,40 @@ from misc_helper import *
 
 
 def M_pi_mag_sub(k, h, n):
+    M = np.zeros((len(k),2,2), dtype=np.complex128)
+    M[:, 0, 0] = np.exp(1j*np.dot(k,NN[0]))*np.dot(n, NN[0]) + np.exp(1j*np.dot(k,NN[1]))*np.dot(n, NN[1])
+    M[:, 0, 1] = np.exp(1j*np.dot(k,NN[2]))*np.dot(n, NN[2]) + np.exp(1j*np.dot(k,NN[3]))*np.dot(n, NN[3])
+    M[:, 1, 0] = -np.exp(1j*np.dot(k,NN[2]))*np.dot(n, NN[2]) + np.exp(1j*np.dot(k,NN[3]))*np.dot(n, NN[3])
+    M[:, 1, 1] = np.exp(1j*np.dot(k,NN[0]))*np.dot(n, NN[0]) - np.exp(1j*np.dot(k,NN[1]))*np.dot(n, NN[1])
+    return h/4*M
 
-    zmag = contract('k,ik->i',n,z)
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
-    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi), piunitcell)
-    return M
 
-def M_pi_mag_sub_1(k, h, n):
-    zmag = contract('k,ik->i',n,z)
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j*ffact)
-    M = contract('ku, u, ru, urx->kxr',-1/4*h*ffact, zmag, np.exp(-1j*A_pi), piunitcell)
-    return M
+def M_pi_sub_0(k, Jpm):
+    kx = k[:,0]
+    ky = k[:,1]
+    kz = k[:,2]
+    M = np.zeros((len(k),2,2), dtype=np.complex128)
+    M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
+    M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
+    M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
+    M[:, 1, 1] = -np.multiply(np.cos(ky/2),np.cos(kz/2))
+    return -Jpm*M
 
-def M_pi_sub(k, alpha, eta, Jpm):
-    ffact = contract('ik, jlk->ijl', k,NNminus)
-    ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('jl,kjl,ijl->ikjl', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact)
-    M = contract('ikjl, jka, lkb->iab', M, piunitcell, piunitcell)
-    return M
+def M_pi_sub_1(k, Jpm):
+    kx = k[:,0]
+    ky = k[:,1]
+    kz = k[:,2]
+    M = np.zeros((len(k),2,2), dtype=np.complex128)
+    M[:,0,0] = -np.multiply(np.sin(ky/2),np.sin(kz/2))
+    M[:, 0, 1] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) - 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
+    M[:, 1, 0] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) + 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
+    M[:, 1, 1] = np.multiply(np.sin(ky/2),np.sin(kz/2))
+    return -Jpm*M
 
 
 def M_pi(k,eta,Jpm, h, n):
-    M1 = M_pi_sub(k, 0,eta,Jpm)
-    M2 = M_pi_sub(k, 1,eta,Jpm)
+    M1 = M_pi_sub_0(k,Jpm)
+    M2 = M_pi_sub_1(k,Jpm)
     Mag1 = M_pi_mag_sub(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
@@ -36,7 +45,7 @@ def M_pi(k,eta,Jpm, h, n):
 
 
 def E_pi_fixed(lams, M):
-    M = M + np.diag(np.repeat(lams,4))
+    M = M + np.diag(np.repeat(lams,2))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
@@ -44,14 +53,15 @@ def E_pi_fixed(lams, M):
 
 def E_pi(lams, k, eta, Jpm, h, n):
     M = M_pi(k,eta,Jpm, h, n)
-    M = M + np.diag(np.repeat(lams,4))
+    M = M + np.diag(np.repeat(lams,2))
     E, V = np.linalg.eigh(M)
+    # print(E)
     return [E,V]
 
 
 def rho_true(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
-    temp = M + np.diag(np.repeat(lams,4))
+    temp = M + np.diag(np.repeat(lams,2))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
@@ -122,7 +132,7 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
     dLU= dispersion_pi(lams, LU, Jzz, Jpm, eta, h, n)
     dUW = dispersion_pi(lams, UW, Jzz, Jpm, eta, h, n)
 
-    for i in range(8):
+    for i in range(4):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:,i], 'b')
         plt.plot(np.linspace(gX, gW1, len(dXW)), dXW[:, i] , 'b')
         plt.plot(np.linspace(gW1, gK, len(dWK)), dWK[:, i], 'b')
@@ -155,9 +165,9 @@ def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
 # @nb.njit(parallel=True, cache=True)
 def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros(len(q))
-    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,7]
+    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,3]
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0])[:,7] + maxs)
+        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,3] + maxs)
     return temp
 
 def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
@@ -166,10 +176,8 @@ def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     for i in range(len(q)):
         stuff = np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + maxs
         temp[i,0] = np.min(stuff[:,0])
-        temp[i,1] = np.max(stuff[:,7])
+        temp[i,1] = np.max(stuff[:,3])
     return temp
-
-
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):
     dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
@@ -276,7 +284,7 @@ def green_pi_old_branch(k, E, V, Jzz):
 
 class piFluxSolver:
 
-    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
+    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=1, lam=2, BZres=20, graphres=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
         self.kappa = kappa
@@ -364,7 +372,6 @@ class piFluxSolver:
 
     def maxCal(self, K):
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
-
     def minMaxCal(self, K):
         return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
 
