@@ -584,8 +584,10 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
 
     currK = K[left:right, :]
 
-    sendbuf1 = py0s.minCal(currK)
-    sendbuf2 = py0s.maxCal(currK)
+    tempor = py0s.minMaxCal(currK)
+
+    sendbuf1 = tempor[:,0]
+    sendbuf2 = tempor[:,1]
 
     recvbuf1 = None
     recvbuf2 = None

@@ -46,7 +46,6 @@ def E_pi(lams, k, eta, Jpm, h, n):
     M = M_pi(k,eta,Jpm, h, n)
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
-    print(E)
     return [E,V]
 
 
@@ -161,8 +160,19 @@ def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
         temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,7] + maxs)
     return temp
 
+def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+    temp = np.zeros((len(q),2))
+    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    for i in range(len(q)):
+        stuff = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0]) + maxs
+        temp[i,0] = np.min(stuff[:,0])
+        temp[i,1] = np.max(stuff[:,7])
+    return temp
+
+
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):
+
     dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
     dXW= minCal(lams, XW, Jzz, Jpm, eta, h, n, K)
     dWK = minCal(lams, WK, Jzz, Jpm, eta, h, n, K)
@@ -355,6 +365,9 @@ class piFluxSolver:
 
     def maxCal(self, K):
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
+    def minMaxCal(self, K):
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
 
     def EMAX(self):
         return np.sqrt(2*self.Jzz*EMAX(self.MF, self.lams))

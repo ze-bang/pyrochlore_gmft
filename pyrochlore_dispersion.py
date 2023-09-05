@@ -260,6 +260,15 @@ def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
         temp[i] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i], Jpm, eta, h, n)[0])[:,1] + maxs)
     return temp
 
+def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+    temp = np.zeros((len(q),2))
+    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    for i in range(len(q)):
+        stuff = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0]) + maxs
+        temp[i,0] = np.min(stuff[:,0])
+        temp[i,1] = np.max(stuff[:,1])
+    return temp
+
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):
     dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
@@ -450,6 +459,9 @@ class zeroFluxSolver:
 
     def maxCal(self, K):
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+
+    def minMaxCal(self, K):
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
 
     def TWOSPINON_GAP(self, k):
         return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
