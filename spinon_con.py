@@ -666,7 +666,7 @@ def TWOSPINCON_wrong(nK, h, n, Jpm, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    py0s = pygang.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
+    py0s = pywrong.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
 
     py0s.findLambda()
 

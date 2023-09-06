@@ -16,3 +16,15 @@ TWOSPINCON_gang(80, 1, h001, -1/3, 25, "TSC_-0.33_h001=1._gang")
 
 TWOSPINCON_gang(80, 0.2, h110, -1/3, 25, "TSC_-0.33_h110=0.2_gang")
 TWOSPINCON_gang(80, 1, h110, -1/3, 25, "TSC_-0.33_h110=1.0_gang")
+
+
+
+TWOSPINCON_wrong(80, 0, h111, -1/3, 25, "TSC_-0.33_h111=0_wrong")
+TWOSPINCON_wrong(80, 0.2, h111, -1/3, 25, "TSC_-0.33_h111=0.2_wrong")
+TWOSPINCON_wrong(80, 1, h111, -1/3, 25, "TSC_-0.33_h111=1.0_wrong")
+
+TWOSPINCON_wrong(80, 0.2, h001, -1/3, 25, "TSC_-0.33_h001=0.2_wrong")
+TWOSPINCON_wrong(80, 1, h001, -1/3, 25, "TSC_-0.33_h001=1._wrong")
+
+TWOSPINCON_wrong(80, 0.2, h110, -1/3, 25, "TSC_-0.33_h110=0.2_wrong")
+TWOSPINCON_wrong(80, 1, h110, -1/3, 25, "TSC_-0.33_h110=1.0_wrong")
