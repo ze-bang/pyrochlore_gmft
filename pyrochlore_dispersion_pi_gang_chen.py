@@ -18,8 +18,8 @@ def M_pi_sub_0(k, Jpm):
     kz = k[:,2]
     M = np.zeros((len(k),2,2), dtype=np.complex128)
     M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
-    M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
-    M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
+    M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+    M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
     M[:, 1, 1] = -np.multiply(np.cos(ky/2),np.cos(kz/2))
     return -Jpm*M
 
@@ -28,10 +28,10 @@ def M_pi_sub_1(k, Jpm):
     ky = k[:,1]
     kz = k[:,2]
     M = np.zeros((len(k),2,2), dtype=np.complex128)
-    M[:,0,0] = -np.multiply(np.sin(ky/2),np.sin(kz/2))
+    M[:,0,0] = np.multiply(np.sin(ky/2),np.sin(kz/2))
     M[:, 0, 1] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) - 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
     M[:, 1, 0] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) + 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
-    M[:, 1, 1] = np.multiply(np.sin(ky/2),np.sin(kz/2))
+    M[:, 1, 1] = -np.multiply(np.sin(ky/2),np.sin(kz/2))
     return -Jpm*M
 
 
