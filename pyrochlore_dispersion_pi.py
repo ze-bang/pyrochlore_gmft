@@ -4,7 +4,6 @@ from misc_helper import *
 
 
 def M_pi_mag_sub(k, h, n):
-
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*ffact)
@@ -15,20 +14,20 @@ def M_pi_mag_sub_alg(k, h, n):
     M = np.zeros((len(k),4,4), dtype=np.complex128)
     tempA = np.exp(1j*A_pi)
     M[:, 0, 0] = np.dot(n, z[0]) * np.exp(1j*np.dot(k, NN[0])) * tempA[0,0] + np.dot(n, z[1]) * np.exp(1j*np.dot(k, NN[1])) * tempA[0,1]
-    M[:, 0, 2] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[0, 2]
-    M[:, 0, 1] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[0, 3]
+    M[:, 0, 1] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[0, 2]
+    M[:, 0, 2] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[0, 3]
 
-    M[:, 1, 1] = np.dot(n, z[0]) * np.exp(1j*np.dot(k, NN[0])) * tempA[1,0] + np.dot(n, z[1]) * np.exp(1j*np.dot(k, NN[1])) * tempA[1,1]
-    M[:, 1, 3] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[1, 2]
-    M[:, 1, 0] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[1, 3]
+    M[:, 1, 1] = np.dot(n, z[0]) * np.exp(1j*np.dot(k,NN[0])) * tempA[1,0] + np.dot(n, z[1]) * np.exp(1j*np.dot(k,NN[1])) * tempA[1,1]
+    M[:, 1, 0] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[1, 2]
+    M[:, 1, 3] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[1, 3]
 
-    M[:, 2, 2] = np.dot(n, z[0]) * np.exp(1j*np.dot(k, NN[0])) * tempA[2,0] +  np.dot(n, z[1]) * np.exp(1j*np.dot(k, NN[1])) * tempA[2,1]
-    M[:, 2, 0] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[2, 2]
-    M[:, 2, 3] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[2, 3]
+    M[:, 2, 2] = np.dot(n, z[0]) * np.exp(1j*np.dot(k,NN[0])) * tempA[2,0] + np.dot(n, z[1]) * np.exp(1j*np.dot(k,NN[1])) * tempA[2,1]
+    M[:, 2, 3] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[2, 2]
+    M[:, 2, 0] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[2, 3]
 
-    M[:, 3, 3] = np.dot(n, z[0]) * np.exp(1j*np.dot(k,NN[0])) * tempA[3,0] +  np.dot(n, z[1]) * np.exp(1j*np.dot(k, NN[1])) * tempA[3,1]
-    M[:, 3, 1] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[3, 2]
-    M[:, 3, 2] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[3, 3]
+    M[:, 3, 3] = np.dot(n, z[0]) * np.exp(1j*np.dot(k,NN[0])) * tempA[3,0] + np.dot(n, z[1]) * np.exp(1j*np.dot(k,NN[1])) * tempA[3,1]
+    M[:, 3, 2] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[3, 2]
+    M[:, 3, 1] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[3, 3]
     return -1/4*h*M
 
 def M_pi_sub(k, alpha, eta, Jpm):
