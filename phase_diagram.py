@@ -4,6 +4,7 @@ from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi_gang_chen as pygang
+import pyrochlore_dispersion_pi_gang_chen as pywrong
 # JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
 #
 # plt.plot(JP, 0.5-zlambdas, JP, 0.5-plambdas)
@@ -36,6 +37,12 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         py0s.findLambda()
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
+
+def graphdispersion_wrong(JP,h, n, kappa, rho, graphres, BZres):
+    py0s = pywrong.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+    py0s.findLambda()
+    # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
+    py0s.graph(True)
 
 def graphPhase(filename):
     phases = np.loadtxt(filename, delimiter=' ').T
