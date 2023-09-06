@@ -22,8 +22,9 @@ from misc_helper import *
 
 
 
-graphdispersion(-1/3, 0, h111, 1, 1, 20, 20, True)
+# graphdispersion(-1/3, 0, h111, 1, 1, 20, 20, True)
 graphdispersion(-1/3, 0, h111, 1, 1, 20, 20)
+# graphdispersion_wrong(-1/3, 0, h111, 1, 1, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
 # graphdispersion(0.05, 0, h111, 1, 2, 20, 20)
@@ -90,7 +91,7 @@ graphdispersion(-1/3, 0, h111, 1, 1, 20, 20)
 # SSSF(100, 0.6, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.6")
 # SSSF(100, 0.8, h110,hb110, 0.02,50, "SSSF_zero_0.02_h110=0.8")
 
-DSSF(0.01, 0, h111,-0.1875, "DSSF_-0.1875_detailed", 35, 0.02)
+# DSSF(0.01, 0, h111,-0.1875, "DSSF_-0.1875_detailed", 35, 0.02)
 
 
 
@@ -102,7 +103,7 @@ DSSF(0.01, 0, h111,-0.1875, "DSSF_-0.1875_detailed", 35, 0.02)
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0.1, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 #
-DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
+# DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
 
 
 # TWOSPINCON(40, 0.4, h111, -1/3, 25, "TSC_-0.33_h111=0")
