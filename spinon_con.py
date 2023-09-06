@@ -1,6 +1,7 @@
 
 from pyrochlore_dispersion_pi import green_pi, green_pi_branch, green_pi_old
 from pyrochlore_dispersion import green_zero_branch, green_zero
+import pyrochlore_dispersion_pi_gang_chen as pygang
 from misc_helper import *
 import matplotlib.pyplot as plt
 import pyrochlore_dispersion as py0
@@ -610,6 +611,53 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
         # d2 = np.loadtxt(f2 + '.txt')
         TWOSPINONGRAPH(A, B, loweredge, f1)
         TWOSPINONGRAPH(A, B, upperedge, f2)
+
+
+def TWOSPINCON_gang(nK, h, n, Jpm, BZres, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    py0s = pygang.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
+
+    py0s.findLambda()
+
+    H = np.linspace(0, 1, nK)
+    L = np.linspace(0, 1, nK)
+    A, B = np.meshgrid(H, L)
+    K = twospinon_gangchen(A, B).reshape((nK * nK, 3))
+
+    n = len(K) / size
+    left = int(rank * n)
+    right = int((rank + 1) * n)
+
+    currK = K[left:right, :]
+
+    sendbuf1 = py0s.minMaxCal(currK)
+
+    recvbuf1 = None
+
+    if rank == 0:
+        recvbuf1 = np.zeros((nK * nK, 2))
+
+    sendcounts = np.array(comm.gather(sendbuf1.shape[0] * sendbuf1.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendbuf1, recvbuf=(recvbuf1, sendcounts), root=0)
+
+    if rank == 0:
+        f1 = "Files/" + filename + "_lower"
+        f2 = "Files/" + filename + "_upper"
+        loweredge = recvbuf1[:, 0]
+        upperedge = recvbuf1[:, 1]
+        loweredge = loweredge.reshape((nK, nK))
+        upperedge = upperedge.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', loweredge)
+        np.savetxt(f2 + '.txt', upperedge)
+        # d1 = np.loadtxt(f1+'.txt')
+        # d2 = np.loadtxt(f2 + '.txt')
+        TWOSPINONGRAPH(A, B, loweredge, f1)
+        TWOSPINONGRAPH(A, B, upperedge, f2)
+
 
 def TWOSPINONGRAPH(A,B,d1, filename):
     fig = plt.figure(figsize=(10, 8))
