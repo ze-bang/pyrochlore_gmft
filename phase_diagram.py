@@ -4,7 +4,7 @@ from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi_gang_chen as pygang
-import pyrochlore_dispersion_pi_gang_chen as pywrong
+import pyrochlore_dispersion_pi_gang_chen_wrong as pywrong
 # JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
 #
 # plt.plot(JP, 0.5-zlambdas, JP, 0.5-plambdas)
