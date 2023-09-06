@@ -256,6 +256,7 @@ def SSSF_pi(q, v, pyp0):
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,0:4], greenpQ[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
                     ffactpm)/4
+    
     # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
     #                 np.conj(ffactpm))/4
 
@@ -265,7 +266,7 @@ def SSSF_pi(q, v, pyp0):
     #                 np.conj(ffactpp))/4
 
 
-    S = (Spm + Spp )/2/4
+    S = (Spm + Spp)/2/4
 
 
     Sglobal = contract('ijk,jk->i',S, g(q))
