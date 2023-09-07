@@ -38,6 +38,24 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
 
+def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
+    if JP >= 0:
+        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.findminLam()
+        py0s.findLambda()
+        py0s.graph_loweredge(False)
+        py0s.graph_loweredge(True)
+    elif JP < 0 and not old:
+        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.findLambda()
+        py0s.graph_loweredge(False)
+        py0s.graph_upperedge(True)
+    else:
+        py0s = pygang.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.findLambda()
+        py0s.graph_loweredge(False)
+        py0s.graph_upperedge(True)
+
 def graphdispersion_wrong(JP,h, n, kappa, rho, graphres, BZres):
     py0s = pywrong.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
     py0s.findLambda()

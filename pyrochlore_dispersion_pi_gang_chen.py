@@ -20,6 +20,18 @@ def M_pi_sub_0(k, Jpm):
     M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
     M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
     M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+    M[:, 1, 1] = -np.multiply(np.cos(ky/2), np.cos(kz/2))
+    return Jpm*M
+
+def M_pi_sub_1(k, Jpm):
+    k = k+np.pi*np.array([1,1,1])
+    kx = k[:,0]
+    ky = k[:,1]
+    kz = k[:,2]
+    M = np.zeros((len(k),2,2), dtype=np.complex128)
+    M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
+    M[:, 0, 1] = np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+    M[:, 1, 0] = np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
     M[:, 1, 1] = -np.multiply(np.cos(ky/2),np.cos(kz/2))
     return Jpm*M
 
@@ -27,7 +39,7 @@ def M_pi_sub_0(k, Jpm):
 
 def M_pi(k,eta,Jpm, h, n):
     M1 = M_pi_sub_0(k,Jpm)
-    M2 = M_pi_sub_0(k+np.pi*np.array([1,1,1]),Jpm)
+    M2 = M_pi_sub_1(k,Jpm)
     Mag1 = M_pi_mag_sub(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
