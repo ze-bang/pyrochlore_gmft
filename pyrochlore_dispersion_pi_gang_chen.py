@@ -5,10 +5,10 @@ from misc_helper import *
 
 def M_pi_mag_sub(k, h, n):
     M = np.zeros((len(k),2,2), dtype=np.complex128)
-    M[:, 0, 0] = np.exp(1j*np.dot(k,-NN[0])) * np.dot(n, -z[0]) + np.exp(1j*np.dot(k,-NN[1])) * np.dot(n, -z[1])
-    M[:, 0, 1] = np.exp(1j*np.dot(k,-NN[2])) * np.dot(n, -z[2]) + np.exp(1j*np.dot(k,-NN[3])) * np.dot(n, -z[3])
-    M[:, 1, 0] = -np.exp(1j*np.dot(k,-NN[2]))*np.dot(n, -z[2]) + np.exp(1j*np.dot(k,-NN[3])) * np.dot(n, -z[3])
-    M[:, 1, 1] = np.exp(1j*np.dot(k,-NN[0]))*np.dot(n, -z[0]) - np.exp(1j*np.dot(k,-NN[1]))*np.dot(n, -z[1])
+    M[:, 0, 0] = np.exp(1j*np.dot(k,NN[0])) * np.dot(n, z[0]) + np.exp(1j*np.dot(k,NN[1])) * np.dot(n, z[1])
+    M[:, 0, 1] = np.exp(1j*np.dot(k,NN[2])) * np.dot(n, z[2]) + np.exp(1j*np.dot(k,NN[3])) * np.dot(n, z[3])
+    M[:, 1, 0] = -np.exp(1j*np.dot(k,NN[2]))*np.dot(n, z[2]) + np.exp(1j*np.dot(k,NN[3])) * np.dot(n, z[3])
+    M[:, 1, 1] = np.exp(1j*np.dot(k,NN[0]))*np.dot(n, z[0]) - np.exp(1j*np.dot(k,NN[1]))*np.dot(n, z[1])
     return -h/4*M
 
 
