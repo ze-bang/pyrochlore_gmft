@@ -569,10 +569,10 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    if Jpm >= 0:
-        py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
-    else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1) 
+    # if Jpm >= 0:
+    #     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
+    # else:
+    py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1) 
 
     py0s.findLambda()
 

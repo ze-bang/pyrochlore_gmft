@@ -8,4 +8,4 @@ from misc_helper import *
 
 
 DSSF(0.01, 0, h111,-1/3, "DSSF_-0.33_detailed", 35, 0.02)
-DSSF(0.01, 0, h111, 0.046, "DSSF_0.046_detailed", 35, 0.02)
+DSSF(0.01, 0, h111,-0.1875, "DSSF_-0.1875_detailed", 35, 0.02)
