@@ -269,9 +269,9 @@ def green_pi_old(k, E, V, Jzz):
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_pi_branch(k, E, V, Jzz):
+def green_pi_branch(k, E, V):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = Jzz/np.sqrt(2*Jzz*E)
+    green = Jzz/E
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
@@ -406,7 +406,8 @@ class piFluxSolver:
 
     def green_pi_branch(self, k):
         E, V = self.LV_zero(k)
-        return green_pi_branch(k, E, V, self.Jzz), E
+        E = np.sqrt(2*self.Jzz*E)
+        return green_pi_branch(k, E, V), E
 
     def green_pi_old(self, k, alpha):
         E, V = self.LV_zero_old(k,alpha)

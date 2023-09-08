@@ -20,10 +20,11 @@ from misc_helper import *
 #endregion
 
 
-graphdispersion(-1/3, 0.2, h111, 1, 1, 20, 20, True)
+# graphedges(-1/3, 1, h111, 1, 1, 20, 20, True)
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20)
 
-graphdispersion(-1/3, 0.2, h111, 1, 1, 20, 20)
+# graphdispersion(-1/3, 0, h111, 1, 1, 20, 20, True)
+# graphdispersion(-1/3, 0, h111, 1, 1, 20, 20)
 # graphdispersion_wrong(-1/3, 0, h111, 1, 1, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
@@ -122,9 +123,9 @@ graphdispersion(-1/3, 0.2, h111, 1, 1, 20, 20)
 
 
 
-# findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2")
-# findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
-# findPhaseMag(-0.5, 0.1, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+findPhaseMag(0, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
+findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
+findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 
 
 # graphMagPhase("phase_test_111_kappa=1", 0.25,3)
