@@ -53,7 +53,7 @@ def realcoord(r):
     return r1*e1 +r2*e2 + r3* e3
 
 
-z = np.array([-np.array([1,1,1])/np.sqrt(3), np.array([-1,1,1])/np.sqrt(3), np.array([1,-1,1])/np.sqrt(3), np.array([1,1,-1])/np.sqrt(3)])
+z = np.array([np.array([1,1,1])/np.sqrt(3), np.array([1,-1,-1])/np.sqrt(3), np.array([-1,1,-1])/np.sqrt(3), np.array([-1,-1,1])/np.sqrt(3)])
 @nb.njit
 def BasisBZ(mu):
     if mu == 0:
