@@ -33,8 +33,7 @@ def M_pi_mag_sub_alg(k, h, n):
 def M_pi_sub(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('jl,kjl,ijl->ikjl', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact)
-    M = contract('ikjl, jka, lkb->iab', M, piunitcell, piunitcell)
+    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact, piunitcell, piunitcell)
     return M
 
 

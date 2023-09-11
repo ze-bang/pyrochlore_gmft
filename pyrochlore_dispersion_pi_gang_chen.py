@@ -14,20 +14,25 @@ piunitcell_here = np.array([
      [1,0]],
 ])
 
+A_pi_here_A = np.array([
+    [0,0, 0,0],
+    [0,np.pi, np.pi,0]
+])
 
-A_pi_here = np.array([
-    [0,0,0,0],
-    [0,np.pi,np.pi,0]
+A_pi_here_B = np.array([
+    [0,0,np.pi,0],
+    [0,np.pi,0,0]
 ])
 
 
-A_pi_rs_traced_here = np.zeros((2,4,4))
-
+A_pi_rs_traced_here_up = np.zeros((2,4,4))
+A_pi_rs_traced_here_down = np.zeros((2,4,4))
 
 for i in range(2):
     for j in range(4):
         for k in range(4):
-            A_pi_rs_traced_here[i,j,k] = np.real(np.exp(1j * (A_pi_here[i,j] - A_pi_here[i,k])))
+            A_pi_rs_traced_here_up[i,j,k] = np.real(np.exp(1j * (A_pi_here_A[i,j] - A_pi_here_A[i,k])))
+            A_pi_rs_traced_here_down[i,j,k] = np.real(np.exp(1j * (A_pi_here_B[i,j] - A_pi_here_B[i,k])))
 
 
 def M_pi_mag_sub(k, h, n):
@@ -72,16 +77,15 @@ def M_pi_mag_sub_comp(k, h, n):
 def M_pi_sub_comp(k, alpha, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('jl,kjl,ijl->ikjl', notrace, -Jpm*A_pi_rs_traced_here/4, ffact)
-    M = contract('ikjl, jka, lkb->iab', M, piunitcell_here, piunitcell_here)
+    M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
 
 def M_pi(k,eta,Jpm, h, n):
-    # M1 = M_pi_sub_0(k,Jpm)
-    # M2 = M_pi_sub_1(k,Jpm)
-    M1 = M_pi_sub_comp(k, 0, Jpm)
-    M2 = M_pi_sub_comp(k, 1, Jpm)
+    M1 = M_pi_sub_0(k,Jpm)
+    M2 = M_pi_sub_1(k,Jpm)
+    # M1 = M_pi_sub_comp(k, 0, Jpm)
+    # M2 = M_pi_sub_comp(k, 1, Jpm)
     Mag1 = M_pi_mag_sub_comp(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
