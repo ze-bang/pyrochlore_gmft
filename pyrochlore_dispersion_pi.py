@@ -40,7 +40,7 @@ def M_pi_sub(k, alpha, eta, Jpm):
 def M_pi(k,eta,Jpm, h, n):
     M1 = M_pi_sub(k, 0,eta,Jpm)
     M2 = M_pi_sub(k, 1,eta,Jpm)
-    Mag1 = M_pi_mag_sub_alg(k,h,n)
+    Mag1 = M_pi_mag_sub(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
     return FM

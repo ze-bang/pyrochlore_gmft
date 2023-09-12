@@ -69,19 +69,19 @@ def M_pi_mag_sub(k, h, n):
 def M_pi_mag_sub_comp(k, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
+    ffact = np.exp(-1j*ffact)
     M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi_here_down), piunitcell_here)
     return M
 
-def M_pi_sub_comp_0(k, alpha, Jpm):
+def M_pi_sub_comp_0(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j*neta(alpha)*ffact)
+    ffact = np.exp(-1j*ffact)
     M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_up/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
-def M_pi_sub_comp_1(k, alpha, Jpm):
+def M_pi_sub_comp_1(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j*neta(alpha)*ffact)
+    ffact = np.exp(1j*ffact)
     M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_down/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
@@ -89,8 +89,8 @@ def M_pi_sub_comp_1(k, alpha, Jpm):
 def M_pi(k,eta,Jpm, h, n):
     # M1 = M_pi_sub_0(k,Jpm)
     # M2 = M_pi_sub_1(k,Jpm)
-    M1 = M_pi_sub_comp_0(k, 0, Jpm)
-    M2 = M_pi_sub_comp_1(k, 1, Jpm)
+    M1 = M_pi_sub_comp_0(k, Jpm)
+    M2 = M_pi_sub_comp_1(k, Jpm)
     Mag1 = M_pi_mag_sub_comp(k,h,n)
     # temp = M_pi_mag_sub(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
