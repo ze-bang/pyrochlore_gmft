@@ -7,40 +7,40 @@ from phase_diagram import *
 from misc_helper import *
 
 
-# TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
-# TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
-# TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
+TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
+TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
+TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
 
-# TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
-# TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
+TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
+TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
 
-# TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
-# TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
-
-
-
-# TWOSPINCON(80, 0, h111,  -0.1, 25, "TSC_-0.33_h111=0")
-# TWOSPINCON(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2")
-# TWOSPINCON(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0")
-
-# TWOSPINCON(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2")
-# TWOSPINCON(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0")
-
-# TWOSPINCON(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2")
-# TWOSPINCON(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0")
+TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
+TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
 
 
-TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_test_gang_no_field")
-TWOSPINCON(80, 0, h111, -0.1, 25, "TSC_test_no_field")
 
-TWOSPINCON_gang(80, 1, h111, 0.001, 25, "TSC_test_gang_ising_h111")
-TWOSPINCON(80, 1, h111,  0.001, 25, "TSC_test_ising_h111")
-TWOSPINCON_gang(80, 1, h001,  0.001, 25, "TSC_test_gang_ising_h001")
-TWOSPINCON(80, 1, h001, 0, 25, "TSC_test_ising_h001")
-TWOSPINCON_gang(80, 1, h110,  0.001, 25, "TSC_test_gang_ising_h110")
-TWOSPINCON(80, 1, h110,  0.001, 25, "TSC_test_ising_h110")
+TWOSPINCON(80, 0, h111,  -0.1, 25, "TSC_-0.33_h111=0")
+TWOSPINCON(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2")
+TWOSPINCON(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0")
+
+TWOSPINCON(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2")
+TWOSPINCON(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0")
+
+TWOSPINCON(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2")
+TWOSPINCON(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0")
 
 
-TWOSPINCON_gang(80, 1, h111, -0.1, 25, "TSC_test_gang")
-TWOSPINCON(80, 1, h111, -0.1, 25, "TSC_test")
+# TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_test_gang_no_field")
+# TWOSPINCON(80, 0, h111, -0.1, 25, "TSC_test_no_field")
+
+# TWOSPINCON_gang(80, 1, h111, 0.001, 25, "TSC_test_gang_ising_h111")
+# TWOSPINCON(80, 1, h111,  0.001, 25, "TSC_test_ising_h111")
+# TWOSPINCON_gang(80, 1, h001,  0.001, 25, "TSC_test_gang_ising_h001")
+# TWOSPINCON(80, 1, h001, 0, 25, "TSC_test_ising_h001")
+# TWOSPINCON_gang(80, 1, h110,  0.001, 25, "TSC_test_gang_ising_h110")
+# TWOSPINCON(80, 1, h110,  0.001, 25, "TSC_test_ising_h110")
+
+
+# TWOSPINCON_gang(80, 1, h111, -0.1, 25, "TSC_test_gang")
+# TWOSPINCON(80, 1, h111, -0.1, 25, "TSC_test")
  
