@@ -76,13 +76,13 @@ def M_pi_mag_sub_comp(k, h, n):
 def M_pi_sub_comp_0(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j*ffact)
-    M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_up/4, ffact, piunitcell_here, piunitcell_here)
+    M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_down/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
 def M_pi_sub_comp_1(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j*ffact)
-    M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_down/4, ffact, piunitcell_here, piunitcell_here)
+    M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_up/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
 

@@ -52,9 +52,10 @@ def DSSF_zero(q, omega, pyp0, tol):
     greenB = contract('ia, ib, iab->i',greenp1[:, :, 0,1], greenp2[:,:, 1,0], deltapm)
     greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
 
-    S = (greenpp + greenpm)/2
+    S = (np.real(greenpp) + np.real(greenpm))/2
     Sglobal = contract('ijk,jk->i', S, g(q))
     S = contract('ijk->i',S)
+
 
     return np.real(np.mean(S)), np.real(np.mean(Sglobal))
 
@@ -86,7 +87,7 @@ def DSSF_pi(q, omega, pyp0, tol):
     #                 np.conj(ffactpp))/4
 
 
-    S = (Spm + Spp)/2/4
+    S = (np.real(Spm) + np.real(Spp))/2/4
 
     Sglobal = contract('ijk,jk->i', S, g(q))
     S = contract('ijk->i',S)
@@ -231,13 +232,17 @@ def SSSF_zero(q, v, pyp0):
     greenB = greenp1[:,0,1] * greenp2[:,1,0]
     greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
 
-    S = (greenpp + greenpm)/2
+    Szz = (np.real(greenpp) + np.real(greenpm))/2
+    Sxx = (np.real(greenpp) + np.real(greenpm)) / 2
 
-    Sglobal = contract('ijk,jk->i',S, g(q))
-    SNSF = contract('ijk,jk->i',S, gNSF(v))
-    S = contract('ijk->i',S)
+    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q)))
+    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v)))
+    Szz = np.mean(contract('ijk->i',Szz))
+    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q)))
+    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v)))
+    Sxx = np.mean(contract('ijk->i',Sxx))
 
-    return np.real(np.mean(S)), np.real(np.mean(Sglobal)), np.real(np.mean(SNSF))
+    return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 
 
 def SSSF_pi(q, v, pyp0):
@@ -268,14 +273,17 @@ def SSSF_pi(q, v, pyp0):
     #                 np.conj(ffactpp))/4
 
 
-    S = (Spm + Spp)/2/4
+    Szz = (np.real(Spm) + np.real(Spp)) / 2 / 4
+    Sxx = (np.real(Spm) - np.real(Spp)) / 2 / 4
 
+    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q)))
+    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v)))
+    Szz = np.mean(contract('ijk->i',Szz))
+    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q)))
+    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v)))
+    Sxx = np.mean(contract('ijk->i',Sxx))
 
-    Sglobal = contract('ijk,jk->i',S, g(q))
-    SNSF = contract('ijk,jk->i',S, gNSF(v))
-    S = contract('ijk->i',S)
-
-    return np.real(np.mean(S)), np.real(np.mean(Sglobal)), np.real(np.mean(SNSF))
+    return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 
 
 def graph_SSSF_zero(pyp0, K, V, rank, size):
@@ -295,24 +303,33 @@ def graph_SSSF_zero(pyp0, K, V, rank, size):
     sendtemp = np.zeros((currsize, K.shape[1]), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
     sendtemp2 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp3 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp4 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp5 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
 
     currK = K[left:right, :, :]
 
     rectemp = None
     rectemp1 = None
     rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
         rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
         rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp3 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp4 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp5 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
 
 
     for i in range(currsize):
         for j in range(K.shape[1]):
             # start = time.time()
             # count = count + 1
-            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j] = SSSF_zero(currK[i,j],V, pyp0)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j], sendtemp4[i,j], sendtemp5[i,j] = SSSF_zero(currK[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -321,24 +338,25 @@ def graph_SSSF_zero(pyp0, K, V, rank, size):
             # sys.stdout.write('\r')
             # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count/increment) + '-'*(50-int(count/increment)), count/totaltask*100, el))
             # sys.stdout.flush()
-        # print(sendtemp[i])
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
-
-    # print("h-----------------------------------------")
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0]*sendtemp3.shape[1], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0]*sendtemp4.shape[1], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
-
-    # print(rank)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     # if not MPI.Is_finalized():
     #     MPI.Finalize()
 
-    return rectemp, rectemp1, rectemp2
+    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5
     # E, K = np.meshgrid(e, K)
 
 
@@ -359,25 +377,33 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
     sendtemp = np.zeros((currsize, K.shape[1]), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
     sendtemp2 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp3 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp4 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
+    sendtemp5 = np.zeros((currsize, K.shape[1]), dtype=np.float64)
 
     currK = K[left:right, :, :]
 
     rectemp = None
     rectemp1 = None
     rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
         rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
         rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-
+        rectemp3 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp4 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp5 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
 
 
     for i in range(currsize):
         for j in range(K.shape[1]):
             # start = time.time()
             # count = count + 1
-            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j] = SSSF_pi(currK[i,j],V, pyp0)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j], sendtemp4[i,j], sendtemp5[i,j] = SSSF_pi(currK[i,j],V, pyp0)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -390,15 +416,21 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
     sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0]*sendtemp3.shape[1], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0]*sendtemp4.shape[1], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     # if not MPI.Is_finalized():
     #     MPI.Finalize()
 
-    return rectemp, rectemp1, rectemp2
+    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5
     # E, K = np.meshgrid(e, K)
 
 
@@ -528,6 +560,7 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
         py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
+    print("Finished finding, lambda is " + str(py0s.lams))
 
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
@@ -545,21 +578,30 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     if Jpm >= 0:
         d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
     else:
-        d1, d2, d3 = graph_SSSF_pi(py0s, K, v, rank, size)
+        d1, d2, d3, d4, d5, d6 = graph_SSSF_pi(py0s, K, v, rank, size)
 
     if rank == 0:
-        f1 = "Files/" + filename + "_local"
-        f2 = "Files/" + filename + "_global"
-        f3 = "Files/" + filename + "_NSF"
+        f1 = "Files/" + filename + "Szz_local"
+        f2 = "Files/" + filename + "Szz_global"
+        f3 = "Files/" + filename + "Szz_NSF"
+        f4 = "Files/" + filename + "Sxx_local"
+        f5 = "Files/" + filename + "Sxx_global"
+        f6 = "Files/" + filename + "Sxx_NSF"
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)
+        np.savetxt(f4 + '.txt', d4)
+        np.savetxt(f5 + '.txt', d5)
+        np.savetxt(f6 + '.txt', d6)
         # d1 = np.loadtxt(f1+'.txt')
         # d2 = np.loadtxt(f2 + '.txt')
         # d3 = np.loadtxt(f3 + '.txt')
         SSSFGraph(A, B, d1, f1)
         SSSFGraph(A, B, d2, f2)
         SSSFGraph(A, B, d3, f3)
+        SSSFGraph(A, B, d4, f4)
+        SSSFGraph(A, B, d5, f5)
+        SSSFGraph(A, B, d6, f6)
 #endregion
 
 #region two spinon continuum
