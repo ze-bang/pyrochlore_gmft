@@ -127,6 +127,12 @@ def genBZ(d):
     temp = contract('ij, ik->jk', b, BasisBZA)
     return temp
 
+# def genBZfolded(d):
+#     d = d*1j
+#     b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1)
+#     temp = contract('ij, ik->jk', b, BasisBZA)
+#     return temp
+
 
 @nb.njit
 def step(mu):
@@ -187,7 +193,7 @@ for i in range(4):
 
 
 A_pi_rs_rsp_pp = np.zeros((4,4,4,4))
-
+z
 for i in range(4):
     for j in range(4):
         for k in range(4):

@@ -29,7 +29,10 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         plt.show()
     elif JP < 0 and not old:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.findminLam()
+        # print(py0s.minLams)
         py0s.findLambda()
+        # temp = py0s.green_pi(py0s.bigB)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
     else:

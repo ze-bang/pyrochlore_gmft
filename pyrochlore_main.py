@@ -23,8 +23,8 @@ from misc_helper import *
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20, True)
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20)
 
-# graphdispersion(-1/3, 1, h111, 1, 1, 20, 20, True)
-# graphdispersion(-1/3, 1, h111, 1, 1, 20, 20)
+# graphdispersion(-1/3, 0.2, h001, 1, 1, 20, 20, True)
+# graphdispersion(0.046, 0.2, h111, 1, 2, 20, 20)
 # graphdispersion_wrong(-1/3, 0, h111, 1, 1, 20, 20)
 # graphdispersion(0.046,0, h111, 1, 2, 20, 20)
 # graphdispersion(0.046, 0, h111, 1, 2, 20, 20)
@@ -72,7 +72,7 @@ from misc_helper import *
 # SSSF(100, 0.3, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.3")
 # SSSF(100, 0.4, h111,hb110, -1/3,50, "SSSF_pi_-0.33_h111=0.4")
 #
-# SSSF(100, 0.2, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.2")
+SSSF(40, 0.2, h001,hb110, -1/3,25, "SSSF_pi_-0.33_h001=0.2")
 # SSSF(100, 0.3, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.3")
 # SSSF(100, 0.4, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.4")
 #

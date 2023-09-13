@@ -62,6 +62,7 @@ def E_pi(lams, k, eta, Jpm, h, n):
 
 def rho_true(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
+    # print(M)
     temp = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
@@ -74,11 +75,10 @@ def findminLam(M, Jzz, tol):
     lamMin = np.zeros(2)
     lamMax = 50*np.ones(2)
     lams = (lamMin + lamMax) / 2
-
     while not ((lamMax-lamMin<=tol).all()):
         lams = (lamMin + lamMax) / 2
         try:
-             rhoguess = rho_true(M, lams, Jzz)
+             rhoguess = rho_true(Jzz, M, lams)
              for i in range(2):
                  lamMax[i] = lams[i]
         except:
@@ -255,26 +255,25 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
-def green_pi(k, E, V, Jzz):
+def green_pi(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
+    green = Jzz/E
+    green = contract('ikjl, ik->ijl', Vt, green)
+    return green
+
+def green_pi_old(E, V, Jzz):
+    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_pi_old(k, E, V, Jzz):
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = Jzz/np.sqrt(2*Jzz*E)
-    green = contract('ikjl, ik->ijl', Vt, green)
-    return green
-
-def green_pi_branch(k, E, V, Jzz):
+def green_pi_branch(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = Jzz/E
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
-def green_pi_old_branch(k, E, V, Jzz):
+def green_pi_old_branch(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ikjl', Vt, green)
@@ -400,21 +399,25 @@ class piFluxSolver:
             plt.show()
 
     def green_pi(self, k):
+        # warnings.filterwarnings("error")
         E, V = self.LV_zero(k)
-        return green_pi(k, E, V, self.Jzz)
+        # if (E<0).any():
+        #     print(E)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_pi(E, V, self.Jzz)
 
     def green_pi_branch(self, k):
         E, V = self.LV_zero(k)
         E = np.sqrt(2*self.Jzz*E)
-        return green_pi_branch(k, E, V, self.Jzz), E
+        return green_pi_branch(E, V, self.Jzz), E
 
     def green_pi_old(self, k, alpha):
         E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old(k, E, V, self.Jzz)
+        return green_pi_old(E, V, self.Jzz)
 
     def green_pi_old_branch(self, k, alpha):
         E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old_branch(k, E, V, self.Jzz)
+        return green_pi_old_branch(E, V, self.Jzz)
 
     def magnetization(self):
         green = self.green_pi(self.bigB)
