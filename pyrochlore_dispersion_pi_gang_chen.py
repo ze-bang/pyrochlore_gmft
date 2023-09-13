@@ -69,19 +69,19 @@ def M_pi_mag_sub(k, h, n):
 def M_pi_mag_sub_comp(k, h, n):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j*ffact)
-    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi_here_down), piunitcell_here)
+    ffact = np.exp(1j*ffact)
+    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi_here_up), piunitcell_here)
     return M
 
 def M_pi_sub_comp_0(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(-1j*ffact)
+    ffact = np.exp(1j*ffact)
     M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_down/4, ffact, piunitcell_here, piunitcell_here)
     return M
 
 def M_pi_sub_comp_1(k, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j*ffact)
+    ffact = np.exp(-1j*ffact)
     M = contract('jl,kjl,ijl, jka, lkb ->iab', notrace, -Jpm*A_pi_rs_traced_here_up/4, ffact, piunitcell_here, piunitcell_here)
     return M
 

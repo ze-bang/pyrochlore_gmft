@@ -576,7 +576,7 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     rank = comm.Get_rank()
 
     if Jpm >= 0:
-        d1, d2, d3 = graph_SSSF_zero(py0s, K, v, rank, size)
+        d1, d2, d3, d4, d5, d6 = graph_SSSF_zero(py0s, K, v, rank, size)
     else:
         d1, d2, d3, d4, d5, d6 = graph_SSSF_pi(py0s, K, v, rank, size)
 
