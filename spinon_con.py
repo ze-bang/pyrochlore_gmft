@@ -560,7 +560,7 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
         py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
-    print("Finished finding, lambda is " + str(py0s.lams))
+    # print("Finished finding, lambda is " + str(py0s.lams))
 
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
