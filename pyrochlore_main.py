@@ -11,7 +11,7 @@ import sys
 from phase_diagram import *
 from numba import jit
 from misc_helper import *
-
+import netCDF4 as nc
 
 
 
@@ -23,7 +23,7 @@ from misc_helper import *
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20, True)
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20)
 
-graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
+# graphdispersion(-0.1, 2, h110, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
 # M = pypi.M_pi_mag_sub_single(np.pi*np.array([0.1,0.2,0.3]), 1, np.array([0,0,1]))
 # graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
@@ -107,10 +107,17 @@ graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
 #
 # graphPhase("Files/phase_diagram.txt")
 
+# leng = len(np.concatenate((genBZ(25), symK)))
+#
+# with nc.Dataset("Files/phase_test_111_kappa=2_q_condensed.nc", "r") as dataset:
+#
+#     temp_var = dataset.variables["q_condensed"][:]
+#
+# print(temp_var)
 
-# findPhaseMag(-0.5, 0, 300, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2")
-# findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
-# findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
+findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
+findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 # #
 # DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
 

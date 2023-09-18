@@ -346,7 +346,8 @@ class piFluxSolver:
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres), symK))
         self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.h, self.n)
-        self.q = np.empty(3)
+        self.q = np.empty((len(self.bigB),3))
+        self.q[:] = np.nan
 
     #alpha = 1 for A = -1 for B
 
@@ -360,18 +361,19 @@ class piFluxSolver:
 
 
     def qvec(self):
-        E = E_pi(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
+        # print((2e2/len(self.bigB))**2)
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
         c = np.unique(np.where(E < 0)[0])
-        print(c)
-        self.q = np.unique(np.mod(self.bigB[c], 2*np.pi), axis=0)
+        temp = np.unique(self.bigB[c], axis=0)
+        self.q[0:len(temp),:] = temp
 
     def ifcondense(self, q):
-        E = E_pi(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
         c = np.unique(np.where(E < 0)[0])
         return c
 
     def condensed(self):
-        return np.absolute(self.minLams - self.lams) < (1e2/len(self.bigB))**2
+        return np.absolute(self.minLams - self.lams) < (2e2/len(self.bigB))**2
 
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)

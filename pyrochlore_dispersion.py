@@ -376,6 +376,8 @@ class zeroFluxSolver:
         self.bigB = np.concatenate((genBZ(BZres), symK))
 
         self.MF = M_true(self.bigB, self.Jpm, self.eta, self.h, self.n)
+        self.q = np.empty((len(self.bigB), 3))
+        self.q[:] = np.nan
 
 
     def findLambda(self):
@@ -387,12 +389,13 @@ class zeroFluxSolver:
         warnings.resetwarnings()
 
     def qvec(self):
-        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.Jpm, self.eta, self.h, self.n)[0]
         c = np.unique(np.where(E < 0)[0])
-        self.q = np.unique(np.mod(self.bigB[c], 2*np.pi), axis=0)
+        temp = np.unique(self.bigB[c], axis=0)
+        self.q[0:len(temp), :] = temp
 
     def ifcondense(self, q):
-        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.Jpm, self.eta, self.h, self.n)[0]
         c = np.unique(np.where(E < 0)[0])
         return c
 
