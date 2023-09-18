@@ -118,6 +118,7 @@ import netCDF4 as nc
 findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
 findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
 findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+
 # #
 # DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
 
