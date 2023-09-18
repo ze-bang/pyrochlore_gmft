@@ -115,9 +115,9 @@ import netCDF4 as nc
 #
 # print(temp_var)
 
-findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
-findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
-findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+findPhaseMag(-0.5, 0.1, 400, 0, 1, 100, h111, 25, 2, "phase_111_kappa=2_complete")
+findPhaseMag(-0.5, 0.1, 400, 0, 1, 100, h001, 25, 2, "phase_001_kappa=2_complete")
+findPhaseMag(-0.5, 0.1, 400, 0, 4, 100, h110, 25, 2, "phase_110_kappa=2_complete")
 
 # #
 # DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
@@ -141,7 +141,7 @@ findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
+# findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 
