@@ -336,7 +336,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 sendtemp1[i,j] = pyps.gap()
                 sendtemp2[i,j] = pyps.q
 
-            print(sendtemp)
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
