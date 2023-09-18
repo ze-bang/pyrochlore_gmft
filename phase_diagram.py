@@ -324,14 +324,19 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             GSp = pyps.GS()
 
             if GSz < GSp:
+                py0s.findminLam()
                 py0s.qvec()
                 sendtemp[i,j] = py0s.condensed()[0]
                 sendtemp1[i,j] = py0s.gap()
                 sendtemp2[i,j] = py0s.q
             else:
+                pyps.findminLam()
+                pyps.qvec()
                 sendtemp[i,j] = pyps.condensed()[0]*2
                 sendtemp1[i,j] = pyps.gap()
                 sendtemp2[i,j] = pyps.q
+
+            print(sendtemp)
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
