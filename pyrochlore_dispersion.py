@@ -420,6 +420,10 @@ class zeroFluxSolver:
         dex = np.argmin(E,axis=0)[0]
         return np.sqrt(2*self.Jzz*E[dex, 0])
 
+    def GS(self):
+        return np.mean(self.E_zero(self.bigB)) - self.lams[0]
+
+
     def gapwhere(self):
         temp = self.MF + np.diag(self.lams)
         E, V = np.linalg.eigh(temp)
