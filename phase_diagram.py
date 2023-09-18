@@ -201,7 +201,9 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     JP = np.linspace(JPm, JPmax, nK)
 
     gap = np.zeros(nK)
-    dev = np.zeros(nK)
+    GS =  np.zeros(nK)
+    gapp = np.zeros(nK)
+    GSp =  np.zeros(nK)
     E111 = np.zeros(nK)
     E000 = np.zeros(nK)
     condensed = np.zeros(nK)
@@ -209,26 +211,29 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range (nK):
         print("Jpm is now " + str(JP[i]))
         # print("h is now " + str(h[j]))
-        if JP[i] >= 0:
-            py0s = py0.zeroFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
-            print("Finding 0 Flux Lambda")
-            # phases[i][j] = py0s.phase_test()
-            py0s.findLambda()
-            # py0s.findminLam()
-            gap[i] = py0s.gap()
-            # condensed[i] = py0s.condensed()[0]
-            # dev[i] = py0s.rho_dev()
+        py0s = py0.zeroFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
+        print("Finding 0 Flux Lambda")
+        # phases[i][j] = py0s.phase_test()
+        py0s.findLambda()
+        # py0s.findminLam()
+        gap[i] = py0s.gap()
+        GS[i] = py0s.GS()
+        # condensed[i] = py0s.condensed()[0]
+        # dev[i] = py0s.rho_dev()
 
-        else:
-            py0s = pypi.piFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
-            print("Finding pi Flux Lambda")
-            # phases[i][j] = py0s.phase_test()
-            py0s.findLambda()
-            # py0s.findminLam()
-            gap[i] = py0s.gap()
-            # condensed[i] = py0s.condensed()[0]
-            # dev[i] = py0s.rho_dev()
-    plt.plot(JP, gap, color='b')
+        pyp = pypi.piFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
+        print("Finding pi Flux Lambda")
+        # phases[i][j] = py0s.phase_test()
+        pyp.findLambda()
+        # py0s.findminLam()
+        gapp[i] = pyp.gap()
+        GSp[i] = pyp.GS()
+        # condensed[i] = py0s.condensed()[0]
+        # dev[i] = py0s.rho_dev()
+    # plt.plot(JP, gap, color='b')
+    # plt.plot(JP, gapp, color='r')
+    plt.plot(JP, GS, color='g')
+    plt.plot(JP, GSp, color='k')
     # plt.plot(JP, condensed, color='b')
     # plt.plot(JP, dev, color='black')
     plt.show()
@@ -310,18 +315,28 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range (currsize):
         for j in range (nH):
-            if currJP[i] >= 0:
-                py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
-            else:
-                py0s = pypi.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
+            py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
+            pyps = pypi.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()
-            py0s.findminLam()
-            py0s.qvec()
+            pyps.findLambda()
+            GSz = py0s.GS()
+            GSp = pyps.GS()
 
-            sendtemp[i,j] = py0s.condensed()[0]
-            sendtemp1[i,j] = py0s.gap()
-            sendtemp2[i,j] = py0s.q
+            if GSz < GSp:
+                py0s.findminLam()
+                py0s.qvec()
+                sendtemp[i,j] = py0s.condensed()[0]
+                sendtemp1[i,j] = py0s.gap()
+                sendtemp2[i,j] = py0s.q
+            else:
+                pyps.findminLam()
+                pyps.qvec()
+                sendtemp[i,j] = pyps.condensed()[0]*2
+                sendtemp1[i,j] = pyps.gap()
+                sendtemp2[i,j] = pyps.q
+
+
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))

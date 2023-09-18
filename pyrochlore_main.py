@@ -137,9 +137,11 @@ findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 #
 # graphPhase("Files/phase_diagram.txt")
 
+# print(True*2)
 
+# PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-# findPhaseMag(0, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
+findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 

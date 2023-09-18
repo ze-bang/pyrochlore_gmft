@@ -415,6 +415,9 @@ class piFluxSolver:
         dex = np.argmin(E,axis=0)[0]
         return np.mod(self.bigB[dex], 2*np.pi)
 
+    def GS(self):
+        return np.mean(self.E_pi(self.bigB)) - self.lams[0]
+
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
