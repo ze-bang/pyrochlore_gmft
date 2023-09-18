@@ -25,20 +25,15 @@ def delta(Ek, Eq, omega, tol):
 
 #region DSSF
 
-def DSSF_zero(q, omega, pyp0, tol):
-    Ks = pyp0.bigB
-    Qs = Ks-q
 
-    tempE= pyp0.E_zero(Ks)
-    tempQ = pyp0.E_zero(Qs)
+def Spm_zero_DSSF(K, Q, q, omega, tol, pyp0, lam = 0):
 
-
-    greenp1 = pyp0.green_zero_branch(Ks)
-    greenp2 = pyp0.green_zero_branch(Qs)
+    greenp1, tempE = pyp0.green_zero_branch(K)
+    greenp2, tempQ = pyp0.green_zero_branch(Q)
 
     #region S+- and S-+
-    deltapm = delta(tempE, tempQ, omega,tol)
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
+    deltapm = delta(tempE, tempQ, omega, tol)
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)
 
     greenA = contract('ia, ib, iab->i',greenp1[:, :, 0,0], greenp2[:,:, 1,1], deltapm)
@@ -46,54 +41,127 @@ def DSSF_zero(q, omega, pyp0, tol):
     #endregion
 
     #region S++ and S--
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNplus)
     ffactpp = np.exp(1j * ffact)
 
     greenB = contract('ia, ib, iab->i',greenp1[:, :, 0,1], greenp2[:,:, 1,0], deltapm)
     greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
 
-    S = (np.real(greenpp) + np.real(greenpm))/2
-    Sglobal = contract('ijk,jk->i', S, g(q))
-    S = contract('ijk->i',S)
+    return greenpm, greenpp
 
-
-    return np.real(np.mean(S)), np.real(np.mean(Sglobal))
-
-
-def DSSF_pi(q, omega, pyp0, tol):
+def DSSF_zero(q, omega, pyp0, tol):
     Ks = pyp0.bigB
-    Qs = Ks - q
+    Qs = Ks-q
+    le = len(Ks)
+
+    Kcondensed = pyp0.ifcondense(Ks)
+    Qcondensed = pyp0.ifcondense(Qs)
+
+    cond = np.unique(np.concatenate((Kcondensed, Qcondensed)))
+
+    Kqs = Ks[cond]
+    Qqs = Qs[cond]
+
+
+    Kps = np.delete(Ks, cond, axis=0)
+    Qps = np.delete(Qs, cond, axis=0)
+
+
+    greenpm, greenpp = Spm_zero_DSSF(Kps, Qps, q, omega, tol, pyp0)
+
+    if Kqs.size == 0 and Qqs.size == 0:
+        Spmq = np.zeros((2,4,4))
+        Sppq = np.zeros((2,4,4))
+    else:
+        Spmq, Sppq= Spm_zero_DSSF(Kqs, Qqs, q, omega, tol, pyp0, lam=pyp0.lams+(1e2/le)**2)
+
+
+    Szz = (np.real(greenpp) + np.real(greenpm))/2
+    Szzq = (np.real(Spmq) + np.real(Sppq))/2
+
+    Sxx = (-np.real(greenpp) + np.real(greenpm))/2
+    Sxxq = (np.real(Spmq) - np.real(Sppq))/2
+
+    N = 1e10
+
+    Sglobalzz = np.mean(contract('ijk,jk->i', Szz, g(q))) + np.mean(contract('ijk,jk->i', Szzq, g(q)))/N
+    Szz = np.mean(contract('ijk->i',Szz)) + np.mean(contract('ijk->i',Szzq)) / N
+
+    Sglobalxx = np.mean(contract('ijk,jk->i', Sxx, g(q))) + np.mean(contract('ijk,jk->i', Sxxq, g(q))) /N
+    Sxx = np.mean(contract('ijk->i',Sxx)) + np.mean(contract('ijk->i',Sxxq))/N
+    return Szz, Sglobalzz, Sxx, Sglobalxx
+
+def Spm_pi_DSSF(Ks, Qs, q, omega, tol, pyp0, lam = 0):
 
     greenpK, tempE = pyp0.green_pi_branch(Ks)
     greenpQ, tempQ = pyp0.green_pi_branch(Qs)
 
     deltapm = delta(tempE, tempQ, omega, tol)
+
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
     ffactpp = np.exp(1j * ffact)
 
-
-    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,0:4], greenpQ[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
-                    ffactpm)/4
+    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
+                   deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+                   ffactpm) / 4
 
     # Smp = contract('ipba, ioxy, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,0:4,0:4], greenpK[:,:,4:8,4:8], deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
     #                 np.conj(ffactpm))/4
 
-    Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:,:,0:4,4:8], greenpQ[:,:,0:4, 4:8], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
-                    ffactpp)/4
+    Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
+                   deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                   ffactpp) / 4
 
     # Smm = contract('ipxa, ioyb, iop, abjk, jax, kby, ijk->ijk', greenpQ[:,:,4:8,0:4], greenpK[:,:,4:8,0:4], deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
     #                 np.conj(ffactpp))/4
 
 
-    S = (np.real(Spm) + np.real(Spp))/2/4
-
-    Sglobal = contract('ijk,jk->i', S, g(q))
-    S = contract('ijk->i',S)
+    return Spm, Spp
 
 
-    return np.real(np.mean(S)), np.real(np.mean(Sglobal))
+def DSSF_pi(q, omega, pyp0, tol):
+    Ks = pyp0.bigB
+    Qs = Ks - q
+    le = len(Ks)
+
+    Kcondensed = pyp0.ifcondense(Ks)
+    Qcondensed = pyp0.ifcondense(Qs)
+
+    cond = np.unique(np.concatenate((Kcondensed, Qcondensed)))
+
+    Kqs = Ks[cond]
+    Qqs = Qs[cond]
+
+
+    Kps = np.delete(Ks, cond, axis=0)
+    Qps = np.delete(Qs, cond, axis=0)
+
+
+    Spm, Spp = Spm_pi_DSSF(Kps, Qps, q, omega, tol, pyp0)
+
+    if Kqs.size == 0 and Qqs.size == 0:
+        Spmq = np.zeros((2,4,4))
+        Sppq = np.zeros((2,4,4))
+    else:
+        Spmq, Sppq= Spm_pi_DSSF(Kqs, Qqs, q, omega, tol, pyp0, lam=pyp0.lams+(1e2/le)**2)
+
+
+    Szz = (np.real(Spm) + np.real(Spp))/2/4
+    Szzq = (np.real(Spmq) + np.real(Sppq))/2/4
+
+    Sxx = (np.real(Spm) - np.real(Spp))/2/4
+    Sxxq = (np.real(Spmq) - np.real(Sppq))/2/4
+
+    N = 1e10
+
+    Sglobalzz = np.mean(contract('ijk,jk->i', Szz, g(q))) + np.mean(contract('ijk,jk->i', Szzq, g(q)))/N
+    Szz = np.mean(contract('ijk->i',Szz)) + np.mean(contract('ijk->i',Szzq)) / N
+
+    Sglobalxx = np.mean(contract('ijk,jk->i', Sxx, g(q))) + np.mean(contract('ijk,jk->i', Sxxq, g(q))) /N
+    Sxx = np.mean(contract('ijk->i',Sxx)) + np.mean(contract('ijk->i',Sxxq))/N
+    return Szz, Sglobalzz, Sxx, Sglobalxx
 
 def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
     # el = "==:==:=="
@@ -111,22 +179,27 @@ def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
     
     sendtemp = np.zeros((currsize, len(K)), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp3 = np.zeros((currsize, len(K)), dtype=np.float64)
 
     currE = E[left:right]
 
     rectemp = None
     rectemp1 = None
+    rectemp2 = None
+    rectemp3 = None
 
     if rank == 0:
         rectemp = np.zeros((len(E), len(K)), dtype=np.float64)
         rectemp1 = np.zeros((len(E), len(K)), dtype=np.float64)
-
+        rectemp2 = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp3 = np.zeros((len(E), len(K)), dtype=np.float64)
 
     for i in range(currsize):
         for j in range(len(K)):
             # start = time.time()
             # count = count + 1
-            sendtemp[i,j], sendtemp1[i,j] = DSSF_zero(K[j], currE[i], pyp0, tol)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j] = DSSF_zero(K[j], currE[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -138,9 +211,13 @@ def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
     # print(rank)
 
@@ -165,21 +242,27 @@ def graph_DSSF_pi(pyp0, E, K, tol, rank, size):
     
     sendtemp = np.zeros((currsize, len(K)), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp3 = np.zeros((currsize, len(K)), dtype=np.float64)
 
     currE = E[left:right]
 
     rectemp = None
     rectemp1 = None
+    rectemp2 = None
+    rectemp3 = None
 
     if rank == 0:
         rectemp = np.zeros((len(E), len(K)), dtype=np.float64)
         rectemp1 = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp2 = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp3 = np.zeros((len(E), len(K)), dtype=np.float64)
 
     for i in range(currsize):
         for j in range(len(K)):
             # start = time.time()
             # count = count + 1
-            sendtemp[i,j], sendtemp1[i,j] = DSSF_pi(K[j], currE[i], pyp0, tol)
+            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j] = DSSF_pi(K[j], currE[i], pyp0, tol)
             # if temp[i][j] > tempMax:
             #     tempMax = temp[i][j]
             # end = time.time()
@@ -191,16 +274,19 @@ def graph_DSSF_pi(pyp0, E, K, tol, rank, size):
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     # print(rank)
 
     # if not MPI.Is_finalized():
     #     MPI.Finalize()
 
-    return rectemp, rectemp1
+    return rectemp, rectemp1, rectemp2, rectemp3
 
 #endregion
 
@@ -208,42 +294,99 @@ def graph_DSSF_pi(pyp0, E, K, tol, rank, size):
 
 #region SSSF
 
+
+def Spm_zero(K, Q, q, pyp0, lam = 0):
+    greenp1 = pyp0.green_zero(K, lam)
+    greenp2 = pyp0.green_zero(Q, lam)
+
+    # region S+- and S-+
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
+    ffactpm = np.exp(1j * ffact)
+
+    greenA = greenp1[:, 0, 0] * greenp2[:, 1, 1]
+    greenpm = contract('i,ijk->ijk', greenA, ffactpm) / 4
+    # endregion
+
+    # region S++ and S--
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNplus)
+    ffactpp = np.exp(1j * ffact)
+
+    greenB = greenp1[:, 0, 1] * greenp2[:, 1, 0]
+    greenpp = contract('i,ijk->ijk', greenB, ffactpp) / 4
+
+    return greenpm, greenpp
+
 def SSSF_zero(q, v, pyp0):
+
     Ks = pyp0.bigB
     Qs = Ks-q
     le = len(Ks)
-    # sQ = contract('i,j->ij', np.ones(le), q)
 
-    greenp1 = pyp0.green_zero(Ks)
-    greenp2 = pyp0.green_zero(Qs)
+    Kcondensed = pyp0.ifcondense(Ks)
+    Qcondensed = pyp0.ifcondense(Qs)
 
-    #region S+- and S-+
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
-    ffactpm = np.exp(1j * ffact)
+    cond = np.unique(np.concatenate((Kcondensed, Qcondensed)))
+    # print(cond)
 
-    greenA = greenp1[:,0,0] * greenp2[:,1,1]
-    greenpm = contract('i,ijk->ijk',greenA,ffactpm)/4
-    #endregion
+    Kqs = Ks[cond]
+    Qqs = Qs[cond]
 
-    #region S++ and S--
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
-    ffactpp = np.exp(1j * ffact)
 
-    greenB = greenp1[:,0,1] * greenp2[:,1,0]
-    greenpp = contract('i,ijk->ijk',greenB, ffactpp)/4
+    Kps = np.delete(Ks, cond, axis=0)
+    Qps = np.delete(Qs, cond, axis=0)
+
+
+    greenpm, greenpp = Spm_zero(Kps, Qps, q, pyp0)
+
+    if Kqs.size == 0 and Qqs.size == 0:
+        Spmq = np.zeros((2,4,4))
+        Sppq = np.zeros((2,4,4))
+    else:
+        Spmq, Sppq= Spm_zero(Kqs, Qqs, q, pyp0, lam=pyp0.lams+(1e2/le)**2)
 
     Szz = (np.real(greenpp) + np.real(greenpm))/2
     Sxx = (np.real(greenpp) + np.real(greenpm)) / 2
 
-    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q)))
-    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v)))
-    Szz = np.mean(contract('ijk->i',Szz))
-    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q)))
-    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v)))
-    Sxx = np.mean(contract('ijk->i',Sxx))
+    Szzq = (np.real(Spmq) + np.real(Sppq)) / 2
+    Sxxq = (np.real(Spmq) - np.real(Sppq)) / 2
+
+    N = 1e10
+
+    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q))) + np.mean(contract('ijk,jk->i',Szzq, g(q)))/N
+    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v))) + np.mean(contract('ijk,jk->i',Szzq, gNSF(v)))/N
+    Szz = np.mean(contract('ijk->i',Szz)) + np.mean(contract('ijk->i',Szzq))/ N
+    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q))) +np.mean(contract('ijk,jk->i',Sxxq, g(q)))/N
+    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v))) +np.mean(contract('ijk,jk->i',Sxxq, gNSF(v)))/N
+    Sxx = np.mean(contract('ijk->i',Sxx)) + np.mean(contract('ijk->i',Sxxq))/ N
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 
+
+def Spm_pi(K,Q,q, pyp0, lam=0):
+
+    greenpK = pyp0.green_pi(K, lam)
+    greenpQ = pyp0.green_pi(Q, lam)
+
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
+    ffactpm = np.exp(1j * ffact)
+
+    ffact = contract('ik, jlk->ijl', K - q / 2, NNplus)
+    ffactpp = np.exp(1j * ffact)
+
+    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], A_pi_rs_rsp,
+                   piunitcell, piunitcell,
+                   ffactpm) / 4
+
+    # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
+    #                 np.conj(ffactpm))/4
+
+    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], A_pi_rs_rsp_pp,
+                   piunitcell, piunitcell,
+                   ffactpp) / 4
+    # Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
+    #                 np.conj(ffactpp))/4
+
+    return Spm, Spp
 
 def SSSF_pi(q, v, pyp0):
     Ks = pyp0.bigB
@@ -251,37 +394,45 @@ def SSSF_pi(q, v, pyp0):
     v = v / magnitude(v)
     le = len(Ks)
 
-    greenpK = pyp0.green_pi(Ks)
-    greenpQ = pyp0.green_pi(Qs)
 
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
-    ffactpm = np.exp(1j * ffact)
-
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
-    ffactpp = np.exp(1j * ffact)
+    Kcondensed = pyp0.ifcondense(Ks)
+    Qcondensed = pyp0.ifcondense(Qs)
 
 
-    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,0:4], greenpQ[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
-                    ffactpm)/4
-    
-    # Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:,0:4,0:4], greenpK[:,4:8,4:8], A_pi_rs_rsp, piunitcell, piunitcell,
-    #                 np.conj(ffactpm))/4
+    cond = np.unique(np.concatenate((Kcondensed, Qcondensed)))
+    # print(cond)
 
-    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:,0:4,4:8], greenpQ[:,0:4, 4:8], A_pi_rs_rsp_pp, piunitcell, piunitcell,
-                    ffactpp)/4
-    # Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:,4:8,0:4], greenpK[:,4:8,0:4], A_pi_rs_rsp_pp, piunitcell, piunitcell,
-    #                 np.conj(ffactpp))/4
+    Kqs = Ks[cond]
+    Qqs = Qs[cond]
 
+
+    Kps = np.delete(Ks, cond, axis=0)
+    Qps = np.delete(Qs, cond, axis=0)
+
+    Spm, Spp = Spm_pi(Kps, Qps, q, pyp0)
+
+
+    if Kqs.size == 0 and Qqs.size == 0:
+        Spmq = np.zeros((2,4,4))
+        Sppq = np.zeros((2,4,4))
+    else:
+        Spmq, Sppq= Spm_pi(Kqs, Qqs, q, pyp0, lam=pyp0.lams+(1e2/le)**2)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2 / 4
     Sxx = (np.real(Spm) - np.real(Spp)) / 2 / 4
 
-    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q)))
-    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v)))
-    Szz = np.mean(contract('ijk->i',Szz))
-    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q)))
-    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v)))
-    Sxx = np.mean(contract('ijk->i',Sxx))
+    Szzq = (np.real(Spmq) + np.real(Sppq)) / 2 / 4
+    Sxxq = (np.real(Spmq) - np.real(Sppq)) / 2 / 4
+
+    N = 1e10
+
+    Sglobalzz = np.mean(contract('ijk,jk->i',Szz, g(q))) + np.mean(contract('ijk,jk->i',Szzq, g(q)))/N
+    SNSFzz = np.mean(contract('ijk,jk->i',Szz, gNSF(v))) + np.mean(contract('ijk,jk->i',Szzq, gNSF(v)))/N
+    Szz = np.mean(contract('ijk->i',Szz)) + np.mean(contract('ijk->i',Szzq))/ N
+    Sglobalxx = np.mean(contract('ijk,jk->i',Sxx, g(q))) +np.mean(contract('ijk,jk->i',Sxxq, g(q)))/N
+    SNSFxx = np.mean(contract('ijk,jk->i',Sxx, gNSF(v))) +np.mean(contract('ijk,jk->i',Sxxq, gNSF(v)))/N
+    Sxx = np.mean(contract('ijk->i',Sxx)) + np.mean(contract('ijk->i',Sxxq))/ N
+
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 
@@ -503,21 +654,27 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
     rank = comm.Get_rank()
 
     if Jpm >= 0:
-        d1, d2 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
     else:
-        d1, d2 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
 
     if rank == 0:
 
-        f1 = "Files/"+filename+"_local"
-        f2 = "Files/"+filename+"_global"
+        f1 = "Files/"+filename+"_Szz_local"
+        f2 = "Files/"+filename+"_Szz_global"
+        f3 = "Files/"+filename+"_Sxx_local"
+        f4 = "Files/"+filename+"_Sxx_global"
         np.savetxt(f1+".txt", d1)
         np.savetxt(f2+".txt", d2)
+        np.savetxt(f3+".txt", d3)
+        np.savetxt(f4+".txt", d4)
         # d1 = np.loadtxt(f1+".txt")
         # d2 = np.loadtxt(f2+".txt")
         X,Y = np.meshgrid(kk, e)
         DSSFgraph(X, Y, d1, py0s, f1)
         DSSFgraph(X, Y, d2, py0s, f2)
+        DSSFgraph(X, Y, d3, py0s, f3)
+        DSSFgraph(X, Y, d4, py0s, f4)
         # plt.show()
 
 def samplegraph(nK, filenames):

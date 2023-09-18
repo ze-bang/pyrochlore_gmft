@@ -19,19 +19,17 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
         py0s.findLambda()
-        # print(py0s.lams, py0s.minLams, py0s.condensed())
-        # plt.axvline(x=py0s.lams[0], color='b', label='axvline - full height', linestyle='dashed')
-        # plt.plot(py0s.lams[0], py0s.rho(py0s.lams)[0], marker='o')
         py0s.graph(False)
-        # py0s.graphAlg(False)
-        # py0s.graphAlg(False)
-        # plt.legend(['Num', 'Alg'])
         plt.show()
     elif JP < 0 and not old:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
-        # print(py0s.minLams)
+        print(py0s.minLams)
         py0s.findLambda()
+        print(py0s.lams)
+        print(py0s.condensed())
+        py0s.qvec()
+        print(py0s.q)
         # temp = py0s.green_pi(py0s.bigB)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
@@ -290,21 +288,19 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
+    # sendtemp2 = np.zeros((currsize, nH, 3), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
-    rectemp2 = None
+    # rectemp2 = None
 
     if rank == 0:
         rectemp = np.zeros((nK, nH), dtype=np.float64)
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nH, 3), dtype=np.float64)
+        # rectemp2 = np.zeros((nK, nH, 3), dtype=np.float64)
 
     for i in range (currsize):
         for j in range (nH):
-            # start = time.time()
-            # count = count + 1
             if currJP[i] >= 0:
                 py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
             else:
@@ -312,33 +308,24 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
             py0s.findLambda()
             py0s.findminLam()
-            temp = py0s.condensed()[0]
+            # py0s.qvec()
 
-            if temp:
-                sendtemp2[i,j] = py0s.gapwhere()
-            else:
-                sendtemp2[i,j] = -1000*np.ones(3)
-
-            sendtemp[i,j] = temp
+            sendtemp[i,j] = py0s.condensed()[0]
             sendtemp1[i,j] = py0s.gap()
-            # end = time.time()
-            # el = (end - start) * (totaltask - count)
-            # el = telltime(el)
-            # sys.stdout.write('\r')
-            # sys.stdout.write("[%s] %f%% Estimated Time: %s" % ('=' * int(count / increment) + '-' * (50 - int(count / increment)), count / totaltask * 100, el))
-            # sys.stdout.flush()
+            # sendtemp2[i,j] = py0s.q
+
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2], 0))
+    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
-        np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp2.reshape(3,-1))
+        # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp2.reshape(3,-1))
         graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
         graphMagPhase(JP, h, rectemp,'Files/' + filename)
 

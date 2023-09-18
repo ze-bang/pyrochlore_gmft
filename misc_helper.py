@@ -34,10 +34,10 @@ b3 = np.pi * np.array([1, 1, -1])
 Gamma = np.array([0, 0, 0])
 
 L = np.pi * np.array([1, 1, 1])
-X = 2 * np.pi * np.array([0, 1, 0])
-W = 2 * np.pi * np.array([0, 1, 1 / 2])
-K = 2 * np.pi * np.array([0, 3 / 4, 3 / 4])
-U = 2 * np.pi * np.array([1 / 4, 1, 1 / 4])
+X = 2 * np.pi * np.array([1, 0, 0])
+W = 2 * np.pi * np.array([1, 0, 1 / 2])
+K = 2 * np.pi * np.array([3/4, 0, 3 / 4])
+U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
 
 stepN = magnitude(np.abs(U-W))/graphres
 
@@ -193,7 +193,7 @@ for i in range(4):
 
 
 A_pi_rs_rsp_pp = np.zeros((4,4,4,4))
-z
+
 for i in range(4):
     for j in range(4):
         for k in range(4):

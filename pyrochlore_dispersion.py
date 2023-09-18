@@ -343,13 +343,13 @@ def GS(lams, k, Jzz, Jpm, eta, h, n):
 
 def green_zero(k, E, V, Jzz):
     Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = Jzz/np.sqrt(2*Jzz*E)
+    green = Jzz/E
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
 def green_zero_branch(k, E, V, Jzz):
     Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = Jzz/np.sqrt(2*Jzz*E)
+    green = Jzz/E
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
@@ -386,13 +386,26 @@ class zeroFluxSolver:
         self. minLams = findminLam(self.MF, self.Jzz, 1e-10)
         warnings.resetwarnings()
 
+    def qvec(self):
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
+        c = np.unique(np.where(E < 0)[0])
+        self.q = np.unique(np.mod(self.bigB[c], 2*np.pi), axis=0)
+
+    def ifcondense(self, q):
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
+        c = np.unique(np.where(E < 0)[0])
+        return c
+
     def condensed(self):
-        return np.absolute(self.minLams - self.lams) < 1e-3
+        return np.absolute(self.minLams - self.lams) < (1e2/len(self.bigB))**2
+
     def M_true(self, k):
         return M_true(k, self.Jpm, self.eta, self.h, self.n)
 
-    def LV_zero(self, k):
-        return E_zero_true(self.lams, k, self.Jpm, self.eta, self.h, self.n)
+    def LV_zero(self, k, lam=np.zeros(2)):
+        if np.any(lam == 0):
+            lam = self.lams
+        return E_zero_true(lam, k, self.Jpm, self.eta, self.h, self.n)
 
 
     def E_zero(self, k):
@@ -403,12 +416,14 @@ class zeroFluxSolver:
         E, V = np.linalg.eigh(temp)
         dex = np.argmin(E,axis=0)[0]
         return np.sqrt(2*self.Jzz*E[dex, 0])
+
     def gapwhere(self):
         temp = self.MF + np.diag(self.lams)
         E, V = np.linalg.eigh(temp)
         # E = np.sqrt(2*self.Jzz*E)
         dex = np.argmin(E,axis=0)[0]
         return np.mod(self.bigB[dex], 2*np.pi)
+
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
         if show:
@@ -469,13 +484,15 @@ class zeroFluxSolver:
     def TWOSPINON_MAX(self, k):
         return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
 
-    def green_zero(self, k):
-        E, V = self.LV_zero(k)
+    def green_zero(self, k, lam=np.zeros(2)):
+        E, V = self.LV_zero(k, lam)
+        E = np.sqrt(2 * self.Jzz * E)
         return green_zero(k, E, V, self.Jzz)
 
-    def green_zero_branch(self, k):
-        E, V = self.LV_zero(k)
-        return green_zero_branch(k, E, V, self.Jzz)
+    def green_zero_branch(self, k, lam=np.zeros(2)):
+        E, V = self.LV_zero(k, lam)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_zero_branch(k, E, V, self.Jzz), E
 
 
     def magnetization(self):
