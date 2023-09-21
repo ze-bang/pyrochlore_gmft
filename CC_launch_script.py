@@ -9,15 +9,15 @@ from misc_helper import *
 
 
 # SSSF(100, 0.2, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.2")
-SSSF(100, 0, h001, hb110, -0.05, 35, "SSSF_pi_-0.05_DETAILED")
-SSSF(100, 0, h111, hb110, -0.20, 35, "SSSF_pi_-0.20_DETAILED")
-SSSF(100, 0, h111, hb110, -0.40, 35, "SSSF_pi_-0.40_DETAILED")
+# SSSF(100, 0, h001, hb110, -0.05, 35, "SSSF_pi_-0.05_DETAILED")
+# SSSF(100, 0, h111, hb110, -0.20, 35, "SSSF_pi_-0.20_DETAILED")
+# SSSF(100, 0, h111, hb110, -0.40, 35, "SSSF_pi_-0.40_DETAILED")
 
 
 
-SSSF(100, 0, h111, hb110, 0.02, 35, "SSSF_zero_0.02_DETAILED")
-SSSF(100, 0, h111, hb110, 0.03, 35, "SSSF_zero_0.03_DETAILED")
-SSSF(100, 0, h111, hb110, 0.04, 35, "SSSF_zero_0.04_DETAILED")
+# SSSF(100, 0, h111, hb110, 0.02, 35, "SSSF_zero_0.02_DETAILED")
+# SSSF(100, 0, h111, hb110, 0.03, 35, "SSSF_zero_0.03_DETAILED")
+# SSSF(100, 0, h111, hb110, 0.04, 35, "SSSF_zero_0.04_DETAILED")
 
 
 
@@ -25,43 +25,43 @@ SSSF(100, 0, h111, hb110, 0.04, 35, "SSSF_zero_0.04_DETAILED")
 
 # SSSF(25, 0, h111,hb110, 0.04,10, "SSSF_zero_0.02")
 
-SSSF(100, 0.4, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.4")
-SSSF(100, 0.5, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.5")
-SSSF(100, 0.6, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.6")
-#
-SSSF(100, 0.2, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.2")
-SSSF(100, 0.3, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.3")
-SSSF(100, 0.4, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.4")
+# SSSF(100, 0.4, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.4")
+# SSSF(100, 0.5, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.5")
+# SSSF(100, 0.6, h111,hb110, -0.1, 35, "SSSF_pi_-0.1_h111=0.6")
+# #
+# SSSF(100, 0.2, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.2")
+# SSSF(100, 0.3, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.3")
+# SSSF(100, 0.4, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.4")
 
-SSSF(100, 0.8, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=0.8")
-SSSF(100, 1.0, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=1.0")
-SSSF(100, 1.2, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=1.2")
+# SSSF(100, 0.8, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=0.8")
+# SSSF(100, 1.0, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=1.0")
+# SSSF(100, 1.2, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=1.2")
 
-SSSF(100, 0.8, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=0.8")
-SSSF(100, 1.0, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=1.0")
-SSSF(100, 1.2, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=1.2")
-#
-SSSF(100, 0.2, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.2")
-SSSF(100, 0.3, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.3")
-SSSF(100, 0.4, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.4")
+# SSSF(100, 0.8, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=0.8")
+# SSSF(100, 1.0, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=1.0")
+# SSSF(100, 1.2, h110,hb110, -0.1, 35, "SSSF_pi_-0.1_h110=1.2")
+# #
+# SSSF(100, 0.2, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.2")
+# SSSF(100, 0.3, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.3")
+# SSSF(100, 0.4, h111,hb110, 0.02,35, "SSSF_zero_0.02_h111=0.4")
 
-SSSF(100, 0.2, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.2")
-SSSF(100, 0.3, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.3")
-SSSF(100, 0.4, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.4")
-#
-SSSF(100, 0.6, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=0.6")
-SSSF(100, 0.8, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=0.8")
-SSSF(100, 1.0, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=1.0")
+# SSSF(100, 0.2, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.2")
+# SSSF(100, 0.3, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.3")
+# SSSF(100, 0.4, h001,hb110, 0.02,35, "SSSF_zero_0.02_h001=0.4")
+# #
+# SSSF(100, 0.6, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=0.6")
+# SSSF(100, 0.8, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=0.8")
+# SSSF(100, 1.0, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=1.0")
 
-# TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
-# TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
-# TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
+TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
+TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
+TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
 
-# TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
-# TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
+TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
+TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
 
-# TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
-# TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
+TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
+TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
 
 
 
