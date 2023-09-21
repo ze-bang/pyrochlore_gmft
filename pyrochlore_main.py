@@ -39,18 +39,8 @@ import netCDF4 as nc
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20, True)
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20)
 
-# graphdispersion(-0.1, 0, h110, 1, 2, 20, 20)
-#
-# graphdispersion(-0.1, 0.2, h1b10, 1, 2, 20, 20)
-# graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
-#
-#
-# graphdispersion(-0.1, 1, h1b10, 1, 2, 20, 20)
+# graphdispersion(-0.1, 2, h110, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
-
-graphdispersion(-0.1, 0.2, h1b10, 1, 2, 20, 20)
-# graphdispersion(-0.1, 1.5, h001, 1, 2, 20, 20)
-
 # M = pypi.M_pi_mag_sub_single(np.pi*np.array([0.1,0.2,0.3]), 1, np.array([0,0,1]))
 # graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
 #
@@ -144,6 +134,16 @@ graphdispersion(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
 # findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
+# findPhaseMag(-0.5, 0.1, 300, 0, 4, 150, h110, 25, 2, "phase_110_kappa=2_complete")
+
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h1b10, 25, 2, "phase_1b10_kappa=2_complete")
+
+# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")
+# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
+# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 4, 150, h110, 25, 2, "phase_110_kappa=2_complete")
+
 # #
 # DSSF(0.01,0, h111, 0.04, "DSSF_0.04_detailed", 35, 0.02)
 
