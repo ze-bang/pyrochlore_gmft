@@ -78,60 +78,57 @@ def M_pi_mag_sub_AB(k, h, n, theta):
 #     return M
 
 
-def M_pi_sub_intrahopping(k, alpha, eta, Jpm):
+def M_pi_sub_intrahopping_BB(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k,NNminus)
-    ffact = np.exp(1j*neta(alpha)*ffact)
+    ffact = np.exp(-1j*neta(alpha)*ffact)
     M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact, piunitcell, piunitcell)
     return M
 
 def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    temp = contract('im, sx, nsx ->ismn', ffact, xi, piunitcell)
-    temp1 = contract('in, sx, msx ->ismn', ffact, xi, piunitcell)
-    con = temp + temp1
+    M1a = contract('jl, kjl, ij, kx, lkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, xi, piunitcell)
+    M1b = contract('jl, kjl, il, kx, jkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, xi, piunitcell)
+    M2a = contract('jl, kjl, ij, kx, lkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(np.transpose(xi)), piunitcell)
+    M2b = contract('jl, kjl, il, kx, jkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(np.transpose(xi)), piunitcell)
+    return M1a + M1b + M2a + M2b
 
-    M = contract('jl, kjl, ikjl, jka, lkb->iab', notrace, Jpmpm*A_pi_rs_traced_pp/4, con, piunitcell, piunitcell)
-    return M
 
-
-def M_pi_sub_chilling_AA(k, alpha, Jpmpm, chi):
+def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0):
     d = np.ones(len(k))
     di = np.identity(4)
-    M = contract('jl, kjl, ab, i, km, jka,lkb->ikm', notrace, Jpmpm*A_pi_rs_traced_pp/8, chi, d, di, piunitcell, piunitcell)
-    return M
-
-def M_pi_sub_mingling_BB(k, alpha, Jpmpm, chi0):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl, kjl, ijl, k, jka, lkb->iab', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, chi0, piunitcell,
+
+    M1 = contract('jl, kjl, ab, i, km, jka,lkb->ikm', notrace, Jpmpm*A_pi_rs_traced_pp / 8, chi, d, di, piunitcell, piunitcell)
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, np.conj(chi0), piunitcell,
                  piunitcell)
-    return M
+    return M1 + M2
+
 
 def M_pi(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
     dummy = np.zeros((len(k),4,4))
 
-    MBk = M_pi_sub_intrahopping(k, 0,eta,Jpm)
-    MAk = M_pi_sub_intrahopping(k, 1,eta,Jpm)
-    MBnk = M_pi_sub_intrahopping(-k, 0, eta, Jpm)
-    MAnk = M_pi_sub_intrahopping(-k, 1, eta, Jpm)
+    MBk = M_pi_sub_intrahopping_BB(k, 0,eta,Jpm)
+    MAk = M_pi_sub_intrahopping_BB(k, 1,eta,Jpm)
+    MBnk = M_pi_sub_intrahopping_BB(-k, 0, eta, Jpm)
+    MAnk = M_pi_sub_intrahopping_BB(-k, 1, eta, Jpm)
 
     MagAkBk = M_pi_mag_sub_AB(k,h,n, theta) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0,2,1)))
     MagAnkBnk = M_pi_mag_sub_AB(-k,h,n, theta) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi)
     MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0,2,1)))
 
-    MAdnkAdk = M_pi_sub_chilling_AA(k, 0, Jpmpm, chi) + np.conj(np.transpose(M_pi_sub_mingling_BB(-k, 1, Jpmpm, chi0), (0,2,1)))
-    MBdnkBdk = M_pi_sub_chilling_AA(k, 1, Jpmpm, chi) + np.conj(np.transpose(M_pi_sub_mingling_BB(-k, 0, Jpmpm, chi0), (0,2,1)))
-    MAnkAk = np.conj(np.transpose(MAdnkAdk, (0,2,1)))
-    MBnkBk = np.conj(np.transpose(MBdnkBdk, (0, 2, 1)))
+    MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi)
+    MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi)
+    MAnkAk = np.conj(np.transpose(MAdkAdnk, (0,2,1)))
+    MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
 
-    FM = np.block([[MAk, MagAkBk, MAdnkAdk, dummy],
-                   [MagBkAk, MBk, dummy, MBdnkBdk],
+    FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
+                   [MagBkAk, MBk, dummy, MBdkBdnk],
                    [MAnkAk, dummy, MAnk, MagAnkBnk],
                    [dummy, MBnkBk, MagBnkAnk, MBnk]])
-    temp = FM - np.transpose(np.conj(FM), (0,2,1))
 
     return FM
 
