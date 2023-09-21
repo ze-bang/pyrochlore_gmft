@@ -183,6 +183,16 @@ for i in range(4):
         for k in range(4):
             A_pi_rs_traced[i,j,k] = np.real(np.exp(1j * (A_pi[i,j] - A_pi[i,k])))
 
+
+A_pi_rs_traced_pp = np.zeros((4,4,4))
+
+
+for i in range(4):
+    for j in range(4):
+        for k in range(4):
+            A_pi_rs_traced_pp[i,j,k] = np.real(np.exp(1j * (A_pi[i,j] + A_pi[i,k])))
+
+
 A_pi_rs_rsp = np.zeros((4,4,4,4))
 
 for i in range(4):
@@ -427,4 +437,5 @@ def twospinon_gangchen(H, L):
 h111=np.array([1,1,1])/np.sqrt(3)
 h001=np.array([0,0,1])
 h110 = np.array([1,1,0])/np.sqrt(2)
+h1b10 = np.array([1,-1,0])/np.sqrt(2)
 hb110 = np.array([-1,1,0])/np.sqrt(2)

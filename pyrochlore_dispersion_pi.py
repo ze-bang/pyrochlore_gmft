@@ -1,21 +1,9 @@
 import matplotlib.pyplot as plt
 import warnings
+
+import numpy as np
+
 from misc_helper import *
-
-
-def M_pi_mag_sub(k, h, n):
-    zmag = contract('k,ik->i',n,z)
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
-    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact, zmag, np.exp(1j*A_pi), piunitcell)
-    return M
-
-def M_pi_mag_sub_single(k, h, n):
-    zmag = contract('k,ik->i',n,z)
-    ffact = contract('k, jk->j', k, NN)
-    ffact = np.exp(1j*ffact)
-    M = contract('u, u, ru, urx->rx',-1/4*h*ffact, zmag, np.exp(1j*A_pi), piunitcell)
-    return M
 
 def M_pi_mag_sub_alg(k, h, n):
     M = np.zeros((len(k),4,4), dtype=np.complex128)
@@ -37,8 +25,6 @@ def M_pi_mag_sub_alg(k, h, n):
     M[:, 3, 2] = np.dot(n, z[2]) * np.exp(1j * np.dot(k, NN[2])) * tempA[3, 2]
     M[:, 3, 1] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[3, 3]
     return -1/4*h*M
-
-
 def M_pi_mag_alg_single(k, h, n):
     M = np.zeros((4,4), dtype=np.complex128)
     tempA = np.exp(1j*A_pi)
@@ -59,8 +45,6 @@ def M_pi_mag_alg_single(k, h, n):
     M[:, 3, 1] = np.dot(n, z[3]) * np.exp(1j * np.dot(k, NN[3])) * tempA[3, 3]
     return -1/4*h*M
 
-
-
 def M_pi_alg(k,Jpm, h, n, Lambda):
     hx, hy, hz = h*n
     M = np.zeros((len(k),8,8), dtype=np.complex128)
@@ -70,35 +54,99 @@ def M_pi_alg(k,Jpm, h, n, Lambda):
         kz = k[i, 2]
         M[i] = np.array([ [Lambda - (Jpm*np.cos((ky + kz)/2))/2, -1/2*(Jpm*(np.cos((kx + kz)/2) - 1.0j*np.sin((kx - ky)/2))), -1/2*(Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - kz)/2))), (1.0j/2)*Jpm*np.sin((ky - kz)/2), (-(hx*np.cos((ky + kz)/4)) + 1.0j*(hy + hz)*np.sin((ky + kz)/4))/(2*np.sqrt(3)*np.exp((1.0j/4)*kx)), (np.exp((1.0j/4)*(kx - ky + kz))*(hx - hy + hz))/(4*np.sqrt(3)), (np.exp((1.0j/4)*(kx + ky - kz))*(hx + hy - hz))/(4*np.sqrt(3)), 0], [-1/2*(Jpm*(np.cos((kx + kz)/2) + 1.0j*np.sin((kx - ky)/2))), Lambda + (Jpm*np.cos((ky + kz)/2))/2, (1.0j/2)*Jpm*np.sin((ky - kz)/2), -1/2*(Jpm*(np.cos((kx + ky)/2) + 1.0j*np.sin((kx - kz)/2))), (np.exp((1.0j/4)*(kx - ky + kz))*(hx - hy + hz))/(4*np.sqrt(3)), (-((hy + hz)*np.cos((ky + kz)/4)) + 1.0j*hx*np.sin((ky + kz)/4))/(2*np.sqrt(3)*np.exp((1.0j/4)*kx)), 0, (np.exp((1.0j/4)*(kx + ky - kz))*(hx + hy - hz))/(4*np.sqrt(3))], [-1/2*(Jpm*(np.cos((kx + ky)/2) + 1.0j*np.sin((kx - kz)/2))), (-1/2*1.0j)*Jpm*np.sin((ky - kz)/2), Lambda + (Jpm*np.cos((ky + kz)/2))/2, (Jpm*(np.cos((kx + kz)/2) + 1.0j*np.sin((kx - ky)/2)))/2, (np.exp((1.0j/4)*(kx + ky - kz))*(hx + hy - hz))/(4*np.sqrt(3)), 0, (-((hy + hz)*np.cos((ky + kz)/4)) + 1.0j*hx*np.sin((ky + kz)/4))/(2*np.sqrt(3)*np.exp((1.0j/4)*kx)), -1/4*(np.exp((1.0j/4)*(kx - ky + kz))*(hx - hy + hz))/np.sqrt(3)], [(-1/2*1.0j)*Jpm*np.sin((ky - kz)/2), -1/2*(Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - kz)/2))), (Jpm*(np.cos((kx + kz)/2) - 1.0j*np.sin((kx - ky)/2)))/2, Lambda - (Jpm*np.cos((ky + kz)/2))/2, 0, (np.exp((1.0j/4)*(kx + ky - kz))*(hx + hy - hz))/(4*np.sqrt(3)), -1/4*(np.exp((1.0j/4)*(kx - ky + kz))*(hx - hy + hz))/np.sqrt(3), (-(hx*np.cos((ky + kz)/4)) + 1.0j*(hy + hz)*np.sin((ky + kz)/4))/(2*np.sqrt(3)*np.exp((1.0j/4)*kx))], [-1/2*(np.exp((1.0j/4)*kx)*(hx*np.cos((ky + kz)/4) + 1.0j*(hy + hz)*np.sin((ky + kz)/4)))/np.sqrt(3), (hx - hy + hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx - ky + kz))), (hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx + ky - kz))), 0, Lambda - (Jpm*np.cos((ky + kz)/2))/2, -1/2*(Jpm*(np.cos((kx + kz)/2) + 1.0j*np.sin((kx - ky)/2))), -1/2*(Jpm*(np.cos((kx + ky)/2) + 1.0j*np.sin((kx - kz)/2))), (-1/2*1.0j)*Jpm*np.sin((ky - kz)/2)], [(hx - hy + hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx - ky + kz))), -1/2*(np.exp((1.0j/4)*kx)*((hy + hz)*np.cos((ky + kz)/4) + 1.0j*hx*np.sin((ky + kz)/4)))/np.sqrt(3), 0, (hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx + ky - kz))), -1/2*(Jpm*(np.cos((kx + kz)/2) - 1.0j*np.sin((kx - ky)/2))), Lambda + (Jpm*np.cos((ky + kz)/2))/2, (-1/2*1.0j)*Jpm*np.sin((ky - kz)/2), -1/2*(Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - kz)/2)))], [(hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx + ky - kz))), 0, -1/2*(np.exp((1.0j/4)*kx)*((hy + hz)*np.cos((ky + kz)/4) + 1.0j*hx*np.sin((ky + kz)/4)))/np.sqrt(3), (-hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx - ky + kz))), -1/2*(Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - kz)/2))), (1.0j/2)*Jpm*np.sin((ky - kz)/2), Lambda + (Jpm*np.cos((ky + kz)/2))/2, (Jpm*(np.cos((kx + kz)/2) - 1.0j*np.sin((kx - ky)/2)))/2], [0, (hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx + ky - kz))), (-hx + hy - hz)/(4*np.sqrt(3)*np.exp((1.0j/4)*(kx - ky + kz))), -1/2*(np.exp((1.0j/4)*kx)*(hx*np.cos((ky + kz)/4) + 1.0j*(hy + hz)*np.sin((ky + kz)/4)))/np.sqrt(3), (1.0j/2)*Jpm*np.sin((ky - kz)/2), -1/2*(Jpm*(np.cos((kx + ky)/2) + 1.0j*np.sin((kx - kz)/2))), (Jpm*(np.cos((kx + kz)/2) + 1.0j*np.sin((kx - ky)/2)))/2, Lambda - (Jpm*np.cos((ky + kz)/2))/2] ])
     return M
+def M_pi_mag_sub_single(k, h, n, theta):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*ffact)
+    M = contract('u, u, ru, urx->rx',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, np.exp(1j*A_pi), piunitcell)
+    return M
 
 
-def M_pi_sub(k, alpha, eta, Jpm):
+
+def M_pi_mag_sub_AB(k, h, n, theta):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*ffact)
+    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, np.exp(1j*A_pi), piunitcell)
+    return M
+
+# def M_pi_mag_sub_BA(k, h, n, theta):
+#     zmag = contract('k,ik->i',n,z)
+#     ffact = contract('ik, jk->ij', k, NN)
+#     ffact = np.exp(-1j*ffact)
+#     M = contract('ku, u, ru, urx->kxr',-1/8*h*ffact*(np.cos(theta)+1j*np.sin(theta)), zmag, np.exp(-1j*A_pi), piunitcell)
+#     return M
+
+
+def M_pi_sub_intrahopping(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffact = np.exp(1j*neta(alpha)*ffact)
     M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact, piunitcell, piunitcell)
     return M
 
+def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi):
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*neta(alpha)*ffact)
+    temp = contract('im, sx, nsx ->ismn', ffact, xi, piunitcell)
+    temp1 = contract('in, sx, msx ->ismn', ffact, xi, piunitcell)
+    con = temp + temp1
 
-def M_pi(k,eta,Jpm, h, n):
-    M1 = M_pi_sub(k, 0,eta,Jpm)
-    M2 = M_pi_sub(k, 1,eta,Jpm)
-    Mag1 = M_pi_mag_sub(k,h,n)
-    Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
-    FM = np.block([[M1, Mag1], [Mag2, M2]])
+    M = contract('jl, kjl, ikjl, jka, lkb->iab', notrace, Jpmpm*A_pi_rs_traced_pp/4, con, piunitcell, piunitcell)
+    return M
+
+
+def M_pi_sub_chilling_AA(k, alpha, Jpmpm, chi):
+    d = np.ones(len(k))
+    di = np.identity(4)
+    M = contract('jl, kjl, ab, i, km, jka,lkb->ikm', notrace, Jpmpm*A_pi_rs_traced_pp/8, chi, d, di, piunitcell, piunitcell)
+    return M
+
+def M_pi_sub_mingling_BB(k, alpha, Jpmpm, chi0):
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(-1j * neta(alpha) * ffact)
+    M = contract('jl, kjl, ijl, k, jka, lkb->iab', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, chi0, piunitcell,
+                 piunitcell)
+    return M
+
+def M_pi(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+
+    dummy = np.zeros((len(k),4,4))
+
+    MBk = M_pi_sub_intrahopping(k, 0,eta,Jpm)
+    MAk = M_pi_sub_intrahopping(k, 1,eta,Jpm)
+    MBnk = M_pi_sub_intrahopping(-k, 0, eta, Jpm)
+    MAnk = M_pi_sub_intrahopping(-k, 1, eta, Jpm)
+
+    MagAkBk = M_pi_mag_sub_AB(k,h,n, theta) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi)
+    MagBkAk = np.conj(np.transpose(MagAkBk, (0,2,1)))
+    MagAnkBnk = M_pi_mag_sub_AB(-k,h,n, theta) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi)
+    MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0,2,1)))
+
+    MAdnkAdk = M_pi_sub_chilling_AA(k, 0, Jpmpm, chi) + np.conj(np.transpose(M_pi_sub_mingling_BB(-k, 1, Jpmpm, chi0), (0,2,1)))
+    MBdnkBdk = M_pi_sub_chilling_AA(k, 1, Jpmpm, chi) + np.conj(np.transpose(M_pi_sub_mingling_BB(-k, 0, Jpmpm, chi0), (0,2,1)))
+    MAnkAk = np.conj(np.transpose(MAdnkAdk, (0,2,1)))
+    MBnkBk = np.conj(np.transpose(MBdnkBdk, (0, 2, 1)))
+
+    FM = np.block([[MAk, MagAkBk, MAdnkAdk, dummy],
+                   [MagBkAk, MBk, dummy, MBdnkBdk],
+                   [MAnkAk, dummy, MAnk, MagAnkBnk],
+                   [dummy, MBnkBk, MagBnkAnk, MBnk]])
+    temp = FM - np.transpose(np.conj(FM), (0,2,1))
+
     return FM
 
 
 def E_pi_fixed(lams, M):
-    M = M + np.diag(np.repeat(lams,4))
+    M = M + np.diag(np.repeat(np.repeat(lams,4),2))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
 
 
-def E_pi(lams, k, eta, Jpm, h, n):
-    # M = M_pi(k,eta,Jpm, h, n)
-    # M = M + np.diag(np.repeat(lams,4))
-    M = M_pi_alg(k,Jpm, h, n, lams[0])
+def E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    M = M_pi(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    M = M + np.diag(np.repeat(np.repeat(lams,4),2))
+    # M = M_pi_alg(k,Jpm, Jpmpm, h, n, lams[0])
     E, V = np.linalg.eigh(M)
     return [E,V]
 
@@ -106,7 +154,7 @@ def E_pi(lams, k, eta, Jpm, h, n):
 def rho_true(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     # print(M)
-    temp = M + np.diag(np.repeat(lams,4))
+    temp = M + np.diag(np.repeat(np.repeat(lams,4),2))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
@@ -161,22 +209,42 @@ def findlambda_pi(M, Jzz, kappa, tol):
 
 
 
+#region calculate mean field
+
+def chi():
+    return 0
+
+def chi0():
+    return 0
+
+def xi():
+    return 0
+
+
+
+
+
+
+
+#endregion
+
+
 # graphing BZ
 
-def dispersion_pi(lams, k, Jzz, Jpm, eta, h, n):
-    temp = np.sqrt(2*Jzz*E_pi(lams, k, eta, Jpm, h, n)[0])
+def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi):
+    temp = np.sqrt(2*Jzz*E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
     return temp
 
-def calDispersion(lams, Jzz, Jpm, eta, h, n):
-    dGammaX= dispersion_pi(lams, GammaX, Jzz, Jpm, eta, h, n)
-    dXW= dispersion_pi(lams, XW, Jzz, Jpm, eta, h, n)
-    dWK = dispersion_pi(lams, WK, Jzz, Jpm, eta, h, n)
-    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, eta, h, n)
-    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, eta, h, n)
-    dLU= dispersion_pi(lams, LU, Jzz, Jpm, eta, h, n)
-    dUW = dispersion_pi(lams, UW, Jzz, Jpm, eta, h, n)
+def calDispersion(lams, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi):
+    dGammaX= dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dXW= dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dLU= dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
+    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi)
 
-    for i in range(8):
+    for i in range(dGammaX.shape[1]):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:,i], 'b')
         plt.plot(np.linspace(gX, gW1, len(dXW)), dXW[:, i] , 'b')
         plt.plot(np.linspace(gW1, gK, len(dWK)), dWK[:, i], 'b')
@@ -199,40 +267,40 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
     plt.xticks(xlabpos, labels)
 
 # @nb.njit(parallel=True, cache=True)
-def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
+def minCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     temp = np.zeros(len(q))
-    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,0]
+    mins = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,0]
     for i in range(len(q)):
-        temp[i] = np.min(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0])[:,0] + mins)
+        temp[i] = np.min(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,0] + mins)
     return temp
 
 # @nb.njit(parallel=True, cache=True)
-def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+def maxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     temp = np.zeros(len(q))
-    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,7]
+    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,7]
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0])[:,7] + maxs)
+        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,7] + maxs)
     return temp
 
-def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
+def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     temp = np.zeros((len(q),2))
-    Ek = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])
+    Ek = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
     for i in range(len(q)):
-        Eq = np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0])
+        Eq = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
         temp[i,0] = np.min(np.amin(Ek, axis=1)+np.amin(Eq, axis=1))
         temp[i,1] = np.max(np.amax(Ek, axis=1)+np.amax(Eq, axis=1))
     return temp
 
 
 
-def loweredge(lams, Jzz, Jpm, eta, h, n, K):
-    dGammaX= minCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
-    dXW= minCal(lams, XW, Jzz, Jpm, eta, h, n, K)
-    dWK = minCal(lams, WK, Jzz, Jpm, eta, h, n, K)
-    dKGamma = minCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
-    dGammaL = minCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
-    dLU= minCal(lams, LU, Jzz, Jpm, eta, h, n, K)
-    dUW = minCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+def loweredge(lams, Jzz, Jpm,Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
+    dGammaX= minCal(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dXW= minCal(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dWK = minCal(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dKGamma = minCal(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dGammaL = minCal(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dLU= minCal(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dUW = minCal(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
 
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
     plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
@@ -255,14 +323,14 @@ def loweredge(lams, Jzz, Jpm, eta, h, n, K):
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
 
-def upperedge(lams, Jzz, Jpm, eta, h, n, K):
-    dGammaX= maxCal(lams, GammaX, Jzz, Jpm, eta, h, n, K)
-    dXW= maxCal(lams, XW, Jzz, Jpm, eta, h, n, K)
-    dWK = maxCal(lams, WK, Jzz, Jpm, eta, h, n, K)
-    dKGamma = maxCal(lams, KGamma, Jzz, Jpm, eta, h, n, K)
-    dGammaL = maxCal(lams, GammaL, Jzz, Jpm, eta, h, n, K)
-    dLU= maxCal(lams, LU, Jzz, Jpm, eta, h, n, K)
-    dUW = maxCal(lams, UW, Jzz, Jpm, eta, h, n, K)
+def upperedge(lams, Jzz, Jpm,Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
+    dGammaX= maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dXW= maxCal(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dWK = maxCal(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dKGamma = maxCal(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dGammaL = maxCal(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dLU= maxCal(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
+    dUW = maxCal(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi)
 
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
     plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
@@ -329,9 +397,11 @@ def green_pi_old_branch(E, V, Jzz):
 
 class piFluxSolver:
 
-    def __init__(self, Jpm, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
+    def __init__(self, Jpm, Jpmpm=0, theta=0, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
         self.Jzz = Jzz
         self.Jpm = Jpm
+        self.Jpmpm = Jpmpm
+        self.theta = theta
         self.kappa = kappa
         self.eta = np.array([eta, 1], dtype=float)
         self.tol = 1e-5
@@ -339,13 +409,18 @@ class piFluxSolver:
         self.h = h
         self.n = n
 
+        self.Jpmpm = 0
+        self.chi = np.ones((4,4))
+        self.chi0 = np.ones(4)
+        self.xi = np.ones((4,4))
+
 
         self.minLams = np.zeros(2)
 
         self.BZres = BZres
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres), symK))
-        self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.h, self.n)
+        self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.q = np.empty((len(self.bigB),3))
         self.q[:] = np.nan
 
@@ -362,13 +437,13 @@ class piFluxSolver:
 
     def qvec(self):
         # print((2e2/len(self.bigB))**2)
-        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0]
         c = np.unique(np.where(E < 0)[0])
         temp = np.unique(self.bigB[c], axis=0)
         self.q[0:len(temp),:] = temp
 
     def ifcondense(self, q):
-        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0]
         c = np.unique(np.where(E < 0)[0])
         return c
 
@@ -376,29 +451,26 @@ class piFluxSolver:
         return np.absolute(self.minLams - self.lams) < (2e2/len(self.bigB))**2
 
     def M_true(self, k):
-        return M_pi(k, self.eta, self.Jpm, self.h, self.n)
-
-    def M_pi_sub(self, k, rs, alpha):
-        return M_pi_sub(k, rs, alpha, self.eta, self.Jpm)
+        return M_pi(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
 
     def E_pi(self, k):
-        return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)[0])
+        return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0])
 
     def dispersion(self, k):
-        return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n)
+        return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
 
     def LV_zero(self, k, lam=np.zeros(2)):
         if np.any(lam == 0):
             lam = self.lams
-        return E_pi(lam, k, self.eta, self.Jpm, self.h, self.n)
+        return E_pi(lam, k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
 
-    def LV_zero_old(self, k,alpha):
-        M = M_pi_sub(k, alpha, self.eta, self.Jpm)
-        M = M+np.diag(np.repeat(self.lams[0],4))
-        E,V = np.linalg.eigh(M)
-        if alpha == 1:
-            V = np.conj(V)
-        return [E,V]
+    # def LV_zero_old(self, k,alpha):
+    #     M = M_pi_sub(k, alpha, self.eta, self.Jpm)
+    #     M = M+np.diag(np.repeat(self.lams[0],4))
+    #     E,V = np.linalg.eigh(M)
+    #     if alpha == 1:
+    #         V = np.conj(V)
+    #     return [E,V]
 
     # def LV_zero_old_single(self, k, alpha):
     #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))
@@ -419,7 +491,7 @@ class piFluxSolver:
         return np.mean(self.E_pi(self.bigB)) - self.lams[0]
 
     def graph(self, show):
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n)
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         if show:
             plt.show()
 
@@ -434,31 +506,31 @@ class piFluxSolver:
     #     return np.sqrt(2*self.Jzz*E)
 
     def minCal(self, K):
-        return minCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi)
 
     def maxCal(self, K):
-        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi)
 
     def minMaxCal(self, K):
-        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi)
 
     def EMAX(self):
         return np.sqrt(2*self.Jzz*EMAX(self.MF, self.lams))
 
     def TWOSPINON_GAP(self, k):
-        return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
+        return np.min(minCal(self.lams, k, self.Jzz, self.Jpmpm, self.Jpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi))
 
     def TWOSPINON_MAX(self, k):
-        return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB))
+        return np.max(maxCal(self.lams, k, self.Jzz, self.Jpmpm, self.Jpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi))
 
 
     def graph_loweredge(self, show):
-        loweredge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.chi0, self.xi)
         if show:
             plt.show()
 
@@ -472,13 +544,13 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*E)
         return green_pi_branch(E, V, self.Jzz), E
 
-    def green_pi_old(self, k, alpha):
-        E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old(E, V, self.Jzz)
-
-    def green_pi_old_branch(self, k, alpha):
-        E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old_branch(E, V, self.Jzz)
+    # def green_pi_old(self, k, alpha):
+    #     E, V = self.LV_zero_old(k,alpha)
+    #     return green_pi_old(E, V, self.Jzz)
+    #
+    # def green_pi_old_branch(self, k, alpha):
+    #     E, V = self.LV_zero_old(k,alpha)
+    #     return green_pi_old_branch(E, V, self.Jzz)
 
     def magnetization(self):
         green = self.green_pi(self.bigB)
