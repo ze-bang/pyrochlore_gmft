@@ -39,6 +39,7 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         print(a)
         print(py0s.q)
         p = np.unique(np.mod(np.around(py0s.q, decimals=6), 2*np.pi), axis=0)
+        plt.savefig('test.png')
         # temp = py0s.green_pi(py0s.bigB)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)

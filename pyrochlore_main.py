@@ -40,7 +40,7 @@ import netCDF4 as nc
 # graphedges(-1/3, 1, h111, 1, 1, 20, 20)
 
 # graphdispersion(-0.1, 2, h110, 1, 2, 20, 20)
-# graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
+graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
 # M = pypi.M_pi_mag_sub_single(np.pi*np.array([0.1,0.2,0.3]), 1, np.array([0,0,1]))
 # graphdispersion(-0.1, 0.2, h001, 1, 2, 20, 20)
 #

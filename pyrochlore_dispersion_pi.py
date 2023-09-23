@@ -120,8 +120,8 @@ def M_pi(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     MagAnkBnk = M_pi_mag_sub_AB(-k,h,n, theta) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi)
     MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0,2,1)))
 
-    MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi)
-    MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi)
+    MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, chi0)
+    MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, chi0)
     MAnkAk = np.conj(np.transpose(MAdkAdnk, (0,2,1)))
     MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
 
@@ -208,10 +208,22 @@ def findlambda_pi(M, Jzz, kappa, tol):
 
 #region calculate mean field
 
-def chi():
-    return 0
+def chi(lams, M, K, Jzz):
+    E, V = E_pi_fixed(lams, M)
+    E = np.sqrt(2*Jzz*E)
+    green = green_pi(E, V, Jzz)
+    ffact = contract('ik,jlk->ijl', K, NNminus)
+    ffactA = np.exp(1j * ffact)
+    ffactB = np.exp(-1j * ffact)
 
-def chi0():
+    M1 = contract('iab, ijl,jka, lkb,->i', green[:,8:12,0:4], ffactA, piunitcell, piunitcell)
+    M2 = contract('iab, ijl,jka, lkb,->i', green[:,12:16,4:8], ffactB, piunitcell, piunitcell)
+
+    return np.mean(M1 + M2, axis=0)
+
+
+def chi0(lams, M, K, Jzz):
+
     return 0
 
 def xi():
@@ -363,11 +375,30 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
-def green_pi(E, V, Jzz):
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+def green_pi_phid_phi(E, V, Jzz):
+    Vt1 = contract('ijk, ikl->iklj', V[:,:,0:8], np.transpose(np.conj(V), (0,2,1))[:,0:8,:])
+    Vt2 = contract('ijk, ikl->iklj', V[:,:,8:16], np.transpose(np.conj(V), (0,2,1))[:,8:16,:])
     green = Jzz/E
-    green = contract('ikjl, ik->ijl', Vt, green)
+    green1 = contract('ikjl, ik->ijl', Vt1, green[:,0:8])
+    green2 = contract('iklj, ik->ijl', Vt2, green[:,8:16])
+    return green1 + green2
+
+def green_pi_phi_phi(E, V, Jzz):
+    Vt1 = contract('ijk, ilk->ikjl', V[:,0:8,8:16], V[:, 0:8, 0:8])
+    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
+    green = Jzz/E
+    green1 = contract('ikjl, ik->ijl', Vt1, green[:, 8:16])
+    green2 = contract('iklj, ik->ijl', Vt2, green[:, 0:8])
+    return green1+green2
+
+def green_pi(E, V, Jzz):
+    green_phi_phi = green_pi_phi_phi(E, V, Jzz)[:,8:16, 0:8]
+    green_phid_phi = green_pi_phid_phi(E,V,Jzz)
+    green = np.block([[green_phid_phi[:, 0:8, 0:8], np.tranpose(np.conj(green_phi_phi), (0,2,1))],
+                      green_phi_phi, green_phid_phi[:, 8:16, 8:16]])
+    
     return green
+
 
 def green_pi_old(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
