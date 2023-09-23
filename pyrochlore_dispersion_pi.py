@@ -216,18 +216,32 @@ def chi(lams, M, K, Jzz):
     ffactA = np.exp(1j * ffact)
     ffactB = np.exp(-1j * ffact)
 
-    M1 = contract('iab, ijl,jka, lkb,->i', green[:,8:12,0:4], ffactA, piunitcell, piunitcell)
-    M2 = contract('iab, ijl,jka, lkb,->i', green[:,12:16,4:8], ffactB, piunitcell, piunitcell)
+    M1 = np.mean(contract('iab, ijl,jka, lkb,->iab', green[:,8:12,0:4], ffactA, piunitcell, piunitcell), axis=0)
+    M2 = np.mean(contract('iab, ijl,jka, lkb,->iab', green[:,12:16,4:8], ffactB, piunitcell, piunitcell), axis=0)
+    dum = np.zeros((4, 4))
+    return np.block([[M1, dum],[dum, M2]])
 
-    return np.mean(M1 + M2, axis=0)
 
+def chi0(lams, M, Jzz):
+    E, V = E_pi_fixed(lams, M)
+    E = np.sqrt(2*Jzz*E)
+    green = green_pi(E, V, Jzz)
 
-def chi0(lams, M, K, Jzz):
+    M = np.mean(contract('iaa ->ia', green[:,0:8,8:16]), axis=0)
+    return M
 
-    return 0
+def xi(lams, M, K, Jzz):
+    E, V = E_pi_fixed(lams, M)
+    E = np.sqrt(2*Jzz*E)
+    green = green_pi(E, V, Jzz)
+    ffact = contract('ik,jk->ij', K, NN)
+    ffactA = np.exp(1j * ffact)
+    ffactB = np.exp(-1j * ffact)
 
-def xi():
-    return 0
+    M1 = np.mean(contract('ika, ij,jka,->ika', green[:,8:12,0:4], ffactA, piunitcell), axis=0)
+    M2 = np.mean(contract('ika, ij,jka,->ika', green[:,12:16,4:8], ffactB, piunitcell), axis=0)
+    dum = np.zeros((4, 4))
+    return np.block([[M1, dum],[dum, M2]])
 
 
 
