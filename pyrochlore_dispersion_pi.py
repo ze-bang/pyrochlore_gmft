@@ -70,13 +70,6 @@ def M_pi_mag_sub_AB(k, h, n, theta):
     M = contract('ku, u, ru, urx->krx',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, np.exp(1j*A_pi), piunitcell)
     return M
 
-# def M_pi_mag_sub_BA(k, h, n, theta):
-#     zmag = contract('k,ik->i',n,z)
-#     ffact = contract('ik, jk->ij', k, NN)
-#     ffact = np.exp(-1j*ffact)
-#     M = contract('ku, u, ru, urx->kxr',-1/8*h*ffact*(np.cos(theta)+1j*np.sin(theta)), zmag, np.exp(-1j*A_pi), piunitcell)
-#     return M
-
 
 def M_pi_sub_intrahopping_BB(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k,NNminus)
@@ -87,10 +80,13 @@ def M_pi_sub_intrahopping_BB(k, alpha, eta, Jpm):
 def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j*neta(alpha)*ffact)
-    M1a = contract('jl, kjl, ij, kx, lkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, xi, piunitcell)
-    M1b = contract('jl, kjl, il, kx, jkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, xi, piunitcell)
-    M2a = contract('jl, kjl, ij, kx, lkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(np.transpose(xi)), piunitcell)
-    M2b = contract('jl, kjl, il, kx, jkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(np.transpose(xi)), piunitcell)
+    beta = 1-alpha
+    tempxb = xi[4*alpha:4*(alpha+1), 4*beta:4*(beta+1)]
+    tempxa = xi[4*beta:4*(beta+1), 4*alpha:4*(alpha+1)]
+    M1a = contract('jl, kjl, ij, kx, lkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, tempxb, piunitcell)
+    M1b = contract('jl, kjl, il, kx, jkx->ikx', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, tempxb, piunitcell)
+    M2a = contract('jl, kjl, ij, xk, lkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(tempxa), piunitcell)
+    M2b = contract('jl, kjl, il, xk, jkx->ixk', notrace, -Jpmpm/4*A_pi_rs_traced_pp, ffact, np.conj(tempxa), piunitcell)
     return M1a + M1b + M2a + M2b
 
 
@@ -99,9 +95,12 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0):
     di = np.identity(4)
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
+    beta = 1-alpha
+    tempchi = chi[4*beta:4*(beta+1), 4*beta:4*(beta+1)]
+    tempchi0 = chi0[4*beta:4*(beta+1)]
 
-    M1 = contract('jl, kjl, ab, i, km, jka,lkb->ikm', notrace, Jpmpm*A_pi_rs_traced_pp / 8, chi, d, di, piunitcell, piunitcell)
-    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, np.conj(chi0), piunitcell,
+    M1 = contract('jl, kjl, ab, i, km, jka,lkb->ikm', notrace, Jpmpm*A_pi_rs_traced_pp / 8, tempchi, d, di, piunitcell, piunitcell)
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, np.conj(tempchi0), piunitcell,
                  piunitcell)
     return M1 + M2
 
@@ -226,7 +225,6 @@ def chi0(lams, M, Jzz):
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2*Jzz*E)
     green = green_pi(E, V, Jzz)
-
     M = np.mean(contract('iaa ->ia', green[:,0:8,8:16]), axis=0)
     return M
 
@@ -377,14 +375,14 @@ def upperedge(lams, Jzz, Jpm,Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     plt.xticks(xlabpos, labels)
 
 def gap(M, lams):
-    temp = M + np.diag(np.repeat(lams,4))
+    temp = M + np.diag(np.repeat(np.repeat(lams,4),2))
     E,V = np.linalg.eigh(temp)
     # E = np.sqrt(E)
     temp = np.amin(E)
     return temp
 
 def EMAX(M, lams):
-    temp = M + np.diag(np.repeat(lams,4))
+    temp = M + np.diag(np.repeat(np.repeat(lams,4),2))
     E,V = np.linalg.eigh(temp)
     temp = np.amax(E)
     return temp
@@ -406,7 +404,7 @@ def green_pi_phi_phi(E, V, Jzz):
     return green1+green2
 
 def green_pi(E, V, Jzz):
-    green_phi_phi = green_pi_phi_phi(E, V, Jzz)[:,8:16, 0:8]
+    green_phi_phi = green_pi_phi_phi(E, V, Jzz)
     green_phid_phi = green_pi_phid_phi(E,V,Jzz)
     green = np.block([[green_phid_phi[:, 0:8, 0:8], np.tranpose(np.conj(green_phi_phi), (0,2,1))],
                       green_phi_phi, green_phid_phi[:, 8:16, 8:16]])
@@ -452,9 +450,9 @@ class piFluxSolver:
         self.n = n
 
         self.Jpmpm = 0
-        self.chi = np.ones((4,4))
-        self.chi0 = np.ones(4)
-        self.xi = np.ones((4,4))
+        self.chi = np.ones((8,8))
+        self.chi0 = np.ones(8)
+        self.xi = np.ones((8,8))
 
 
         self.minLams = np.zeros(2)
@@ -472,10 +470,31 @@ class piFluxSolver:
     def findLambda(self):
         self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
         warnings.resetwarnings()
+
     def findminLam(self):
         self.minLams = findminLam(self.MF, self.Jzz, 1e-10)
         warnings.resetwarnings()
 
+    def solvemeanfield(self, tol):
+        self.findLambda()
+        chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
+        chi0next = chi0(self.lams, self.MF, self.Jzz)
+        xinext = xi(self.lams, self.MF, self.bigB, self.Jzz)
+        while((abs(chinext-self.chi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any() or (abs(xinext-self.xi)>=tol).any()):
+            self.chi = chinext
+            self.chi0 = chi0next
+            self.xi = xinext
+            self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
+            self.findLambda()
+            chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
+            chi0next = chi0(self.lams, self.MF, self.Jzz)
+            xinext = xi(self.lams, self.MF, self.bigB, self.Jzz)
+
+        self.chi = chinext
+        self.chi0 = chi0next
+        self.xi = xinext
+        return 0
+        
 
     def qvec(self):
         # print((2e2/len(self.bigB))**2)
