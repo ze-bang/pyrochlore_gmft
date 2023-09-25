@@ -2,7 +2,7 @@
 from pyrochlore_dispersion_pi import green_pi, green_pi_branch, green_pi_old
 from pyrochlore_dispersion import green_zero_branch, green_zero
 import pyrochlore_dispersion_pi_gang_chen as pygang
-import pyrochlore_dispersion_pi_gang_chen_wrong as pywrong
+import pyrochlore_dispersion_pi_old as pywrong
 from misc_helper import *
 import matplotlib.pyplot as plt
 import pyrochlore_dispersion as py0

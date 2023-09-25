@@ -3,49 +3,98 @@ import warnings
 from misc_helper import *
 
 
+piunitcell_here = np.array([
+    [[1,0],
+     [0,1]],
+    [[1,0],
+     [0,1]],
+    [[0,1],
+     [1,0]],
+    [[0,1],
+     [1,0]],
+])
+
+A_pi_here_down = np.array([
+    [0,0, np.pi,0],
+    [0,np.pi, 0,0]
+])
+
+A_pi_here_up = np.array([
+    [0,0,0,0],
+    [0,np.pi,np.pi,0]
+])
+
+
+A_pi_rs_traced_here_up = np.zeros((2,4,4))
+A_pi_rs_traced_here_down = np.zeros((2,4,4))
+
+for i in range(2):
+    for j in range(4):
+        for k in range(4):
+            A_pi_rs_traced_here_up[i,j,k] = np.real(np.exp(1j * (A_pi_here_up[i,j] - A_pi_here_up[i,k])))
+            A_pi_rs_traced_here_down[i,j,k] = np.real(np.exp(1j * (A_pi_here_down[i,j] - A_pi_here_down[i,k])))
+
 def M_pi_mag_sub(k, h, n):
     M = np.zeros((len(k),2,2), dtype=np.complex128)
-    M[:, 0, 0] = np.exp(1j*np.dot(k,-NN[0]))*np.dot(n, -NN[0]) + np.exp(1j*np.dot(k,-NN[1]))*np.dot(n, -NN[1])
-    M[:, 0, 1] = np.exp(1j*np.dot(k,-NN[2]))*np.dot(n, -NN[2]) + np.exp(1j*np.dot(k,-NN[3]))*np.dot(n, -NN[3])
-    M[:, 1, 0] = -np.exp(1j*np.dot(k,-NN[2]))*np.dot(n, -NN[2]) + np.exp(1j*np.dot(k,-NN[3]))*np.dot(n, -NN[3])
-    M[:, 1, 1] = np.exp(1j*np.dot(k,-NN[0]))*np.dot(n, -NN[0]) - np.exp(1j*np.dot(k,-NN[1]))*np.dot(n, -NN[1])
-    return h/4*M
+    M[:, 0, 0] = np.exp(1j*np.dot(k,NN[0])) * np.dot(n, z[0]) + np.exp(1j*np.dot(k,NN[1])) * np.dot(n, z[1])
+    M[:, 0, 1] = -np.exp(1j*np.dot(k,NN[2])) * np.dot(n, z[2]) + np.exp(1j*np.dot(k,NN[3])) * np.dot(n, z[3])
+    M[:, 1, 0] = np.exp(1j*np.dot(k,NN[2]))*np.dot(n, z[2]) + np.exp(1j*np.dot(k,NN[3])) * np.dot(n, z[3])
+    M[:, 1, 1] = np.exp(1j*np.dot(k,NN[0]))*np.dot(n, z[0]) - np.exp(1j*np.dot(k,NN[1]))*np.dot(n, z[1])
+    return -h/4*M
 
 
-def M_pi_sub_0(k, Jpm):
-    kx = k[:,0]
-    ky = k[:,1]
-    kz = k[:,2]
-    M = np.zeros((len(k),2,2), dtype=np.complex128)
-    M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
-    M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
-    M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.cos(kz/2))
-    M[:, 1, 1] = -np.multiply(np.cos(ky/2),np.cos(kz/2))
-    return -Jpm*M
+# def M_pi_sub_0(k, Jpm):
+#     kx = k[:,0]
+#     ky = k[:,1]
+#     kz = k[:,2]
+#     M = np.zeros((len(k),2,2), dtype=np.complex128)
+#     M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
+#     M[:, 0, 1] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+#     M[:, 1, 0] = -np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+#     M[:, 1, 1] = -np.multiply(np.cos(ky/2), np.cos(kz/2))
+#     return Jpm*M
+#
+# def M_pi_sub_1(k, Jpm):
+#     k = k+np.pi*np.array([1,1,1])
+#     kx = k[:,0]
+#     ky = k[:,1]
+#     kz = k[:,2]
+#     M = np.zeros((len(k),2,2), dtype=np.complex128)
+#     M[:,0,0] = np.multiply(np.cos(ky/2), np.cos(kz/2))
+#     M[:, 0, 1] = np.multiply(np.sin(kx / 2), np.sin(ky / 2)) - 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+#     M[:, 1, 0] = np.multiply(np.sin(kx / 2), np.sin(ky / 2)) + 1j*np.multiply(np.cos(kx/2),np.sin(kz/2))
+#     M[:, 1, 1] = -np.multiply(np.cos(ky/2),np.cos(kz/2))
+#     return Jpm*M
 
-def M_pi_sub_1(k, Jpm):
-    kx = k[:,0]
-    ky = k[:,1]
-    kz = k[:,2]
-    M = np.zeros((len(k),2,2), dtype=np.complex128)
-    M[:,0,0] = -np.multiply(np.sin(ky/2),np.sin(kz/2))
-    M[:, 0, 1] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) - 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
-    M[:, 1, 0] = np.multiply(np.cos(kx / 2) , np.cos(ky / 2)) + 1j*np.multiply(np.sin(kx/2),np.cos(kz/2))
-    M[:, 1, 1] = np.multiply(np.sin(ky/2),np.sin(kz/2))
-    return -Jpm*M
+def M_pi_mag_sub_AB(k, h, n, theta):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*ffact)
+    M = contract('ku, u, ru, urx->krx',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, np.exp(1j*A_pi), piunitcell)
+    return M
+
+
+def M_pi_sub_intrahopping_BB(k, alpha, eta, Jpm):
+    ffact = contract('ik, jlk->ijl', k,NNminus)
+    ffact = np.exp(-1j*neta(alpha)*ffact)
+    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact, piunitcell, piunitcell)
+    return M
 
 
 def M_pi(k,eta,Jpm, h, n):
-    M1 = M_pi_sub_0(k,Jpm)
-    M2 = M_pi_sub_1(k,Jpm)
-    Mag1 = M_pi_mag_sub(k,h,n)
+    # M1 = M_pi_sub_0(k,Jpm)
+    # M2 = M_pi_sub_1(k,Jpm)
+    M1 =M_pi_sub_intrahopping_BB(k, 1, eta, Jpm)
+    M2 = M_pi_sub_intrahopping_BB(k, 0, eta, Jpm)
+    Mag1 = M_pi_mag_sub_AB(k, h, n, 0)
+    # temp = M_pi_mag_sub(k,h,n)
     Mag2 = np.conj(np.transpose(Mag1, (0,2,1)))
     FM = np.block([[M1, Mag1], [Mag2, M2]])
     return FM
 
 
 def E_pi_fixed(lams, M):
-    M = M + np.diag(np.repeat(lams,2))
+    M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
@@ -53,7 +102,7 @@ def E_pi_fixed(lams, M):
 
 def E_pi(lams, k, eta, Jpm, h, n):
     M = M_pi(k,eta,Jpm, h, n)
-    M = M + np.diag(np.repeat(lams,2))
+    M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
     # print(E)
     return [E,V]
@@ -61,7 +110,7 @@ def E_pi(lams, k, eta, Jpm, h, n):
 
 def rho_true(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
-    temp = M + np.diag(np.repeat(lams,2))
+    temp = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(temp)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
@@ -132,7 +181,7 @@ def calDispersion(lams, Jzz, Jpm, eta, h, n):
     dLU= dispersion_pi(lams, LU, Jzz, Jpm, eta, h, n)
     dUW = dispersion_pi(lams, UW, Jzz, Jpm, eta, h, n)
 
-    for i in range(4):
+    for i in range(8):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:,i], 'b')
         plt.plot(np.linspace(gX, gW1, len(dXW)), dXW[:, i] , 'b')
         plt.plot(np.linspace(gW1, gK, len(dWK)), dWK[:, i], 'b')
@@ -318,8 +367,8 @@ class piFluxSolver:
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)
 
-    def M_pi_sub(self, k, rs, alpha):
-        return M_pi_sub(k, rs, alpha, self.eta, self.Jpm)
+    # def M_pi_sub(self, k, rs, alpha):
+    #     return M_pi_sub(k, rs, alpha, self.eta, self.Jpm)
 
     def E_pi(self, k):
         return np.sqrt(2*self.Jzz*E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)[0])
@@ -330,12 +379,16 @@ class piFluxSolver:
         return E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)
 
     def LV_zero_old(self, k,alpha):
-        M = M_pi_sub(k, alpha, self.eta, self.Jpm)
+        M = M_pi(k, alpha, self.eta, self.Jpm)
         M = M+np.diag(np.repeat(self.lams[0],4))
         E,V = np.linalg.eigh(M)
         if alpha == 1:
             V = np.conj(V)
         return [E,V]
+
+    def GS(self):
+        return np.mean(self.E_pi(self.bigB)) - self.lams[0]
+
 
     # def LV_zero_old_single(self, k, alpha):
     #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))

@@ -215,8 +215,8 @@ def chi(lams, M, K, Jzz):
     ffactA = np.exp(1j * ffact)
     ffactB = np.exp(-1j * ffact)
 
-    M1 = np.mean(contract('iab, ijl,jka, lkb,->iab', green[:,8:12,0:4], ffactA, piunitcell, piunitcell), axis=0)
-    M2 = np.mean(contract('iab, ijl,jka, lkb,->iab', green[:,12:16,4:8], ffactB, piunitcell, piunitcell), axis=0)
+    M1 = np.mean(contract('iab, ijl,jka, lkb->iab', green[:,8:12,0:4], ffactA, piunitcell, piunitcell), axis=0)
+    M2 = np.mean(contract('iab, ijl,jka, lkb->iab', green[:,12:16,4:8], ffactB, piunitcell, piunitcell), axis=0)
     dum = np.zeros((4, 4))
     return np.block([[M1, dum],[dum, M2]])
 
@@ -236,8 +236,8 @@ def xi(lams, M, K, Jzz):
     ffactA = np.exp(1j * ffact)
     ffactB = np.exp(-1j * ffact)
 
-    M1 = np.mean(contract('ika, ij,jka,->ika', green[:,8:12,0:4], ffactA, piunitcell), axis=0)
-    M2 = np.mean(contract('ika, ij,jka,->ika', green[:,12:16,4:8], ffactB, piunitcell), axis=0)
+    M1 = np.mean(contract('ika, ij,jka->ika', green[:,8:12,0:4], ffactA, piunitcell), axis=0)
+    M2 = np.mean(contract('ika, ij,jka->ika', green[:,12:16,4:8], ffactB, piunitcell), axis=0)
     dum = np.zeros((4, 4))
     return np.block([[M1, dum],[dum, M2]])
 
@@ -405,9 +405,10 @@ def green_pi_phi_phi(E, V, Jzz):
 
 def green_pi(E, V, Jzz):
     green_phi_phi = green_pi_phi_phi(E, V, Jzz)
+    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0,2,1))
     green_phid_phi = green_pi_phid_phi(E,V,Jzz)
-    green = np.block([[green_phid_phi[:, 0:8, 0:8], np.tranpose(np.conj(green_phi_phi), (0,2,1))],
-                      green_phi_phi, green_phid_phi[:, 8:16, 8:16]])
+    green = np.block([[green_phid_phi[:, 0:8, 0:8],green_phid_phid],
+                      [green_phi_phi, green_phid_phi[:, 8:16, 8:16]]])
     
     return green
 
@@ -449,10 +450,9 @@ class piFluxSolver:
         self.h = h
         self.n = n
 
-        self.Jpmpm = 0
-        self.chi = np.ones((8,8))
-        self.chi0 = np.ones(8)
-        self.xi = np.ones((8,8))
+        self.chi = np.ones((8,8), dtype=np.complex128)
+        self.chi0 = np.ones(8, dtype=np.complex128)
+        self.xi = np.ones((8,8), dtype=np.complex128)
 
 
         self.minLams = np.zeros(2)
@@ -489,7 +489,6 @@ class piFluxSolver:
             chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
             chi0next = chi0(self.lams, self.MF, self.Jzz)
             xinext = xi(self.lams, self.MF, self.bigB, self.Jzz)
-
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext

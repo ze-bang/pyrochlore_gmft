@@ -4,7 +4,7 @@ from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi_gang_chen as pygang
-import pyrochlore_dispersion_pi_gang_chen_wrong as pywrong
+import pyrochlore_dispersion_pi_old as pypiold
 import netCDF4 as nc
 
 # JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
@@ -16,7 +16,7 @@ import netCDF4 as nc
 # plt.show()
 
 
-def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
+def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
@@ -29,9 +29,10 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         py0s.graph(False)
         plt.show()
     elif JP < 0 and not old:
-        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, Jpmpm=Jpmpm)
         py0s.findminLam()
         py0s.findLambda()
+        # py0s.solvemeanfield(1e-4)
         py0s.qvec()
         print(py0s.minLams)
         print(py0s.lams)
@@ -39,7 +40,7 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False):
         print(a)
         print(py0s.q)
         p = np.unique(np.mod(np.around(py0s.q, decimals=6), 2*np.pi), axis=0)
-        plt.savefig('test.png')
+        q1 = py0s.green_pi(py0s.bigB, py0s.lams)
         # temp = py0s.green_pi(py0s.bigB)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         py0s.graph(True)
@@ -67,9 +68,10 @@ def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
         py0s.graph_loweredge(False)
         py0s.graph_upperedge(True)
 
-def graphdispersion_wrong(JP,h, n, kappa, rho, graphres, BZres):
-    py0s = pywrong.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+def graphdispersion_old(JP,h, n, kappa, rho, graphres, BZres):
+    py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
     py0s.findLambda()
+    q2 = py0s.green_pi(py0s.bigB)
     # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
     py0s.graph(True)
 
@@ -171,7 +173,7 @@ def findPhase(nK, nE, res, filename):
 
                 phases[i][j] = phase0(py0s.lams, py0s.minLams, 0)
             else:
-                pyps = pypi.piFluxSolver(JP[i], kappa=kappa[j], BZres=res)
+                pyps = pypiold.piFluxSolver(JP[i], kappa=kappa[j], BZres=res)
                 print("Finding pi Flux Lambda")
                 pyps.findLambda()
 
@@ -215,7 +217,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range (nK):
         print("Jpm is now " + str(JP[i]))
         # print("h is now " + str(h[j]))
-        py0s = py0.zeroFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
+        py0s = py0.zeroFluxSolver(JP[i], h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
         # phases[i][j] = py0s.phase_test()
         py0s.findLambda()
@@ -225,7 +227,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # condensed[i] = py0s.condensed()[0]
         # dev[i] = py0s.rho_dev()
 
-        pyp = pypi.piFluxSolver(JP[i], h = 0, n=n, kappa=kappa, BZres=BZres)
+        pyp = pypi.piFluxSolver(JP[i], h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         # phases[i][j] = py0s.phase_test()
         pyp.findLambda()
@@ -234,8 +236,8 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         GSp[i] = pyp.GS()
         # condensed[i] = py0s.condensed()[0]
         # dev[i] = py0s.rho_dev()
-    # plt.plot(JP, gap, color='b')
-    # plt.plot(JP, gapp, color='r')
+    plt.plot(JP, gap, color='b')
+    plt.plot(JP, gapp, color='r')
     plt.plot(JP, GS, color='g')
     plt.plot(JP, GSp, color='k')
     # plt.plot(JP, condensed, color='b')
