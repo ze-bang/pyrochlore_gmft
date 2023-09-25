@@ -426,7 +426,10 @@ def green_pi_phid_phi_branch(E, V, Jzz):
     green = Jzz/E
     green1 = contract('ikjl, ik->ikjl', Vt1, green[:,0:8])
     green2 = contract('iklj, ik->ikjl', Vt2, green[:,8:16])
-    return green1 + green2
+    green = np.zeros((len(E), 16, 16, 16))
+    green[:,0:8] = green1
+    green[:, 8:16] = green2
+    return green
 
 def green_pi_phi_phi_branch(E, V, Jzz):
     Vt1 = contract('ijk, ilk->ikjl', V[:,0:8,8:16], V[:, 0:8, 0:8])
@@ -434,11 +437,14 @@ def green_pi_phi_phi_branch(E, V, Jzz):
     green = Jzz/E
     green1 = contract('ikjl, ik->ikjl', Vt1, green[:, 8:16])
     green2 = contract('iklj, ik->ikjl', Vt2, green[:, 0:8])
-    return green1+green2
+    green = np.zeros((len(E), 16, 8,8))
+    green[:,0:8] = green2
+    green[:, 8:16] = green1
+    return green
 
 def green_pi_branch(E, V, Jzz):
     green_phi_phi = green_pi_phi_phi_branch(E, V, Jzz)
-    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0,2,1))
+    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0,1,3,2))
     green_phid_phi = green_pi_phid_phi_branch(E,V,Jzz)
     green = np.block([[green_phid_phi[:, :, 0:8, 0:8],green_phid_phid],
                       [green_phi_phi, green_phid_phi[:, :, 8:16, 8:16]]])

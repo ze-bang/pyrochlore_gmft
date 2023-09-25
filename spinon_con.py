@@ -2,7 +2,7 @@
 from pyrochlore_dispersion_pi import green_pi, green_pi_branch, green_pi_old
 from pyrochlore_dispersion import green_zero_branch, green_zero
 import pyrochlore_dispersion_pi_gang_chen as pygang
-import pyrochlore_dispersion_pi_old as pywrong
+import pyrochlore_dispersion_pi_old as pypipyold
 from misc_helper import *
 import matplotlib.pyplot as plt
 import pyrochlore_dispersion as py0
@@ -93,8 +93,8 @@ def DSSF_zero(q, omega, pyp0, tol):
 
 def Spm_pi_DSSF(Ks, Qs, q, omega, tol, pyp0, lam = 0):
 
-    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)[:,0:8, 0:8,0:8]
-    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)[:,0:8, 0:8,0:8]
+    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
+    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
 
     deltapm = delta(tempE, tempQ, omega, tol)
 
@@ -364,8 +364,8 @@ def SSSF_zero(q, v, pyp0):
 
 def Spm_pi(K,Q,q, pyp0, lam=0):
 
-    greenpK = pyp0.green_pi(K, lam)[:,0:8,0:8]
-    greenpQ = pyp0.green_pi(Q, lam)[:,0:8,0:8]
+    greenpK = pyp0.green_pi(K, lam)
+    greenpQ = pyp0.green_pi(Q, lam)
 
     ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)
@@ -636,7 +636,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
     else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+        py0s = pypipyold.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
 
@@ -714,7 +714,7 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
     if Jpm >= 0:
         py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n)
     else:
-        py0s = pypi.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
+        py0s = pypipyold.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
     # print("Finished finding, lambda is " + str(py0s.lams))

@@ -301,20 +301,20 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
-def green_pi(k, E, V, Jzz):
+def green_pi(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
     green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_pi_old(k, E, V, Jzz):
+def green_pi_old(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_pi_branch(k, E, V, Jzz):
+def green_pi_branch(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     green = Jzz/np.sqrt(2*Jzz*E)
     green = contract('ikjl, ik->ikjl', Vt, green)
@@ -375,16 +375,18 @@ class piFluxSolver:
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n)
-    def LV_zero(self, k):
-        return E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)
+    def LV_zero(self, k, lam=np.zeros(2)):
+        if np.any(lam == 0):
+            lam = self.lams
+        return E_pi(lam, k, self.eta, self.Jpm, self.h, self.n)
 
-    def LV_zero_old(self, k,alpha):
-        M = M_pi(k, alpha, self.eta, self.Jpm)
-        M = M+np.diag(np.repeat(self.lams[0],4))
-        E,V = np.linalg.eigh(M)
-        if alpha == 1:
-            V = np.conj(V)
-        return [E,V]
+    # def LV_zero_old(self, k,alpha):
+    #     M = M_pi(k, alpha, self.eta, self.Jpm)
+    #     M = M+np.diag(np.repeat(self.lams[0],4))
+    #     E,V = np.linalg.eigh(M)
+    #     if alpha == 1:
+    #         V = np.conj(V)
+    #     return [E,V]
 
     def GS(self):
         return np.mean(self.E_pi(self.bigB)) - self.lams[0]
@@ -448,21 +450,31 @@ class piFluxSolver:
         if show:
             plt.show()
 
-    def green_pi(self, k):
-        E, V = self.LV_zero(k)
-        return green_pi(k, E, V, self.Jzz)
+    # def green_pi(self, k):
+    #     E, V = self.LV_zero(k)
+    #     return green_pi(E, V, self.Jzz)
+    #
+    # def green_pi_branch(self, k):
+    #     E, V = self.LV_zero(k)
+    #     return green_pi_branch(E, V, self.Jzz), E
+    #
+    # def green_pi_old(self, k, alpha):
+    #     E, V = self.LV_zero_old(k,alpha)
+    #     return green_pi_old(k, E, V, self.Jzz)
+    #
+    # def green_pi_old_branch(self, k, alpha):
+    #     E, V = self.LV_zero_old(k,alpha)
+    #     return green_pi_old_branch(k, E, V, self.Jzz)
 
-    def green_pi_branch(self, k):
-        E, V = self.LV_zero(k)
-        return green_pi_branch(k, E, V, self.Jzz), E
+    def green_pi(self, k, lam=np.zeros(2)):
+        E, V = self.LV_zero(k, lam)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_pi(E, V, self.Jzz)
 
-    def green_pi_old(self, k, alpha):
-        E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old(k, E, V, self.Jzz)
-
-    def green_pi_old_branch(self, k, alpha):
-        E, V = self.LV_zero_old(k,alpha)
-        return green_pi_old_branch(k, E, V, self.Jzz)
+    def green_pi_branch(self, k, lam=np.zeros(2)):
+        E, V = self.LV_zero(k,lam)
+        E = np.sqrt(2*self.Jzz*E)
+        return green_pi_branch(E, V, self.Jzz), E
 
     def magnetization(self):
         green = self.green_pi(self.bigB)

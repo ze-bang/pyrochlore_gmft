@@ -9,7 +9,7 @@ from misc_helper import *
 
 # DSSF(0.01, 0.2, h111,-0.1, "DSSF_-0.1_h111=0.2_detailed", 35, 0.02)
 DSSF(0.01, 0.2, h001,-0.1, "DSSF_-0.1_h001=0.2_detailed", 35, 0.02)
-DSSF(0.01, 0.2, h1b10,-0.1, "DSSF_-0.1_h110=0.8_detailed", 35, 0.02)
+DSSF(0.01, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_detailed", 35, 0.02)
 
 
 # SSSF(50, 0.2, h111,hb110, -0.1,31, "SSSF_pi_-0.1_h111=0.2")

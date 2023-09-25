@@ -32,7 +32,6 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, Jpmpm=Jpmpm)
         py0s.findminLam()
         py0s.findLambda()
-        # py0s.solvemeanfield(1e-4)
         py0s.qvec()
         print(py0s.minLams)
         print(py0s.lams)
@@ -40,10 +39,11 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
         print(a)
         print(py0s.q)
         p = np.unique(np.mod(np.around(py0s.q, decimals=6), 2*np.pi), axis=0)
-        q1 = py0s.green_pi(py0s.bigB, py0s.lams)
-        # temp = py0s.green_pi(py0s.bigB)
+        q1 = py0s.green_pi_branch(py0s.bigB, py0s.lams)[0]
+        test = contract('ijkl->ikl', q1)
+        #temp = py0s.green_pi_branch(py0s.bigB)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
-        py0s.graph(True)
+        py0s.graph(False)
     else:
         py0s = pygang.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
@@ -71,7 +71,7 @@ def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
 def graphdispersion_old(JP,h, n, kappa, rho, graphres, BZres):
     py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
     py0s.findLambda()
-    q2 = py0s.green_pi(py0s.bigB)
+    q2 = py0s.green_pi_branch(py0s.bigB)
     # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
     py0s.graph(True)
 
