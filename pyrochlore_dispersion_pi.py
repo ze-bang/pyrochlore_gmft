@@ -419,10 +419,29 @@ def green_pi_old(E, V, Jzz):
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
-def green_pi_branch(E, V, Jzz):
-    Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+
+def green_pi_phid_phi_branch(E, V, Jzz):
+    Vt1 = contract('ijk, ikl->iklj', V[:,:,0:8], np.transpose(np.conj(V), (0,2,1))[:,0:8,:])
+    Vt2 = contract('ijk, ikl->iklj', V[:,:,8:16], np.transpose(np.conj(V), (0,2,1))[:,8:16,:])
     green = Jzz/E
-    green = contract('ikjl, ik->ikjl', Vt, green)
+    green1 = contract('ikjl, ik->ikjl', Vt1, green[:,0:8])
+    green2 = contract('iklj, ik->ikjl', Vt2, green[:,8:16])
+    return green1 + green2
+
+def green_pi_phi_phi_branch(E, V, Jzz):
+    Vt1 = contract('ijk, ilk->ikjl', V[:,0:8,8:16], V[:, 0:8, 0:8])
+    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
+    green = Jzz/E
+    green1 = contract('ikjl, ik->ikjl', Vt1, green[:, 8:16])
+    green2 = contract('iklj, ik->ikjl', Vt2, green[:, 0:8])
+    return green1+green2
+
+def green_pi_branch(E, V, Jzz):
+    green_phi_phi = green_pi_phi_phi_branch(E, V, Jzz)
+    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0,2,1))
+    green_phid_phi = green_pi_phid_phi_branch(E,V,Jzz)
+    green = np.block([[green_phid_phi[:, :, 0:8, 0:8],green_phid_phid],
+                      [green_phi_phi, green_phid_phi[:, :, 8:16, 8:16]]])
     return green
 
 def green_pi_old_branch(E, V, Jzz):
@@ -450,9 +469,9 @@ class piFluxSolver:
         self.h = h
         self.n = n
 
-        self.chi = np.ones((8,8), dtype=np.complex128)
-        self.chi0 = np.ones(8, dtype=np.complex128)
-        self.xi = np.ones((8,8), dtype=np.complex128)
+        self.chi = np.zeros((8,8), dtype=np.complex128)
+        self.chi0 = np.zeros(8, dtype=np.complex128)
+        self.xi = np.zeros((8,8), dtype=np.complex128)
 
 
         self.minLams = np.zeros(2)

@@ -28,8 +28,8 @@ def delta(Ek, Eq, omega, tol):
 
 def Spm_zero_DSSF(K, Q, q, omega, tol, pyp0, lam = 0):
 
-    greenp1, tempE = pyp0.green_zero_branch(K)
-    greenp2, tempQ = pyp0.green_zero_branch(Q)
+    greenp1, tempE = pyp0.green_zero_branch(K, lam)
+    greenp2, tempQ = pyp0.green_zero_branch(Q, lam)
 
     #region S+- and S-+
     deltapm = delta(tempE, tempQ, omega, tol)
@@ -93,8 +93,8 @@ def DSSF_zero(q, omega, pyp0, tol):
 
 def Spm_pi_DSSF(Ks, Qs, q, omega, tol, pyp0, lam = 0):
 
-    greenpK, tempE = pyp0.green_pi_branch(Ks)
-    greenpQ, tempQ = pyp0.green_pi_branch(Qs)
+    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)[:,0:8, 0:8,0:8]
+    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)[:,0:8, 0:8,0:8]
 
     deltapm = delta(tempE, tempQ, omega, tol)
 
@@ -364,8 +364,8 @@ def SSSF_zero(q, v, pyp0):
 
 def Spm_pi(K,Q,q, pyp0, lam=0):
 
-    greenpK = pyp0.green_pi(K, lam)
-    greenpQ = pyp0.green_pi(Q, lam)
+    greenpK = pyp0.green_pi(K, lam)[:,0:8,0:8]
+    greenpQ = pyp0.green_pi(Q, lam)[:,0:8,0:8]
 
     ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
     ffactpm = np.exp(1j * ffact)
