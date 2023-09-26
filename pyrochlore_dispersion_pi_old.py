@@ -361,8 +361,20 @@ class piFluxSolver:
         self.minLams = findminLam(self.MF, self.Jzz, 1e-10)
         warnings.resetwarnings()
 
+    def qvec(self):
+        # print((2e2/len(self.bigB))**2)
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
+        c = np.unique(np.where(E < 0)[0])
+        temp = np.unique(self.bigB[c], axis=0)
+        self.q[0:len(temp),:] = temp
+
+    def ifcondense(self, q):
+        E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.h, self.n)[0]
+        c = np.unique(np.where(E < 0)[0])
+        return c
+
     def condensed(self):
-        return np.absolute(self.minLams - self.lams) < 1e-3
+        return np.absolute(self.minLams - self.lams) < (2e2/len(self.bigB))**2
 
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.h, self.n)
