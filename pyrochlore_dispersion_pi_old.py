@@ -123,10 +123,10 @@ def findminLam(M, Jzz, tol):
     lamMax = 50*np.ones(2)
     lams = (lamMin + lamMax) / 2
 
-    while not ((lamMax-lamMin<=tol).all()):
+    while ((lamMax-lamMin>=tol).all()):
         lams = (lamMin + lamMax) / 2
         try:
-             rhoguess = rho_true(M, lams, Jzz)
+             rhoguess = rho_true(Jzz, M, lams)
              for i in range(2):
                  lamMax[i] = lams[i]
         except:
@@ -350,6 +350,9 @@ class piFluxSolver:
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres), symK))
         self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.h, self.n)
+
+        self.q = np.empty((len(self.bigB),3))
+        self.q[:] = np.nan
 
     #alpha = 1 for A = -1 for B
 
