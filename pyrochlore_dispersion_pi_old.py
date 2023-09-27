@@ -213,9 +213,9 @@ def minCal(lams, q, Jzz, Jpm, eta, h, n, K):
 # @nb.njit(parallel=True, cache=True)
 def maxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     temp = np.zeros(len(q))
-    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,3]
+    maxs = np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,-1]
     for i in range(len(q)):
-        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,3] + maxs)
+        temp[i] = np.max(np.sqrt(2 * Jzz * E_pi(lams, K, eta, Jpm, h, n)[0])[:,-1] + maxs)
     return temp
 
 def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
@@ -224,7 +224,7 @@ def minMaxCal(lams, q, Jzz, Jpm, eta, h, n, K):
     for i in range(len(q)):
         stuff = np.sqrt(2 * Jzz * E_pi(lams, K-q[i], eta, Jpm, h, n)[0]) + maxs
         temp[i,0] = np.min(stuff[:,0])
-        temp[i,1] = np.max(stuff[:,3])
+        temp[i,1] = np.max(stuff[:,-1])
     return temp
 
 def loweredge(lams, Jzz, Jpm, eta, h, n, K):

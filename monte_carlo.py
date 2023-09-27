@@ -216,3 +216,5 @@ np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 
 
+
+
