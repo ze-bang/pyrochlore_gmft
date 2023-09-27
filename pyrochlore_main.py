@@ -60,7 +60,7 @@ import netCDF4 as nc
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
-# PhaseMagtestJP(-0.1, 0.1, 25, 0.2, 3, 25, h111, 35, 2, "0.txt")
+# PhaseMagtestJP(-0.1, 0.1, 25, 1, 3, 25, h111, 35, 2, "0.txt")
 #
 #
 
