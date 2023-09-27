@@ -146,7 +146,6 @@ def findlambda_pi(M, Jzz, kappa, tol):
     while not ((np.absolute(rhoguess-kappa)<=tol).all()):
         # for i in range(2):
          lams= (lamMin+lamMax)/2
-         # rhoguess = rho_true(Jzz, M, lams)
          try:
              rhoguess = rho_true(Jzz, M, lams)
              # rhoguess = self.rho_zero(alpha, self.lams)
@@ -360,6 +359,7 @@ class piFluxSolver:
     def findLambda(self):
         self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
         warnings.resetwarnings()
+
     def findminLam(self):
         self.minLams = findminLam(self.MF, self.Jzz, 1e-10)
         warnings.resetwarnings()
@@ -390,6 +390,7 @@ class piFluxSolver:
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.eta, self.h, self.n)
+
     def LV_zero(self, k, lam=np.zeros(2)):
         if np.any(lam == 0):
             lam = self.lams

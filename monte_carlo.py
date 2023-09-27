@@ -95,7 +95,7 @@ def energy_single_site_NN(con, i, j, k, u, Jzz, Jxy):
         sum += localdot(project(con[i,j,k,u], u), project(con[g[0], g[1], g[2],g[3]], g[3]), Jzz, Jxy)
     return sum/2
 
-@njit( cache=True)
+@njit(cache=True)
 def energy_single_site(con, Jzz, Jxy, h, n, i, j, k, u):
     mag = dot(con[i,j,k, u], -h*n)
     energy = energy_single_site_NN(con, i, j, k, u, Jzz, Jxy)
@@ -125,7 +125,8 @@ def energy_single_site(con, Jzz, Jxy, h, n, i, j, k, u):
 #
 #     return (energy+mag)/(d**3)
 # @njit(fastmath=True, cache=True)
-def sweep(con, n, d, Jzz, Jxy, h, hvec, T):
+
+def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
     enconold = 0.0
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -153,11 +154,11 @@ def sweep(con, n, d, Jzz, Jxy, h, hvec, T):
         recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
     for i in range(n):
-        for j in range(left, right):
+        for j in range(d):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
-                        oldcon = con
+                        oldcon = currd
                         currd[j,k,l,s] = get_random_spin_single()
                         deltaE = energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s) - enconold
                         if deltaE > 0 or np.random.uniform(0,1) > np.exp(deltaE/T):
@@ -165,52 +166,51 @@ def sweep(con, n, d, Jzz, Jxy, h, hvec, T):
                         else:
                             enconold = enconold + deltaE
 
-                        destleft = rank - 1
-                        destright = rank + 1
-                        if rank == 0:
-                            destleft = size-1
-                        if rank == size:
-                            destright = 0
-                        comm.Send([currd[1], MPI.FLOAT], dest=destleft)
-                        comm.Send([currd[-2], MPI.FLOAT], dest=destright)
+                        destleft = np.mod(rank - 1, size)
+                        destright = np.mod(rank + 1, size)
 
-                        boundright = np.empty((d, d, 4, 3), dtype=np.float64)
-                        boundleft = np.empty((d, d, 4, 3), dtype=np.float64)
+                        sendleft = np.array(currd[0], dtype=np.float64)
+                        sendright = np.array(currd[-1], dtype=np.float64)
 
-                        comm.Recv([boundright, MPI.FLOAT], source=destright)
-                        comm.Recv([boundleft, MPI.FLOAT], source=destleft)
+                        comm.Send(sendleft, destleft, tag=77)
+                        comm.Send(sendright, destright, tag=80)
+
+                        boundleft = np.zeros((d,d,4,3), dtype=np.float64)
+                        boundright = np.zeros((d,d,4,3), dtype=np.float64)
+
+                        comm.Recv(boundleft, source=destleft, tag=80)
+                        comm.Recv(boundright, source=destright, tag=77)
 
                         currd[0] = boundleft
                         currd[-1] = boundright
 
-    sendcounts = np.array(comm.gather(currd.shape[0] * d**2 * 4 * 3, 0))
 
-    comm.Gatherv(sendbuf=currd, recvbuf=(recvbuf, sendcounts), root=0)
-
+    sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
+    comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
     return recvbuf
+
 @njit(cache=True)
 def annealing_schedule(x):
     return np.exp(-x)
 
 
 # @njit(cache=True)
-def anneal(d, Target, Tinit, n, Jzz, Jxy, h, hvec):
-    T = Tinit
+def anneal(d, Target, Tinit, ntemp, nsweep, Jzz, Jxy, h, hvec):
     con = initialize_con(d)
-    x=1.0
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-    while T > Target:
-        temp = sweep(con, n, d, Jzz, Jxy, h, hvec, T)
+    x = np.linspace(1, Target, ntemp)
+    T = Tinit*annealing_schedule(x)
+
+    for i in T:
+        temp = single_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
         if rank == 0:
             con = temp
-            T = Tinit*annealing_schedule(x)
-            x += 0.01
     return con
 
 
-con = anneal(4, 1e-7, 1, int(1e8), 1, 1, 0, np.array([0,0,1]))
+con = anneal(4, 50, 1, int(1e2),int(1e3), 1, 1, 0, np.array([0,0,1]))
 np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 

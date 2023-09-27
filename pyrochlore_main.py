@@ -35,8 +35,8 @@ import netCDF4 as nc
 #endregion
 
 
-# graphedges(-1/3, 1, h111, 1, 1, 20, 20, True)
-# graphedges(-1/3, 1, h111, 1, 1, 20, 20)
+graphedges(-0.1, 0.2, h001, 1, 1, 20, 20, True)
+graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
@@ -60,7 +60,7 @@ import netCDF4 as nc
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
-# PhaseMagtestJP(-0.1, 0.1, 25, 1, 3, 25, h111, 35, 2, "0.txt")
+PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.txt")
 #
 #
 
@@ -138,7 +138,7 @@ import netCDF4 as nc
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
 # findPhaseMag(-0.5, 0.1, 300, 0, 4, 150, h110, 25, 2, "phase_110_kappa=2_complete")
 
-findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
 
 # findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")
 # findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")

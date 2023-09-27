@@ -643,7 +643,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
 
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    e = np.arange(0, py0s.TWOSPINON_MAX(kk)+0.1, nE)
+    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.5, py0s.TWOSPINON_MAX(kk)+0.5, nE)
 
 
     if not MPI.Is_initialized():
