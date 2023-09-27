@@ -1,7 +1,7 @@
 import numpy as np
 from opt_einsum import contract
 from numba import njit, jit
-
+from mpi4py import MPI
 
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
@@ -57,13 +57,13 @@ def get_random_spin_single():
 @njit(cache=True)
 def indices(i,j,k,u,d):
     if u == 0:
-        return np.mod(np.array([[i-1, j, k, 1], [i, j-1, k, 2], [i, j, k-1, 3]]),d)
+        return np.array([[i-1, j, k, 1], [i, j-1, k, 2], [i, j, k-1, 3]])
     if u == 1:
-        return np.mod(np.array([[i+1, j, k, 0],[i+1, j-1, k, 2], [i+1, j, k-1, 3]]),d)
+        return np.array([[i+1, j, k, 0],[i+1, j-1, k, 2], [i+1, j, k-1, 3]])
     if u == 2:
-        return np.mod(np.array([[i, j+1, k, 0], [i-1, j+1, k, 1], [i, j+1, k-1, 3]]),d)
+        return np.array([[i, j+1, k, 0], [i-1, j+1, k, 1], [i, j+1, k-1, 3]])
     if u == 3:
-        return np.mod(np.array([[i, j, k+1, 0], [i-1, j, k+1, 1], [i, j-1, k+1, 2]]),d)
+        return np.array([[i, j, k+1, 0], [i-1, j, k+1, 1], [i, j-1, k+1, 2]])
 
 @njit(cache=True)
 def project(s, u):
@@ -124,40 +124,93 @@ def energy_single_site(con, Jzz, Jxy, h, n, i, j, k, u):
 #     energy = numba_subrountine_energy(d, con, confast)
 #
 #     return (energy+mag)/(d**3)
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def sweep(con, n, d, Jzz, Jxy, h, hvec, T):
     enconold = 0.0
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = d / size
+
+    left = int(rank * nb)
+    right = int((rank + 1) * nb)
+    currsize = right-left
+    currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
+
+    if rank == 0:
+        currd[0] = con[-1]
+        currd[1:-1] = con[left:right+1]
+    elif rank == size-1:
+        currd[0:currsize+1] = con[left-1:right]
+        currd[-1] = con[0]
+    else:
+        currd = con[left-1:right+1]
+
+    recvbuf = None
+
+    if rank == 0:
+        recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
+
     for i in range(n):
-        for j in range(d):
+        for j in range(left, right):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
                         oldcon = con
-                        con[j,k,l,s] = get_random_spin_single()
-                        deltaE = energy_single_site(con, Jzz, Jxy, h, hvec, j, k, l, s) - enconold
+                        currd[j,k,l,s] = get_random_spin_single()
+                        deltaE = energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s) - enconold
                         if deltaE > 0 or np.random.uniform(0,1) > np.exp(deltaE/T):
-                            con = oldcon
+                            currd = oldcon
                         else:
                             enconold = enconold + deltaE
-    return con
+
+                        destleft = rank - 1
+                        destright = rank + 1
+                        if rank == 0:
+                            destleft = size-1
+                        if rank == size:
+                            destright = 0
+                        comm.Send([currd[1], MPI.FLOAT], dest=destleft)
+                        comm.Send([currd[-2], MPI.FLOAT], dest=destright)
+
+                        boundright = np.empty((d, d, 4, 3), dtype=np.float64)
+                        boundleft = np.empty((d, d, 4, 3), dtype=np.float64)
+
+                        comm.Recv([boundright, MPI.FLOAT], source=destright)
+                        comm.Recv([boundleft, MPI.FLOAT], source=destleft)
+
+                        currd[0] = boundleft
+                        currd[-1] = boundright
+
+    sendcounts = np.array(comm.gather(currd.shape[0] * d**2 * 4 * 3, 0))
+
+    comm.Gatherv(sendbuf=currd, recvbuf=(recvbuf, sendcounts), root=0)
+
+    return recvbuf
 @njit(cache=True)
 def annealing_schedule(x):
     return np.exp(-x)
 
 
-@njit(cache=True)
+# @njit(cache=True)
 def anneal(d, Target, Tinit, n, Jzz, Jxy, h, hvec):
     T = Tinit
     con = initialize_con(d)
     x=1.0
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+
     while T > Target:
-        con = sweep(con, n, d, Jzz, Jxy, h, hvec, T)
-        T = Tinit*annealing_schedule(x)
-        x += 0.01
+        temp = sweep(con, n, d, Jzz, Jxy, h, hvec, T)
+        if rank == 0:
+            con = temp
+            T = Tinit*annealing_schedule(x)
+            x += 0.01
     return con
 
 
-con = anneal(4, 1e-7, 1, 1e8, 1, 1, 0, np.array([0,0,1]))
+con = anneal(4, 1e-7, 1, int(1e8), 1, 1, 0, np.array([0,0,1]))
 np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 
