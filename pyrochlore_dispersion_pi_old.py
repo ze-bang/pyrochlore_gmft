@@ -462,7 +462,7 @@ class piFluxSolver:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)
+        upperedge(self.lams, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)  
         if show:
             plt.show()
 
