@@ -93,6 +93,33 @@ def M_pi(k,eta,Jpm, h, n):
     return FM
 
 
+def M_pi_mag_sub_AB_single(k, h, n, theta):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*ffact)
+    M = contract('u, u, ru, urx->rx',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, np.exp(1j*A_pi), piunitcell)
+    return M
+
+
+def M_pi_sub_intrahopping_BB_single(k, alpha, eta, Jpm):
+    ffact = contract('k, jlk->jl', k,NNminus)
+    ffact = np.exp(-1j*neta(alpha)*ffact)
+    M = contract('jl,kjl,jl, jka, lkb->ab', notrace, -Jpm*A_pi_rs_traced/4*eta[alpha], ffact, piunitcell, piunitcell)
+    return M
+
+
+def M_pi_single(k,eta,Jpm, h, n):
+    # M1 = M_pi_sub_0(k,Jpm)
+    # M2 = M_pi_sub_1(k,Jpm)
+    M1 =M_pi_sub_intrahopping_BB_single(k, 1, eta, Jpm)
+    M2 = M_pi_sub_intrahopping_BB_single(k, 0, eta, Jpm)
+    Mag1 = M_pi_mag_sub_AB_single(k, h, n, 0)
+    # temp = M_pi_mag_sub(k,h,n)
+    Mag2 = np.conj(np.transpose(Mag1))
+    FM = np.block([[M1, Mag1], [Mag2, M2]])
+    return FM
+
+
 def E_pi_fixed(lams, M):
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
@@ -108,6 +135,13 @@ def E_pi(lams, k, eta, Jpm, h, n):
     return [E,V]
 
 
+def E_pi_single(lams, k, eta, Jpm, h, n):
+    M = M_pi_single(k,eta,Jpm, h, n)
+    M = M + np.diag(np.repeat(lams,4))
+    E, V = np.linalg.eigh(M)
+    # print(E)
+    return [E,V]
+
 def rho_true(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     temp = M + np.diag(np.repeat(lams,4))
@@ -116,24 +150,39 @@ def rho_true(Jzz, M, lams):
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
     return np.mean(Ep)*np.ones(2)
 
+def Emin(k, lams, eta, Jpm, h, n):
+    return E_pi_single(lams, k, eta, Jpm, h, n)[0][0]
 
-def findminLam(M, Jzz, tol):
-    warnings.filterwarnings("error")
-    lamMin = np.zeros(2)
-    lamMax = 50*np.ones(2)
-    lams = (lamMin + lamMax) / 2
 
-    while ((lamMax-lamMin>=tol).all()):
-        lams = (lamMin + lamMax) / 2
-        try:
-             rhoguess = rho_true(Jzz, M, lams)
-             for i in range(2):
-                 lamMax[i] = lams[i]
-        except:
-             lamMin = lams
-        # print([lams, lamMin, lamMax,lamMax-lamMin])
+def gradient(k, lams, eta, Jpm, h, n):
+    kx, ky, kz = k
+    step = 1e-8
+    fx = (Emin(np.array([kx+step, ky, kz]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n))/step
+    fy = (Emin(np.array([kx, ky+step, kz]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n)) / step
+    fz = (Emin(np.array([kx, ky, kz+step]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n)) / step
+    return np.array([fx, fy, fz])
 
-    return lams
+
+
+def findminLam(M, K, tol, eta, Jpm, h, n):
+    E, V = np.linalg.eigh(M)
+    dex = np.argmin(E[0], axis=0)
+    Know = K[dex]
+    Enow = 1000
+    Enext = E[dex, 0]
+    step = 1e-2
+    init = True
+    while(abs(Enow-Enext)>=1e-20):
+        if not init:
+            gradlen = gradient(Know, np.zeros(2), eta, Jpm, h, n)-gradient(Klast, np.zeros(2), eta, Jpm, h, n)
+            step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+        Klast = Know
+        Know = Know - step*gradient(Know, np.zeros(2), eta, Jpm, h, n)
+        Enow = Enext
+        Enext = Emin(Know, np.zeros(2), eta, Jpm, h, n)
+        init=False
+
+    return -Enext
 
 def findlambda_pi(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
@@ -361,8 +410,7 @@ class piFluxSolver:
         warnings.resetwarnings()
 
     def findminLam(self):
-        self.minLams = findminLam(self.MF, self.Jzz, 1e-10)
-        warnings.resetwarnings()
+        self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
 
     def qvec(self):
         # print((2e2/len(self.bigB))**2)

@@ -35,10 +35,11 @@ import netCDF4 as nc
 #endregion
 
 
-graphedges(-0.1, 0.2, h001, 1, 1, 20, 20, True)
-graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
+# graphedges(-0.1, 0.2, h001, 1, 1, 20, 20, True)
+# graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
-# graphdispersion(-0.1, 0.2, h1b10, 1, 2, 20, 20)
+graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
+graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20, True)
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
 # M = pypi.M_pi_mag_sub_single(np.pi*np.array([0.1,0.2,0.3]), 1, np.array([0,0,1]))
@@ -60,7 +61,7 @@ graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
-PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.txt")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.txt")
 #
 #
 

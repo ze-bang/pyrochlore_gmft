@@ -26,6 +26,12 @@ def M_zero(Jpm, eta, k, alpha):
     temp = contract('ijk->i', temp)
     return temp
 
+def exponent_mag_single(h, n, k, alpha):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*neta(alpha)*ffact)
+    M = contract('j,j', -1/4*h*ffact, zmag)
+    return M
 def M_zero_single(Jpm, eta, k, alpha):
     temp = -Jpm/4 *eta[alpha]* np.exp(-1j*neta(alpha)*(contract('k, jlk->jl',k, NNminus)))
     temp = np.sum(temp)
@@ -40,18 +46,22 @@ def M_true(k, Jpm, eta, h, n):
     return M
 
 
-def M_single(lams, k, Jzz, Jpm, eta, h, n):
-    M = np.zeros((2,2), dtype=complex)
+def M_single(k, Jpm, eta, h, n):
+    M = np.zeros((2,2),  dtype=np.complex128)
     M[0, 0] = M_zero_single(Jpm, eta, k, 0)
     M[1, 1] = M_zero_single(Jpm, eta, k, 1)
-    M[0, 1] = exponent_mag(h, n, k, 0)
-    M[1, 0] = exponent_mag(h, n, k, 1)
-    M = M + np.diag(lams)
-    E, V = np.linalg.eig(M)
-    return np.sqrt(2*Jzz*np.real(E))
+    M[0, 1] = exponent_mag_single(h, n, k, 0)
+    M[1, 0] = exponent_mag_single(h, n, k, 1)
+    return M
 
 def E_zero_true(lams, k, Jpm, eta, h, n):
     M = M_true(k, Jpm, eta, h, n)
+    M = M + np.diag(lams)
+    E, V = np.linalg.eigh(M)
+    return [E,V]
+
+def E_zero_single(lams, k, Jpm, eta, h, n):
+    M = M_single(k, Jpm, eta, h, n)
     M = M + np.diag(lams)
     E, V = np.linalg.eigh(M)
     return [E,V]
@@ -75,23 +85,38 @@ def rho_true(M, lams, Jzz):
     Ep = np.real(np.mean(contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E)), axis=0))
     return Ep
 
-def findminLam(M, Jzz, tol):
-    warnings.filterwarnings("error")
-    lamMin = np.zeros(2)
-    lamMax = 50*np.ones(2)
-    lams = (lamMin + lamMax) / 2
 
-    while not ((lamMax-lamMin<=tol).all()):
-        lams = (lamMin + lamMax) / 2
-        try:
-             rhoguess = rho_true(M, lams, Jzz)
-             for i in range(2):
-                 lamMax[i] = lams[i]
-        except:
-             lamMin = lams
-        # print([lams, lamMin, lamMax,lamMax-lamMin])
+def Emin(k, lams, eta, Jpm, h, n):
+    return E_zero_single(lams, k, Jpm, eta, h, n)[0][0]
 
-    return lams
+
+def gradient(k, lams, eta, Jpm, h, n):
+    kx, ky, kz = k
+    step = 1e-8
+    fx = (Emin(np.array([kx+step, ky, kz]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n))/step
+    fy = (Emin(np.array([kx, ky+step, kz]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n)) / step
+    fz = (Emin(np.array([kx, ky, kz+step]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n)) / step
+    return np.array([fx, fy, fz])
+
+
+def findminLam(M, K, tol, eta, Jpm, h, n):
+    E, V = np.linalg.eigh(M)
+    dex = np.argmin(E[0], axis=0)
+    Know = K[dex]
+    Enow = 1000
+    Enext = E[dex, 0]
+    step = 1e-2
+    init = True
+    while(abs(Enow-Enext)>=1e-20):
+        if not init:
+            gradlen = gradient(Know, np.zeros(2), eta, Jpm, h, n)-gradient(Klast, np.zeros(2), eta, Jpm, h, n)
+            step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+        Klast = Know
+        Know = Know - step*gradient(Know, np.zeros(2), eta, Jpm, h, n)
+        Enow = Enext
+        Enext = Emin(Know, np.zeros(2), eta, Jpm, h, n)
+        init=False
+    return -Enext
 def findLambda_zero(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
     lamMin = np.zeros(2)
@@ -385,8 +410,7 @@ class zeroFluxSolver:
         warnings.resetwarnings()
 
     def findminLam(self):
-        self. minLams = findminLam(self.MF, self.Jzz, 1e-10)
-        warnings.resetwarnings()
+        self. minLams = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
 
     def qvec(self):
         E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.Jpm, self.eta, self.h, self.n)[0]
