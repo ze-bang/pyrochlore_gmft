@@ -334,6 +334,7 @@ def findPhaseMag_pi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range (currsize):
         for j in range (nH):
+            print(currJP[i], h[j])
             py0s = pypiold.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()

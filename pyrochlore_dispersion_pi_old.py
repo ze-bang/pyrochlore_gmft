@@ -139,7 +139,7 @@ def E_pi_single(lams, k, eta, Jpm, h, n):
     M = M_pi_single(k,eta,Jpm, h, n)
     M = M + np.diag(np.repeat(lams,4))
     E, V = np.linalg.eigh(M)
-    # print(E)
+    # print(Jpm, h)
     return [E,V]
 
 def rho_true(Jzz, M, lams):

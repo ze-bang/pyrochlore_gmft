@@ -280,7 +280,7 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jzz, Jxy, h, hvec):
     T = Tinit*annealing_schedule(x)
 
     for i in T:
-        if T > 1e-6:
+        if i > 1e-6:
             temp = single_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
         else:
             temp = deterministic_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
