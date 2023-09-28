@@ -410,7 +410,7 @@ class zeroFluxSolver:
         warnings.resetwarnings()
 
     def findminLam(self):
-        self. minLams = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
+        self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
 
     def qvec(self):
         E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.Jpm, self.eta, self.h, self.n)[0]
