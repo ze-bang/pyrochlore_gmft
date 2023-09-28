@@ -321,20 +321,20 @@ def findPhaseMag_pi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
+    # sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
-    rectemp2 = None
+    # rectemp2 = None
 
     if rank == 0:
         rectemp = np.zeros((nK, nH), dtype=np.float64)
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
+        # rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
 
     for i in range (currsize):
         for j in range (nH):
-            print(currJP[i], h[j])
+            # print(currJP[i], h[j])
             py0s = pypiold.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()
@@ -344,15 +344,15 @@ def findPhaseMag_pi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s.qvec()
             sendtemp[i,j] = py0s.condensed()[0]
             sendtemp1[i,j] = GSz
-            sendtemp2[i,j] = py0s.q
+            # sendtemp2[i,j] = py0s.q
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
+    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
@@ -363,21 +363,21 @@ def findPhaseMag_pi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         plt.ylabel(r'$h/J_{y}$')
         plt.savefig('Files/' + filename+'.png')
         plt.clf()
-        ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            # Create dimensions
-            dataset.createDimension("Jpm", nK)
-            dataset.createDimension("h", nH)
-            dataset.createDimension("n", leng)
-            dataset.createDimension("xyz", 3)
+        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        # with nc.Dataset(ncfilename, "w") as dataset:
+        #     # Create dimensions
+        #     dataset.createDimension("Jpm", nK)
+        #     dataset.createDimension("h", nH)
+        #     dataset.createDimension("n", leng)
+        #     dataset.createDimension("xyz", 3)
 
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
+        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
 
-            # Assign data to variables
-            temp_var[:, :, :, :] = rectemp2
+        #     # Assign data to variables
+        #     temp_var[:, :, :, :] = rectemp2
 
-            # Add attributes
-            temp_var.long_name = "Condensed Wave Vectors"
+        #     # Add attributes
+        #     temp_var.long_name = "Condensed Wave Vectors"
 
 
 def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
@@ -406,16 +406,16 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
+    # sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
-    rectemp2 = None
+    # rectemp2 = None
 
     if rank == 0:
         rectemp = np.zeros((nK, nH), dtype=np.float64)
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
+        # rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
 
     for i in range (currsize):
         for j in range (nH):
@@ -428,15 +428,15 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s.qvec()
             sendtemp[i,j] = py0s.condensed()[0]
             sendtemp1[i,j] = GSz
-            sendtemp2[i,j] = py0s.q
+            # sendtemp2[i,j] = py0s.q
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
+    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
@@ -447,21 +447,21 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         plt.ylabel(r'$h/J_{y}$')
         plt.savefig('Files/' + filename+'.png')
         plt.clf()
-        ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            # Create dimensions
-            dataset.createDimension("Jpm", nK)
-            dataset.createDimension("h", nH)
-            dataset.createDimension("n", leng)
-            dataset.createDimension("xyz", 3)
+        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        # with nc.Dataset(ncfilename, "w") as dataset:
+        #     # Create dimensions
+        #     dataset.createDimension("Jpm", nK)
+        #     dataset.createDimension("h", nH)
+        #     dataset.createDimension("n", leng)
+        #     dataset.createDimension("xyz", 3)
 
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
+        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
 
-            # Assign data to variables
-            temp_var[:, :, :, :] = rectemp2
+        #     # Assign data to variables
+        #     temp_var[:, :, :, :] = rectemp2
 
-            # Add attributes
-            temp_var.long_name = "Condensed Wave Vectors"
+        #     # Add attributes
+        #     temp_var.long_name = "Condensed Wave Vectors"
 
 
 def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
@@ -490,16 +490,16 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendtemp = np.zeros((currsize, nH), dtype=np.float64)
     sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
+    # sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
-    rectemp2 = None
+    # rectemp2 = None
 
     if rank == 0:
         rectemp = np.zeros((nK, nH), dtype=np.float64)
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
+        # rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
 
     for i in range (currsize):
         for j in range (nH):
@@ -516,23 +516,23 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 py0s.qvec()
                 sendtemp1[i,j] = py0s.gap()
                 sendtemp[i,j] = py0s.condensed()[0]
-                sendtemp2[i,j] = py0s.q
+                # sendtemp2[i,j] = py0s.q
             else:
                 pyps.findminLam()
                 pyps.qvec()
                 sendtemp1[i,j] = pyps.gap()
                 sendtemp[i,j] = pyps.condensed()[0] + 5
-                sendtemp2[i,j] = pyps.q
-
+                # sendtemp2[i,j] = pyps.q
+# 
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
+    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
@@ -543,20 +543,20 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         plt.ylabel(r'$h/J_{y}$')
         plt.savefig('Files/' + filename+'.png')
         plt.clf()
-        ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            # Create dimensions
-            dataset.createDimension("Jpm", nK)
-            dataset.createDimension("h", nH)
-            dataset.createDimension("n", leng)
-            dataset.createDimension("xyz", 3)
+        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        # with nc.Dataset(ncfilename, "w") as dataset:
+        #     # Create dimensions
+        #     dataset.createDimension("Jpm", nK)
+        #     dataset.createDimension("h", nH)
+        #     dataset.createDimension("n", leng)
+        #     dataset.createDimension("xyz", 3)
 
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
+        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
 
-            # Assign data to variables
-            temp_var[:, :, :, :] = rectemp2
+        #     # Assign data to variables
+        #     temp_var[:, :, :, :] = rectemp2
 
-            # Add attributes
-            temp_var.long_name = "Condensed Wave Vectors"
+        #     # Add attributes
+        #     temp_var.long_name = "Condensed Wave Vectors"
 
 #endregion

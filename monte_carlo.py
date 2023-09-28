@@ -158,7 +158,7 @@ def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
 
     if rank == 0:
         currd[0] = con[-1]
-        currd[1:-1] = con[left:right+1]
+        currd[1:] = con[left:right+1]
     elif rank == size-1:
         currd[0:currsize+1] = con[left-1:right]
         currd[-1] = con[0]
@@ -171,15 +171,15 @@ def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
         recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
     for i in range(n):
-        for j in range(d):
+        for j in range(currsize+2):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
                         oldcon = currd
                         currd[j,k,l,s] = get_random_spin_single()
                         deltaE = enconold - energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s)
-                        if deltaE < 0 or np.random.uniform(0,1) > np.exp(-deltaE/T):
-                            enconold = enconold + deltaE
+                        if deltaE < 0 or np.random.uniform(0,1) < np.exp(-deltaE/T):
+                            enconold = enconold - deltaE
                         else:
                             currd = oldcon
 
@@ -235,7 +235,7 @@ def deterministic_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
         recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
     for i in range(n):
-        for j in range(d):
+        for j in range(currsize+2):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):

@@ -111,7 +111,7 @@ def M_pi_sub_intrahopping_BB_single(k, alpha, eta, Jpm):
 def M_pi_single(k,eta,Jpm, h, n):
     # M1 = M_pi_sub_0(k,Jpm)
     # M2 = M_pi_sub_1(k,Jpm)
-    M1 =M_pi_sub_intrahopping_BB_single(k, 1, eta, Jpm)
+    M1 = M_pi_sub_intrahopping_BB_single(k, 1, eta, Jpm)
     M2 = M_pi_sub_intrahopping_BB_single(k, 0, eta, Jpm)
     Mag1 = M_pi_mag_sub_AB_single(k, h, n, 0)
     # temp = M_pi_mag_sub(k,h,n)
@@ -138,8 +138,11 @@ def E_pi(lams, k, eta, Jpm, h, n):
 def E_pi_single(lams, k, eta, Jpm, h, n):
     M = M_pi_single(k,eta,Jpm, h, n)
     M = M + np.diag(np.repeat(lams,4))
-    E, V = np.linalg.eigh(M)
-    # print(Jpm, h)
+    try:
+        E, V = np.linalg.eigh(M)
+    except:
+        E, V = np.zeros(M.shape[0]), np.zeros(M.shape)
+        print(M)
     return [E,V]
 
 def rho_true(Jzz, M, lams):
@@ -165,6 +168,8 @@ def gradient(k, lams, eta, Jpm, h, n):
 
 
 def findminLam(M, K, tol, eta, Jpm, h, n):
+    warnings.filterwarnings("error")
+
     E, V = np.linalg.eigh(M)
     dex = np.argmin(E[0], axis=0)
     Know = K[dex]
@@ -173,15 +178,20 @@ def findminLam(M, K, tol, eta, Jpm, h, n):
     step = 1e-2
     init = True
     while(abs(Enow-Enext)>=1e-20):
+        
         if not init:
             gradlen = gradient(Know, np.zeros(2), eta, Jpm, h, n)-gradient(Klast, np.zeros(2), eta, Jpm, h, n)
-            step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+            try:
+                step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+            except:
+                step = 1e-2
+        
         Klast = Know
         Know = Know - step*gradient(Know, np.zeros(2), eta, Jpm, h, n)
         Enow = Enext
         Enext = Emin(Know, np.zeros(2), eta, Jpm, h, n)
         init=False
-
+    warnings.resetwarnings()
     return -Enext
 
 def findlambda_pi(M, Jzz, kappa, tol):

@@ -100,6 +100,8 @@ def gradient(k, lams, eta, Jpm, h, n):
 
 
 def findminLam(M, K, tol, eta, Jpm, h, n):
+    warnings.filterwarnings("error")
+
     E, V = np.linalg.eigh(M)
     dex = np.argmin(E[0], axis=0)
     Know = K[dex]
@@ -108,14 +110,20 @@ def findminLam(M, K, tol, eta, Jpm, h, n):
     step = 1e-2
     init = True
     while(abs(Enow-Enext)>=1e-20):
+        
         if not init:
             gradlen = gradient(Know, np.zeros(2), eta, Jpm, h, n)-gradient(Klast, np.zeros(2), eta, Jpm, h, n)
-            step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+            try:
+                step = abs(np.dot(Know-Klast, gradlen))/np.linalg.norm(gradlen)**2
+            except:
+                step = 1e-2
+        
         Klast = Know
         Know = Know - step*gradient(Know, np.zeros(2), eta, Jpm, h, n)
         Enow = Enext
         Enext = Emin(Know, np.zeros(2), eta, Jpm, h, n)
         init=False
+    warnings.resetwarnings()
     return -Enext
 
 def findLambda_zero(M, Jzz, kappa, tol):
