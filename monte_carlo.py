@@ -101,6 +101,23 @@ def energy_single_site(con, Jzz, Jxy, h, n, i, j, k, u):
     energy = energy_single_site_NN(con, i, j, k, u, Jzz, Jxy)
     return energy+mag
 
+@njit(cache=True)
+def NN_field(con, i, j, k, u, Jzz, Jxy):
+    sum = np.zeros(3)
+    for v in range(4):
+        if not v == u:
+            temp = project(con[i,j,k, v],v)
+            sum += Jxy*(temp[0]+temp[1]) + Jzz*temp[2]
+
+    ind = indices(i,j,k,u)
+    for g in ind:
+        temp = project(con[g[0], g[1], g[2],g[3]], g[3])
+        sum += Jxy * (temp[0] + temp[1]) + Jzz * temp[2]
+    return sum/2
+
+def get_deterministic_angle(con, Jzz, Jxy, h, n, i, j, k, u):
+    return NN_field(con, Jzz, Jxy, h, n, i, j, k, u) - h * n
+
 # @njit()
 # def numba_subrountine_energy(d, con, confast):
 #     energy = 0.0
@@ -189,6 +206,65 @@ def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
     comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
     return recvbuf
 
+
+def deterministic_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
+    enconold = 0.0
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = d / size
+
+    left = int(rank * nb)
+    right = int((rank + 1) * nb)
+    currsize = right-left
+    currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
+
+    if rank == 0:
+        currd[0] = con[-1]
+        currd[1:-1] = con[left:right+1]
+    elif rank == size-1:
+        currd[0:currsize+1] = con[left-1:right]
+        currd[-1] = con[0]
+    else:
+        currd = con[left-1:right+1]
+
+    recvbuf = None
+
+    if rank == 0:
+        recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
+
+    for i in range(n):
+        for j in range(d):
+            for k in range(d):
+                for l in range(d):
+                    for s in range(4):
+
+                        currd[j,k,l,s] = get_deterministic_angle(currd, Jzz, Jxy, h, hvec, j, k, l, s)
+
+                        destleft = np.mod(rank - 1, size)
+                        destright = np.mod(rank + 1, size)
+
+                        sendleft = np.array(currd[0], dtype=np.float64)
+                        sendright = np.array(currd[-1], dtype=np.float64)
+
+                        comm.Send(sendleft, destleft, tag=77)
+                        comm.Send(sendright, destright, tag=80)
+
+                        boundleft = np.zeros((d,d,4,3), dtype=np.float64)
+                        boundright = np.zeros((d,d,4,3), dtype=np.float64)
+
+                        comm.Recv(boundleft, source=destleft, tag=80)
+                        comm.Recv(boundright, source=destright, tag=77)
+
+                        currd[0] = boundleft
+                        currd[-1] = boundright
+
+
+    sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
+    comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
+    return recvbuf
+
 @njit(cache=True)
 def annealing_schedule(x):
     return np.exp(-x)
@@ -204,13 +280,16 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jzz, Jxy, h, hvec):
     T = Tinit*annealing_schedule(x)
 
     for i in T:
-        temp = single_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
+        if T > 1e-6:
+            temp = single_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
+        else:
+            temp = deterministic_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
         if rank == 0:
             con = temp
     return con
 
 
-con = anneal(4, 50, 1, int(1e2),int(1e3), 1, 1, 0, np.array([0,0,1]))
+con = anneal(4, 100, 1, int(1e2),int(5e3), 1, 1, 0, np.array([0,0,1]))
 np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 
