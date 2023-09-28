@@ -117,6 +117,7 @@ def findminLam(M, K, tol, eta, Jpm, h, n):
         Enext = Emin(Know, np.zeros(2), eta, Jpm, h, n)
         init=False
     return -Enext
+
 def findLambda_zero(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
     lamMin = np.zeros(2)

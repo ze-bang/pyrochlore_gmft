@@ -6,8 +6,13 @@ from spinon_con import *
 from phase_diagram import *
 from misc_helper import *
 
-DSSF(0.1, 0.2, h001,-0.1, "DSSF_-0.1_h001=0.2_crude", 35, 0.2)
-DSSF(0.1, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_crude", 35, 0.2)
+# DSSF(0.1, 0.2, h001,-0.1, "DSSF_-0.1_h001=0.2_crude", 35, 0.2)
+# DSSF(0.1, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_crude", 35, 0.2)
+
+findPhaseMag_pi(-0.5, 0.1, 300, 0, 4, 150, h1b10, 25, 2, "phase_1b10_kappa=2_pi_flux")
+findPhaseMag_zero(-0.5, 0.1, 300, 0, 4, 150, h1b10, 25, 2, "phase_1b10_kappa=2_zero_flux")
+findPhaseMag_pi(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_1b10_kappa=2_pi_flux")
+findPhaseMag_zero(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_1b10_kappa=2_zero_flux")
 
 # SSSF(100, 0.8, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=0.8")
 # SSSF(100, 1.0, h1b10,hb110, -0.1, 35, "SSSF_pi_-0.1_h1b10=1.0")
