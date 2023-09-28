@@ -273,7 +273,7 @@ def algHamSungbin():
                 if not i == j:
                     index1 = np.array(np.where(piunitcell_here[i, k] == 1))[0,0]
                     index2 = np.array(np.where(piunitcell_here[j, k] == 1))[0,0]
-                    M_down[index1, index2] += sp.exp(I* KK.dot(NN[i]-NN[j])) * A_pi_rs_traced_here_down[k, i, j]
+                    M_down[index1, index2] += sp.exp(I* KK.dot(NN[i] - NN[j])) * A_pi_rs_traced_here_down[k, i, j]
                     M_up[index1, index2] += sp.exp(-I * KK.dot(NN[i] - NN[j])) * A_pi_rs_traced_here_up[k, i, j]
 
     sp.print_latex(M_up)

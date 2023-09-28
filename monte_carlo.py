@@ -55,7 +55,7 @@ def get_random_spin_single():
 
 # nearest neighbour based on
 @njit(cache=True)
-def indices(i,j,k,u,d):
+def indices(i,j,k,u):
     if u == 0:
         return np.array([[i-1, j, k, 1], [i, j-1, k, 2], [i, j, k-1, 3]])
     if u == 1:
@@ -77,7 +77,7 @@ def project(s, u):
 def localdot(k1, k2, Jzz, Jxy):
     a, b, c = k1
     d, e, f = k2
-    return  Jxy*(a*d+b*e) + Jzz*c*f
+    return Jxy*(a*d+b*e) + Jzz*c*f
 @njit(cache=True)
 def dot(k1, k2):
     a, b, c = k1
@@ -90,7 +90,7 @@ def energy_single_site_NN(con, i, j, k, u, Jzz, Jxy):
     for v in range(4):
         if not v == u:
             sum += localdot(project(con[i,j,k,u],u), project(con[i,j,k, v],v), Jzz, Jxy)
-    ind = indices(i,j,k,u,con.shape[1])
+    ind = indices(i,j,k,u)
     for g in ind:
         sum += localdot(project(con[i,j,k,u], u), project(con[g[0], g[1], g[2],g[3]], g[3]), Jzz, Jxy)
     return sum/2
@@ -160,11 +160,11 @@ def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
                     for s in range(4):
                         oldcon = currd
                         currd[j,k,l,s] = get_random_spin_single()
-                        deltaE = energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s) - enconold
-                        if deltaE > 0 or np.random.uniform(0,1) > np.exp(deltaE/T):
-                            currd = oldcon
-                        else:
+                        deltaE = enconold - energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s)
+                        if deltaE < 0 or np.random.uniform(0,1) > np.exp(-deltaE/T):
                             enconold = enconold + deltaE
+                        else:
+                            currd = oldcon
 
                         destleft = np.mod(rank - 1, size)
                         destright = np.mod(rank + 1, size)
