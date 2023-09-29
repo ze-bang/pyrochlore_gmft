@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from opt_einsum import contract
 from numba import njit, jit
@@ -90,7 +91,7 @@ def energy_single_site_NN(con, i, j, k, u, Jzz, Jxy):
     for v in range(4):
         if not v == u:
             sum += localdot(project(con[i,j,k,u],u), project(con[i,j,k, v],v), Jzz, Jxy)
-    ind = indices(i,j,k,u)
+    ind = np.mod(indices(i,j,k,u), con.shape[0])
     for g in ind:
         sum += localdot(project(con[i,j,k,u], u), project(con[g[0], g[1], g[2],g[3]], g[3]), Jzz, Jxy)
     return sum/2
@@ -109,14 +110,20 @@ def NN_field(con, i, j, k, u, Jzz, Jxy):
             temp = project(con[i,j,k, v],v)
             sum += Jxy*(temp[0]+temp[1]) + Jzz*temp[2]
 
-    ind = indices(i,j,k,u)
+    ind = np.mod(indices(i,j,k,u), con.shape[0])
     for g in ind:
         temp = project(con[g[0], g[1], g[2],g[3]], g[3])
         sum += Jxy * (temp[0] + temp[1]) + Jzz * temp[2]
     return sum/2
 
 def get_deterministic_angle(con, Jzz, Jxy, h, n, i, j, k, u):
-    return NN_field(con, Jzz, Jxy, h, n, i, j, k, u) - h * n
+    temp = NN_field(con, i, j, k, u, Jzz, Jxy) - h * n
+    temp = temp[0]*x[u] +  temp[1]*y[u] +  temp[2]*z[u]
+    if not np.linalg.norm(temp) == 0:
+        return temp/np.linalg.norm(temp)
+    else:
+        return temp
+
 
 # @njit()
 # def numba_subrountine_energy(d, con, confast):
@@ -141,129 +148,130 @@ def get_deterministic_angle(con, Jzz, Jxy, h, n, i, j, k, u):
 #     energy = numba_subrountine_energy(d, con, confast)
 #
 #     return (energy+mag)/(d**3)
-# @njit(fastmath=True, cache=True)
-
+@njit(fastmath=True, cache=True)
 def single_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
     enconold = 0.0
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
+    # comm = MPI.COMM_WORLD
+    # size = comm.Get_size()
+    # rank = comm.Get_rank()
 
-    nb = d / size
+    # nb = d / size
+    #
+    # left = int(rank * nb)
+    # right = int((rank + 1) * nb)
+    # currsize = right-left
+    # currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
+    #
+    # if rank == 0:
+    #     currd[0] = con[-1]
+    #     currd[1:-1] = con[left:right+1]
+    # elif rank == size-1:
+    #     currd[0:currsize+1] = con[left-1:right]
+    #     currd[-1] = con[0]
+    # else:
+    #     currd = con[left-1:right+1]
+    #
+    # recvbuf = None
+    #
+    # if rank == 0:
+    # recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
-    left = int(rank * nb)
-    right = int((rank + 1) * nb)
-    currsize = right-left
-    currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
-
-    if rank == 0:
-        currd[0] = con[-1]
-        currd[1:] = con[left:right+1]
-    elif rank == size-1:
-        currd[0:currsize+1] = con[left-1:right]
-        currd[-1] = con[0]
-    else:
-        currd = con[left-1:right+1]
-
-    recvbuf = None
-
-    if rank == 0:
-        recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
     for i in range(n):
-        for j in range(currsize+2):
+        for j in range(d):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
-                        oldcon = currd
-                        currd[j,k,l,s] = get_random_spin_single()
-                        deltaE = enconold - energy_single_site(currd, Jzz, Jxy, h, hvec, j, k, l, s)
-                        if deltaE < 0 or np.random.uniform(0,1) < np.exp(-deltaE/T):
-                            enconold = enconold - deltaE
+                        oldcon = con
+                        con[j,k,l,s] = get_random_spin_single()
+                        deltaE = enconold - energy_single_site(con, Jzz, Jxy, h, hvec, j, k, l, s)
+                        if deltaE < 0 or np.random.uniform(0,1) > np.exp(-deltaE/T):
+                            enconold = enconold + deltaE
                         else:
-                            currd = oldcon
+                            con = oldcon
 
-                        destleft = np.mod(rank - 1, size)
-                        destright = np.mod(rank + 1, size)
+                        # destleft = np.mod(rank - 1, size)
+                        # destright = np.mod(rank + 1, size)
+                        #
+                        # # print(destleft, destright)
+                        #
+                        # sendleft = np.array(currd[0], dtype=np.float64)
+                        # sendright = np.array(currd[-1], dtype=np.float64)
+                        #
+                        # comm.Send(sendleft, destleft, tag=77)
+                        # comm.Send(sendright, destright, tag=80)
+                        #
+                        # boundleft = np.zeros((d,d,4,3), dtype=np.float64)
+                        # boundright = np.zeros((d,d,4,3), dtype=np.float64)
+                        #
+                        # comm.Recv(boundleft, source=destleft, tag=80)
+                        # comm.Recv(boundright, source=destright, tag=77)
+                        #
+                        # currd[0] = boundleft
+                        # currd[-1] = boundright
 
-                        sendleft = np.array(currd[0], dtype=np.float64)
-                        sendright = np.array(currd[-1], dtype=np.float64)
 
-                        comm.Send(sendleft, destleft, tag=77)
-                        comm.Send(sendright, destright, tag=80)
-
-                        boundleft = np.zeros((d,d,4,3), dtype=np.float64)
-                        boundright = np.zeros((d,d,4,3), dtype=np.float64)
-
-                        comm.Recv(boundleft, source=destleft, tag=80)
-                        comm.Recv(boundright, source=destright, tag=77)
-
-                        currd[0] = boundleft
-                        currd[-1] = boundright
-
-
-    sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
-    comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
-    return recvbuf
+    # sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
+    # comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
+    return con
 
 
 def deterministic_sweep(con, n, d, Jzz, Jxy, h, hvec, T):
-    enconold = 0.0
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    nb = d / size
-
-    left = int(rank * nb)
-    right = int((rank + 1) * nb)
-    currsize = right-left
-    currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
-
-    if rank == 0:
-        currd[0] = con[-1]
-        currd[1:-1] = con[left:right+1]
-    elif rank == size-1:
-        currd[0:currsize+1] = con[left-1:right]
-        currd[-1] = con[0]
-    else:
-        currd = con[left-1:right+1]
-
-    recvbuf = None
-
-    if rank == 0:
-        recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
+    # comm = MPI.COMM_WORLD
+    # size = comm.Get_size()
+    # rank = comm.Get_rank()
+    #
+    # nb = d / size
+    #
+    # left = int(rank * nb)
+    # right = int((rank + 1) * nb)
+    # currsize = right-left
+    # currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
+    #
+    # if rank == 0:
+    #     currd[0] = con[-1]
+    #     currd[1:-1] = con[left:right+1]
+    # elif rank == size-1:
+    #     currd[0:currsize+1] = con[left-1:right]
+    #     currd[-1] = con[0]
+    # else:
+    #     currd = con[left-1:right+1]
+    #
+    # recvbuf = None
+    #
+    # if rank == 0:
+    #     recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
 
     for i in range(n):
-        for j in range(currsize+2):
+        for j in range(d):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
 
-                        currd[j,k,l,s] = get_deterministic_angle(currd, Jzz, Jxy, h, hvec, j, k, l, s)
+                        con[j,k,l,s] = get_deterministic_angle(con, Jzz, Jxy, h, hvec, j, k, l, s)
 
-                        destleft = np.mod(rank - 1, size)
-                        destright = np.mod(rank + 1, size)
-
-                        sendleft = np.array(currd[0], dtype=np.float64)
-                        sendright = np.array(currd[-1], dtype=np.float64)
-
-                        comm.Send(sendleft, destleft, tag=77)
-                        comm.Send(sendright, destright, tag=80)
-
-                        boundleft = np.zeros((d,d,4,3), dtype=np.float64)
-                        boundright = np.zeros((d,d,4,3), dtype=np.float64)
-
-                        comm.Recv(boundleft, source=destleft, tag=80)
-                        comm.Recv(boundright, source=destright, tag=77)
-
-                        currd[0] = boundleft
-                        currd[-1] = boundright
-
-
-    sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
-    comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
-    return recvbuf
+    #                     destleft = np.mod(rank - 1, size)
+    #                     destright = np.mod(rank + 1, size)
+    #
+    #                     sendleft = np.array(currd[0], dtype=np.float64)
+    #                     sendright = np.array(currd[-1], dtype=np.float64)
+    #
+    #                     comm.Send(sendleft, destleft, tag=77)
+    #                     comm.Send(sendright, destright, tag=80)
+    #
+    #                     boundleft = np.zeros((d,d,4,3), dtype=np.float64)
+    #                     boundright = np.zeros((d,d,4,3), dtype=np.float64)
+    #
+    #                     comm.Recv(boundleft, source=destleft, tag=80)
+    #                     comm.Recv(boundright, source=destright, tag=77)
+    #
+    #                     currd[0] = boundleft
+    #                     currd[-1] = boundright
+    #
+    #
+    # sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
+    # comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
+    return con
 
 @njit(cache=True)
 def annealing_schedule(x):
@@ -286,11 +294,38 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jzz, Jxy, h, hvec):
             temp = deterministic_sweep(con, nsweep, d, Jzz, Jxy, h, hvec, i)
         if rank == 0:
             con = temp
+        # print(con)
     return con
 
+r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])*2
 
-con = anneal(4, 100, 1, int(1e2),int(5e3), 1, -1, 0, np.array([0,0,1]))
-np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
+b = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])
+def graphconfig(con):
+    d = con.shape[0]
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+    coord = np.zeros((4*d*d*d,3))
+    spin = np.zeros((4*d*d*d,3))
+    d = con.shape[0]
+    for i in range(d):
+        for j in range(d):
+            for k in range(d):
+                for u in range(4):
+                    coord[i*d*d*4+j*d*4+k*4+u] = i*r[0]+j*r[1]+k*r[2]+b[u]
+                    spin[i * d * d * 4 + j * d * 4 + k * 4 + u] = con[i,j,k,u]
+
+    spin = spin*0.5
+
+    ax.scatter(coord[:,0], coord[:,1], coord[:,2])
+    ax.quiver(coord[:,0], coord[:,1], coord[:,2],spin[:,0], spin[:,1], spin[:,2])
+    plt.show()
+
+
+con = anneal(4, 100, 1, 100, 1000, 1,-1, 0, np.array([0,0,1]))
+
+graphconfig(con)
+
+# np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 
 
