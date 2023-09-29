@@ -289,7 +289,7 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jzz, Jxy, h, hvec):
     return con
 
 
-con = anneal(4, 100, 1, int(1e2),int(5e3), 1, 1, 0, np.array([0,0,1]))
+con = anneal(4, 100, 1, int(1e2),int(5e3), 1, -1, 0, np.array([0,0,1]))
 np.savetxt('spin_config_Jzz=1_Jxy=1_h=0.txt', con)
 
 

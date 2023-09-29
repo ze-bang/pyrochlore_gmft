@@ -419,7 +419,7 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range (currsize):
         for j in range (nH):
-            py0s = py0.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
+            py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()
             GSz = py0s.gap()
