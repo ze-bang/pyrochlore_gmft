@@ -283,7 +283,7 @@ def phase_diagram(nK, filename):
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        plt.contourf(JP, h, rectemp.T)
+        plt.contourf(Jx, Jz, rectemp.T)
         plt.xlabel(r'$J_x$')
         plt.ylabel(r'$J_z$')
         plt.savefig('Files/' + filename+ '.png')
