@@ -97,17 +97,17 @@ def energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz):
     return sum/2
 
 @njit(cache=True)
-def energy_single_site(con, Jxx, Jyy, Jzz, h, n, i, j, k, u):
-    mag = dot(z[u], -h*n) * con[i,j,k,u,2]
+def energy_single_site(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
+    mag = dot(z[u], h*n) * (gx * con[i,j,k,u,0] + gz * con[i,j,k,u,2]) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) *con[i,j,k,u,1]
     energy = energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz)
-    return energy+mag
+    return energy - mag
 
 @njit(cache=True)
 def NN_field(con, i, j, k, u, Jxx, Jyy, Jzz):
     sum = np.zeros(3)
     for v in range(4):
         if not v == u:
-            temp = con[i,j,k, v]
+            temp = con[i,j,k,v]
             sum += Jxx*temp[0]+ Jyy*temp[1] + Jzz*temp[2]
 
     ind = np.mod(indices(i,j,k,u), con.shape[0])
@@ -115,11 +115,12 @@ def NN_field(con, i, j, k, u, Jxx, Jyy, Jzz):
         temp = con[g[0], g[1], g[2],g[3]]
         sum += Jxx*temp[0] + Jyy*temp[1] + Jzz*temp[2]
     return sum/2
+
 @njit(cache=True)
-def get_deterministic_angle(con, Jxx, Jyy, Jzz, h, n, i, j, k, u):
+def get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     temp = NN_field(con, i, j, k, u, Jxx, Jyy, Jzz)
-    temp = temp[0]*x[u] + temp[1]*y[u] + temp[2]*z[u]
-    temp = temp - h * dot(n, z[u]) * np.array([0,0,1])
+    mag = dot(z[u], h*n) * (gx * np.array([1,0,0]) + gz * np.array([0,0,1])) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) * np.array([0,1,0])
+    temp = temp - mag
     if not np.linalg.norm(temp) == 0:
         return temp/np.linalg.norm(temp)
     else:
@@ -150,34 +151,8 @@ def get_deterministic_angle(con, Jxx, Jyy, Jzz, h, n, i, j, k, u):
 #
 #     return (energy+mag)/(d**3)
 @njit(fastmath=True, cache=True)
-def single_sweep(con, n, d, Jxx, Jyy, Jzz, h, hvec, T):
+def single_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, T):
     enconold = 0.0
-    # comm = MPI.COMM_WORLD
-    # size = comm.Get_size()
-    # rank = comm.Get_rank()
-
-    # nb = d / size
-    #
-    # left = int(rank * nb)
-    # right = int((rank + 1) * nb)
-    # currsize = right-left
-    # currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
-    #
-    # if rank == 0:
-    #     currd[0] = con[-1]
-    #     currd[1:-1] = con[left:right+1]
-    # elif rank == size-1:
-    #     currd[0:currsize+1] = con[left-1:right]
-    #     currd[-1] = con[0]
-    # else:
-    #     currd = con[left-1:right+1]
-    #
-    # recvbuf = None
-    #
-    # if rank == 0:
-    # recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
-
-
     for i in range(n):
         for j in range(d):
             for k in range(d):
@@ -185,99 +160,22 @@ def single_sweep(con, n, d, Jxx, Jyy, Jzz, h, hvec, T):
                     for s in range(4):
                         oldcon = con
                         con[j,k,l,s] = get_random_spin_single()
-                        new = energy_single_site(con, Jxx, Jyy, Jzz, h, hvec, j, k, l, s)
+                        new = energy_single_site(con, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, j, k, l, s)
                         deltaE = new - enconold
                         if deltaE < 0 or np.random.uniform(0,1) < np.exp(-deltaE/T):
                             enconold = new
                         else:
                             con = oldcon
-
-                        # destleft = np.mod(rank - 1, size)
-                        # destright = np.mod(rank + 1, size)
-                        #
-                        # # print(destleft, destright)
-                        #
-                        # sendleft = np.array(currd[0], dtype=np.float64)
-                        # sendright = np.array(currd[-1], dtype=np.float64)
-                        #
-                        # comm.Send(sendleft, destleft, tag=77)
-                        # comm.Send(sendright, destright, tag=80)
-                        #
-                        # boundleft = np.zeros((d,d,4,3), dtype=np.float64)
-                        # boundright = np.zeros((d,d,4,3), dtype=np.float64)
-                        #
-                        # comm.Recv(boundleft, source=destleft, tag=80)
-                        # comm.Recv(boundright, source=destright, tag=77)
-                        #
-                        # currd[0] = boundleft
-                        # currd[-1] = boundright
-
-
-    # sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
-    # comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
     return con
 
 @njit(fastmath=True, cache=True)
-def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, h, hvec, T):
-    # comm = MPI.COMM_WORLD
-    # size = comm.Get_size()
-    # rank = comm.Get_rank()
-    #
-    # nb = d / size
-    #
-    # left = int(rank * nb)
-    # right = int((rank + 1) * nb)
-    # currsize = right-left
-    # currd = np.zeros((currsize+2, d,d,4,3), dtype=np.float64)
-    #
-    # if rank == 0:
-    #     currd[0] = con[-1]
-    #     currd[1:-1] = con[left:right+1]
-    # elif rank == size-1:
-    #     currd[0:currsize+1] = con[left-1:right]
-    #     currd[-1] = con[0]
-    # else:
-    #     currd = con[left-1:right+1]
-    #
-    # recvbuf = None
-    #
-    # if rank == 0:
-    #     recvbuf = np.zeros((d, d, d, 4, 3), dtype=np.float64)
-    enconold = 0.0
+def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     for i in range(n):
         for j in range(d):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
-                        # oldcon = con
-                        con[j,k,l,s] = get_deterministic_angle(con, Jxx, Jyy, Jzz, h, hvec, j, k, l, s)
-                        # new = energy_single_site(con, Jxx, Jyy, Jzz, h, hvec, j, k, l, s)
-                        # deltaE = new - enconold
-                        # if deltaE < 0 or np.random.uniform(0, 1) < np.exp(-deltaE / T):
-                        #     enconold = new
-                        # else:
-                        #     con = oldcon
-    #                     destleft = np.mod(rank - 1, size)
-    #                     destright = np.mod(rank + 1, size)
-    #
-    #                     sendleft = np.array(currd[0], dtype=np.float64)
-    #                     sendright = np.array(currd[-1], dtype=np.float64)
-    #
-    #                     comm.Send(sendleft, destleft, tag=77)
-    #                     comm.Send(sendright, destright, tag=80)
-    #
-    #                     boundleft = np.zeros((d,d,4,3), dtype=np.float64)
-    #                     boundright = np.zeros((d,d,4,3), dtype=np.float64)
-    #
-    #                     comm.Recv(boundleft, source=destleft, tag=80)
-    #                     comm.Recv(boundright, source=destright, tag=77)
-    #
-    #                     currd[0] = boundleft
-    #                     currd[-1] = boundright
-    #
-    #
-    # sendcounts = np.array(comm.gather(currsize * d * d * 4 *3, 0))
-    # comm.Gatherv(sendbuf=currd[1:-2], recvbuf=(recvbuf, sendcounts), root=0)
+                        con[j,k,l,s] = get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, j, k, l, s)
     return con
 
 @njit(cache=True)
@@ -286,7 +184,7 @@ def annealing_schedule(x):
 
 
 @njit(cache=True)
-def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, h, hvec):
+def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     con = initialize_con(d)
     # comm = MPI.COMM_WORLD
     # rank = comm.Get_rank()
@@ -297,9 +195,9 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, h, hvec):
 
     for i in T:
         if i > 1e-7:
-            temp = single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, h, hvec, i)
+            temp = single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
         else:
-            temp = deterministic_sweep(con, nsweep, d, Jxx, Jyy, Jzz, h, hvec, i)
+            temp = deterministic_sweep(con, nsweep, d, Jxx, Jyy, gx, gy, gz, Jzz, h, hvec)
         con = temp
         # print(con)
     return con
@@ -341,62 +239,43 @@ def graphconfig(con):
     plt.savefig("test_monte_carlo.png")
     plt.show()
 
-# @njit(cache=True, fastmath=True)
-def phase_diagram(nK, filename):
-    Jx = np.linspace(-1, 1, nK)
-    Jz = np.linspace(-1, 1, nK)
-    # phase = np.zeros((nK,nK))
-
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    nb = nK/size
-
-    left = int(rank*nb)
-    right = int((rank+1)*nb)
-    currsize = right-left
-
-    currJx = Jx[left:right]
-
-    sendtemp = np.zeros((currsize, nK), dtype=np.float64)
-
-    rectemp = None
-
-    if rank == 0:
-        rectemp = np.zeros((nK, nK), dtype=np.float64)
-
-
+@njit(cache=True, fastmath=True)
+def phase_diagram():
+    Jx = np.linspace(-1, 1, 50)
+    Jz = np.linspace(-1, 1, 50)
+    phase = np.zeros((50,50))
     tol = 1e-3
-    for i in range(currsize):
-        for j in range(nK):
-            con = anneal(4, 100, 1, int(1e3), int(1e5), currJx[i], 1, Jz[j], 0, np.array([0,0,1]))
+    for i in range(50):
+        for j in range(50):
+            con = anneal(4, 100, 1, int(1e3), int(1e5), Jx[i], 1, Jz[j], 0, np.array([0,0,1]))
             mag = magnetization(con)
             if mag[0] > tol:
-                sendtemp[i,j] = 0
+                phase[i,j] = 0
             elif mag[2] > tol:
-                sendtemp[i,j] = 1
+                phase[i,j] = 1
             elif (mag<tol).all():
                 if Jx[i] + Jz[j] > 0:
-                    sendtemp[i,j] = 2
+                    phase[i,j] = 2
                 else:
-                    sendtemp[i,j] = 3
-    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+                    phase[i,j] = 3
+    return phase
 
-    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
+con = anneal(4, 100, 1, int(1e2), int(1e4), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
+con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
+con = anneal(4, 100, 1, int(1e2), int(1e4), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
 
-    if rank == 0:
-        np.savetxt('Files/' + filename + '.txt', rectemp)
-        plt.contourf(rectemp)
-        plt.savefig('Files/' + filename + '.png')
-    
-    return 0
 
-# con = anneal(4, 100, 1, int(1e3), int(1e5), 0, -1, 1, 0, np.array([0,0,1]))
-#
-# print(magnetization(con))
+# phase = phase_diagram()
+# np.savetxt('phase_monte_carlo.txt', phase)
+# plt.contourf(phase)
+# plt.savefig('phase_monte_carlo.png')
+# plt.show()
 
-phase = phase_diagram(50, "monte_test")
 
 
 

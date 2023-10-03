@@ -20,12 +20,9 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
-        py0s.findLambda()
-        py0s.qvec()
+        # py0s.findLambda()
+        # py0s.qvec()
         print(py0s.minLams)
-        print(py0s.lams)
-        print(py0s.condensed())
-        print(py0s.q)
         py0s.graph(False)
         plt.show()
     elif JP < 0 and not old:
@@ -523,6 +520,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 sendtemp1[i,j] = pyps.gap()
                 sendtemp[i,j] = pyps.condensed()[0] + 5
                 # sendtemp2[i,j] = pyps.q
+
+            # print(sendtemp[i,j])
 # 
 
 
