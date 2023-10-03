@@ -639,7 +639,7 @@ def DSSF(nE, h,n,Jpm, filename, BZres, tol):
         py0s = pypipyold.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
-
+    py0s.findminLam()
 
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
@@ -718,7 +718,8 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
 
     py0s.findLambda()
     # print("Finished finding, lambda is " + str(py0s.lams))
-
+    py0s.findminLam()
+    
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
