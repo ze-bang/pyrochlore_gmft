@@ -239,8 +239,8 @@ def graphconfig(con):
     plt.savefig("test_monte_carlo.png")
     plt.show()
 
-@njit(cache=True, fastmath=True)
-def phase_diagram(nK, filename):
+# @njit(cache=True, fastmath=True)
+def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     Jx = np.linspace(-1, 1, nK)
     Jz = np.linspace(-1, 1, nK)
     phase = np.zeros((nK,nK))
@@ -266,14 +266,14 @@ def phase_diagram(nK, filename):
 
     for i in range(currsize):
         for j in range(nK):
-            con = anneal(4, 100, 1, int(1e3), int(1e5), currJx[i], 1, Jz[j], 0, np.array([0,0,1]))
+            con = anneal(sites, 100, 1, nT, nSweep, currJx[i], 1, Jz[j], 0.01, 4e-4, 1, h, hvec)
             mag = magnetization(con)
             if mag[0] > tol:
                 sendtemp[i,j] = 0
             elif mag[2] > tol:
                 sendtemp[i,j] = 1
             elif (mag<tol).all():
-                if Jx[i] + Jz[j] > 0:
+                if currJx[i] + Jz[j] > 0:
                     sendtemp[i,j] = 2
                 else:
                     sendtemp[i,j] = 3
@@ -288,7 +288,7 @@ def phase_diagram(nK, filename):
         plt.ylabel(r'$J_z$')
         plt.savefig('Files/' + filename+ '.png')
         plt.clf()
-    return phase
+    return 0
 
 # con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
 # print(magnetization(con))
@@ -300,7 +300,7 @@ def phase_diagram(nK, filename):
 # print(magnetization(con))
 
 
-phase = phase_diagram(50, 'phase_monte_carlo')
+phase = phase_diagram(50, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
 # np.savetxt('phase_monte_carlo.txt', phase)
 # plt.contourf(phase)
 # plt.savefig('phase_monte_carlo.png')
