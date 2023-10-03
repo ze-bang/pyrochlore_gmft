@@ -56,15 +56,15 @@ def get_random_spin_single():
 
 # nearest neighbour based on
 @njit(cache=True)
-def indices(i,j,k,u):
+def indices(i,j,k,u,d):
     if u == 0:
-        return np.array([[i-1, j, k, 1], [i, j-1, k, 2], [i, j, k-1, 3]])
+        return np.array([[np.mod(i-1, d), j, k, 1], [i, np.mod(j-1, d), k, 2], [i, j, np.mod(k-1, d), 3]])
     if u == 1:
-        return np.array([[i+1, j, k, 0],[i+1, j-1, k, 2], [i+1, j, k-1, 3]])
+        return np.array([[np.mod(i+1, d), j, k, 0],[np.mod(i+1, d), np.mod(j-1, d), k, 2], [np.mod(i+1, d), j, np.mod(k-1, d), 3]])
     if u == 2:
-        return np.array([[i, j+1, k, 0], [i-1, j+1, k, 1], [i, j+1, k-1, 3]])
+        return np.array([[i, np.mod(j+1, d), k, 0], [np.mod(i-1, d), np.mod(j+1, d), k, 1], [i, np.mod(j+1, d), np.mod(k-1, d), 3]])
     if u == 3:
-        return np.array([[i, j, k+1, 0], [i-1, j, k+1, 1], [i, j-1, k+1, 2]])
+        return np.array([[i, j, np.mod(k+1, d), 0], [np.mod(i-1, d), j, np.mod(k+1, d), 1], [i, np.mod(j-1, d), np.mod(k+1, d), 2]])
 
 @njit(cache=True)
 def project(s, u):
@@ -91,7 +91,7 @@ def energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz):
     for v in range(4):
         if not v == u:
             sum += localdot(con[i,j,k,u], con[i,j,k, v], Jxx, Jyy, Jzz)
-    ind = np.mod(indices(i,j,k,u), con.shape[0])
+    ind = indices(i,j,k,u, con.shape[0])
     for g in ind:
         sum += localdot(con[i,j,k,u], con[g[0], g[1], g[2],g[3]], Jxx, Jyy, Jzz)
     return sum/2
@@ -107,50 +107,33 @@ def NN_field(con, i, j, k, u, Jxx, Jyy, Jzz):
     sum = np.zeros(3)
     for v in range(4):
         if not v == u:
-            temp = con[i,j,k,v]
-            sum += Jxx*temp[0]+ Jyy*temp[1] + Jzz*temp[2]
+            temp = np.copy(con[i,j,k,v])
+            temp[0] = Jxx * temp[0]
+            temp[1] = Jyy * temp[1]
+            temp[2] = Jzz * temp[2]
+            sum += temp
 
-    ind = np.mod(indices(i,j,k,u), con.shape[0])
+    ind = indices(i,j,k,u, con.shape[0])
     for g in ind:
-        temp = con[g[0], g[1], g[2],g[3]]
-        sum += Jxx*temp[0] + Jyy*temp[1] + Jzz*temp[2]
+        temp = np.copy(con[g[0], g[1], g[2],g[3]])
+        temp[0] = Jxx * temp[0]
+        temp[1] = Jyy * temp[1]
+        temp[2] = Jzz * temp[2]
+        sum += temp
     return sum/2
 
 @njit(cache=True)
 def get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     temp = NN_field(con, i, j, k, u, Jxx, Jyy, Jzz)
-    mag = dot(z[u], h*n) * (gx * np.array([1,0,0]) + gz * np.array([0,0,1])) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) * np.array([0,1,0])
+    # print(temp)
+    mag = dot(z[u], h*n) * (np.array([gx,0,gz])) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) * np.array([0,1,0])
     temp = temp - mag
     if not np.linalg.norm(temp) == 0:
         return temp/np.linalg.norm(temp)
     else:
         return temp
 
-
-# @njit()
-# def numba_subrountine_energy(d, con, confast):
-#     energy = 0.0
-#     for i in range(d):
-#         for j in range(d):
-#             for k in range(d):
-#                 for u in range(4):
-#                     energy += energy_single_site_NN(con, confast, i, j, k, u)
-#     return energy
-#
-# def energy(con, Jzz, Jxy, h, n):
-#     conlocal = contract('ijkus, xus->ijkux', con, coord)
-#
-#     confast = np.zeros(con.shape)
-#     confast[0:2] = Jxy*conlocal[0:2]
-#     confast[2] = Jzz*conlocal[2]
-#
-#     d = con.shape[1]
-#
-#     mag = np.sum(contract('ijkus, s', con, -h * n))
-#     energy = numba_subrountine_energy(d, con, confast)
-#
-#     return (energy+mag)/(d**3)
-@njit(fastmath=True, cache=True)
+@njit(cache=True, fastmath=True)
 def single_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, T):
     enconold = 0.0
     for i in range(n):
@@ -158,15 +141,16 @@ def single_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, T):
             for k in range(d):
                 for l in range(d):
                     for s in range(4):
-                        oldcon = con
+                        temp = np.copy(con[j,k,l,s])
                         con[j,k,l,s] = get_random_spin_single()
                         new = energy_single_site(con, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, j, k, l, s)
                         deltaE = new - enconold
+                        # print(enconold, new, deltaE, con[j,k,l,s], temp, s)
                         if deltaE < 0 or np.random.uniform(0,1) < np.exp(-deltaE/T):
                             enconold = new
                         else:
-                            con = oldcon
-    return con
+                            con[j,k,l,s] = temp
+    return 0
 
 @njit(fastmath=True, cache=True)
 def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
@@ -176,7 +160,8 @@ def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
                 for l in range(d):
                     for s in range(4):
                         con[j,k,l,s] = get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, j, k, l, s)
-    return con
+
+    return 0
 
 @njit(cache=True)
 def annealing_schedule(x):
@@ -189,35 +174,27 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     # comm = MPI.COMM_WORLD
     # rank = comm.Get_rank()
 
-    x = np.linspace(1, Target, ntemp)
-    T = Tinit*annealing_schedule(x)
-    temp = np.zeros(3, dtype=np.float64)
+    x = Tinit*np.logspace(1, Target, ntemp)
 
-    for i in T:
-        if i > 1e-7:
-            temp = single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
-        else:
-            temp = deterministic_sweep(con, nsweep, d, Jxx, Jyy, gx, gy, gz, Jzz, h, hvec)
-        con = temp
+    for i in x:
+        # if i > 1e-7:
+        single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
+        # else:
+        #     deterministic_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
+        # con = temp
         # print(con)
+        # print("------------------------------------------------")
     return con
 
 r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])*2
 
 b = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])
 
-@njit(cache=True, fastmath=True)
 def magnetization(con):
-    d = con.shape[0]
-    mag = np.zeros(3, dtype=np.float64)
-    for i in range(d):
-        for j in range(d):
-            for k in range(d):
-                for u in range(4):
-                    mag += con[i,j,k,u]
-    mag = mag/(d**3)
 
-    return mag
+    mag = contract('ijkus->s', con)
+
+    return mag/(con.shape[0]**3*4)
 def graphconfig(con):
     d = con.shape[0]
     fig = plt.figure()
@@ -290,17 +267,21 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
         plt.clf()
     return 0
 
+
 # con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
 # print(magnetization(con))
-# con = anneal(4, 100, 1, int(1e2), int(1e4), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+
+con = anneal(1, -100, 1, int(1e1), int(1e5), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
+con = anneal(1, -100, 1, int(1e1), int(1e5), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+print(magnetization(con))
+# con = anneal(1, -100, 1, int(1e1), int(1e5), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
 # print(magnetization(con))
-# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-# print(magnetization(con))
-# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+# con = anneal(1, -100, 1, int(1e1), int(1e5), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
 # print(magnetization(con))
 
 
-phase = phase_diagram(50, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
+# phase = phase_diagram(50, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
 # np.savetxt('phase_monte_carlo.txt', phase)
 # plt.contourf(phase)
 # plt.savefig('phase_monte_carlo.png')
