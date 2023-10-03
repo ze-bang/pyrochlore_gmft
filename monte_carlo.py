@@ -240,37 +240,67 @@ def graphconfig(con):
     plt.show()
 
 @njit(cache=True, fastmath=True)
-def phase_diagram():
-    Jx = np.linspace(-1, 1, 50)
-    Jz = np.linspace(-1, 1, 50)
-    phase = np.zeros((50,50))
+def phase_diagram(nK, filename):
+    Jx = np.linspace(-1, 1, nK)
+    Jz = np.linspace(-1, 1, nK)
+    phase = np.zeros((nK,nK))
     tol = 1e-3
-    for i in range(50):
-        for j in range(50):
-            con = anneal(4, 100, 1, int(1e3), int(1e5), Jx[i], 1, Jz[j], 0, np.array([0,0,1]))
+
+    
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = nK/size
+
+    left = int(rank*nb)
+    right = int((rank+1)*nb)
+    currsize = right-left
+
+    currJx = Jx[left:right]
+
+    sendtemp = np.zeros((currsize, nK), dtype=np.float64)
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros((nK, nK), dtype=np.float64)
+
+    for i in range(currsize):
+        for j in range(nK):
+            con = anneal(4, 100, 1, int(1e3), int(1e5), currJx[i], 1, Jz[j], 0, np.array([0,0,1]))
             mag = magnetization(con)
             if mag[0] > tol:
-                phase[i,j] = 0
+                sendtemp[i,j] = 0
             elif mag[2] > tol:
-                phase[i,j] = 1
+                sendtemp[i,j] = 1
             elif (mag<tol).all():
                 if Jx[i] + Jz[j] > 0:
-                    phase[i,j] = 2
+                    sendtemp[i,j] = 2
                 else:
-                    phase[i,j] = 3
+                    sendtemp[i,j] = 3
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+
+    if rank == 0:
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        plt.contourf(JP, h, rectemp.T)
+        plt.xlabel(r'$J_x$')
+        plt.ylabel(r'$J_z$')
+        plt.savefig('Files/' + filename+ '.png')
+        plt.clf()
     return phase
 
-con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
-con = anneal(4, 100, 1, int(1e2), int(1e4), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
-con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
-con = anneal(4, 100, 1, int(1e2), int(1e4), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
+# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+# print(magnetization(con))
+# con = anneal(4, 100, 1, int(1e2), int(1e4), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+# print(magnetization(con))
+# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+# print(magnetization(con))
+# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
+# print(magnetization(con))
 
 
-# phase = phase_diagram()
+phase = phase_diagram(50, 'phase_monte_carlo')
 # np.savetxt('phase_monte_carlo.txt', phase)
 # plt.contourf(phase)
 # plt.savefig('phase_monte_carlo.png')
