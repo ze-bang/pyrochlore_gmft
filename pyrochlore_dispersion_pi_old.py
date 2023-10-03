@@ -165,7 +165,22 @@ def gradient(k, lams, eta, Jpm, h, n):
     fz = (Emin(np.array([kx, ky, kz+step]), lams, eta, Jpm, h, n) - Emin(np.array([kx, ky, kz]), lams, eta, Jpm, h, n)) / step
     return np.array([fx, fy, fz])
 
-
+def findminLam_old(M, Jzz, tol):
+    warnings.filterwarnings("error")
+    lamMin = np.zeros(2)
+    lamMax = 50*np.ones(2)
+    lams = (lamMin + lamMax) / 2
+    while not ((lamMax-lamMin<=tol).all()):
+        lams = (lamMin + lamMax) / 2
+        try:
+             rhoguess = rho_true(Jzz, M, lams)
+             for i in range(2):
+                 lamMax[i] = lams[i]
+        except:
+             lamMin = lams
+        # print([lams, lamMin, lamMax,lamMax-lamMin])
+    warnings.resetwarnings()
+    return lams
 
 def findminLam(M, K, tol, eta, Jpm, h, n):
     warnings.filterwarnings("error")
@@ -193,6 +208,7 @@ def findminLam(M, K, tol, eta, Jpm, h, n):
         init=False
     warnings.resetwarnings()
     return -Enext
+
 
 def findlambda_pi(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
@@ -420,7 +436,8 @@ class piFluxSolver:
         warnings.resetwarnings()
 
     def findminLam(self):
-        self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
+        # self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
+        self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def qvec(self):
         # print((2e2/len(self.bigB))**2)
