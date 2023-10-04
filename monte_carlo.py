@@ -127,7 +127,7 @@ def get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     temp = NN_field(con, i, j, k, u, Jxx, Jyy, Jzz)
     # print(temp)
     mag = dot(z[u], h*n) * (np.array([gx,0,gz])) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) * np.array([0,1,0])
-    temp = temp - mag
+    temp = -temp + mag
     if not np.linalg.norm(temp) == 0:
         return temp/np.linalg.norm(temp)
     else:
@@ -177,10 +177,10 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     x = Tinit*np.logspace(1, Target, ntemp)
 
     for i in x:
-        # if i > 1e-7:
-        single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
-        # else:
-        #     deterministic_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
+        if i > 1e-8:
+            single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
+        else:
+            deterministic_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
         # con = temp
         # print(con)
         # print("------------------------------------------------")
@@ -243,7 +243,7 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
 
     for i in range(currsize):
         for j in range(nK):
-            con = anneal(sites, 100, 1, nT, nSweep, currJx[i], 1, Jz[j], 0.01, 4e-4, 1, h, hvec)
+            con = anneal(sites, -10, 1, nT, nSweep, currJx[i], 1, Jz[j], 0.01, 4e-4, 1, h, hvec)
             mag = magnetization(con)
             if mag[0] > tol:
                 sendtemp[i,j] = 0
@@ -268,20 +268,8 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     return 0
 
 
-# con = anneal(4, 100, 1, int(1e2), int(1e4), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-# print(magnetization(con))
 
-con = anneal(1, -100, 1, int(1e1), int(1e5), 0, -1, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
-con = anneal(1, -100, 1, int(1e1), int(1e5), -1, 0, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-print(magnetization(con))
-# con = anneal(1, -100, 1, int(1e1), int(1e5), 0, -0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-# print(magnetization(con))
-# con = anneal(1, -100, 1, int(1e1), int(1e5), 0, 0.2, 1, 0.01, 4e-4, 1, 0, np.array([0,0,1]))
-# print(magnetization(con))
-
-
-# phase = phase_diagram(50, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
+phase = phase_diagram(25, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
 # np.savetxt('phase_monte_carlo.txt', phase)
 # plt.contourf(phase)
 # plt.savefig('phase_monte_carlo.png')

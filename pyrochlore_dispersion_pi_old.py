@@ -439,6 +439,10 @@ class piFluxSolver:
         # self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
         self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
+    def findminLam_new(self):
+        self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
+        # self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
+
     def qvec(self):
         # print((2e2/len(self.bigB))**2)
         E = E_pi(self.lams-np.ones(2)*(2e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.h, self.n)[0]
