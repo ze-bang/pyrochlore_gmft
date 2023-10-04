@@ -244,7 +244,7 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     for i in range(currsize):
         for j in range(nK):
             con = anneal(sites, 100, 1, nT, nSweep, currJx[i], 1, Jz[j], 0.01, 4e-4, 1, h, hvec)
-            mag = magnetization(con)
+            mag = abs(magnetization(con))
             if mag[0] > tol:
                 sendtemp[i,j] = 0
             elif mag[2] > tol:
