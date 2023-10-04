@@ -27,9 +27,11 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
         plt.show()
     elif JP < 0 and not old:
         py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, Jpmpm=Jpmpm)
-        py0s.findminLam()
-        print(py0s.minLams)
+        # py0s.findminLam()
+        # print(py0s.minLams)
         # py0s.findLambda()
+        py0s.solvemeanfield(1e-7,0)
+        print(py0s.chi, py0s.xi)
         # py0s.qvec()
         # print(py0s.minLams)
         # print(py0s.lams)
@@ -45,6 +47,8 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
     else:
         py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
+        print(py0s.minLams)
+        py0s.findminLam_new()
         print(py0s.minLams)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
         # py0s.graph(True)
