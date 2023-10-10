@@ -19,13 +19,12 @@ import netCDF4 as nc
 def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
     JP = -(Jxx+Jyy)/4
     if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findminLam()
+        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.solvemeanfield(1e-7,0)
         # py0s.findLambda()
         # py0s.qvec()
-        print(py0s.minLams)
         py0s.graph(False)
-        plt.show()
+        # plt.show()
     elif JP < 0 and not old:
         py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         # py0s.findminLam()
@@ -34,7 +33,7 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
         # M = py0s.MF
         # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
         # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
-        py0s.solvemeanfield(1e-7,0)
+        py0s.solvemeanfield()
         # print(py0s.chi, py0s.xi)
         # py0s.qvec()
         # print(py0s.minLams)
@@ -51,7 +50,7 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
     else:
         py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
-        B = np.mean(py0s.green_pi(py0s.bigB, py0s.lams), axis=0)
+        # B = np.mean(py0s.green_pi(py0s.bigB, py0s.lams), axis=0)
 
         # print(py0s.minLams)
         # py0s.findminLam_new()

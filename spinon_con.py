@@ -1,5 +1,5 @@
 
-from pyrochlore_dispersion_pi import green_pi, green_pi_branch, green_pi_old
+from pyrochlore_dispersion_pi import green_pi, green_pi_branch
 from pyrochlore_dispersion import green_zero_branch, green_zero
 import pyrochlore_dispersion_pi_gang_chen as pygang
 import pyrochlore_dispersion_pi_old as pypipyold

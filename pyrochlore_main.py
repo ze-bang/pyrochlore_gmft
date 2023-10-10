@@ -40,8 +40,8 @@ import netCDF4 as nc
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
-# graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, True)
-# plt.show()
+graphdispersion(-0.05, -0.02, 1, 2, h1b10, 1, 2, 20, 20)
+plt.show()
 
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
@@ -86,8 +86,8 @@ import netCDF4 as nc
 #
 #
 #
-SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test")
-SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test_new", True)
+# SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test")
+# SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test_new", True)
 # SSSF(100, 0, h111, hb110, 0.03, 50, "SSSF_pi_0.03_DETAILED")
 # SSSF(100, 0, h111, hb110, 0.04, 50, "SSSF_pi_0.04_DETAILED")
 
