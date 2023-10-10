@@ -16,7 +16,8 @@ import netCDF4 as nc
 # plt.show()
 
 
-def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
+def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
+    JP = -(Jxx+Jyy)/4
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findminLam()
@@ -26,12 +27,15 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
         py0s.graph(False)
         plt.show()
     elif JP < 0 and not old:
-        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, Jpmpm=Jpmpm)
+        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         # py0s.findminLam()
         # print(py0s.minLams)
         # py0s.findLambda()
+        # M = py0s.MF
+        # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
+        # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
         py0s.solvemeanfield(1e-7,0)
-        print(py0s.chi, py0s.xi)
+        # print(py0s.chi, py0s.xi)
         # py0s.qvec()
         # print(py0s.minLams)
         # print(py0s.lams)
@@ -43,15 +47,17 @@ def graphdispersion(JP,h, n, kappa, rho, graphres, BZres, old=False, Jpmpm=0):
         # test = contract('ijkl->ikl', q1)
         # #temp = py0s.green_pi_branch(py0s.bigB)
         # # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
-        # py0s.graph(False)
+        py0s.graph(False)
     else:
         py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findminLam()
-        print(py0s.minLams)
-        py0s.findminLam_new()
-        print(py0s.minLams)
+        py0s.findLambda()
+        B = np.mean(py0s.green_pi(py0s.bigB, py0s.lams), axis=0)
+
+        # print(py0s.minLams)
+        # py0s.findminLam_new()
+        # print(py0s.minLams)
         # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
-        # py0s.graph(True)
+        py0s.graph(False)
 
 def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
     if JP >= 0:
@@ -162,7 +168,7 @@ def findPhase(nK, nE, res, filename):
             print("Jpm is now " + str(JP[i]))
             print("Kappa is now " + str(kappa[j]))
             if JP[i] >= 0:
-                py0s = py0.zeroFluxSolver(JP[i], eta=kappa[j], BZres=res)
+                py0s = py0.zeroFluxSolver(JP[i], eta=kappa[j], BZres=res, Jpmpm=0.02)
                 print("Finding 0 Flux Lambda")
                 py0s.findLambda()
 

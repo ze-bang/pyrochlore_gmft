@@ -227,20 +227,27 @@ chi_0 = np.array([[[0,1,1,1],
 
 xipicell = np.array([[[1,1,1,1],[1,-1,1,1],[1,-1,-1,1],[1,1,-1,1]],[[1,-1,-1,-1],[1,1,-1,-1],[1,1,1,-1],[1,-1,1,-1]]])
 
+# xipicell_0 = np.array([[1,-1,0,0],
+#                        [-1,-1,0,0],
+#                        [0,0,-1,1],
+#                        [0,0,1,1]])
+
+
 def chi(lams, M, K, Jzz):
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2*Jzz*E)
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', K, NNminus)
     ffactA = np.exp(1j * ffact)
-    ffactB = np.exp(-1j * ffact)
+    # ffactB = np.exp(-1j * ffact)
 
     M1 = np.mean(contract('iab, jl, ijl,jka, lkb->iab', green[:,8:12,0:4], notrace, ffactA, piunitcell, piunitcell), axis=0)
-    M2 = np.mean(contract('iab, jl, ijl,jka, lkb->iab', green[:,12:16,4:8], notrace, ffactB, piunitcell, piunitcell), axis=0)
-    # chi0 = M1[0,3]
+    # M2 = np.mean(contract('iab, jl, ijl,jka, lkb->iab', green[:,12:16,4:8], notrace, ffactB, piunitcell, piunitcell), axis=0)
+    chi0 = M1[0,3]
+    M1 = contract('kab->ab',chi0*chi_0)
 
     dum = np.zeros((4, 4))
-    return np.block([[M1, dum],[dum, M2]])
+    return np.block([[M1, dum],[dum, M1]])
 
 def xi(lams, M, K, Jzz, ns):
     E, V = E_pi_fixed(lams, M)
@@ -250,7 +257,7 @@ def xi(lams, M, K, Jzz, ns):
     ffactA = np.exp(1j * ffact)
 
     M1 = np.mean(contract('ika, ij,jka->ika', green[:,0:4,4:8], ffactA, piunitcell), axis=0)
-    # xi0 = M1[0,0]*xipicell[ns]
+    M1 = M1[0,0]*xipicell[ns]
     dum = np.zeros((4, 4))
     M2 = np.transpose(np.conj(M1))
     return np.block([[dum, M1],[M2, dum]])
@@ -402,24 +409,29 @@ def EMAX(M, lams):
     return temp
 
 def green_pi_phid_phi(E, V, Jzz):
-    Vt1 = contract('ijk, ikl->iklj', V[:,:,0:8], np.transpose(np.conj(V), (0,2,1))[:,0:8,:])
-    Vt2 = contract('ijk, ikl->iklj', V[:,:,8:16], np.transpose(np.conj(V), (0,2,1))[:,8:16,:])
+    Vt1 = contract('ijk, ilk->iklj', V[:,:,0:8], np.conj(V)[:,:,0:8])
+    Vt2 = contract('ijk, ilk->iklj', V[:,:,8:16], np.conj(V)[:,:,8:16])
     green = Jzz/E
     green1 = contract('ikjl, ik->ijl', Vt1, green[:,0:8])
     green2 = contract('iklj, ik->ijl', Vt2, green[:,8:16])
+
+    # Vt1 = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    # green = Jzz/E
+    # green1 = contract('ikjl, ik->ijl', Vt1, green)
     return green1 + green2
 
-def green_pi_phi_phi(E, V, Jzz):
-    Vt1 = contract('ijk, ilk->ikjl', V[:,0:8,8:16], V[:, 0:8, 0:8])
-    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
+def green_pi_phid_phid(E, V, Jzz):
+    V = np.conj(np.transpose(V, (0,2,1)))
+    Vt1 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
+    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 8:16], V[:, 0:8, 0:8])
     green = Jzz/E
-    green1 = contract('ikjl, ik->ijl', Vt1, green[:, 8:16])
-    green2 = contract('iklj, ik->ijl', Vt2, green[:, 0:8])
+    green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
+    green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
     return green1+green2
 
 def green_pi(E, V, Jzz):
-    green_phi_phi = green_pi_phi_phi(E, V, Jzz)
-    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0,2,1))
+    green_phid_phid = green_pi_phid_phid(E, V, Jzz)
+    green_phi_phi = np.transpose(np.conj(green_phid_phid), (0,2,1))
     green_phid_phi = green_pi_phid_phi(E,V,Jzz)
     green = np.block([[green_phid_phi[:, 0:8, 0:8],green_phid_phid],
                       [green_phi_phi, green_phid_phi[:, 8:16, 8:16]]])
@@ -477,10 +489,10 @@ def green_pi_old_branch(E, V, Jzz):
 
 class piFluxSolver:
 
-    def __init__(self, Jpm, Jpmpm=0, theta=0, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, Jzz=1):
+    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20):
         self.Jzz = Jzz
-        self.Jpm = Jpm
-        self.Jpmpm = Jpmpm
+        self.Jpm = -(Jxx+Jyy)/4
+        self.Jpmpm = (Jxx-Jyy)/4
         self.theta = theta
         self.kappa = kappa
         self.eta = np.array([eta, 1], dtype=float)
@@ -488,10 +500,10 @@ class piFluxSolver:
         self.lams = np.array([lam, lam], dtype=float)
         self.h = h
         self.n = n
-
-        self.chi = np.zeros((8,8), dtype=np.complex128)
+        chi_temp = np.mean(chi_0, axis=0)
+        self.chi = np.block([[chi_temp,np.zeros((4,4))],[np.zeros((4,4)),chi_temp]])
         # self.chi0 = np.zeros(8, dtype=np.complex128)
-        self.xi = np.zeros((8,8), dtype=np.complex128)
+        self.xi = np.block([[np.zeros((4,4)), xipicell[0]],[xipicell[0],np.zeros((4,4))]])
 
 
         self.minLams = np.zeros(2)
@@ -525,6 +537,7 @@ class piFluxSolver:
             self.findLambda()
             chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
             xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, ns)
+            print(self.chi, self.xi)
         self.chi = chinext
         self.xi = xinext
         return 0
@@ -559,19 +572,6 @@ class piFluxSolver:
             lam = self.lams
         return E_pi(lam, k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi)
 
-    # def LV_zero_old(self, k,alpha):
-    #     M = M_pi_sub(k, alpha, self.eta, self.Jpm)
-    #     M = M+np.diag(np.repeat(self.lams[0],4))
-    #     E,V = np.linalg.eigh(M)
-    #     if alpha == 1:
-    #         V = np.conj(V)
-    #     return [E,V]
-
-    # def LV_zero_old_single(self, k, alpha):
-    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n)[4*alpha:4*(alpha+1), 4*alpha:4*(alpha+1)] + np.diag(np.repeat(self.lams[alpha], 4))
-    #     E, V = np.linalg.eigh(M)
-    #     return [E,V]
-
     def gap(self):
         return np.sqrt(2*self.Jzz*gap(self.MF, self.lams))
 
@@ -589,17 +589,6 @@ class piFluxSolver:
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.xi)
         if show:
             plt.show()
-
-    # def M_single(self, k):
-    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-    #     return M
-    #
-    #
-    # def E_single(self, k):
-    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-    #     E, V = np.linalg.eigh(M)
-    #     return np.sqrt(2*self.Jzz*E)
-
     def minCal(self, K):
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi, self.xi)
 
@@ -634,18 +623,15 @@ class piFluxSolver:
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
+    def green_pi_old(self, k, lam=np.zeros(2)):
+        E, V = self.LV_zero(k, lam)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_pi_old(E, V, self.Jzz)
+
     def green_pi_branch(self, k, lam=np.zeros(2)):
         E, V = self.LV_zero(k,lam)
         E = np.sqrt(2*self.Jzz*E)
         return green_pi_branch(E, V, self.Jzz), E
-
-    # def green_pi_old(self, k, alpha):
-    #     E, V = self.LV_zero_old(k,alpha)
-    #     return green_pi_old(E, V, self.Jzz)
-    #
-    # def green_pi_old_branch(self, k, alpha):
-    #     E, V = self.LV_zero_old(k,alpha)
-    #     return green_pi_old_branch(E, V, self.Jzz)
 
     def magnetization(self):
         green = self.green_pi(self.bigB)

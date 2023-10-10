@@ -39,7 +39,10 @@ import netCDF4 as nc
 # graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-graphdispersion(-0.3, 1, h1b10, 1, 2, 20, 20)
+# graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
+# graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, True)
+# plt.show()
+
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
 # M = pypi.M_pi_mag_sub_single(np.pi*np.array([0.1,0.2,0.3]), 1, np.array([0,0,1]))
@@ -67,7 +70,7 @@ graphdispersion(-0.3, 1, h1b10, 1, 2, 20, 20)
 
 
 #
-# # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
+# SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
 #
 # # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
 
@@ -83,7 +86,8 @@ graphdispersion(-0.3, 1, h1b10, 1, 2, 20, 20)
 #
 #
 #
-# SSSF(100, 0, h111, hb110, 0.02, 50, "SSSF_pi_0.02_DETAILED")
+SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test")
+SSSF(25, 0, h111, hb110, 0.5, 0.5, 1, 25, "SSSF_test_new", True)
 # SSSF(100, 0, h111, hb110, 0.03, 50, "SSSF_pi_0.03_DETAILED")
 # SSSF(100, 0, h111, hb110, 0.04, 50, "SSSF_pi_0.04_DETAILED")
 
