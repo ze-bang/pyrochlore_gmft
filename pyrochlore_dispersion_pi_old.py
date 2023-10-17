@@ -378,7 +378,7 @@ def EMAX(M, lams):
 def green_pi(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
     # temp = 2*pypi.Jzz*np.multiply(pypi.V[:,nu,i], np.conj(np.transpose(pypi.V, (0, 2, 1)))[:,i,mu])
-    green = Jzz/np.sqrt(2*Jzz*E)
+    green = Jzz/E
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
@@ -390,7 +390,7 @@ def green_pi_old(E, V, Jzz):
 
 def green_pi_branch(E, V, Jzz):
     Vt = contract('ijk, ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
-    green = Jzz/np.sqrt(2*Jzz*E)
+    green = Jzz/E
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 

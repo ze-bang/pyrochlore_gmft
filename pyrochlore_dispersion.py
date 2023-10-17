@@ -35,10 +35,10 @@ def M_zero_sub_interhopping_AB(k, alpha, Jpmpm, xi):
     beta = 1-alpha
     tempxb = xi[alpha]
     tempxa = xi[beta]
-    M1a = contract('jl, ij, l->i', notrace, -Jpmpm/4 * ffact, tempxb)
-    M1b = contract('jl, il, j->i', notrace, -Jpmpm/4 * ffact, tempxb)
-    M2a = contract('jl, ij, l->i', notrace, -Jpmpm/4 * ffact, np.conj(tempxa))
-    M2b = contract('jl, il, j->i', notrace, -Jpmpm/4 * ffact, np.conj(tempxa))
+    M1a = contract('jl, ij, l->i', notrace, Jpmpm/4 * ffact, tempxb)
+    M1b = contract('jl, il, j->i', notrace, Jpmpm/4 * ffact, tempxb)
+    M2a = contract('jl, ij, l->i', notrace, Jpmpm/4 * ffact, np.conj(tempxa))
+    M2b = contract('jl, il, j->i', notrace, Jpmpm/4 * ffact, np.conj(tempxa))
     return M1a + M1b + M2a + M2b
 
 def M_zero_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0):
@@ -49,7 +49,7 @@ def M_zero_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0):
     tempchi = chi[beta]
     tempchi0 = chi0[beta]
 
-    M1 = contract('jk, i->i', notrace, Jpmpm / 8 * tempchi * d)
+    M1 = contract('jk, jk, i->i', notrace, Jpmpm / 8 * tempchi, d)
     M2 = contract('jk, ijk->i', notrace, Jpmpm / 8 * tempchi0 * ffact)
     return M1 + M2
 
@@ -285,8 +285,9 @@ def chi(lams, M, K, Jzz):
     ffact = contract('ik,jlk->ijl', K, NNminus)
     ffactB = np.exp(-1j * ffact)
 
-    M1 = np.mean(contract('i, jl, ijl->i', green[:,2,0], notrace, ffactB), axis=0)
-    return np.real(np.array([M1, M1]))
+    M1 = np.mean(contract('i, jl, ijl->ijl', green[:,2,0], notrace, ffactB), axis=0)
+    M1 = notrace*M1[0,3]
+    return np.array([M1, M1])
 
 def chi0(lams, M, Jzz):
     E, V = E_zero_fixed(lams, M)
@@ -296,7 +297,7 @@ def chi0(lams, M, Jzz):
     chi0A = np.mean(green[:, 0, 2])
     chi0B = np.mean(green[:, 1, 3])
 
-    return np.real(np.array([chi0A, chi0B]))
+    return np.array([chi0A, chi0B])
 
 def xi(lams, M, K, Jzz, ns):
     E, V = E_zero_fixed(lams, M)
@@ -473,18 +474,84 @@ def GS(lams, k, Jzz ,Jpm, Jpmpm,eta, h, n, theta, chi, chi0, xi):
     return np.mean(dispersion_zero(lams, k, Jzz ,Jpm, Jpmpm,eta, h, n, theta, chi, chi0, xi), axis=0) - lams
 
 def green_zero(E, V, Jzz):
-    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    Vt = contract('ijk,ilk->iklj', V, np.conj(V))
     green = Jzz/E
     green = contract('ikjl, ik->ijl', Vt, green)
     return green
 
 def green_zero_branch(E, V, Jzz):
-    Vt = contract('ijk,ikl->iklj', V, np.transpose(np.conj(V), (0,2,1)))
+    Vt = contract('ijk,ilk->iklj', V, np.conj(V))
     green = Jzz/E
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
+    M = M + np.diag(np.repeat(lams,2))
 
+    E, V = np.linalg.eigh(M)
+    E = np.sqrt(2*Jzz*E)
+    Vt = contract('ijk, ilk->iklj', V, np.conj(V))
+    green = green_zero(E, V, Jzz)
+
+    ffact = contract('ik, jlk->ijl', k,NNminus)
+    ffact = np.exp(-1j*ffact)
+
+    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2-lams[0]), axis=0)[0:2,0:2]))
+
+    E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffact), axis=0)
+    E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffact), axis=0)
+
+    E1 = np.real(np.sum(E1A+E1B))
+
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*ffact)
+    Emag = np.mean(contract('ku, u, k->k',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, green[:,0,1]), axis=0)
+
+    Emag = 2*np.real(np.sum(Emag))
+
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j * ffact)
+    tempxb = xi[1]
+    tempxa = xi[0]
+    M1a = contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1])
+    M1b = contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1])
+    M2a = contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1])
+    M2b = contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1])
+    EAB = M1a + M1b + M2a + M2b
+    EAB = 2 * np.real(np.sum(EAB))
+
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(-1j * ffact)
+    beta = 1
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,0,2])
+
+    EAA = 2*np.real(np.sum(M1))
+
+    M2 = contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,0,2])
+
+    EAA = EAA + 2 * np.real(np.sum(M2))
+
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(1j * ffact)
+    beta = 0
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,1,3])
+
+    EBB = 2*np.real(np.sum(M1))
+
+    M2 = contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,1,3])
+
+    EBB = EBB + 2 * np.real(np.sum(M2))
+
+    E = EQ + E1 + Emag + EAB + EAA + EBB
+    # print(EQ,E1,Emag,EAB,EAA,EBB)
+    return E
 
 class zeroFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, theta=0, ns=0):
@@ -504,7 +571,7 @@ class zeroFluxSolver:
         # self.symK = self.genALLSymPoints()
         # self.symK = self.populate(BZres)
 
-        self.chi = np.ones(2)
+        self.chi = np.array([notrace, notrace])
         self.xi = np.array([xipicell_zero[ns], xipicell_zero[ns]])
         self.chi0 = np.ones(2)
 
@@ -525,12 +592,12 @@ class zeroFluxSolver:
         # self.minLams = np.ones(2)*findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.h, self.n)
         self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
-    def solvemeanfield(self, tol=1e-10, ns=0):
+    def solvemeanfield(self, tol=0.005, ns=0):
         self.findLambda()
         chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
         xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, ns)
         chi0next = chi0(self.lams, self.MF, self.Jzz)
-        while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any() ):
+        while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any()):
             self.chi = chinext
             self.chi0 = chi0next
             self.xi = xinext
@@ -539,7 +606,8 @@ class zeroFluxSolver:
             chinext = chi(self.lams, self.MF, self.bigB, self.Jzz)
             chi0next = chi0(self.lams, self.MF, self.Jzz)
             xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, ns)
-            print(self.chi, self.chi0, self.xi)
+            # print(abs(chinext-self.chi), abs(xinext-self.xi), abs(chi0next-self.chi0))
+            # print((abs(chinext - self.chi) >= tol), (abs(xinext - self.xi) >= tol), (abs(chi0next - self.chi0) >= tol))
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
@@ -580,6 +648,8 @@ class zeroFluxSolver:
     def GS(self):
         return np.mean(self.E_zero(self.bigB)) - self.lams[0]
 
+    def MFE(self):
+        return MFE(self.Jzz, self.Jpmpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
