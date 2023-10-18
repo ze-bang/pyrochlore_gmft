@@ -496,7 +496,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffact = np.exp(-1j*ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2-lams[0]), axis=0)[0:2,0:2]))
+    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0)[0:2,0:2]))
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffact), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffact), axis=0)
@@ -550,7 +550,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = EBB + 2 * np.real(np.sum(M2))
 
     E = EQ + E1 + Emag + EAB + EAA + EBB
-    # print(EQ,E1,Emag,EAB,EAA,EBB)
+    print(EQ, E1, Emag, EAB, EAA, EBB)
     return E
 
 class zeroFluxSolver:
@@ -649,7 +649,7 @@ class zeroFluxSolver:
         return np.mean(self.E_zero(self.bigB)) - self.lams[0]
 
     def MFE(self):
-        return MFE(self.Jzz, self.Jpmpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
+        return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))

@@ -239,7 +239,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s.solvemeanfield()
         # py0s.findminLam()
 
-        gap[i] = py0s.gap()
+        gap[i] = py0s.lams[0]
         GS[i] = py0s.GS()
         MFE[i] = py0s.MFE()
 
@@ -248,7 +248,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # phases[i][j] = py0s.phase_test()
         pyp.solvemeanfield()
         # pyp.findminLam()
-        gapp[i] = pyp.gap()
+        gapp[i] = pyp.lams[0]
         GSp[i] = pyp.GS()
         MFEp[i] = pyp.MFE()
 
@@ -259,8 +259,8 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
         # condensed[i] = py0s.condensed()[0]
         # dev[i] = py0s.rho_dev()
-    # plt.plot(JP, gap, color='b')
-    # plt.plot(JP, gapp, color='r')
+    plt.plot(JP, gap, color='y')
+    plt.plot(JP, gapp, color='m')
     plt.plot(JP, GS, color='r')
     plt.plot(JP, GSp, color='b')
     plt.plot(JP, MFE, color='c')

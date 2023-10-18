@@ -500,10 +500,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffact = np.exp(-1j*ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2-lams[0]), axis=0)[0:8,0:8]))
+    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0)[0:8,0:8]))
 
-    E1A = np.mean(contract('jl,kjl, iab, ijl, jka, lkb->iab', notrace, -Jpm*A_pi_rs_traced/4, green[:,0:4,0:4], ffact, piunitcell, piunitcell), axis=0)
-
+    E1A = np.mean(contract('jl,kjl, iab, ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4, green[:,0:4,0:4], ffact, piunitcell, piunitcell), axis=0)
     E1B = np.mean(contract('jl,kjl, iab, ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4, green[:,4:8, 4:8], ffact,
                   piunitcell, piunitcell), axis=0)
 
@@ -557,9 +556,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     EBB = EBB + 2 * np.real(np.sum(M2))
 
-    E = EQ + E1 + Emag + EAB + EAA + EBB
-    # print(EQ,E1,Emag,EAB,EAA,EBB)
-    return E/4
+    E = EQ/4 + E1 + Emag + EAB + EAA + EBB
+    print(EQ/4, E1, Emag, EAB, EAA, EBB)
+    return E
 #
 # def GS(lams, k, Jzz, Jpm, eta, h, n):
 #     return np.mean(dispersion_pi(lams, k, Jzz, Jpm, eta), axis=0) - np.repeat(lams)
@@ -666,10 +665,10 @@ class piFluxSolver:
         return np.mod(self.bigB[dex], 2*np.pi)
 
     def GS(self):
-        return np.mean(self.E_pi_fixed()) - self.lams[0]
+        return np.mean(self.E_pi(self.bigB)) - self.lams[0]
 
     def MFE(self):
-        return MFE(self.Jzz, self.Jpmpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
+        return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
 
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
