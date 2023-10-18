@@ -269,7 +269,7 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
 
 
 
-phase = phase_diagram(25, 4, int(1e3), int(1e5), 0, np.array([0,0,1]), 'phase_monte_carlo')
+phase = phase_diagram(50, 1, int(1e2), int(1e4), 0, np.array([0,0,1]), 'phase_monte_carlo')
 # np.savetxt('phase_monte_carlo.txt', phase)
 # plt.contourf(phase)
 # plt.savefig('phase_monte_carlo.png')

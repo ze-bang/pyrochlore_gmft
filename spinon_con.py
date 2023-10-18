@@ -408,14 +408,16 @@ def SSSF_pi(q, v, pyp0):
     Kps = np.delete(Ks, cond, axis=0)
     Qps = np.delete(Qs, cond, axis=0)
 
-    Spm, Spp = Spm_pi(Kps, Qps, q, pyp0, lam=pyp0.lams+(1e2/le)**2)
+    
 
 
     if Kqs.size == 0 and Qqs.size == 0:
         Spmq = np.zeros((2,4,4))
         Sppq = np.zeros((2,4,4))
+        Spm, Spp = Spm_pi(Kps, Qps, q, pyp0, lam=pyp0.lams)
     else:
-        Spmq, Sppq= Spm_pi(Kqs, Qqs, q, pyp0, lam=pyp0.minLams+(1e3/le)**2)
+        Spm, Spp = Spm_pi(Kps, Qps, q, pyp0, lam=pyp0.minLams+(1e2/le)**2)
+        Spmq, Sppq= Spm_pi(Kqs, Qqs, q, pyp0, lam=pyp0.minLams+(1e2/le)**2)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2 / 4
     Sxx = (np.real(Spm) - np.real(Spp)) / 2 / 4
@@ -716,7 +718,6 @@ def SSSF(nK, h, n, v, Jpm, BZres, filename):
         py0s = pypipyold.piFluxSolver(Jpm, BZres=BZres, h=h, n=n)
 
     py0s.findLambda()
-    # print("Finished finding, lambda is " + str(py0s.lams))
     py0s.findminLam()
     
     H = np.linspace(-2.5, 2.5, nK)
