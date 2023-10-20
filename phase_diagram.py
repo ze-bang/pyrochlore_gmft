@@ -236,20 +236,20 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
         # phases[i][j] = py0s.phase_test()
-        py0s.solvemeanfield()
+        py0s.findLambda()
         # py0s.findminLam()
 
-        gap[i] = py0s.lams[0]
-        GS[i] = py0s.GS()
+        # gap[i] = py0s.lams[0]
+        # GS[i] = py0s.GS()
         MFE[i] = py0s.MFE()
 
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         # phases[i][j] = py0s.phase_test()
-        pyp.solvemeanfield()
+        pyp.findLambda()
         # pyp.findminLam()
-        gapp[i] = pyp.lams[0]
-        GSp[i] = pyp.GS()
+        # gapp[i] = pyp.lams[0]
+        # GSp[i] = pyp.GS()
         MFEp[i] = pyp.MFE()
 
         # lamdiff[i] = abs(pyp.minLams-pyp.lams)[0]
@@ -259,17 +259,19 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
         # condensed[i] = py0s.condensed()[0]
         # dev[i] = py0s.rho_dev()
-    plt.plot(JP, gap, color='y')
-    plt.plot(JP, gapp, color='m')
-    plt.plot(JP, GS, color='r')
-    plt.plot(JP, GSp, color='b')
-    plt.plot(JP, MFE, color='c')
-    plt.plot(JP, MFEp, color='g')
+    # plt.plot(JP, gap, color='y')
+    # plt.plot(JP, gapp, color='m')
+    # plt.plot(JP, GS, color='r')
+    # plt.plot(JP, GSp, color='b')
+    plt.plot(JP, MFE, color='r')
+    plt.plot(JP, MFEp, color='b')
     # plt.plot(JP, condensed, color='y')
     # plt.plot(JP, condensed1, color='m')
     # plt.plot(JP, lamdiff, color='b')
     # plt.plot(JP, dev, color='black')
-    plt.show()
+    plt.savefig(filename)
+    plt.clf()
+    # plt.show()
 
 
 def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
