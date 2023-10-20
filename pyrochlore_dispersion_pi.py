@@ -492,6 +492,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
+
+    temp = contract('ikjl, ik->ijl', Vt, E/2)
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
     E1A = np.mean(contract('jl,kjl, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:,0:4,0:4], ffactA, piunitcell, piunitcell), axis=0)
@@ -526,12 +528,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     M1 = np.mean(contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, tempchi, green[:,0:4,8:12]), axis=0)
 
-    EAA = 2*np.real(M1)
-
     M2 = np.mean(contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0, green[:,0:4,8:12], piunitcell,
                  piunitcell), axis=0)
 
-    EAA = EAA + 2 * np.real(M2)
+    EAA = 2 * np.real(M1+M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
@@ -541,12 +541,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     M1 = np.mean(contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, tempchi, green[:,4:8,12:16]), axis=0)
 
-    EBB = 2*np.real(M1)
-
     M2 = np.mean(contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0, green[:,4:8,12:16], piunitcell,
                  piunitcell), axis=0)
 
-    EBB = EBB + 2 * np.real(M2)
+    EBB = 2 * np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
     print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)

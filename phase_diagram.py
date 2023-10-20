@@ -279,35 +279,20 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     h = np.linspace(hm, hmax, nH)
 
     gap = np.zeros(nH)
-    E111 = np.zeros(nH)
-    E000 = np.zeros(nH)
+    MFE = np.zeros(nH)
+    MFEp = np.zeros(nH)
     # for i in range (nH):
     for i in range (nH):
         print("h is now " + str(h[i]))
-        py0s = py0.zeroFluxSolver(0, h = h[i], n=n, kappa=kappa, BZres=BZres)
-        print("Finding 0 Flux Lambda")
-        # phases[i][j] = py0s.phase_test()
+        py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        pyps = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+
         py0s.findLambda()
-        # print(py0s.lams, py0s.minLams)
-        # try:
-        #     phases[i, j] = py0s.gap()
-        # except:
-        #     phases[i, j] = 0
-        # try:
-        #     if py0s.gap() < 1e-4:
-        #         phases[i, j] = 0
-        #     else:
-        #         phases[i, j] = 1
-        # except:
-        #     phases[i, j] = 0
-        gap[i] = py0s.gap()
-        E111[i] = np.min(py0s.E_single(np.pi*np.array([1,1,1])))
-        E000[i] = np.min(py0s.E_single(np.array([0,0,0])))
-        print([gap[i], E111[i], E000[i]])
-    plt.plot(h, gap, color='b')
-    plt.plot(h, E111, color='g')
-    plt.plot(h, E000, color='r')
-    plt.show()
+        pyps.findLambda()
+        MFE[i] = py0s.MFE()
+        MFEp[i] = pyps.MFE()
+    plt.plot(h, MFE, color='b')
+    plt.plot(h, MFEp, color='g')
 
 
 
