@@ -519,13 +519,13 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range (currsize):
         for j in range (nH):
-            py0s = py0.zeroFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
-            pyps = pypiold.piFluxSolver(currJP[i], h=h[j], n=n, kappa=kappa, BZres=BZres)
+            py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
+            pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.findLambda()
             pyps.findLambda()
-            GSz = py0s.GS()
-            GSp = pyps.GS()
+            GSz = py0s.MFE()
+            GSp = pyps.MFE()
 
             if GSz < GSp:
                 py0s.findminLam()
