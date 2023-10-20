@@ -63,10 +63,10 @@ def M_true(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
     dummy = np.zeros((len(k)))
 
-    MBk = M_zero(Jpm, eta, k, 0)
-    MAk = M_zero(Jpm, eta, k, 1)
-    MBnk = M_zero(Jpm, eta, -k, 0)
-    MAnk = M_zero(Jpm, eta, -k, 1)
+    MAk = M_zero(Jpm, eta, k, 0)
+    MBk = M_zero(Jpm, eta, k, 1)
+    MAnk = M_zero(Jpm, eta, -k, 0)
+    MBnk = M_zero(Jpm, eta, -k, 1)
 
     MagAkBk = exponent_mag(h, n, k, theta) + M_zero_sub_interhopping_AB(k, 0, Jpmpm, xi)
     MagBkAk = np.conj(MagAkBk)
@@ -497,6 +497,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
+    temp = contract('ikjl, ik->ijl', Vt, E/2)
+    s = np.mean(temp, axis= 0)
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)

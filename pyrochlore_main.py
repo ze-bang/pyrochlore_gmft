@@ -70,11 +70,15 @@ import netCDF4 as nc
 # PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
 #
-# PhaseMagtestJP(-0.1, 0.1, 25, 0.25, 3, 25, h001, 35, 2, "0.25.png")
-PhaseMagtestJP(-0.1, 0.1, 25, 0.21, 3, 25, h001, 35, 2, "0.21.png")
-PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
-PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
-PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
+
+
+PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
+
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.25, 3, 25, h001, 25, 2, "0.25.png")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.21, 3, 25, h001, 35, 2, "0.21.png")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
 
 #
 # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
@@ -144,7 +148,7 @@ PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
 # print(temp_var)
 
 # findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
-# findPhaseMag(-0.5, 0, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
+# findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
