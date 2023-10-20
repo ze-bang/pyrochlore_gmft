@@ -40,9 +40,11 @@ import netCDF4 as nc
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
-# C = graphdispersion(0.22, 0.18, 1, 0.2, h1b10, 1, 2, 20, 20)
-# D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)
+# C = graphdispersion(0.25, 0.15, 1, 0.2, h1b10, 1, 2, 20, 20)
 # plt.show()
+# C = graphdispersion(0.2, 0.2, 1, 0.2, h1b10, 1, 2, 20, 20)
+# plt.show()
+# D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)
 
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
 # graphdispersion(-0.1, 1, h001, 1, 2, 20, 20)
@@ -65,10 +67,14 @@ import netCDF4 as nc
 
 # PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
 
-PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.txt")
+# PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
 #
-
+# PhaseMagtestJP(-0.1, 0.1, 25, 0.25, 3, 25, h001, 35, 2, "0.25.png")
+PhaseMagtestJP(-0.1, 0.1, 25, 0.21, 3, 25, h001, 35, 2, "0.21.png")
+PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
+PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
+PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
 
 #
 # SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")

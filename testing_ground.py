@@ -286,4 +286,4 @@ def algHamSungbin():
 
 # plt.show()
 
-algHamSungbin()
+# algHamSungbin()

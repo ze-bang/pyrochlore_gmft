@@ -494,14 +494,15 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     green = green_zero(E, V, Jzz)
 
     ffact = contract('ik, jlk->ijl', k,NNminus)
-    ffact = np.exp(-1j*ffact)
+    ffactA = np.exp(-1j * ffact)
+    ffactB = np.exp(1j * ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2-lams[0]), axis=0)[0:2,0:2]))
+    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
-    E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffact), axis=0)
-    E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffact), axis=0)
+    E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
+    E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
 
-    E1 = np.real(np.sum(E1A+E1B))
+    E1 = np.real(E1A+E1B)
 
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
@@ -514,12 +515,12 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffact = np.exp(1j * ffact)
     tempxb = xi[1]
     tempxa = xi[0]
-    M1a = contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1])
-    M1b = contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1])
-    M2a = contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1])
-    M2b = contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1])
+    M1a = np.mean(contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1]), axis=0)
+    M1b = np.mean(contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, tempxa, green[:,0,1]), axis=0)
+    M2a = np.mean(contract('jl, ij, l, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1]), axis=0)
+    M2b = np.mean(contract('jl, il, j, i->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb), green[:,0,1]), axis=0)
     EAB = M1a + M1b + M2a + M2b
-    EAB = 2 * np.real(np.sum(EAB))
+    EAB = 2 * np.real(EAB)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
@@ -527,13 +528,13 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     tempchi = chi[beta]
     tempchi0 = chi0[beta]
 
-    M1 = contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,0,2])
+    M1 = np.mean(contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,0,2]), axis=0)
 
-    EAA = 2*np.real(np.sum(M1))
+    EAA = 2*np.real(M1)
 
-    M2 = contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,0,2])
+    M2 = np.mean(contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,0,2]), axis=0)
 
-    EAA = EAA + 2 * np.real(np.sum(M2))
+    EAA = EAA + 2 * np.real(M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
@@ -541,16 +542,16 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     tempchi = chi[beta]
     tempchi0 = chi0[beta]
 
-    M1 = contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,1,3])
+    M1 = np.mean(contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,1,3]), axis=0)
 
-    EBB = 2*np.real(np.sum(M1))
+    EBB = 2*np.real(M1)
 
-    M2 = contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,1,3])
+    M2 = np.mean(contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,1,3]), axis=0)
 
-    EBB = EBB + 2 * np.real(np.sum(M2))
+    EBB = EBB + 2 * np.real(M2)
 
-    E = EQ + E1 + Emag + EAB + EAA + EBB
-    # print(EQ,E1,Emag,EAB,EAA,EBB)
+    E = EQ + Emag + E1 + EAB + EAA + EBB
+    print(EQ, E1, Emag, EAB, EAA, EBB)
     return E
 
 class zeroFluxSolver:
@@ -649,7 +650,7 @@ class zeroFluxSolver:
         return np.mean(self.E_zero(self.bigB)) - self.lams[0]
 
     def MFE(self):
-        return MFE(self.Jzz, self.Jpmpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
+        return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
