@@ -40,9 +40,9 @@ import netCDF4 as nc
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
-# C = graphdispersion(0.25, 0.15, 1, 0.2, h1b10, 1, 2, 20, 20)
+# C = graphdispersion(0.25, 0.15, 1, 1.5, h1b10, 1, 2, 20, 20)
 # plt.show()
-# C = graphdispersion(0.2, 0.2, 1, 0.2, h1b10, 1, 2, 20, 20)
+# C = graphdispersion(-0.08, -0.04, 1, 0.2, h1b10, 1, 2, 20, 20)
 # plt.show()
 # D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)
 
@@ -72,7 +72,7 @@ import netCDF4 as nc
 #
 
 
-PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
+# PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.25, 3, 25, h001, 25, 2, "0.25.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.21, 3, 25, h001, 35, 2, "0.21.png")
@@ -182,7 +182,7 @@ PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-# findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 25, 2, "phase_test_111_kappa=2_0_flux")
+findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 

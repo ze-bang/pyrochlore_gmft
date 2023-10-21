@@ -497,8 +497,6 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
-    temp = contract('ikjl, ik->ijl', Vt, E/2)
-    s = np.mean(temp, axis= 0)
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
@@ -531,12 +529,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     tempchi0 = chi0[beta]
 
     M1 = np.mean(contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,0,2]), axis=0)
-
-    EAA = 2*np.real(M1)
-
     M2 = np.mean(contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,0,2]), axis=0)
 
-    EAA = EAA + 2 * np.real(M2)
+    EAA = np.real(M1+M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
@@ -545,12 +540,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     tempchi0 = chi0[beta]
 
     M1 = np.mean(contract('jl, jl, i->i', notrace, Jpmpm / 8 * tempchi, green[:,1,3]), axis=0)
-
-    EBB = 2*np.real(M1)
-
     M2 = np.mean(contract('jl, ijl, i->i', notrace, Jpmpm / 8 * ffact * tempchi0, green[:,1,3]), axis=0)
 
-    EBB = EBB + 2 * np.real(M2)
+    EBB = np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
     print(EQ, E1, Emag, EAB, EAA, EBB)
@@ -610,20 +602,20 @@ class zeroFluxSolver:
             chi0next = chi0(self.lams, self.MF, self.Jzz)
             xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, ns)
             # print(abs(chinext-self.chi), abs(xinext-self.xi), abs(chi0next-self.chi0))
-            # print((abs(chinext - self.chi) >= tol), (abs(xinext - self.xi) >= tol), (abs(chi0next - self.chi0) >= tol))
+            print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
         return 0
 
     def qvec(self):
-        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.Jpm, self.eta, self.h, self.n)[0]
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0]
         c = np.unique(np.where(E < 0)[0])
         temp = np.unique(self.bigB[c], axis=0)
         self.q[0:len(temp), :] = temp
 
     def ifcondense(self, q):
-        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.Jpm, self.eta, self.h, self.n)[0]
+        E = E_zero_true(self.lams-np.ones(2)*(1e2/len(self.bigB))**2, q, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0]
         c = np.unique(np.where(E < 0)[0])
         return c
 
