@@ -693,7 +693,9 @@ class piFluxSolver:
             temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MFq, self.lams, Kqs)/1e10 + \
             MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.lams, Kps)
+            
         return temp
+    
     def SCE(self, chi, chi0, xi):
         tol = 1e-3
         temp = self.MFE(chi, chi0, xi)
