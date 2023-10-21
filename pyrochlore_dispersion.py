@@ -644,7 +644,22 @@ class zeroFluxSolver:
         return np.mean(self.E_zero(self.bigB)) - self.lams[0]
 
     def MFE(self):
-        return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, self.MF, self.lams, self.bigB)
+        cond = self.ifcondense(self.bigB)
+
+        Kqs = self.bigB[cond]
+        Kps = np.delete(self.bigB, cond, axis=0)
+        MFq = self.MF[cond]
+        MFp = np.delete(self.MF, cond, axis=0)
+        if Kqs.size == 0:
+            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+                       MFp,
+                       self.lams, Kps)
+        else:
+            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,self.xi, MFq, self.lams, Kqs)/1e10 + \
+            MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+            self.lams, Kps)
+
+        return temp
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
