@@ -518,7 +518,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     M1b = np.mean(contract('jl, kjl, il, kj, ikx, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, tempxa, green[:,0:4,4:8], piunitcell), axis=0)
     M2a = np.mean(contract('jl, kjl, ij, kl, ixk, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, np.conj(tempxb), green[:,0:4,4:8], piunitcell), axis=0)
     M2b = np.mean(contract('jl, kjl, il, kj, ixk, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, np.conj(tempxb), green[:,0:4,4:8], piunitcell), axis=0)
-    EAB = 2 * np.real(M1a + M1b + M2a + M2b)
+    EAB = 2*np.real(M1a + M1b + M2a + M2b)
+
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
@@ -547,7 +548,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = 2 * np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
+    # print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
     return E/4
 #
 # def GS(lams, k, Jzz, Jpm, eta, h, n):
@@ -597,13 +598,15 @@ class piFluxSolver:
         chinext, chi0next = chi(self.lams, self.MF, self.bigB, self.Jzz)
         xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, self.ns)
 
-        J0 = self.Jacobian(np.array([chinext, chi0next, xinext]), np.array([self.chi, self.chi0, self.xi]))
+        J0 = self.Jacobian(np.array([chinext, chi0next, xinext]))
 
         while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any()):
+            print(self.lams, self.chi, self.chi0, self.xi, self.MFE())
+
             fn = self.SCE(chinext, chi0next, xinext)
             dF = fn - self.SCE(self.chi, self.chi0, self.xi)
             dX = np.array([chinext-self.chi, chi0next-self.chi0, xinext-self.xi])
-            # print(J0)
+
             J0 = J0 + contract('i,j->ij',dF-np.matmul(J0, dX), dX)/np.linalg.norm(dX)**2
             # print(J0)
             self.chi = chinext
@@ -618,11 +621,6 @@ class piFluxSolver:
                 xinext = xi(self.lams, self.MF, self.bigB, self.Jzz, self.ns)
             else:
                 chinext, chi0next, xinext = np.array([self.chi, self.chi0, self.xi]) - np.matmul(np.linalg.inv(J0), fn)
-
-
-            # print(self.lams, chinext, chi0next, xinext)
-
-
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
@@ -683,14 +681,15 @@ class piFluxSolver:
         return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, self.MF, self.lams, self.bigB)
 
     def SCE(self, chi, chi0, xi):
-        tol = 1e-5
+        tol = 1e-3
         temp = self.MFE(chi, chi0, xi)
         tempChi = self.MFE(chi+tol, chi0, xi)
         tempChi0 = self.MFE(chi, chi0 + tol, xi)
         tempXi = self.MFE(chi, chi0, xi + tol)
         return (np.array([tempChi, tempChi0, tempXi])-temp)/tol
 
-    def Jacobian(self, mfp, mfps):
+    def Jacobian(self, mfp):
+        mfps = mfp + 1e-3
         chi, chi0, xi = mfp
         chil, chi0l, xil = mfps
         temp = self.SCE(chil, chi0l, xil)

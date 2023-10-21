@@ -20,7 +20,7 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
     JP = -(Jxx+Jyy)/4
     if JP >= 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.solvemeanfield()
+        py0s.solvemeanfield(1e-4)
         # py0s.findLambda()
         # py0s.qvec()
         py0s.graph(False)
