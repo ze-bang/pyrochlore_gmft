@@ -6,6 +6,7 @@ import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi_gang_chen as pygang
 import pyrochlore_dispersion_pi_old as pypiold
 import netCDF4 as nc
+import warnings
 
 # JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
 #
@@ -515,6 +516,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             if GSz < GSp:
                 py0s.findminLam()
                 # py0s.qvec()
+                # print(pyps.minLams)
+                # warnings.filterwarnings("error")
                 sendtemp1[i,j] = py0s.gap()
                 # print(py0s.lams, py0s.minLams)
                 sendtemp[i,j] = py0s.condensed()[0]
@@ -522,7 +525,9 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # sendtemp2[i,j] = py0s.q
             else:
                 pyps.findminLam()
+                # print(pyps.minLams)
                 # pyps.qvec()
+                # warnings.filterwarnings("error")
                 sendtemp1[i,j] = pyps.gap()
                 # print(pyps.lams, pyps.minLams)
                 sendtemp[i,j] = pyps.condensed()[0] + 5

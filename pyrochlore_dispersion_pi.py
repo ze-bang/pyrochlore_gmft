@@ -493,7 +493,6 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactB = np.exp(1j * ffact)
 
 
-    temp = contract('ikjl, ik->ijl', Vt, E/2)
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
     E1A = np.mean(contract('jl,kjl, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:,0:4,0:4], ffactA, piunitcell, piunitcell), axis=0)
@@ -683,17 +682,29 @@ class piFluxSolver:
 
         Kqs = self.bigB[cond]
         Kps = np.delete(self.bigB, cond, axis=0)
+
         MFq = self.MF[cond]
         MFp = np.delete(self.MF, cond, axis=0)
-        if Kqs.size == 0:
-            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi,
-                       MFp,
-                       self.lams, Kps)
-        else:
-            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MFq, self.lams, Kqs)/1e10 + \
-            MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+
+        Eq = 0
+        Ep = 0
+
+        warnings.filterwarnings('error')
+        try:
+            Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi,
+                       MFq,
+                       self.lams, Kqs)/1e10
+        except:
+            print()
+
+        try:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.lams, Kps)
-        return temp
+        except:
+            print()
+        warnings.resetwarnings()
+
+        return Eq+Ep
     def SCE(self, chi, chi0, xi):
         tol = 1e-3
         temp = self.MFE(chi, chi0, xi)
