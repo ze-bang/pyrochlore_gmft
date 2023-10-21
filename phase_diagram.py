@@ -514,15 +514,19 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
             if GSz < GSp:
                 py0s.findminLam()
-                py0s.qvec()
+                # py0s.qvec()
                 sendtemp1[i,j] = py0s.gap()
+                # print(py0s.lams, py0s.minLams)
                 sendtemp[i,j] = py0s.condensed()[0]
+                # print(sendtemp[i,j])
                 # sendtemp2[i,j] = py0s.q
             else:
                 pyps.findminLam()
-                pyps.qvec()
+                # pyps.qvec()
                 sendtemp1[i,j] = pyps.gap()
+                # print(pyps.lams, pyps.minLams)
                 sendtemp[i,j] = pyps.condensed()[0] + 5
+                # print(sendtemp[i, j])
                 # sendtemp2[i,j] = pyps.q
 
             # print(sendtemp[i,j])

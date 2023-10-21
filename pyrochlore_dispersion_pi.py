@@ -678,8 +678,22 @@ class piFluxSolver:
             chi0= self.chi0
         if xi == -10:
             xi = self.xi
-        return MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, self.MF, self.lams, self.bigB)
 
+        cond = self.ifcondense(self.bigB)
+
+        Kqs = self.bigB[cond]
+        Kps = np.delete(self.bigB, cond, axis=0)
+        MFq = self.MF[cond]
+        MFp = np.delete(self.MF, cond, axis=0)
+        if Kqs.size == 0:
+            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi,
+                       MFp,
+                       self.lams, Kps)
+        else:
+            temp = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MFq, self.lams, Kqs)/1e10 + \
+            MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+            self.lams, Kps)
+        return temp
     def SCE(self, chi, chi0, xi):
         tol = 1e-3
         temp = self.MFE(chi, chi0, xi)
