@@ -11,7 +11,7 @@ from phase_diagram import *
 from numba import jit
 from misc_helper import *
 import netCDF4 as nc
-
+import warnings
 
 
 # JP = np.linspace(-0.5, 0.1, 400)
@@ -182,6 +182,7 @@ import netCDF4 as nc
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
+warnings.filterwarnings("error")
 findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
