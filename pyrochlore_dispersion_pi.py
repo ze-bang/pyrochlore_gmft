@@ -703,8 +703,8 @@ class piFluxSolver:
         except:
             print()
         warnings.resetwarnings()
-
         return Eq+Ep
+    
     def SCE(self, chi, chi0, xi):
         tol = 1e-3
         temp = self.MFE(chi, chi0, xi)
