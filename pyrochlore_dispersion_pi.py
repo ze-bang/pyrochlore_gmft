@@ -175,7 +175,6 @@ def findminLam(M, Jzz, tol):
                  lamMax[i] = lams[i]
         except:
              lamMin = lams
-        # print([lams, lamMin, lamMax,lamMax-lamMin])
 
     return lams
 
@@ -547,7 +546,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = 2 * np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
+    print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
     return E/4
 #
 # def GS(lams, k, Jzz, Jpm, eta, h, n):
@@ -679,6 +678,7 @@ class piFluxSolver:
             xi = self.xi
 
         cond = self.ifcondense(self.bigB)
+        leng = len(self.bigB)
 
         Kqs = self.bigB[cond]
         Kps = np.delete(self.bigB, cond, axis=0)
@@ -693,7 +693,7 @@ class piFluxSolver:
         try:
             Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi,
                        MFq,
-                       self.lams, Kqs)/1e10
+                       self.lams, Kqs)/leng
         except:
             print()
 

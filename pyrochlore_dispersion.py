@@ -645,7 +645,7 @@ class zeroFluxSolver:
 
     def MFE(self):
         cond = self.ifcondense(self.bigB)
-
+        leng = len(self.bigB)
         Kqs = self.bigB[cond]
         Kps = np.delete(self.bigB, cond, axis=0)
         MFq = self.MF[cond]
@@ -657,7 +657,7 @@ class zeroFluxSolver:
         try:
             Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
                        MFq,
-                       self.lams, Kqs)/1e10
+                       self.lams, Kqs)/leng
         except:
             print()
 
@@ -666,8 +666,7 @@ class zeroFluxSolver:
             self.lams, Kps)
         except:
             print()
-        warnings.resetwarnings()
-
+        print(Eq+Ep)
         return Eq + Ep
 
     def gapwhere(self):
