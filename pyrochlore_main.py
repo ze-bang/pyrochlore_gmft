@@ -40,7 +40,7 @@ import warnings
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
-# C = graphdispersion(0.25, 0.15, 1, 1.5, h1b10, 1, 2, 20, 20)
+# C = graphdispersion(0.2, 0.2, 1, 1.5, h1b10, 1, 2, 20, 20)
 # plt.show()
 # C = graphdispersion(-0.08, -0.04, 1, 0.2, h1b10, 1, 2, 20, 20)
 # plt.show()
@@ -74,8 +74,12 @@ import warnings
 
 # PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
-# PhaseMagtestJP(-0.1, 0.1, 25, 0.25, 3, 25, h001, 25, 2, "0.25.png")
-# PhaseMagtestJP(-0.1, 0.1, 25, 0.21, 3, 25, h001, 35, 2, "0.21.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0, 3, 25, h1b10, 25, 2, "0.png")
+
+PhaseMagtestJP(-0.2, 0.1, 25, 0.27, 3, 25, h1b10, 25, 2, "0.27_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 3, 25, h1b10, 25, 2, "0.23_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 3, 25, h1b10, 25, 2, "0.26_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 3, 25, h1b10, 25, 2, "0.24_h1b10_1.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
@@ -182,8 +186,7 @@ import warnings
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-warnings.filterwarnings("error")
-findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
+# findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 
