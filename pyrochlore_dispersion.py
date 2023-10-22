@@ -666,7 +666,6 @@ class zeroFluxSolver:
             self.lams, Kps)
         except:
             print()
-        print(Eq+Ep)
         return Eq + Ep
 
     def gapwhere(self):

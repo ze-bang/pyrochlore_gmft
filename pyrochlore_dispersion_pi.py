@@ -702,7 +702,6 @@ class piFluxSolver:
             self.lams, Kps)
         except:
             print()
-        warnings.resetwarnings()
         return Eq+Ep
     
     def SCE(self, chi, chi0, xi):
