@@ -8,9 +8,12 @@ from misc_helper import *
 
 
 # DSSF(0.01, 0.2, h111,-0.1, "DSSF_-0.1_h111=0.2_detailed", 35, 0.02)
-DSSF(0.01, 0.2, h001,-0.1, "DSSF_-0.1_h001=0.2_detailed", 35, 0.02)
-DSSF(0.01, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_detailed", 35, 0.02)
+# DSSF(0.01, 0.2, h001,-0.1, "DSSF_-0.1_h001=0.2_detailed", 35, 0.02)
+# DSSF(0.01, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_detailed", 35, 0.02)
 
+
+findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h1b10, 25, 2, "phase_1b10_kappa=2_crude_faster")
+findPhaseMag(-0.5, 0.1, 100, 0, 2, 100, h001, 25, 2, "phase_001_kappa=2_crude_faster")
 
 # SSSF(50, 0.2, h111,hb110, -0.1,31, "SSSF_pi_-0.1_h111=0.2")
 # SSSF(50, 0.3, h111,hb110, -0.1,31, "SSSF_pi_-0.1_h111=0.3")
