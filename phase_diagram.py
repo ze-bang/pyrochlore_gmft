@@ -504,7 +504,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             GSp = pyps.MFE()
 
             if GSz < GSp:
-                py0s.findminLam()
                 # py0s.qvec()
                 # print(pyps.minLams)
                 # warnings.filterwarnings("error")
@@ -514,7 +513,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # print(sendtemp[i,j])
                 # sendtemp2[i,j] = py0s.q
             else:
-                pyps.findminLam()
                 # print(pyps.minLams)
                 # pyps.qvec()
                 # warnings.filterwarnings("error")
