@@ -234,11 +234,11 @@ def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    Eround = E[:, 0]
-    dex = np.where(Eround == Eround.min())
+    E = np.around(E[:,0], decimals=15)
+    dex = np.where(E == E.min())
     Know = K[dex]
     # print(Know)
-    Enow = (E[:, 0])[dex]
+    Enow = E[dex]
     step = 1
 
     for i in range(len(Know)):
@@ -784,13 +784,15 @@ class piFluxSolver:
         self.q = self.bigB[A]
 
     def ifcondense(self, q):
-        c = []
+        c = np.array([])
+        q = np.mod(q, 2*np.pi)
+        tempq = np.mod(self.qmin, 2*np.pi)
         if (self.condensed()).any():
-            for i in range(len(self.qmin)):
-                A = np.abs(q - contract('j,i->ij', self.qmin[i], np.ones(len(self.bigB)))) < 1e-8
+            for i in range(len(tempq)):
+                A = np.abs(q - contract('j,i->ij', tempq[i], np.ones(len(q)))) < 1e-8
                 A = contract('ij->i', A, dtype=int)
                 temp = np.array(np.where(A == 3)[0])
-                c += [temp]
+                c = np.concatenate((c, temp))
         c = np.array(c, dtype=int)
         return c
 
