@@ -695,13 +695,14 @@ class piFluxSolver:
                        MFq,
                        self.lams, Kqs)/leng
         except:
-            print()
+            pass
 
         try:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.lams, Kps)
         except:
-            print()
+            pass
+        warnings.resetwarnings()
         return Eq+Ep
     
     def SCE(self, chi, chi0, xi):
