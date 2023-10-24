@@ -661,7 +661,7 @@ class zeroFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres), symK))
+        self.bigB = np.concatenate((genBZ(BZres), genBZ(5)))
 
         self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.q = np.empty((len(self.bigB), 3))
