@@ -34,8 +34,7 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
         # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
         # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
         py0s.init(1e-7)
-        print(py0s.delta)
-        # print(py0s.lams, py0s.minLams, py0s.findminLam_old(), py0s.low())
+        print(py0s.lams, py0s.minLams, py0s.delta, py0s.q, py0s.qmin)
         py0s.graph(False)
         return 0
     else:

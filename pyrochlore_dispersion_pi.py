@@ -852,7 +852,7 @@ class piFluxSolver:
             self.delta = abs(self.lams - self.minLams) * len(self.bigB) ** 2
 
     def init(self, tol):
-        self.findLambda()
+        # self.findLambda()
         self.findminLam()
         self.solvemeanfield(tol)
         self.set_delta()
