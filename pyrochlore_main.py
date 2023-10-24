@@ -40,7 +40,7 @@ import warnings
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
-C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 C = graphdispersion(0.2, 0.2, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(0.2, 0.2, 1, 3, h1b10, 1, 2, 20, 55)
 plt.show()

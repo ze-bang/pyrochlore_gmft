@@ -801,7 +801,7 @@ class piFluxSolver:
 
     def condensed(self):
         A = -self.minLams[0] + self.lams[0]
-        B = (2e2 / len(self.bigB)) ** 2
+        # B = (2e2 / len(self.bigB)) ** 2
         return np.absolute(A) < (2e2 / len(self.bigB)) ** 2
 
     def M_true(self, k):
