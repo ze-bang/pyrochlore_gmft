@@ -21,9 +21,8 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
     JP = -(Jxx+Jyy)/4
     if JP >= 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.solvemeanfield(1e-4)
-        # py0s.findLambda()
-        # py0s.qvec()
+        py0s.init(1e-7)
+        print(py0s.delta)
         py0s.graph(False)
         # plt.show()
     elif JP < 0 and not old:
@@ -34,23 +33,11 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
         # M = py0s.MF
         # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
         # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
-        py0s.solvemeanfield(1e-7)
-        B = py0s.green_pi(py0s.bigB, py0s.lams)
-        print(py0s.lams)
-        # print(py0s.chi, py0s.xi)
-        # py0s.qvec()
-        # print(py0s.minLams)
-        # print(py0s.lams)
-        # a = py0s.condensed()
-        # print(a)
-        # print(py0s.q)
-        # p = np.unique(np.mod(np.around(py0s.q, decimals=6), 2*np.pi), axis=0)
-        # q1 = py0s.green_pi_branch(py0s.bigB, py0s.lams)[0]
-        # test = contract('ijkl->ikl', q1)
-        # #temp = py0s.green_pi_branch(py0s.bigB)
-        # # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
+        py0s.init(1e-7)
+        print(py0s.delta)
+        # print(py0s.lams, py0s.minLams, py0s.findminLam_old(), py0s.low())
         py0s.graph(False)
-        return B
+        return 0
     else:
         py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
         py0s.findLambda()
@@ -511,6 +498,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
             py0s.findLambda()
             pyps.findLambda()
+            py0s.findminLam()
+            pyps.findminLam()
             GSz = py0s.MFE()
             GSp = pyps.MFE()
 
@@ -521,7 +510,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # warnings.filterwarnings("error")
                 sendtemp1[i,j] = py0s.gap()
                 # print(py0s.lams, py0s.minLams)
-                sendtemp[i,j] = py0s.condensed()[0]
+                sendtemp[i,j] = py0s.condensed()
                 # print(sendtemp[i,j])
                 # sendtemp2[i,j] = py0s.q
             else:
@@ -531,7 +520,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # warnings.filterwarnings("error")
                 sendtemp1[i,j] = pyps.gap()
                 # print(pyps.lams, pyps.minLams)
-                sendtemp[i,j] = pyps.condensed()[0] + 5
+                sendtemp[i,j] = pyps.condensed() + 5
                 # print(sendtemp[i, j])
                 # sendtemp2[i,j] = pyps.q
 

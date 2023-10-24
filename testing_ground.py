@@ -287,3 +287,9 @@ def algHamSungbin():
 # plt.show()
 
 # algHamSungbin()
+
+lams = -np.pi/2
+
+print(np.mod(lams, 2*np.pi))
+
+print(np.where(1>2))

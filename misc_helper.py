@@ -377,21 +377,9 @@ def permute(G):
     return B
 
 def genALLSymPoints():
-    pG = np.array(list(set(permutations(Gamma))))
-    pL = np.array(list(set(permutations(L))))
-    pX = np.array(list(set(permutations(X))))
-    pW = np.array(list(set(permutations(W))))
-    pK = np.array(list(set(permutations(K))))
-    pU = np.array(list(set(permutations(U))))
-    Lp = np.array(list(set(permutations(np.pi*np.array([-1,1,1])))))
-    Wp = np.array(list(set(permutations(2*np.pi*np.array([0,-1,1/2])))))
-    Kp = np.array(list(set(permutations(2*np.pi*np.array([0,-3/4,3/4])))))
-    Up = np.array(list(set(permutations(2*np.pi*np.array([-1/4,1,1/4])))))
-    Upp = np.array(list(set(permutations(2 * np.pi * np.array([1 / 4, -1, 1 / 4])))))
-    A = np.concatenate((pG,pL,pX,pW,pK,pU))
-    Ap = np.concatenate((Lp, Up, Upp))
-    A = np.concatenate((A, -A, Ap, -Ap, Wp, Kp))
-    return A
+    d = 9 * 1j
+    b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3, -1).T
+    return b
 
 symK = genALLSymPoints()
 
