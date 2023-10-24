@@ -6,9 +6,98 @@ from misc_helper import *
 import numba as nb
 from opt_einsum import contract
 
+xipicell_zero = np.array([[1,1,1,1],[1,-1,-1,-1]])
 
 NNN = np.array([[-1/4, -1/4, -1/4],[-1/4, 1/4, 1/4], [1/4, -1/4, 1/4], [1/4, 1/4, -1/4]])
 ZZZ = np.array([[-1, -1, -1],[-1, 1, 1], [1, -1, 1], [1, 1, -1]])/np.sqrt(3)
+
+#region constructing single k point matrix
+def exponent_mag_single(h, n, k, theta):
+    zmag = contract('k,ik->i',n,z)
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*ffact)
+    M = contract('j,j->', -1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag)
+    return M
+
+def M_zero_single(Jpm, eta, k, alpha):
+    temp = -Jpm/4 *eta[alpha]* np.exp(-1j*neta(alpha)*(contract('k, jlk->jl',k, NNminus)))
+    temp = contract('jl,jl->', notrace, temp)
+    return temp
+
+def M_zero_sub_interhopping_AB_single(k, alpha, Jpmpm, xi):
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*neta(alpha)*ffact)
+    beta = 1-alpha
+    tempxb = xi[alpha]
+    tempxa = xi[beta]
+    M1a = contract('jl, j, l->', notrace, Jpmpm/4 * ffact, tempxb)
+    M1b = contract('jl, l, j->', notrace, Jpmpm/4 * ffact, tempxb)
+    M2a = contract('jl, j, l->', notrace, Jpmpm/4 * ffact, np.conj(tempxa))
+    M2b = contract('jl, l, j->', notrace, Jpmpm/4 * ffact, np.conj(tempxa))
+    return M1a + M1b + M2a + M2b
+
+def M_zero_sub_pairing_AA_single(k, alpha, Jpmpm, chi, chi0):
+    d = np.ones(len(k))
+    ffact = contract('k, jlk->jl', k, NNminus)
+    ffact = np.exp(-1j * neta(alpha) * ffact)
+    beta = 1-alpha
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jk, jk->', notrace, Jpmpm / 8 * tempchi)
+    M2 = contract('jk, jk->', notrace, Jpmpm / 8 * tempchi0 * ffact)
+    return M1 + M2
+
+
+def M_single(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+
+    chi = chi*np.array([notrace, notrace])
+    chi0 = chi0*np.ones(2)
+    xi = xi*np.array([xipicell_zero[0], xipicell_zero[0]])
+
+    dummy = 0
+
+    MAk = M_zero_single(Jpm, eta, k, 0)
+    MBk = M_zero_single(Jpm, eta, k, 1)
+    MAnk = M_zero_single(Jpm, eta, -k, 0)
+    MBnk = M_zero_single(Jpm, eta, -k, 1)
+
+    MagAkBk = exponent_mag_single(h, n, k, theta) + M_zero_sub_interhopping_AB_single(k, 0, Jpmpm, xi)
+    MagBkAk = np.conj(MagAkBk)
+    MagAnkBnk = exponent_mag_single(h, n, -k, theta) + M_zero_sub_interhopping_AB_single(-k, 0, Jpmpm, xi)
+    MagBnkAnk = np.conj(MagAnkBnk)
+
+    MAdkAdnk = M_zero_sub_pairing_AA_single(k, 0, Jpmpm, chi, chi0)
+    MBdkBdnk = M_zero_sub_pairing_AA_single(k, 1, Jpmpm, chi, chi0)
+    MAnkAk = np.conj(MAdkAdnk)
+    MBnkBk = np.conj(MBdkBdnk)
+    #
+    # FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
+    #                [MagBkAk, MBk, dummy, MBdkBdnk],
+    #                [MAnkAk, dummy, MAnk, MagAnkBnk],
+    #                [dummy, MBnkBk, MagBnkAnk, MBnk]])
+    FM = np.zeros((4,4), dtype=np.complex128)
+    FM[0, 0] = MAk
+    FM[0, 1] = MagAkBk
+    FM[0, 2] = MAdkAdnk
+    FM[0, 3] = dummy
+    FM[1, 0] = MagBkAk
+    FM[1, 1] = MBk
+    FM[1, 2] = dummy
+    FM[1, 3] = MBdkBdnk
+    FM[2, 0] = MAnkAk
+    FM[2, 1] = dummy
+    FM[2, 2] = MAnk
+    FM[2, 3] = MagAnkBnk
+    FM[3, 0] = dummy
+    FM[3, 1] = MBnkBk
+    FM[3, 2] = MagBnkAnk
+    FM[3, 3] = MBnk
+
+    return FM
+
+#endregion
+
 
 def exponent_mag(h, n, k, alpha):
     zmag = contract('k,ik->i',n,z)
@@ -667,6 +756,7 @@ class zeroFluxSolver:
         except:
             pass
         warnings.resetwarnings()
+        # print(Eq+Ep)
         return Eq + Ep
 
     def gapwhere(self):
