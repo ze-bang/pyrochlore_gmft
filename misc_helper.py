@@ -8,7 +8,6 @@ import math
 import sys
 from opt_einsum import contract
 from numba import jit
-from numba.experimental import jitclass
 from mpi4py import MPI
 
 graphres=60
