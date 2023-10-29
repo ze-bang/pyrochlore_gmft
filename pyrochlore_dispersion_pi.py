@@ -721,22 +721,24 @@ class piFluxSolver:
         self.MF = M_pi(self.bigTemp, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                        self.xi)
     def calmeanfield(self):
-        cond = self.ifcondense(self.bigTemp)
-        # leng = len(self.bigTemp)
-        Kps = np.delete(self.bigTemp, cond, axis=0)
-        MFp = np.delete(self.MF, cond, axis=0)
-        if self.condensed:
-            MFq = M_pi(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                       self.xi)
-            chic, chi0c = np.array(chiCal(self.delta, MFq, self.qmin, self.Jzz))
-            xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
-            chi, chi0 = chiCal(self.minLams, MFp, Kps, self.Jzz)
-            xi = xiCal(self.minLams, MFp, Kps, self.Jzz, self.ns)
-            return chi + chic, chi0 + chi0c, xi + xic
-        else:
-            chi, chi0 = chiCal(self.lams, MFp, Kps, self.Jzz)
-            xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-            return chi, chi0, xi
+        # cond = self.ifcondense(self.bigTemp)
+        # # leng = len(self.bigTemp)
+        # Kps = np.delete(self.bigTemp, cond, axis=0)
+        # MFp = np.delete(self.MF, cond, axis=0)
+        # if self.condensed:
+        #     MFq = M_pi(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                self.xi)
+        #     chic, chi0c = np.array(chiCal(self.delta, MFq, self.qmin, self.Jzz))
+        #     xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
+        #     chi, chi0 = chiCal(self.minLams, MFp, Kps, self.Jzz)
+        #     xi = xiCal(self.minLams, MFp, Kps, self.Jzz, self.ns)
+        #     return chi + chic, chi0 + chi0c, xi + xic
+        # else:
+        MFp = self.MF
+        Kps = self.bigTemp
+        chi, chi0 = chiCal(self.lams, MFp, Kps, self.Jzz)
+        xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
+        return chi, chi0, xi
 
     def solvemeanfield(self, tol=1e-7):
         self.condensation_check()
@@ -782,7 +784,7 @@ class piFluxSolver:
         if self.condensed:
             E, V = self.LV_zero(q,self.minLams)
             E = E[:,0]
-            c = np.where(E<=1e-20)
+            c = np.where(E<=0)[0]
         c = np.array(c, dtype=int)
         return c
 
@@ -857,24 +859,24 @@ class piFluxSolver:
         if xi == -10:
             xi = self.xi
 
-        cond = self.ifcondense(self.bigTemp)
-        Kps = np.delete(self.bigTemp, cond, axis=0)
-        MFp = np.delete(self.MF, cond, axis=0)
-
-        if self.condensed:
-            MFq = M_pi(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                         self.xi)
-            Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                       MFq,
-                       self.delta, self.qmin, True)
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
-            self.minLams, Kps)
-            print(Eq, Ep)
-            return Eq + Ep
-        else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
-            self.lams, Kps)
-            return Ep
+        # cond = self.ifcondense(self.bigTemp)
+        # Kps = np.delete(self.bigTemp, cond, axis=0)
+        # MFp = np.delete(self.MF, cond, axis=0)
+        #
+        # if self.condensed:
+        #     MFq = M_pi(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                  self.xi)
+        #     Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+        #                MFq,
+        #                self.delta, self.qmin, True)
+        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+        #     self.minLams, Kps)
+        #     print(Eq, Ep)
+        #     return Eq + Ep
+        # else:
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        self.lams, self.bigTemp)
+        return Ep
 
     def SCE(self, chi, chi0, xi):
         tol = 1e-3

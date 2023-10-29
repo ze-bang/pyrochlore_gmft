@@ -575,7 +575,6 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False
     E = np.sqrt(2*Jzz*E)
     Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = green_zero(E, V, Jzz)
-    A = np.where(E==np.nan)
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
@@ -688,25 +687,29 @@ class zeroFluxSolver:
         # self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def calmeanfield(self):
-        cond = self.ifcondense(self.bigTemp)
-        Kps = np.delete(self.bigTemp, cond, axis=0)
-        MFp = np.delete(self.MF, cond, axis=0)
-        if self.condensed:
-            MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                         self.xi)
-            chic = chiCal(self.delta, MFq, self.qmin, self.Jzz)
-            chi0c = chi0Cal(self.delta, MFq, self.Jzz)
-            xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
-            chi = chiCal(self.lams, MFp, Kps, self.Jzz)
-            chi0 = chi0Cal(self.lams, MFp, self.Jzz)
-            xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-        # print(np.array([chi, chi0, xi]), np.array([chic, chi0c, xic]))
-            return chi+chic, chi0+chi0c, xi + xic
-        else:
-            chi = chiCal(self.lams, MFp, Kps, self.Jzz)
-            chi0 = chi0Cal(self.lams, MFp, self.Jzz)
-            xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-            return chi, chi0, xi
+        # cond = self.ifcondense(self.bigTemp)
+        # Kps = np.delete(self.bigTemp, cond, axis=0)
+        # MFp = np.delete(self.MF, cond, axis=0)
+        # if self.condensed:
+        #     MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                  self.xi)
+        #     chic = chiCal(self.delta, MFq, self.qmin, self.Jzz)
+        #     chi0c = chi0Cal(self.delta, MFq, self.Jzz)
+        #     xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
+        #     chi = chiCal(self.lams, MFp, Kps, self.Jzz)
+        #     chi0 = chi0Cal(self.lams, MFp, self.Jzz)
+        #     xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
+        # # print(np.array([chi, chi0, xi]), np.array([chic, chi0c, xic]))
+        #     return chi+chic, chi0+chi0c, xi + xic
+        # else:
+
+        MFp = self.MF
+        Kps = self.bigTemp
+
+        chi = chiCal(self.lams, MFp, Kps, self.Jzz)
+        chi0 = chi0Cal(self.lams, MFp, self.Jzz)
+        xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
+        return chi, chi0, xi
 
 
     def solvemeanfield(self, tol=0.005, ns=0):
@@ -736,7 +739,7 @@ class zeroFluxSolver:
         if self.condensed:
             E, V = self.LV_zero(q,self.minLams)
             E = E[:,0]
-            c = np.where(E<=1e-20)
+            c = np.where(E<=0)[0]
         c = np.array(c, dtype=int)
         return c
 
@@ -776,24 +779,25 @@ class zeroFluxSolver:
 
     def MFE(self):
 
-        cond = self.ifcondense(self.bigTemp)
-        Kps = np.delete(self.bigTemp, cond, axis=0)
-        MFp = np.delete(self.MF, cond, axis=0)
+        # cond = self.ifcondense(self.bigTemp)
 
-        if self.condensed:
-            MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                         self.xi)
-            Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                       MFq,
-                       self.delta, self.qmin, True)
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
-            self.minLams, Kps)
-            # print(Eq, Ep)
-            return Eq + Ep
-        else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
-            self.lams, Kps)
-            return Ep
+        # Kps = np.delete(self.bigTemp, cond, axis=0)
+        # MFp = np.delete(self.MF, cond, axis=0)
+        #
+        # if self.condensed:
+        #     MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                  self.xi)
+        #     Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+        #                MFq,
+        #                self.lams, self.qmin, True)
+        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+        #     self.minLams, Kps)
+        #     print(Eq, Ep, self.delta)
+        #     return Eq + Ep
+        # else:
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        self.lams, self.bigTemp)
+        return Ep
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
