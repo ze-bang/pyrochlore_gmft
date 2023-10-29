@@ -21,8 +21,9 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
     JP = -(Jxx+Jyy)/4
     if JP >= 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.init(1e-7)
-        print(py0s.delta)
+        py0s.solvemeanfield(1e-7)
+        print(py0s.minLams, py0s.lams, py0s.delta, py0s.qmin, py0s.MFE())
+        print(py0s.gap())
         py0s.graph(False)
         # plt.show()
     elif JP < 0 and not old:
@@ -33,8 +34,8 @@ def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
         # M = py0s.MF
         # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
         # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
-        py0s.init(1e-7)
-        print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed(), py0s.ifcondense(py0s.bigB))
+        py0s.solvemeanfield(1e-7)
+        print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed,py0s.MFE())
         py0s.graph(False)
         return 0
     else:
@@ -495,10 +496,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
             pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
 
-            py0s.findLambda()
-            pyps.findLambda()
-            py0s.findminLam()
-            pyps.findminLam()
+            py0s.solvemeanfield(1e-7)
+            pyps.solvemeanfield(1e-7)
             GSz = py0s.MFE()
             GSp = pyps.MFE()
 
@@ -508,7 +507,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # warnings.filterwarnings("error")
                 sendtemp1[i,j] = py0s.gap()
                 # print(py0s.lams, py0s.minLams)
-                sendtemp[i,j] = py0s.condensed()
+                sendtemp[i,j] = py0s.condensed
                 # print(sendtemp[i,j])
                 # sendtemp2[i,j] = py0s.q
             else:
@@ -517,7 +516,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # warnings.filterwarnings("error")
                 sendtemp1[i,j] = pyps.gap()
                 # print(pyps.lams, pyps.minLams)
-                sendtemp[i,j] = pyps.condensed() + 5
+                sendtemp[i,j] = pyps.condensed + 5
                 # print(sendtemp[i, j])
                 # sendtemp2[i,j] = pyps.q
 

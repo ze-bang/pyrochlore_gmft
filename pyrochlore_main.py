@@ -39,9 +39,16 @@ import warnings
 # graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-# graphdispersion(0.7, 0.3, 1, 0.2, h1b10, 1, 2, 20, 20, False)
+graphdispersion(0.5, 0.5, 1, 3, h1b10, 1, 2, 20, 20, False)
+C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
-C = graphdispersion(-0.08, -0.08, 1, 2, h110, 1, 2, 20, 25)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 26)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 27)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 29)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 30)
+
+
 # C = graphdispersion(0.2, 0.2, 1, 3, h1b10, 1, 2, 20, 55)
 plt.show()
 # D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)

@@ -99,11 +99,11 @@ def M_single(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 #endregion
 
 
-def exponent_mag(h, n, k, alpha):
+def exponent_mag(h, n, k, theta):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*neta(alpha)*ffact)
-    M = contract('ij,j->i', -1/4*h*ffact, zmag)
+    ffact = np.exp(1j*ffact)
+    M = contract('ij,j->i', -1/4*h*ffact*(np.cos(theta) - 1j * np.sin(theta)), zmag)
     return M
 
 def M_zero(Jpm, eta, k, alpha):
@@ -255,29 +255,31 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
-    dex = np.where(E == E.min())
-    Know = K[dex]
-    Enow = E[dex]
+    E = np.around(E[:,0], decimals=14)
+    Em = E.min()
+    dex = np.where(E == Em)
+    Know = np.unique(K[dex], axis=0)
     step = 1
     for i in range(len(Know)):
         stuff = True
         init = True
+        Enow = Em
         while stuff:
-            # print(Enow[i],i, Know[i])
             if not init:
+                # print(Enow[i], i, Know[i], gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi),
+                      # gradient(Klast, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi))
                 gradlen = gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi) - gradient(Klast, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
                 try:
                     step = abs(np.dot(Know[i] - Klast, gradlen)) / np.linalg.norm(gradlen) ** 2
                 except:
                     step = 0
 
-            Klast = Know[i]
+            Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            Elast = Enow[i]
-            Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+            Elast = Enow
+            Enow = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow[i] - Elast) < 1e-20):
+            if (abs(Enow - Elast) < 1e-12):
                 stuff=False
     warnings.resetwarnings()
     return -Enow, Know
@@ -380,7 +382,8 @@ def xiCal(lams, M, K, Jzz, ns):
     ffactA = np.exp(1j * ffact)
 
     A = contract('i, ij->i', green[:,0,1], ffactA)
-    M1 = np.mean(contract('i, ij->i', green[:,0,1], ffactA), axis=0)
+    # B = np.sum(A)
+    M1 = np.mean(A, axis=0)
 
     return np.real(M1)
 
@@ -559,6 +562,10 @@ def green_zero_branch(E, V, Jzz):
     return green
 
 def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
+    chi = chi * np.array([notrace, notrace])
+    chi0 = chi0 * np.ones(2)
+    xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
+
     M = M + np.diag(np.repeat(lams,2))
 
     E, V = np.linalg.eigh(M)
@@ -649,12 +656,13 @@ class zeroFluxSolver:
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres), genBZ(5)))
         self.bigB = np.unique(self.bigB, axis=0)
+        self.bigTemp = np.copy(self.bigB)
         self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.q = np.empty((len(self.bigB), 3))
         self.q[:] = np.nan
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
-
+        self.condensed = False
         self.ns = 0
 
     def findLambda(self):
@@ -665,53 +673,44 @@ class zeroFluxSolver:
 
     def findminLam(self):
         minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
-        self.minLams = np.ones(2)*minLams[0]
+        self.minLams = np.ones(2)*minLams
+        self.bigTemp = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
+        self.MF = M_true(self.bigTemp, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                         self.xi)
         # self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def calmeanfield(self):
-        cond = self.ifcondense(self.bigB)
-        leng = len(self.bigB)
-
-        Kps = np.delete(self.bigB, cond, axis=0)
+        cond = self.ifcondense(self.bigTemp)
+        Kps = np.delete(self.bigTemp, cond, axis=0)
         MFp = np.delete(self.MF, cond, axis=0)
-
-        if (self.qmin.shape==(3,)):
-            MFq = M_single(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
-        else:
+        if self.condensed:
             MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                          self.xi)
-
-        chi, chi0, xi = np.zeros(3)
-        chic, chi0c, xic = np.zeros(3)
-        warnings.filterwarnings('error')
-        try:
-            chic = chiCal(self.delta, MFq, self.qmin, self.Jzz)/leng
-            chi0c = chi0Cal(self.delta, MFq, self.Jzz) / leng
-            xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)/leng
-        except:
-            pass
-
-        try:
+            chic = chiCal(self.delta, MFq, self.qmin, self.Jzz)
+            chi0c = chi0Cal(self.delta, MFq, self.Jzz)
+            xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
             chi = chiCal(self.lams, MFp, Kps, self.Jzz)
             chi0 = chi0Cal(self.lams, MFp, self.Jzz)
             xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-        except:
-            pass
         # print(np.array([chi, chi0, xi]), np.array([chic, chi0c, xic]))
-        return chi+chic, chi0+chi0c, xi + xic
+            return chi+chic, chi0+chi0c, xi + xic
+        else:
+            chi = chiCal(self.lams, MFp, Kps, self.Jzz)
+            chi0 = chi0Cal(self.lams, MFp, self.Jzz)
+            xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
+            return chi, chi0, xi
 
 
     def solvemeanfield(self, tol=0.005, ns=0):
-        self.findLambda()
+        self.condensation_check()
         chinext, chi0next, xinext = self.calmeanfield()
         while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any()):
             self.chi = chinext
             self.chi0 = chi0next
             self.xi = xinext
             self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
-            self.findLambda()
+            self.condensation_check()
             chinext, chi0next, xinext = self.calmeanfield()
-            # print(abs(chinext-self.chi), abs(xinext-self.xi), abs(chi0next-self.chi0))
             print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
@@ -728,31 +727,27 @@ class zeroFluxSolver:
         c = np.array([])
         q = np.mod(q, 2*np.pi)
         tempq = np.mod(self.qmin, 2*np.pi)
-        if (self.condensed()).any():
+        if self.condensed:
             for i in range(len(tempq)):
-                A = np.abs(q - contract('j,i->ij', tempq[i], np.ones(len(q)))) < 1e-8
+                A = np.abs(q - contract('j,i->ij', tempq[i], np.ones(len(q)))) < 1e-6
                 A = contract('ij->i', A, dtype=int)
                 temp = np.array(np.where(A == 3)[0])
                 c = np.concatenate((c, temp))
         c = np.array(c, dtype=int)
         return c
 
-    def condensed(self):
-        # A = np.absolute(self.minLams - self.lams)[0]
-        # B = (1e2/len(self.bigB))**2
-        return np.absolute(self.minLams - self.lams)[0] < (1e2/len(self.bigB))**2
-
+    def set_condensed(self):
+        self.condensed = (self.lams[0] - self.minLams[0]) < (1e2/len(self.bigTemp))**2
 
     def set_delta(self):
-        if self.condensed():
-            self.delta = abs(self.lams-self.minLams)*len(self.bigB)**2
+        if self.condensed:
+            self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
 
-    def init(self, tol):
-        # self.findLambda()
+    def condensation_check(self):
         self.findminLam()
-        self.solvemeanfield(tol)
+        self.findLambda()
+        self.set_condensed()
         self.set_delta()
-
 
     def M_true(self, k):
         return M_true(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
@@ -776,36 +771,24 @@ class zeroFluxSolver:
         return np.mean(self.E_zero(self.bigB)) - self.lams[0]
 
     def MFE(self):
-        cond = self.ifcondense(self.bigB)
-        leng = len(self.bigB)
-        Kps = np.delete(self.bigB, cond, axis=0)
+
+        cond = self.ifcondense(self.bigTemp)
+        Kps = np.delete(self.bigTemp, cond, axis=0)
         MFp = np.delete(self.MF, cond, axis=0)
 
-        if (len(self.qmin) == 1):
-            MFq = M_single(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                           self.xi)
-        else:
+        if self.condensed:
             MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                          self.xi)
-        Eq = 0
-        Ep = 0
-
-        warnings.filterwarnings('error')
-        try:
             Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
                        MFq,
-                       self.lams, self.qmin)/leng
-        except:
-            pass
-
-        try:
+                       self.delta, self.qmin)
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
+            self.minLams, Kps)
+            return Eq + Ep
+        else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.lams, Kps)
-        except:
-            pass
-        warnings.resetwarnings()
-        # print(Eq+Ep)
-        return Eq + Ep
+            return Ep
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))

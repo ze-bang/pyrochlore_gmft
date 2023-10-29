@@ -290,6 +290,6 @@ def algHamSungbin():
 
 lams = -np.pi/2
 
-print(np.mod(lams, 2*np.pi))
+A = np.zeros((3,4))
 
-print(np.where(1>2))
+print(np.mean(A, axis=0))
