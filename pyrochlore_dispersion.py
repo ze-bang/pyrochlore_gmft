@@ -561,7 +561,7 @@ def green_zero_branch(E, V, Jzz):
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False):
     chi = chi * np.array([notrace, notrace])
     chi0 = chi0 * np.ones(2)
     xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
@@ -577,8 +577,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
-
+    if not condensed:
+        EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
+    else:
+        EQ = 0
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
 
@@ -781,7 +783,7 @@ class zeroFluxSolver:
                          self.xi)
             Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
                        MFq,
-                       self.delta, self.qmin)
+                       self.delta, self.qmin, True)
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.minLams, Kps)
             return Eq + Ep

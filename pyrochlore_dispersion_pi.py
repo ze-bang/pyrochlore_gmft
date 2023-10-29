@@ -575,7 +575,7 @@ def green_pi_branch(E, V, Jzz):
     return green
 
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
@@ -590,7 +590,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
+    if not condensed:
+        EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
+    else:
+        EQ = 0
 
     E1A = np.mean(
         contract('jl,kjl, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 0:4, 0:4], ffactA,
@@ -864,7 +867,7 @@ class piFluxSolver:
                          self.xi)
             Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
                        MFq,
-                       self.delta, self.qmin)
+                       self.delta, self.qmin, True)
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.minLams, Kps)
             # print(Eq, Ep)
