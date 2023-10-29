@@ -259,11 +259,14 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     Em = E.min()
     dex = np.where(E == Em)
     Know = np.unique(K[dex], axis=0)
+    if (E==0).all():
+        return 0, Know
     step = 1
     for i in range(len(Know)):
         stuff = True
         init = True
         Enow = Em
+        # print(i, K[i])
         while stuff:
             if not init:
                 # print(Enow[i], i, Know[i], gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi),
@@ -572,15 +575,17 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False
     E = np.sqrt(2*Jzz*E)
     Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = green_zero(E, V, Jzz)
-
+    A = np.where(E==np.nan)
     ffact = contract('ik, jlk->ijl', k,NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
     if not condensed:
+        # A = np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0)
         EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
     else:
         EQ = 0
+
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
 
@@ -677,6 +682,7 @@ class zeroFluxSolver:
         minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.minLams = np.ones(2)*minLams
         self.bigTemp = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
+        # print(self.bigTemp.shape, self.bigB.shape, self.qmin.shape)
         self.MF = M_true(self.bigTemp, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                          self.xi)
         # self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
@@ -713,7 +719,7 @@ class zeroFluxSolver:
             self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
             self.condensation_check()
             chinext, chi0next, xinext = self.calmeanfield()
-            print(self.chi, self.chi0, self.xi)
+            # print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
@@ -727,14 +733,10 @@ class zeroFluxSolver:
 
     def ifcondense(self, q):
         c = np.array([])
-        q = np.mod(q, 2*np.pi)
-        tempq = np.mod(self.qmin, 2*np.pi)
         if self.condensed:
-            for i in range(len(tempq)):
-                A = np.abs(q - contract('j,i->ij', tempq[i], np.ones(len(q)))) < 1e-6
-                A = contract('ij->i', A, dtype=int)
-                temp = np.array(np.where(A == 3)[0])
-                c = np.concatenate((c, temp))
+            E, V = self.LV_zero(q,self.minLams)
+            E = E[:,0]
+            c = np.where(E<=1e-20)
         c = np.array(c, dtype=int)
         return c
 
@@ -786,6 +788,7 @@ class zeroFluxSolver:
                        self.delta, self.qmin, True)
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.minLams, Kps)
+            # print(Eq, Ep)
             return Eq + Ep
         else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,

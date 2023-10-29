@@ -239,6 +239,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     dex = np.where(E == Em)
     Know = np.unique(K[dex], axis=0)
     # print(Know)
+    if (E==0).all():
+        return 0, Know
 
     step = 1
 
@@ -591,6 +593,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False
     ffactB = np.exp(1j * ffact)
 
     if not condensed:
+        # A = np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)
         EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
     else:
         EQ = 0
@@ -776,14 +779,10 @@ class piFluxSolver:
 
     def ifcondense(self, q):
         c = np.array([])
-        q = np.mod(q, 2*np.pi)
-        tempq = np.mod(self.qmin, 2*np.pi)
         if self.condensed:
-            for i in range(len(tempq)):
-                A = np.abs(q - contract('j,i->ij', tempq[i], np.ones(len(q)))) < 1e-6
-                A = contract('ij->i', A, dtype=int)
-                temp = np.array(np.where(A == 3)[0])
-                c = np.concatenate((c, temp))
+            E, V = self.LV_zero(q,self.minLams)
+            E = E[:,0]
+            c = np.where(E<=1e-20)
         c = np.array(c, dtype=int)
         return c
 
@@ -870,7 +869,7 @@ class piFluxSolver:
                        self.delta, self.qmin, True)
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
             self.minLams, Kps)
-            # print(Eq, Ep)
+            print(Eq, Ep)
             return Eq + Ep
         else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,

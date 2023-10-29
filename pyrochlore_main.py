@@ -39,8 +39,8 @@ import warnings
 # graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-graphdispersion(0.5, 0.5, 1, 3, h1b10, 1, 2, 20, 20, False)
-C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
+# graphdispersion(0.5, 0.5, 1, 3, h1b10, 1, 2, 20, 20, False)
+# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 26)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 27)
@@ -50,7 +50,7 @@ C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 
 
 # C = graphdispersion(0.2, 0.2, 1, 3, h1b10, 1, 2, 20, 55)
-plt.show()
+# plt.show()
 # D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)
 
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
@@ -83,10 +83,13 @@ plt.show()
 
 # PhaseMagtestJP(-0.2, 0.1, 25, 0, 3, 25, h1b10, 25, 2, "0.png")
 #
-# PhaseMagtestJP(-0.2, 0.1, 25, 0.27, 3, 25, h1b10, 25, 2, "0.27_h1b10_1.png")
-# PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 3, 25, h1b10, 25, 2, "0.23_h1b10_1.png")
-# PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 3, 25, h1b10, 25, 2, "0.26_h1b10_1.png")
-# PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 3, 25, h1b10, 25, 2, "0.24_h1b10_1.png")
+
+PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 25, h1b10, 26, 2, "0.png")
+
+PhaseMagtestJP(-0.2, 0.1, 25, 0.27, 3, 25, h1b10, 26, 2, "0.27_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 3, 25, h1b10, 26, 2, "0.23_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 3, 25, h1b10, 26, 2, "0.26_h1b10_1.png")
+PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 3, 25, h1b10, 26, 2, "0.24_h1b10_1.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
