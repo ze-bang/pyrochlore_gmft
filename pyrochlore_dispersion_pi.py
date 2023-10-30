@@ -874,6 +874,7 @@ class piFluxSolver:
         #     print(Eq, Ep)
         #     return Eq + Ep
         # else:
+        # print(self.condensed, self.minLams, self.lams, self.gap())
         Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
         self.lams, self.bigTemp)
         return Ep

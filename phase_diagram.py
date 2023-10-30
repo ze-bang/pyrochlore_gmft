@@ -229,7 +229,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # gap[i] = py0s.gap()
         # GS[i] = py0s.condensed()[0]
         MFE[i] = py0s.MFE()
-
+        # print(MFE[i])
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         # phases[i][j] = py0s.phase_test()
@@ -256,6 +256,8 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, lamdiff, color='b')
     # plt.plot(JP, dev, color='black')
     plt.savefig(filename)
+    plt.show()
+
     plt.clf()
     # plt.show()
 

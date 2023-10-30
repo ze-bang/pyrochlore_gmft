@@ -84,12 +84,12 @@ import warnings
 # PhaseMagtestJP(-0.2, 0.1, 25, 0, 3, 25, h1b10, 25, 2, "0.png")
 #
 
-PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
+# PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
 
-PhaseMagtestJP(-0.2, 0.1, 25, 0.27, 3, 25, h1b10, 26, 2, "0.27_h1b10_1.png")
-PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 3, 25, h1b10, 26, 2, "0.23_h1b10_1.png")
-PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 3, 25, h1b10, 26, 2, "0.26_h1b10_1.png")
-PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 3, 25, h1b10, 26, 2, "0.24_h1b10_1.png")
+PhaseMagtestJP(0.01, 0.3, 25, 2, 4, 25, h1b10, 26, 2, "4.png")
+# PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 4, 25, h1b10, 26, 2, "0.23_h1b10_1.png")
+# PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 4, 25, h1b10, 26, 2, "0.26_h1b10_1.png")
+# PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 4, 25, h1b10, 26, 2, "0.24_h1b10_1.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.22, 3, 25, h001, 35, 2, "0.22.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
