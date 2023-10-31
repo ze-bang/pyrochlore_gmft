@@ -250,7 +250,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, GS, color='r')
     # plt.plot(JP, GSp, color='b')
     plt.plot(JP, MFE, color='r')
-    plt.plot(JP, MFEp, color='b')
+    # plt.plot(JP, MFEp, color='b')
     # plt.plot(JP, condensed, color='y')
     # plt.plot(JP, condensed1, color='m')
     # plt.plot(JP, lamdiff, color='b')
@@ -260,6 +260,29 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     plt.clf()
     # plt.show()
+
+def MagJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+
+    JP = np.linspace(JPm, JPmax, nK)
+
+    Sx = np.zeros(nK)
+    Sxp = np.zeros(nK)
+    for i in range (nK):
+        print("Jpm is now " + str(JP[i]))
+        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
+        print("Finding 0 Flux Lambda")
+        py0s.solvemeanfield()
+        Sx[i] = py0s.magnetization()
+        # pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
+        # print("Finding pi Flux Lambda")
+        # pyp.solvemeanfield()
+        # Sxp[i] = pyp.magnetization()
+        # print(Sx[i], Sxp[i])
+    plt.plot(JP, Sx, color='r')
+    # plt.plot(JP, Sxp, color='b')
+    plt.savefig(filename)
+    # plt.show()
+    plt.clf()
 
 
 def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):

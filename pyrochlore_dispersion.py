@@ -37,7 +37,6 @@ def M_zero_sub_interhopping_AB_single(k, alpha, Jpmpm, xi):
     return M1a + M1b + M2a + M2b
 
 def M_zero_sub_pairing_AA_single(k, alpha, Jpmpm, chi, chi0):
-    d = np.ones(len(k))
     ffact = contract('k, jlk->jl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
     beta = 1-alpha
@@ -220,6 +219,13 @@ def rho_true(M, lams, Jzz):
     return np.mean(Ep)*np.ones(2)
 
 
+def rho_true_site(M, lams, Jzz):
+    temp = M + np.diag(np.repeat(lams,2))
+    E,V = np.linalg.eigh(temp)
+    Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
+    return np.mean(Ep, axis=0)[0:2]
+
 def Emin(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return E_zero_single(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0]
 
@@ -255,19 +261,24 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=14)
+    E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
     Know = np.unique(K[dex], axis=0)
+
     if (E==0).all():
         return 0, Know
     step = 1
+
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
+
     for i in range(len(Know)):
         stuff = True
         init = True
         Enow = Em
-        # print(i, K[i])
         while stuff:
+            # print(Enow, i, Know[i])
             if not init:
                 # print(Enow[i], i, Know[i], gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi),
                       # gradient(Klast, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi))
@@ -285,6 +296,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if (abs(Enow - Elast) < 1e-12):
                 stuff=False
     warnings.resetwarnings()
+
     return -Enow, Know
 
 def findLambda_zero(M, Jzz, kappa, tol):
@@ -564,7 +576,7 @@ def green_zero_branch(E, V, Jzz):
     green = contract('ikjl, ik->ikjl', Vt, green)
     return green
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False):
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     chi = chi * np.array([notrace, notrace])
     chi0 = chi0 * np.ones(2)
     xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
@@ -579,11 +591,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
-    if not condensed:
-        # A = np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0)
-        EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
-    else:
-        EQ = 0
+
+    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
@@ -634,6 +643,118 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, condensed=False
     # print(EQ, E1, Emag, EAB, EAA, EBB)
     return E
 
+
+def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
+    chi = chi * np.array([notrace, notrace])
+    chi0 = chi0 * np.ones(2)
+    xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
+
+    ffact = contract('k, jlk->jl', k, NNminus)
+    ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
+
+    E1 = contract('jl, jl->', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+
+    zmag = contract('k,ik->i',n,z)
+
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j*ffact)
+
+    Emag = contract('u, u->',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), rho[0] * rho[1]* zmag)
+
+    Emag = 2*np.real(np.sum(Emag))
+
+    ffact = contract('k, jk->j', k, NN)
+    ffact = np.exp(1j * ffact)
+    tempxb = xi[1]
+    tempxa = xi[0]
+
+    M1a = contract('jl, j, l->', notrace, Jpmpm / 4 * ffact, tempxa * rho[0] * rho[1])
+    M1b = contract('jl, l, j->', notrace, Jpmpm / 4 * ffact, tempxa* rho[0] * rho[1])
+    M2a = contract('jl, j, l->', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
+    M2b = contract('jl, l, j->', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
+    EAB = M1a + M1b + M2a + M2b
+    EAB = 2 * np.real(EAB)
+
+    ffact = contract('k, jlk->jl', k, NNminus)
+    ffact = np.exp(-1j * ffact)
+    beta = 1
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[0] * rho[0])
+    M2 = contract('jl, jl->', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[0] * rho[0])
+
+    EAA = np.real(M1+M2)
+
+    ffact = contract('k, jlk->jl', k, NNminus)
+    ffact = np.exp(1j * ffact)
+    beta = 0
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[1] * rho[1])
+    M2 = contract('jl, jl->', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[1] * rho[1])
+
+    EBB = np.real(M1+M2)
+
+    E = Emag + E1 + EAB + EAA + EBB
+    return np.real(E)
+
+def MFE_condensed_0(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
+    chi = chi * np.array([notrace, notrace])
+    chi0 = chi0 * np.ones(2)
+    xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
+
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
+
+    E1 = contract('jl, ijl->i', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+
+    zmag = contract('k,ik->i',n,z)
+
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j*ffact)
+
+    Emag = contract('iu, u->i',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), rho[0] * rho[1]* zmag)
+
+    Emag = 2*np.real(np.sum(Emag))
+
+    ffact = contract('ik, jk->ij', k, NN)
+    ffact = np.exp(1j * ffact)
+    tempxb = xi[1]
+    tempxa = xi[0]
+
+    M1a = contract('jl, ij, l->i', notrace, Jpmpm / 4 * ffact, tempxa * rho[0] * rho[1])
+    M1b = contract('jl, il, j->i', notrace, Jpmpm / 4 * ffact, tempxa* rho[0] * rho[1])
+    M2a = contract('jl, ij, l->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
+    M2b = contract('jl, il, j->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
+    EAB = M1a + M1b + M2a + M2b
+    EAB = 2 * np.real(EAB)
+
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(-1j * ffact)
+    beta = 1
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[0] * rho[0])
+    M2 = contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[0] * rho[0])
+
+    EAA = np.real(M1+M2)
+
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(1j * ffact)
+    beta = 0
+    tempchi = chi[beta]
+    tempchi0 = chi0[beta]
+
+    M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[1] * rho[1])
+    M2 = contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[1] * rho[1])
+
+    EBB = np.real(M1+M2)
+
+    E = np.mean(Emag + E1 + EAB + EAA + EBB)
+    return np.real(E)
 class zeroFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, theta=0, ns=0):
         self.Jzz = Jzz
@@ -660,15 +781,18 @@ class zeroFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres), genBZ(5)))
+        self.bigB = np.concatenate((genBZ(BZres), symK))
         self.bigB = np.unique(self.bigB, axis=0)
+        # self.bigB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)
         self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
+        self.MForig = np.copy(self.MF)
         self.q = np.empty((len(self.bigB), 3))
         self.q[:] = np.nan
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
         self.condensed = False
+        self.rhos = np.zeros(2)
         self.ns = 0
 
     def findLambda(self):
@@ -678,7 +802,7 @@ class zeroFluxSolver:
         self.minLams = findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def findminLam(self):
-        minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
+        minLams, self.qmin = findminLam(self.MF, self.bigB, self.gap()**2/(2*self.Jzz), self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.minLams = np.ones(2)*minLams
         self.bigTemp = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
         # print(self.bigTemp.shape, self.bigB.shape, self.qmin.shape)
@@ -734,12 +858,12 @@ class zeroFluxSolver:
         temp = np.unique(self.bigB[c], axis=0)
         self.q[0:len(temp), :] = temp
 
-    def ifcondense(self, q):
+    def ifcondense(self, q, tol=0):
         c = np.array([])
         if self.condensed:
             E, V = self.LV_zero(q,self.minLams)
             E = E[:,0]
-            c = np.where(E<=0)[0]
+            c = np.where(E<=tol)[0]
         c = np.array(c, dtype=int)
         return c
 
@@ -749,6 +873,9 @@ class zeroFluxSolver:
     def set_delta(self):
         if self.condensed:
             self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
+            cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
+            MFp = np.delete(self.MF, cond, axis=0)
+            self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, self.minLams, self.Jzz))
 
     def condensation_check(self):
         self.findminLam()
@@ -779,26 +906,24 @@ class zeroFluxSolver:
 
     def MFE(self):
 
-        # cond = self.ifcondense(self.bigTemp)
-        #
-        # Kps = np.delete(self.bigTemp, cond, axis=0)
-        # MFp = np.delete(self.MF, cond, axis=0)
-        #
-        # if self.condensed:
-        #     MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-        #                  self.xi)
-        #     Eq = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-        #                MFq,
-        #                self.delta, self.qmin, True)
-        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, MFp,
-        #     self.lams, Kps)
-        #     # print(Eq, Ep, self.delta)
-        #     return Eq + Ep
-        # else:
-            # print(self.condensed, self.minLams, self.lams, self.gap())
-        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-            self.lams, self.bigTemp)
-        return Ep
+        if self.condensed:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                     self.lams, self.bigTemp)
+            # a = np.mod(self.qmin[0], 2*np.pi)
+            #
+            # for i in range(3):
+            #     if abs(abs(a[i]) - 2*np.pi) < 5e-6:
+            #         a[i] = 0
+            # Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+            #          self.minLams, a, self.rhos)
+            Eq = MFE_condensed_0(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                     self.minLams, self.qmin, self.rhos)
+            print(Eq, Ep)
+            return Ep + Eq
+        else:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                self.lams, self.bigTemp)
+            return Ep
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
@@ -870,13 +995,27 @@ class zeroFluxSolver:
 
 
     def magnetization(self):
-        green = self.green_zero(self.bigB)
-        zmag = contract('k,ik->i',self.n,z)
-        ffact = contract('ik, jk->ij', k, NN)
+        green = self.green_zero(self.bigTemp)
+        ffact = contract('ik, jk->ij', self.bigTemp, NN)
         ffactp = np.exp(1j*ffact)
         ffactm = np.exp(-1j * ffact)
 
-        magp = contract('j, ij, i->i', zmag, ffactp, green[:,0,1]) / 4
-        magm = contract('j, ij, i->i', zmag, ffactm, green[:,1,0]) / 4
+        magp = contract('ij, i->i', ffactp, green[:,0,1])
+        magm = contract('ij, i->i', ffactm, green[:,1,0])
 
-        return np.real(np.mean(magp + magm))
+        con = 0
+        # print(self.minLams, self.lams)
+        if self.condensed:
+            # cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
+            # Kq = self.bigTemp[cond]
+            a = np.mod(self.qmin[0], 2*np.pi)
+            for i in range(3):
+                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
+                    a[i] = 0
+            ffact = contract('k, jk->j', a, NN)
+            ffactp = np.exp(1j * ffact)
+            ffactm = np.exp(-1j * ffact)
+            con = self.rhos[0]*self.rhos[1]*np.mean(ffactp+ffactm)
+            # con = np.mean(contract('ij->i',ffactp+ffactm))
+
+        return np.real(np.mean(magp + magm)+con)/4
