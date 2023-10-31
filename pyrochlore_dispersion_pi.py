@@ -1005,16 +1005,18 @@ class piFluxSolver:
                      self.MF,
                      self.lams, self.bigTemp)
 
-            # a = np.mod(self.qmin[0], 2*np.pi)
-            # for i in range(3):
-            #     if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-            #         a[i] = 0
+            a = np.mod(self.qmin[0], 2*np.pi)
+            for i in range(3):
+                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
+                    a[i] = 0
+
+            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                               self.xi, self.MF,
+                               self.minLams, a, self.rhos)
+            # cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
             #
-            # Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-            #                    self.xi, self.MF,
-            #                    self.minLams, a, self.rhos)
-            Eq = MFE_condensed_0(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                               self.xi, self.MF, self.minLams, self.qmin, self.rhos)
+            # Eq = MFE_condensed_0(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+            #                    self.xi, self.MF, self.minLams, self.bigTemp[cond], self.rhos)
             print(Eq, Ep)
             return Ep + Eq
         else:
