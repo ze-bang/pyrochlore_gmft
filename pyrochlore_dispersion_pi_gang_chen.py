@@ -384,7 +384,7 @@ class piFluxSolver:
         return E_pi(self.lams, k, self.eta, self.Jpm, self.h, self.n)
 
     def LV_zero_old(self, k,alpha):
-        M = M_pi_sub(k, alpha, self.eta, self.Jpm)
+        M = M_pi(k, alpha, self.eta, self.Jpm)
         M = M+np.diag(np.repeat(self.lams[0],4))
         E,V = np.linalg.eigh(M)
         if alpha == 1:
@@ -411,15 +411,8 @@ class piFluxSolver:
         if show:
             plt.show()
 
-    # def M_single(self, k):
-    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-    #     return M
-    #
-    #
-    # def E_single(self, k):
-    #     M = M_pi_single(k, self.eta, self.Jpm, self.h, self.n) + np.diag(np.repeat(self.lams, 4))
-    #     E, V = np.linalg.eigh(M)
-    #     return np.sqrt(2*self.Jzz*E)
+    def GS(self):
+        return np.mean(self.E_pi(self.bigB)) - np.mean(self.lams)
 
     def minCal(self, K):
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.eta, self.h, self.n, self.bigB)

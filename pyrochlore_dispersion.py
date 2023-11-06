@@ -17,6 +17,7 @@ def exponent_mag_single(h, n, k, theta):
     ffact = contract('k, jk->j', k, NN)
     ffact = np.exp(1j*ffact)
     M = contract('j,j->', -1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag)
+    M = np.real(M)
     return M
 
 def M_zero_single(Jpm, eta, k, alpha):
@@ -98,6 +99,7 @@ def M_single(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 #endregion
 
 
+#region Constructing Hamiltonian
 def exponent_mag(h, n, k, theta):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
@@ -180,6 +182,7 @@ def M_true(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
     return FM
 
+#endregion
 
 def E_zero_true(lams, k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     M = M_true(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
@@ -264,14 +267,14 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
-    Know = np.unique(K[dex], axis=0)
+    Know = np.unique(K[dex], axis=0)[0]
+
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
 
     if (E==0).all():
         return 0, Know
     step = 1
-
-    if Know.shape == (3,):
-        Know = Know.reshape(1,3)
 
     for i in range(len(Know)):
         stuff = True
@@ -296,7 +299,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if (abs(Enow - Elast) < 1e-12):
                 stuff=False
     warnings.resetwarnings()
-
     return -Enow, Know
 
 def findLambda_zero(M, Jzz, kappa, tol):
@@ -396,11 +398,11 @@ def xiCal(lams, M, K, Jzz, ns):
     ffact = contract('ik,jk->ij', K, NN)
     ffactA = np.exp(1j * ffact)
 
-    A = contract('i, ij->i', green[:,0,1], ffactA)
-    # B = np.sum(A)
-    M1 = np.mean(A, axis=0)
+    B = np.mean(ffactA, axis=0)
 
-    return np.real(M1)
+    A = contract('i, ij->ij', green[:,0,1], ffactA)
+    A = np.mean(A, axis=0)
+    return np.real(A[0])
 
 
 
@@ -640,7 +642,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ, E1, Emag, EAB, EAA, EBB)
+    print(EQ, E1, Emag, EAB, EAA, EBB)
     return E
 
 
@@ -755,6 +757,7 @@ def MFE_condensed_0(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho
 
     E = np.mean(Emag + E1 + EAB + EAA + EBB)
     return np.real(E)
+
 class zeroFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, h=0, n=np.array([0,0,0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20, omega=0, theta=0, ns=0):
         self.Jzz = Jzz
@@ -846,7 +849,7 @@ class zeroFluxSolver:
             self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
             self.condensation_check()
             chinext, chi0next, xinext = self.calmeanfield()
-            # print(self.chi, self.chi0, self.xi)
+            print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
@@ -902,30 +905,26 @@ class zeroFluxSolver:
         return np.sqrt(2*self.Jzz*E[dex, 0])
 
     def GS(self):
-        return np.mean(self.E_zero(self.bigB)) - self.lams[0]
+        return np.mean(self.E_zero(self.bigB)) - np.mean(self.lams)
 
     def MFE(self):
 
-        if self.condensed:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-                     self.lams, self.bigTemp)
-            a = np.mod(self.qmin[0], 2*np.pi)
-
-            for i in range(3):
-                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-                    a[i] = 0
-            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-                     self.minLams, a, self.rhos)
-            # cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
-            #
-            # Eq = MFE_condensed_0(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-            #          self.minLams, self.bigTemp[cond], self.rhos)
-            print(Eq, Ep)
-            return Ep + Eq
-        else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-                self.lams, self.bigTemp)
-            return Ep
+        # if self.condensed:
+        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        #              self.lams, self.bigTemp)
+        #     a = np.mod(self.qmin[0], 2*np.pi)
+        #
+        #     for i in range(3):
+        #         if abs(abs(a[i]) - 2*np.pi) < 5e-6:
+        #             a[i] = 0
+        #     Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        #              self.minLams, a, self.rhos)
+        #     print(Eq, Ep)
+        #     return Ep + Eq
+        # else:
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+            self.lams, self.bigTemp)
+        return Ep
 
     def gapwhere(self):
         temp = self.MF + np.diag(np.repeat(self.lams,2))
@@ -995,6 +994,8 @@ class zeroFluxSolver:
         E = np.sqrt(2 * self.Jzz * E)
         return green_zero_branch(E, V, self.Jzz), E
 
+    def mag_con(self):
+        return np.mean(E_zero_fixed(np.zeros(2), self.MF)[0])
 
     def magnetization(self):
         green = self.green_zero(self.bigTemp)

@@ -17,39 +17,15 @@ import warnings
 # plt.show()
 
 
-def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, old=False):
-    JP = -(Jxx+Jyy)/4
-    if JP >= 0:
+def graphdispersion(Jxx, Jyy, Jzz,h, n, kappa, rho, graphres, BZres, pi):
+    if not pi:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.solvemeanfield(1e-7)
-        print(py0s.minLams, py0s.lams, py0s.delta, py0s.qmin, py0s.MFE())
-        print(py0s.gap())
-        py0s.graph(False)
-        # plt.show()
-    elif JP < 0 and not old:
-        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        # py0s.findminLam()
-        # print(py0s.minLams)
-        # py0s.findLambda()
-        # M = py0s.MF
-        # B = np.mean(py0s.green_pi_old(py0s.bigB), axis=0)
-        # A = np.mean(py0s.green_pi(py0s.bigB), axis=0)
-        py0s.solvemeanfield(1e-7)
-        print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed,py0s.MFE())
-        py0s.graph(False)
-        return 0
     else:
-        py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findLambda()
-        print(py0s.lams)
-        A = py0s.green_pi(py0s.bigB, py0s.lams)
-
-        # print(py0s.minLams)
-        # py0s.findminLam_new()
-        # print(py0s.minLams)
-        # temp = py0s.M_true(py0s.bigB)[:,0:4, 0:4] - np.conj(py0s.M_true(py0s.bigB)[:,4:8, 4:8])
-        py0s.graph(False)
-        return A
+        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+    py0s.solvemeanfield(1e-7)
+    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE())
+    py0s.graph(False)
+    return 0
 
 def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
     if JP >= 0:
@@ -228,7 +204,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # print(py0s.lams, py0s.minLams)
         # gap[i] = py0s.gap()
         # GS[i] = py0s.condensed()[0]
-        MFE[i] = py0s.MFE()
+        MFE[i] = py0s.GS()
         # print(MFE[i])
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
@@ -236,7 +212,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         pyp.solvemeanfield()
         # gapp[i] = pyp.gap()
         # GSp[i] = pyp.condensed()[0]
-        MFEp[i] = pyp.MFE()
+        MFEp[i] = pyp.GS()
         print(MFE[i], MFEp[i])
         # lamdiff[i] = abs(pyp.minLams-pyp.lams)[0]
         # print(pyp.minLams, pyp.lams, lamdiff[i])
@@ -250,7 +226,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, GS, color='r')
     # plt.plot(JP, GSp, color='b')
     plt.plot(JP, MFE, color='r')
-    # plt.plot(JP, MFEp, color='b')
+    plt.plot(JP, MFEp, color='b')
     # plt.plot(JP, condensed, color='y')
     # plt.plot(JP, condensed1, color='m')
     # plt.plot(JP, lamdiff, color='b')
@@ -287,23 +263,35 @@ def MagJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
+
     h = np.linspace(hm, hmax, nH)
 
-    gap = np.zeros(nH)
     MFE = np.zeros(nH)
     MFEp = np.zeros(nH)
-    # for i in range (nH):
-    for i in range (nH):
-        print("h is now " + str(h[i]))
-        py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
-        pyps = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+    MFEpp = np.zeros(nH)
 
-        py0s.findLambda()
-        pyps.findLambda()
+    for i in range(nH):
+        print("h is now " + str(h[i]))
+        # print("h is now " + str(h[j]))
+        py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        print("Finding 0 Flux Lambda")
+        py0s.solvemeanfield()
         MFE[i] = py0s.MFE()
-        MFEp[i] = pyps.MFE()
-    plt.plot(h, MFE, color='b')
-    plt.plot(h, MFEp, color='g')
+        pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        print("Finding pi Flux Lambda")
+        pyp.solvemeanfield()
+        MFEp[i] = pyp.MFE()
+        # pyp = pygang.piFluxSolver(JPm, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        # print("Finding pi Flux Lambda")
+        # pyp.findLambda()
+        # MFEpp[i] = pyp.GS()
+        print(MFE[i], MFEp[i])
+
+    plt.plot(h, MFE, color='r')
+    plt.plot(h, MFEp, color='b')
+    plt.savefig(filename)
+    plt.show()
+    plt.clf()
 
 
 

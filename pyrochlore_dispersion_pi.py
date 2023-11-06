@@ -5,6 +5,12 @@ import numpy as np
 
 from misc_helper import *
 
+# A_pi = np.array([[0,0,0,0],
+#                   [0,np.pi,0,0],
+#                   [0,np.pi,np.pi,0],
+#                   [0,0,np.pi,0]])
+
+# A_pi = np.ones((4,4))
 
 
 # region Single momentum point Hamiltonian construction
@@ -95,7 +101,7 @@ def M_pi_mag_sub_AB(k, h, n, theta):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                 np.exp(1j * A_pi), piunitcell)
+                 np.exp(1j*A_pi), piunitcell)
     return M
 
 
@@ -247,14 +253,15 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
-    Know = np.unique(K[dex], axis=0)
+    Know = np.unique(K[dex], axis=0)[0]
     # print(Know)
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
+
     if (E==0).all():
         return 0, Know
     step = 1
 
-    if Know.shape == (3,):
-        Know = Know.reshape(1,3)
 
     for i in range(len(Know)):
         stuff = True
@@ -356,6 +363,7 @@ def xiCal(lams, M, K, Jzz, ns):
     ffactA = np.exp(1j * ffact)
 
     M1 = np.mean(contract('ika, ij,jka->ikj', green[:, 0:4, 4:8], ffactA, piunitcell), axis=0)
+
     M1 = M1[0, 0]
     return np.real(M1)
 
@@ -671,7 +679,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
+    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos):
@@ -843,6 +851,9 @@ class piFluxSolver:
         self.qmin[:] = np.nan
         self.condensed = False
 
+        self.delta = np.zeros(2)
+        self.rhos = np.zeros(4)
+
     # alpha = 1 for A = -1 for B
 
     def findLambda(self):
@@ -982,8 +993,12 @@ class piFluxSolver:
         dex = np.argmin(E[:, 0])
         return np.mod(self.bigB[dex], 2 * np.pi)
 
+
+    def mag_con(self):
+        return np.mean(E_pi_fixed(np.zeros(2), self.MF)[0])
+
     def GS(self):
-        return np.mean(self.E_pi(self.bigB)) - self.lams[0]
+        return np.mean(self.E_pi(self.bigB)) - np.mean(self.lams)
 
     def set_delta(self):
         if self.condensed:
@@ -991,6 +1006,7 @@ class piFluxSolver:
             cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
             MFp = np.delete(self.MF, cond, axis=0)
             self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp,self.minLams))
+
             # print(self.rhos)
 
     def MFE(self, chi=-10, chi0=-10, xi=-10):
@@ -1000,29 +1016,24 @@ class piFluxSolver:
             chi0 = self.chi0
         if xi == -10:
             xi = self.xi
-        if self.condensed:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                     self.MF,
-                     self.lams, self.bigTemp)
-
-            a = np.mod(self.qmin[0], 2*np.pi)
-            for i in range(3):
-                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-                    a[i] = 0
-
-            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                               self.xi, self.MF,
-                               self.minLams, a, self.rhos)
-            # cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
-            #
-            # Eq = MFE_condensed_0(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-            #                    self.xi, self.MF, self.minLams, self.bigTemp[cond], self.rhos)
-            print(Eq, Ep)
-            return Ep + Eq
-        else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-            self.lams, self.bigTemp)
-            return Ep
+        # if self.condensed:
+        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+        #              self.MF,
+        #              self.lams, self.bigTemp)
+        #
+        #     a = np.mod(self.qmin[0], 2*np.pi)
+        #     for i in range(3):
+        #         if abs(abs(a[i]) - 2*np.pi) < 5e-6:
+        #             a[i] = 0
+        #
+        #     Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                        self.xi, self.MF,
+        #                        self.minLams, a, self.rhos)
+        #     return Ep + Eq
+        # else:
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        self.lams, self.bigTemp)
+        return Ep
 
     def SCE(self, chi, chi0, xi):
         tol = 1e-3

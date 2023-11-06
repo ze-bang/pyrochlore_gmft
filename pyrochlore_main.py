@@ -40,7 +40,7 @@ import warnings
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(0.5, 0.5, 1, 3, h1b10, 1, 2, 20, 20, False)
-# C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
+# C = graphdispersion(0, 0, 1, 1, h1b10, 1, 2, 20, 25, True)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 26)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 27)
@@ -50,7 +50,7 @@ import warnings
 
 
 # C = graphdispersion(0.2, 0.2, 1, 3, h1b10, 1, 2, 20, 55)
-# plt.show()
+plt.show()
 # D = graphdispersion(0.5, 0.5, 1, 0.1, h1b10, 1, 2, 20, 20, True)
 
 # graphdispersion_old(-0.1, 0.2, h1b10, 1, 2, 20, 20)
@@ -79,16 +79,23 @@ import warnings
 #
 
 
-# PhaseMagtestH(-0.5, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
+# PhaseMagtestH(0, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
-# PhaseMagtestJP(-0.2, 0.1, 25, 0, 3, 25, h1b10, 25, 2, "0.png")
+
+PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h1b10, 25, 2, "0.2.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h1b10, 25, 2, "0.3.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h1b10, 25, 2, "0.4.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h1b10, 25, 2, "0.5.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.6, 3, 25, h1b10, 25, 2, "0.6.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h1b10, 25, 2, "0.7.png")
 #
 
 # PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
 
-PhaseMagtestJP(0.0001, 0.3, 25, 2, 4, 25, h1b10, 26, 2, "4_1.png")
+# PhaseMagtestH(0, 0.5, 50, 2, 4, 25, h1b10, 30, 1, "4_kappa=1.png")
 # PhaseMagtestJP(0.01, 0.3, 25, 2, 4, 25, h1b10, 26, 2, "4_1.png")
-# MagJP(0.01, 0.2, 25, 2, 4, 25, h1b10, 26, 2, "Sx_h=2.png")
+# MagJP(0.01, 1, 25, 0, 4, 25, h1b10, 26, 1, "Sx_kappa=1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 4, 25, h1b10, 26, 2, "0.23_h1b10_1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 4, 25, h1b10, 26, 2, "0.26_h1b10_1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 4, 25, h1b10, 26, 2, "0.24_h1b10_1.png")
