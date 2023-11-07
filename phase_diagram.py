@@ -506,8 +506,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
             pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
 
-            py0s.solvemeanfield(1e-7)
-            pyps.solvemeanfield(1e-7)
+            py0s.self.condensation_check()
+            pyps.self.condensation_check()
             GSz = py0s.MFE()
             GSp = pyps.MFE()
 
