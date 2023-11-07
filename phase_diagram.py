@@ -232,7 +232,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, lamdiff, color='b')
     # plt.plot(JP, dev, color='black')
     plt.savefig(filename)
-    plt.show()
+    # plt.show()
 
     plt.clf()
     # plt.show()
@@ -290,7 +290,7 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     plt.plot(h, MFE, color='r')
     plt.plot(h, MFEp, color='b')
     plt.savefig(filename)
-    plt.show()
+    # plt.show()
     plt.clf()
 
 
