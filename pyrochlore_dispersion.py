@@ -267,7 +267,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
-    Know = np.unique(K[dex], axis=0)[0]
+    Know = np.unique(K[dex], axis=0)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
