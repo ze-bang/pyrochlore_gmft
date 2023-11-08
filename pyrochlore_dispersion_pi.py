@@ -250,7 +250,7 @@ def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=16)
+    E = np.around(E[:,0])
     Em = E.min()
     dex = np.where(E == Em)
     Know = np.unique(K[dex], axis=0)[0]

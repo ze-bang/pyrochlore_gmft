@@ -72,10 +72,23 @@ plt.show()
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h110, 30, 1, "ising_h110_kappa=1")
-PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h001, 30, 1, "ising_h001_kappa=1")
-PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h111, 30, 1, "ising_h111_kappa=1")
-PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h1b10, 30, 1, "ising_h1b10_kappa=1")
+# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h110, 30, 2, "ising_h110")
+# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h001, 30, 2, "ising_h001")
+# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h111, 30, 2, "ising_h111")
+# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h1b10, 30, 2, "ising_h1b10")
+# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h110, 30, 2, "ising_h110_zoomout")
+# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h001, 30, 2, "ising_h001_zoomout")
+# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h111, 30, 2, "ising_h111_zoomout")
+# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h1b10, 30, 2, "ising_h1b10_zoomout")
+
+
+PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h100, 30, 2, "ising_h100")
+PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h100, 30, 2, "ising_h100_zoomout")
+
+PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h110, 40, 1, "ising_h110_kappa=1")
+PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h001, 40, 1, "ising_h001_kappa=1")
+PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h111, 40, 1, "ising_h111_kappa=1")
+PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h1b10, 40, 1, "ising_h1b10_kappa=1")
 
 # PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
