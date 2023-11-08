@@ -469,7 +469,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # increment = totaltask/50
     # count = 0
     #
-
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -506,8 +505,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
             pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
 
-            py0s.self.condensation_check()
-            pyps.self.condensation_check()
+            py0s.condensation_check()
+            pyps.condensation_check()
             GSz = py0s.MFE()
             GSp = pyps.MFE()
 
@@ -566,5 +565,118 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
         #     # Add attributes
         #     temp_var.long_name = "Condensed Wave Vectors"
+
+
+
+def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
+    # totaltask = nK*nH
+    # increment = totaltask/50
+    # count = 0
+    #
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = nK/size
+
+    left = int(rank*nb)
+    right = int((rank+1)*nb)
+    currsize = right-left
+
+    JP = np.linspace(JPm, JPmax, nK)
+    currJP = JP[left:right]
+    # phases = np.zeros((nK, nH), dtype=float)
+    # gap = np.zeros((nK, nH), dtype=float)
+
+    leng = len(np.concatenate((genBZ(BZres), symK)))
+
+    sendtemp = np.zeros((currsize, nK), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, nK), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, nK), dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros((nK, nK), dtype=np.float64)
+        rectemp1 = np.zeros((nK, nK), dtype=np.float64)
+        rectemp2 = np.zeros((nK, nK), dtype=np.float64)
+
+    for i in range (currsize):
+        for j in range (nK):
+            py0s = py0.zeroFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
+            pyps = pypi.piFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
+
+            py0s.solvemeanfield()
+            pyps.solvemeanfield()
+            GSz = py0s.MFE()
+            GSp = pyps.MFE()
+
+            if GSz < GSp:
+                # py0s.qvec()
+                # print(pyps.minLams)
+                # warnings.filterwarnings("error")
+                sendtemp1[i,j] = py0s.gap()
+                # print(py0s.lams, py0s.minLams)
+                sendtemp[i,j] = py0s.condensed
+                sendtemp2[i,j] = py0s.xi
+                # print(sendtemp[i,j])
+                # sendtemp2[i,j] = py0s.q
+            else:
+                # print(pyps.minLams)
+                # pyps.qvec()
+                # warnings.filterwarnings("error")
+                sendtemp1[i,j] = pyps.gap()
+                # print(pyps.lams, pyps.minLams)
+                sendtemp[i,j] = pyps.condensed + 5
+                sendtemp2[i,j] = pyps.xi
+                # print(sendtemp[i, j])
+                # sendtemp2[i,j] = pyps.q
+
+            # print(sendtemp[i,j])
+# 
+
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    if rank == 0:
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
+        np.savetxt('Files/' + filename + '_xi.txt', rectemp2)
+        graphMagPhase(JP, JP, rectemp1,'Files/' + filename + '_gap')
+        plt.contourf(JP, JP, rectemp.T)
+        plt.xlabel(r'$J_\pm/J_{y}$')
+        plt.ylabel(r'$h/J_{y}$')
+        plt.savefig('Files/' + filename+'.png')
+        plt.clf()
+
+        plt.contourf(JP, JP, rectemp2.T)
+        plt.xlabel(r'$J_\pm/J_{y}$')
+        plt.ylabel(r'$h/J_{y}$')
+        plt.savefig('Files/' + filename+'_xi.png')
+        plt.clf()
+        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        # with nc.Dataset(ncfilename, "w") as dataset:
+        #     # Create dimensions
+        #     dataset.createDimension("Jpm", nK)
+        #     dataset.createDimension("h", nH)
+        #     dataset.createDimension("n", leng)
+        #     dataset.createDimension("xyz", 3)
+
+        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
+
+        #     # Assign data to variables
+        #     temp_var[:, :, :, :] = rectemp2
+
+        #     # Add attributes
+        #     temp_var.long_name = "Condensed Wave Vectors"
+
 
 #endregion
