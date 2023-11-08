@@ -296,6 +296,41 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     plt.savefig(filename+'_diff.png')
     plt.clf()
 
+def PhaseMagtestHGS(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+
+
+    h = np.linspace(hm, hmax, nH)
+
+    MFE = np.zeros(nH)
+    MFEp = np.zeros(nH)
+    MFEpp = np.zeros(nH)
+
+    for i in range(nH):
+        print("h is now " + str(h[i]))
+        # print("h is now " + str(h[j]))
+        py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        print("Finding 0 Flux Lambda")
+        py0s.condensation_check()
+        MFE[i] = py0s.GS()
+        pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        print("Finding pi Flux Lambda")
+        pyp.condensation_check()
+        MFEp[i] = pyp.GS()
+        # pyp = pygang.piFluxSolver(JPm, h = h[i], n=n, kappa=kappa, BZres=BZres)
+        # print("Finding pi Flux Lambda")
+        # pyp.findLambda()
+        # MFEpp[i] = pyp.GS()
+        print(MFE[i], MFEp[i])
+
+    plt.plot(h, MFE, color='r')
+    plt.plot(h, MFEp, color='b')
+    plt.savefig(filename+'.png')
+    # plt.show()
+    plt.clf()
+    plt.plot(h, MFE-MFEp)
+    plt.savefig(filename+'_diff.png')
+    plt.clf()
+
 
 
 def findPhaseMag_pi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
