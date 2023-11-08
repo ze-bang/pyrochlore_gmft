@@ -264,7 +264,7 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
+    E = np.around(E[:,0], decimals=16)
     Em = E.min()
     dex = np.where(E == Em)
     Know = K[dex]
