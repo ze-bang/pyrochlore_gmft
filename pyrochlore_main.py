@@ -72,7 +72,10 @@ plt.show()
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# PhaseMagtestH(0.0001, 0.25, 25, 0, 3, 25, h110, 35, 1, "0.txt")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h110, 30, 1, "ising_h110_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h001, 30, 1, "ising_h001_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h111, 30, 1, "ising_h111_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h1b10, 30, 1, "ising_h1b10_kappa=1")
 
 # PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
@@ -82,13 +85,29 @@ plt.show()
 # PhaseMagtestH(0, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
 
-PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h1b10, 25, 2, "0.2.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h1b10, 25, 2, "0.3.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h1b10, 25, 2, "0.4.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h1b10, 25, 2, "0.5.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.6, 3, 25, h1b10, 25, 2, "0.6.png")
-PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h1b10, 25, 2, "0.7.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h110, 25, 2, "0.2_h110.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h110, 25, 2, "0.5_h110.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.6, 3, 25, h110, 25, 2, "0.6_h110.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h110, 25, 2, "0.7_h110.png")
+#
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h111, 25, 2, "0.1_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h111, 25, 2, "0.2_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h111, 25, 2, "0.3_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h111, 25, 2, "0.4_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h111, 25, 2, "0.5_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.6, 3, 25, h111, 25, 2, "0.6_h111.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h111, 25, 2, "0.7_h111.png")
+#
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h001, 25, 2, "0.1_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h001, 25, 2, "0.2_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h001, 25, 2, "0.3_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h001, 25, 2, "0.4_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h001, 25, 2, "0.5_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.6, 3, 25, h001, 25, 2, "0.6_h001.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h001, 25, 2, "0.7_h001.png")
 #
 
 # PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
@@ -170,7 +189,10 @@ PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h1b10, 25, 2, "0.7.png")
 #
 # print(temp_var)
 
-# findPhaseMag(-0.5, 0, 1, 0, 1, 1, h111, 25, 2, "phase_test_111_kappa=2")
+# findPhaseMag(-0.3, 0.1, 25, 0, 1, 25, h111, 25, 2, "phase_test_111_kappa=2")
+# findPhaseMag(-0.3, 0.1, 25, 0, 1, 25, h001, 25, 2, "phase_test_001_kappa=2")
+# findPhaseMag(-0.5, 0.3, 50, 0, 4, 25, h110, 25, 2, "phase_test_110_kappa=2")
+# findPhaseMag(-0.3, 0.3, 30, 0, 1, 25, h111, 25, 2, "phase_test_111_kappa=2")
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0, 300, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2")
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")

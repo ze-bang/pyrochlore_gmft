@@ -232,7 +232,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, lamdiff, color='b')
     # plt.plot(JP, dev, color='black')
     plt.savefig(filename)
-    plt.show()
+    # plt.show()
 
     plt.clf()
     # plt.show()
@@ -275,11 +275,11 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # print("h is now " + str(h[j]))
         py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
-        py0s.solvemeanfield()
+        py0s.condensation_check()
         MFE[i] = py0s.MFE()
         pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
-        pyp.solvemeanfield()
+        pyp.condensation_check()
         MFEp[i] = pyp.MFE()
         # pyp = pygang.piFluxSolver(JPm, h = h[i], n=n, kappa=kappa, BZres=BZres)
         # print("Finding pi Flux Lambda")
@@ -289,8 +289,11 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     plt.plot(h, MFE, color='r')
     plt.plot(h, MFEp, color='b')
-    plt.savefig(filename)
-    plt.show()
+    plt.savefig(filename+'.png')
+    # plt.show()
+    plt.clf()
+    plt.plot(h, MFE-MFEp)
+    plt.savefig(filename+'_diff.png')
     plt.clf()
 
 
