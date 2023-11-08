@@ -289,8 +289,11 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     plt.plot(h, MFE, color='r')
     plt.plot(h, MFEp, color='b')
-    plt.savefig(filename)
+    plt.savefig(filename+'.png')
     # plt.show()
+    plt.clf()
+    plt.plot(h, MFE-MFEp)
+    plt.savefig(filename+'_diff.png')
     plt.clf()
 
 

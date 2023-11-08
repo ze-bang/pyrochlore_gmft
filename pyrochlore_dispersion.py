@@ -264,10 +264,10 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = E[:,0]
+    E = np.around(E[:,0], decimals=14)
     Em = E.min()
     dex = np.where(E == Em)
-    Know = np.unique(K[dex], axis=0)
+    Know = K[dex]
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)

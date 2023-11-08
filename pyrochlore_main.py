@@ -72,10 +72,10 @@ plt.show()
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h110, 25, 2, "ising_h110.png")
-PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h001, 25, 2, "ising_h001.png")
-PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h111, 25, 2, "ising_h111.png")
-PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h1b10, 25, 2, "ising_h1b10.png")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h110, 30, 1, "ising_h110_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h001, 30, 1, "ising_h001_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h111, 30, 1, "ising_h111_kappa=1")
+PhaseMagtestH(1e-10, 0.25, 25, 0, 0.3, 50, h1b10, 30, 1, "ising_h1b10_kappa=1")
 
 # PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
