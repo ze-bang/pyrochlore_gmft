@@ -336,9 +336,8 @@ def chiCal(lams, M, K, Jzz):
     E = np.sqrt(2 * Jzz * E)
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', K, NNminus)
-    ffactB = np.exp(-1j * ffact)
+    ffactB = np.exp(1j * ffact)
     A = contract('iab, ijl,jka, lkb->ikjl', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
-    B = np.where(A!=0)
     M1 = np.mean(A, axis=0)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
