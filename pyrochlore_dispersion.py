@@ -853,7 +853,7 @@ class zeroFluxSolver:
             self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
             self.findLambda()
             chinext, chi0next, xinext = self.calmeanfield()
-            print(self.chi, self.chi0, self.xi)
+            # print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext

@@ -906,7 +906,7 @@ class piFluxSolver:
             chinext, chi0next, xinext = self.calmeanfield()
             # else:
             # chinext, chi0next, xinext = np.array([self.chi, self.chi0, self.xi]) - np.matmul(np.linalg.inv(J0), fn)
-            print(self.chi, self.chi0, self.xi)
+            # print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
