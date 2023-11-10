@@ -264,10 +264,10 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0])
+    E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
-    Know = K[dex][0]
+    Know = K[dex]
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -303,8 +303,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 def findLambda_zero(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
-    lamMin = np.zeros(2)
-    lamMax = 50*np.ones(2)
+    lamMin = np.zeros(2, dtype=np.double)
+    lamMax = 50*np.ones(2, dtype=np.double)
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(M, lams, Jzz)
     # print(self.kappa)
@@ -844,6 +844,9 @@ class zeroFluxSolver:
         self.findLambda()
         chinext, chi0next, xinext = self.calmeanfield()
         while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any()):
+            if ((abs(chinext + self.chi) < tol).any() and (abs(xinext + self.xi) < tol).any() and (
+                abs(chi0next + self.chi0) < tol).any()):
+                break
             self.chi = chinext
             self.chi0 = chi0next
             self.xi = xinext
@@ -886,7 +889,7 @@ class zeroFluxSolver:
         self.findminLam()
         self.findLambda()
         self.set_condensed()
-        self.set_delta()
+        # self.set_delta()
 
     def M_true(self, k):
         return M_true(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
