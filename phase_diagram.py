@@ -646,8 +646,8 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
             py0s = py0.zeroFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
             pyps = pypi.piFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
 
-            py0s.solvemeanfield()
-            pyps.solvemeanfield()
+            py0s.solvemeanfield(1e-4)
+            pyps.solvemeanfield(1e-4)
             GSz = py0s.MFE()
             GSp = pyps.MFE()
 
