@@ -250,10 +250,10 @@ def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0])
+    E = E[:,0]
     Em = E.min()
     dex = np.where(E == Em)
-    Know = K[dex][0]
+    Know = K[dex]
     # print(Know)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -261,8 +261,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if (E==0).all():
         return 0, Know
     step = 1
-
-
     for i in range(len(Know)):
         stuff = True
         init = True
@@ -270,16 +268,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
         while stuff:
             if not init:
                 gradlen = gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi) - gradient(Klast,
-                                                                                                                 np.zeros(
-                                                                                                                     2),
-                                                                                                                 eta,
-                                                                                                                 Jpm,
-                                                                                                                 Jpmpm,
-                                                                                                                 h, n,
-                                                                                                                 theta,
-                                                                                                                 chi,
-                                                                                                                 chi0,
-                                                                                                                 xi)
+                        np.zeros(2),eta,Jpm,Jpmpm, h, n,theta,chi,chi0,xi)
                 try:
                     step = abs(np.dot(Know[i] - Klast, gradlen)) / np.linalg.norm(gradlen) ** 2
                 except:
@@ -298,19 +287,16 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 def findlambda_pi(M, Jzz, kappa, tol):
     warnings.filterwarnings("error")
-    lamMin = np.zeros(2)
-    lamMax = 50 * np.ones(2)
+    lamMin = np.zeros(2, dtype=np.double)
+    lamMax = 50 * np.ones(2, dtype=np.double)
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(Jzz, M, lams)
     # print(self.kappa)
 
     while not ((np.absolute(rhoguess - kappa) <= tol).all()):
-        # for i in range(2):
         lams = (lamMin + lamMax) / 2
-        # rhoguess = rho_true(Jzz, M, lams)
         try:
             rhoguess = rho_true(Jzz, M, lams)
-            # rhoguess = self.rho_zero(alpha, self.lams)
             for i in range(2):
                 if rhoguess[i] - kappa > 0:
                     lamMin[i] = lams[i]
@@ -318,7 +304,9 @@ def findlambda_pi(M, Jzz, kappa, tol):
                     lamMax[i] = lams[i]
         except:
             lamMin = lams
-
+        # print(lams, lamMax-lamMin, rhoguess)
+        if (lamMax-lamMin<1e-15).all():
+            break
     warnings.resetwarnings()
     return lams
 
@@ -889,12 +877,16 @@ class piFluxSolver:
         return chi, chi0, xi
 
     def solvemeanfield(self, tol=1e-7):
-        self.condensation_check()
+        self.findLambda()
         chinext, chi0next, xinext = self.calmeanfield()
+        print(chinext, chi0next, xinext)
         # J0 = self.Jacobian(np.array([chinext, chi0next, xinext]))
 
         while ((abs(chinext - self.chi) >= tol).any() or (abs(xinext - self.xi) >= tol).any() or (
                 abs(chi0next - self.chi0) >= tol).any()):
+            if ((abs(chinext + self.chi) < tol).any() and (abs(xinext + self.xi) < tol).any() and (
+                abs(chi0next + self.chi0) < tol).any()):
+                break
             # print(self.lams, self.chi, self.chi0, self.xi, self.MFE())
 
             # fn = self.SCE(chinext, chi0next, xinext)
@@ -908,7 +900,7 @@ class piFluxSolver:
             self.xi = xinext
             self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                            self.xi)
-            self.condensation_check()
+            self.findLambda()
 
             # if (J0<1e-5).any():
             chinext, chi0next, xinext = self.calmeanfield()
@@ -918,6 +910,7 @@ class piFluxSolver:
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
+        self.condensation_check()
         return 0
 
     def qvec(self):
@@ -950,7 +943,7 @@ class piFluxSolver:
         self.findminLam()
         self.findLambda()
         self.set_condensed()
-        self.set_delta()
+        # self.set_delta()
 
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)

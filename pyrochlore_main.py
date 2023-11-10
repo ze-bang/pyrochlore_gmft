@@ -39,8 +39,11 @@ import warnings
 # graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-# graphdispersion(0.5, 0.5, 1, 3, h1b10, 1, 2, 20, 20, False)
-# C = graphdispersion(0, 0, 1, 1, h1b10, 1, 2, 20, 25, True)
+# graphdispersion(-1, 1, 1, 3, h1b10, 1, 2, 20, 20, False)
+# plt.show()
+C = graphdispersion(1, -1, 1, 0, h1b10, 1, 2, 20, 25, True)
+# plt.show()
+
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 26)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 27)
@@ -82,13 +85,13 @@ plt.show()
 # PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h1b10, 30, 2, "ising_h1b10_zoomout")
 
 
-PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h100, 30, 2, "ising_h100")
-PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h100, 30, 2, "ising_h100_zoomout")
-
-PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h110, 40, 1, "ising_h110_kappa=1")
-PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h001, 40, 1, "ising_h001_kappa=1")
-PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h111, 40, 1, "ising_h111_kappa=1")
-PhaseMagtestHGS(0, 0.25, 25, 0, 0.3, 50, h1b10, 40, 1, "ising_h1b10_kappa=1")
+# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h100, 30, 2, "ising_h100")
+# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h100, 30, 2, "ising_h100_zoomout")
+#
+# PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h110, 30, 1, "ising_h110_kappa=1_zoomout")
+# PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h001, 30, 1, "ising_h001_kappa=1_zoomout")
+# PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h111, 30, 1, "ising_h111_kappa=1_zoomout")
+# PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h1b10, 30, 1, "ising_h1b10_kappa=1_zoomout")
 
 # PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
