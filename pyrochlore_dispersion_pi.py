@@ -318,6 +318,9 @@ def findlambda_pi(M, Jzz, kappa, tol):
                     lamMax[i] = lams[i]
         except:
             lamMin = lams
+            
+        if (lamMax-lamMin<1e-15).all():
+            break
 
     warnings.resetwarnings()
     return lams
@@ -889,7 +892,7 @@ class piFluxSolver:
         return chi, chi0, xi
 
     def solvemeanfield(self, tol=1e-7):
-        self.condensation_check()
+        self.findLambda()
         chinext, chi0next, xinext = self.calmeanfield()
         # J0 = self.Jacobian(np.array([chinext, chi0next, xinext]))
 
@@ -908,7 +911,7 @@ class piFluxSolver:
             self.xi = xinext
             self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                            self.xi)
-            self.condensation_check()
+            self.findLambda()
 
             # if (J0<1e-5).any():
             chinext, chi0next, xinext = self.calmeanfield()
@@ -918,6 +921,7 @@ class piFluxSolver:
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
+        self.condensation_check()
         return 0
 
     def qvec(self):

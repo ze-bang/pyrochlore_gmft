@@ -323,6 +323,8 @@ def findLambda_zero(M, Jzz, kappa, tol):
         except:
              # print(e)
              lamMin = lams
+        if (lamMax-lamMin<1e-15).all():
+            break
         # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
     warnings.resetwarnings()
     return lams
@@ -839,19 +841,20 @@ class zeroFluxSolver:
 
 
     def solvemeanfield(self, tol=0.005, ns=0):
-        self.condensation_check()
+        self.findLambda()
         chinext, chi0next, xinext = self.calmeanfield()
         while((abs(chinext-self.chi)>=tol).any() or (abs(xinext-self.xi)>=tol).any() or (abs(chi0next-self.chi0)>=tol).any()):
             self.chi = chinext
             self.chi0 = chi0next
             self.xi = xinext
             self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
-            self.condensation_check()
+            self.findLambda()
             chinext, chi0next, xinext = self.calmeanfield()
             print(self.chi, self.chi0, self.xi)
         self.chi = chinext
         self.chi0 = chi0next
         self.xi = xinext
+        self.condensation_check()
         return 0
 
     def qvec(self):
