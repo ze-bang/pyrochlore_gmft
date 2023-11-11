@@ -301,8 +301,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.resetwarnings()
     Know = np.mod(Know, 2 * np.pi)
     for i in range(3):
-        if abs(abs(Know[0,i]) - 2 * np.pi) < 2e-5:
-            Know[0, i] = 0
+        if Know[0,i] > np.pi:
+            Know[0, i] = Know[0, i] - 2*np.pi
     return -Enow, Know
 
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
