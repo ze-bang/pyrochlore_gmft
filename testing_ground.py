@@ -17,7 +17,9 @@ sp.init_printing(use_unicode=True) # allow LaTeX printing
 # GammaX = np.linspace(Gamma, X, 20)
 #
 # print(np.einsum('ij,j->i', GammaX, L))
-
+a = np.array([1,0])
+b = np.array([3,5])
+print(a*b)
 
 # H = np.linspace(-2, 2, 5)
 # L = np.linspace(-2, 2, 5)

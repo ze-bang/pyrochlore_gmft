@@ -196,6 +196,7 @@ def rho_true(Jzz, M, lams):
     Ep = contract('ijk, ik->ij', Vt, Jzz / np.sqrt(2 * Jzz * E))
     return np.mean(Ep) * np.ones(2)
 
+
 def rho_true_site(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     # print(M)
@@ -252,7 +253,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E, V = np.linalg.eigh(M)
     E = E[:,0]
     Em = E.min()
-    dex = np.where(E == Em)
+    dex = np.where(E==Em)
     Know = K[dex]
     # print(Know)
     if Know.shape == (3,):
@@ -285,16 +286,14 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return -Enow, Know
 
 
-def findlambda_pi(M, Jzz, kappa, tol):
+def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
-    lamMin = np.zeros(2, dtype=np.double)
-    lamMax = 50 * np.ones(2, dtype=np.double)
+    lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
+    lamMax = 50 * np.ones(2)
     lams = (lamMin + lamMax) / 2
     rhoguess = rho_true(Jzz, M, lams)
-    # print(self.kappa)
-
-    while not ((np.absolute(rhoguess - kappa) <= tol).all()):
-        lams = (lamMin + lamMax) / 2
+    while not ((np.absolute(rhoguess-kappa)<=tol).all()):
+        lams = (lamMax+lamMin)/2
         try:
             rhoguess = rho_true(Jzz, M, lams)
             for i in range(2):
@@ -311,14 +310,6 @@ def findlambda_pi(M, Jzz, kappa, tol):
     return lams
 
 
-# region calculate mean field
-
-# xipicell_0 = np.array([[1,-1,0,0],
-#                        [-1,-1,0,0],
-#                        [0,0,-1,1],
-#                        [0,0,1,1]])
-
-
 def chiCal(lams, M, K, Jzz):
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2 * Jzz * E)
@@ -330,17 +321,6 @@ def chiCal(lams, M, K, Jzz):
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
     return chi, chi0
-
-
-# def chi0(lams, M, Jzz):
-#     E, V = E_pi_fixed(lams, M)
-#     E = np.sqrt(2*Jzz*E)
-#     green = green_pi(E, V, Jzz)
-#
-#     chi0A = np.mean(green[:, 0, 8]) * np.ones(4)
-#     # chi0B = np.mean(green[:, 4, 12]) * np.ones(4)
-#
-#     return np.array([chi0A, chi0A])
 
 def xiCal(lams, M, K, Jzz, ns):
     E, V = E_pi_fixed(lams, M)
@@ -666,7 +646,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
+    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos):
@@ -843,20 +823,20 @@ class piFluxSolver:
 
     # alpha = 1 for A = -1 for B
 
-    def findLambda(self):
-        self.lams = findlambda_pi(self.MF, self.Jzz, self.kappa, self.tol)
+    def findLambda(self, MF, minLams):
+        return findlambda_pi(MF, self.Jzz, self.kappa, self.tol, minLams)
 
     def findminLam_old(self):
         return findminLam_old(self.MF, self.Jzz, 1e-10)
 
-    def findminLam(self):
+    def findminLam(self, chi, chi0, xi):
         minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, self.chi, self.chi0, self.xi)
-        self.minLams = np.ones(2) * minLams
-        self.bigTemp = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
-        self.MF = M_pi(self.bigTemp, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                       self.xi)
-    def calmeanfield(self):
+                                        self.theta, chi, chi0, xi)
+        minLams = np.ones(2) * minLams
+        K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
+        MF = M_pi(K, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi)
+        return minLams, K, MF
+    def calmeanfield(self, lams, MFp, Kps):
         # cond = self.ifcondense(self.bigTemp)
         # # leng = len(self.bigTemp)
         # Kps = np.delete(self.bigTemp, cond, axis=0)
@@ -870,47 +850,28 @@ class piFluxSolver:
         #     xi = xiCal(self.minLams, MFp, Kps, self.Jzz, self.ns)
         #     return chi + chic, chi0 + chi0c, xi + xic
         # else:
-        MFp = self.MF
-        Kps = self.bigTemp
-        chi, chi0 = chiCal(self.lams, MFp, Kps, self.Jzz)
-        xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-        return chi, chi0, xi
+
+        chi, chi0 = chiCal(lams, MFp, Kps, self.Jzz)
+        xi = xiCal(lams, MFp, Kps, self.Jzz, self.ns)
+        return np.array([chi, chi0, xi])
 
     def solvemeanfield(self, tol=1e-7):
-        self.findLambda()
-        chinext, chi0next, xinext = self.calmeanfield()
-        print(chinext, chi0next, xinext)
-        # J0 = self.Jacobian(np.array([chinext, chi0next, xinext]))
-
-        while ((abs(chinext - self.chi) >= tol).any() or (abs(xinext - self.xi) >= tol).any() or (
-                abs(chi0next - self.chi0) >= tol).any()):
-            if ((abs(chinext + self.chi) < tol).any() and (abs(xinext + self.xi) < tol).any() and (
-                abs(chi0next + self.chi0) < tol).any()):
+        mfs = np.array([self.chi, self.chi0, self.xi])
+        lam, K, MF = self.condensation_check(mfs)
+        mfs = self.calmeanfield(lam, MF, K)
+        do = not (self.Jpmpm == 0)
+        while do:
+            mfslast = np.copy(mfs)
+            lam, K, MF = self.condensation_check(mfs)
+            mfs = self.calmeanfield(lam, MF, K)
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
                 break
-            # print(self.lams, self.chi, self.chi0, self.xi, self.MFE())
-
-            # fn = self.SCE(chinext, chi0next, xinext)
-            # dF = fn - self.SCE(self.chi, self.chi0, self.xi)
-            # dX = np.array([chinext-self.chi, chi0next-self.chi0, xinext-self.xi])
-            #
-            # J0 = J0 + contract('i,j->ij',dF-np.matmul(J0, dX), dX)/np.linalg.norm(dX)**2
-            # print(J0)
-            self.chi = chinext
-            self.chi0 = chi0next
-            self.xi = xinext
-            self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                           self.xi)
-            self.findLambda()
-
-            # if (J0<1e-5).any():
-            chinext, chi0next, xinext = self.calmeanfield()
-            # else:
-            # chinext, chi0next, xinext = np.array([self.chi, self.chi0, self.xi]) - np.matmul(np.linalg.inv(J0), fn)
-            # print(self.chi, self.chi0, self.xi)
-        self.chi = chinext
-        self.chi0 = chi0next
-        self.xi = xinext
-        self.condensation_check()
+        lam, K, MF = self.condensation_check(mfs)
+        self.chi, self.chi0, self.xi = mfs
+        self.lams = lam
+        self.MF = MF
+        self.bigTemp = K
+        self.set_condensed()
         return 0
 
     def qvec(self):
@@ -939,11 +900,12 @@ class piFluxSolver:
         # B = (2e2 / len(self.bigB)) ** 2
         self.condensed = A < (1e2 / len(self.bigTemp)) ** 2
 
-    def condensation_check(self):
-        self.findminLam()
-        self.findLambda()
-        self.set_condensed()
-        # self.set_delta()
+    def condensation_check(self, mfs):
+        chi, chi0, xi = mfs
+        minLams, K, MF = self.findminLam(chi, chi0, xi)
+        self.minLams = minLams
+        lams = self.findLambda(MF, minLams)
+        return lams, K, MF
 
     def M_true(self, k):
         return M_pi(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
@@ -1001,13 +963,13 @@ class piFluxSolver:
 
             # print(self.rhos)
 
-    def MFE(self, chi=-10, chi0=-10, xi=-10):
-        if chi == -10:
-            chi = self.chi
-        if chi0 == -10:
-            chi0 = self.chi0
-        if xi == -10:
-            xi = self.xi
+    def MFE(self):
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+        self.lams, self.bigTemp)
+        return Ep
+
+    def MFEs(self, chi, chi0, xi, lams, MF, K):
+
         # if self.condensed:
         #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         #              self.MF,
@@ -1023,30 +985,26 @@ class piFluxSolver:
         #                        self.minLams, a, self.rhos)
         #     return Ep + Eq
         # else:
-        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-        self.lams, self.bigTemp)
+        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MF,
+        lams, K)
         return Ep
 
-    def SCE(self, chi, chi0, xi):
-        tol = 1e-3
-        temp = self.MFE(chi, chi0, xi)
-        tempChi = self.MFE(chi + tol, chi0, xi)
-        tempChi0 = self.MFE(chi, chi0 + tol, xi)
-        tempXi = self.MFE(chi, chi0, xi + tol)
-        return (np.array([tempChi, tempChi0, tempXi]) - temp) / tol
+    def SCE(self, mfs, lams, MF, K):
+        tol = 1e-8
+        chi, chi0, xi = mfs
+        temp = self.MFEs(chi, chi0, xi, lams, MF, K)
+        tempChi = (self.MFEs(chi + tol, chi0, xi, lams, MF, K) - temp) / tol
+        tempChiC = (self.MFEs(chi + 1j*tol, chi0, xi, lams, MF, K) - temp) / tol
+        tempChi0 = (self.MFEs(chi, chi0 + tol, xi, lams, MF, K) - temp) / tol
+        tempChi0C = (self.MFEs(chi, chi0 + 1j*tol, xi, lams, MF, K) - temp) / tol
+        tempXi = (self.MFEs(chi, chi0, xi + tol, lams, MF, K) - temp) / tol
+        return np.array([tempChi+1j*tempChiC, tempChi0+1j*tempChi0C, tempXi])
 
-    def Jacobian(self, mfp):
-        mfps = mfp + 1e-3
-        chi, chi0, xi = mfp
-        chil, chi0l, xil = mfps
-        temp = self.SCE(chil, chi0l, xil)
-        tempChi = self.SCE(chi, chi0l, xil)
-        tempChi0 = self.SCE(chil, chi0, xil)
-        tempXi = self.SCE(chil, chi0l, xi)
-        stuff = np.array([tempChi, tempChi0, tempXi]) - temp
-        dX = 1 / (mfp - mfps)
-        J = contract('ux,u->ux', stuff, dX)
-        return J
+    def Jacobian(self, mfs, mfslast, f, flast):
+        df = f - flast
+        dx = mfs - mfslast
+        A = contract('i,j->ij', df, 1/dx)
+        return A
 
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi,
