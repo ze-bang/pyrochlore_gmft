@@ -866,7 +866,8 @@ class piFluxSolver:
             mfs = self.calmeanfield(lam, MF, K)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
                 break
-        lam, K, MF = self.condensation_check(mfs)
+        if do:
+            lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
         self.lams = lam
         self.MF = MF
