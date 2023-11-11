@@ -23,7 +23,7 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
     else:
         py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
     py0s.solvemeanfield(1e-3)
-    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.chi, py0s.chi0, py0s.xi)
+    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
     return 0
 
@@ -249,6 +249,7 @@ def MagJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         print("Finding 0 Flux Lambda")
         py0s.solvemeanfield()
         Sx[i] = py0s.magnetization()
+        print(py0s.gap())
         # pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         # print("Finding pi Flux Lambda")
         # pyp.solvemeanfield()

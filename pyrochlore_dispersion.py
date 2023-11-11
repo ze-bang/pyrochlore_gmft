@@ -266,7 +266,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E, V = np.linalg.eigh(M)
     E = E[:,0]
     Em = E.min()
-    dex = np.where(E == Em)
+    dex = np.argmin(E)
     Know = K[dex]
 
     if Know.shape == (3,):
@@ -299,6 +299,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if (abs(Enow - Elast) < 1e-12):
                 stuff=False
     warnings.resetwarnings()
+    Know = np.mod(Know, 2 * np.pi)
+    for i in range(3):
+        if abs(abs(Know[0,i]) - 2 * np.pi) < 5e-6:
+            Know[0, i] = 0
     return -Enow, Know
 
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
@@ -374,6 +378,7 @@ def algdispersion(lams,k,Jzz, h):
 
 
 
+#region calculating mean field
 def chiCal(lams, M, K, Jzz):
     E, V = E_zero_fixed(lams, M)
     E = np.sqrt(2*Jzz*E)
@@ -402,7 +407,36 @@ def xiCal(lams, M, K, Jzz, ns):
     A = np.mean(A, axis=0)
     return np.real(A[0])
 
+def calmeanfield(lams, M, K, Jzz, ns):
+    return chiCal(lams, M, K, Jzz), chi0Cal(lams, M, Jzz), xiCal(lams, M, K, Jzz, ns)
 
+#endregion
+
+#region Calculating condensed mean field
+
+def chiCalC(rhos, K):
+    ffact = contract('ik,jlk->ijl', K, NNminus)
+    ffactB = np.exp(1j * ffact)
+    M1 = np.mean(contract('jl, ijl->ijl', rhos[0] * rhos[0] * notrace, ffactB), axis=0)
+    M1 = M1[0,3]
+    return M1
+
+def chi0CalC(rhos):
+    chi0A = rhos[0] * rhos[0]
+    return chi0A
+
+def xiCalC(rhos, K):
+    ffact = contract('ik,jk->ij', K, NN)
+    ffactA = np.exp(1j * ffact)
+    A = rhos[0] * rhos[1] * ffactA
+    A = np.mean(A, axis=0)
+    return np.real(A[0])
+
+def calmeanfieldC(rhos, K):
+    return chiCalC(rhos, K), chi0CalC(rhos), xiCalC(rhos, K)
+
+
+#endregion
 
 def calAlgDispersion(lams,Jzz , h):
 
@@ -644,10 +678,14 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     return E
 
 
-def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
+def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, q, rho):
+
     chi = chi * np.array([notrace, notrace])
     chi0 = chi0 * np.ones(2)
     xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
+
+    k = np.copy(q)
+    k = k.reshape(3,)
 
     ffact = contract('k, jlk->jl', k, NNminus)
     ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
@@ -697,6 +735,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
 
     EBB = np.real(M1+M2)
 
+    # print(E1, Emag, EAB, EAA, EBB)
     E = Emag + E1 + EAB + EAA + EBB
     return np.real(E)
 
@@ -810,25 +849,17 @@ class zeroFluxSolver:
         return minLams, K, MF
 
     def calmeanfield(self, lam, MF, K):
-        # cond = self.ifcondense(self.bigTemp)
-        # Kps = np.delete(self.bigTemp, cond, axis=0)
-        # MFp = np.delete(self.MF, cond, axis=0)
-        # if self.condensed:
-        #     MFq = M_true(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-        #                  self.xi)
-        #     chic = chiCal(self.delta, MFq, self.qmin, self.Jzz)
-        #     chi0c = chi0Cal(self.delta, MFq, self.Jzz)
-        #     xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
-        #     chi = chiCal(self.lams, MFp, Kps, self.Jzz)
-        #     chi0 = chi0Cal(self.lams, MFp, self.Jzz)
-        #     xi = xiCal(self.lams, MFp, Kps, self.Jzz, self.ns)
-        # # print(np.array([chi, chi0, xi]), np.array([chic, chi0c, xic]))
-        #     return chi+chic, chi0+chi0c, xi + xic
-        # else:
+        if self.condensed:
+            # cond = self.ifcondense(K, lam, (680 / len(K)) ** 2)
+            # Kps = np.delete(K, cond, axis=0)
+            # MFp = np.delete(MF, cond, axis=0)
 
-        chi = chiCal(lam, MF, K, self.Jzz)
-        chi0 = chi0Cal(lam, MF, self.Jzz)
-        xi = xiCal(lam, MF, K, self.Jzz, self.ns)
+            chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
+            chi, chi0, xi = calmeanfield(lam, MF, K, self.Jzz, self.ns)
+        # print(np.array([chi, chi0, xi]), np.array([chic, chi0c, xic]))
+            return chi+chic, chi0+chi0c, xi + xic
+        else:
+            chi, chi0, xi = calmeanfield(lam, MF, K, self.Jzz, self.ns)
         return np.array([chi, chi0, xi])
 
 
@@ -849,7 +880,6 @@ class zeroFluxSolver:
         self.lams = lam
         self.MF = MF
         self.bigTemp = K
-        self.set_condensed()
         return 0
 
     def qvec(self):
@@ -858,30 +888,37 @@ class zeroFluxSolver:
         temp = np.unique(self.bigB[c], axis=0)
         self.q[0:len(temp), :] = temp
 
-    def ifcondense(self, q, tol=0):
+    def ifcondense(self, q, lams, tol=0):
         c = np.array([])
         if self.condensed:
-            E, V = self.LV_zero(q,self.minLams)
+            E, V = self.LV_zero(q, lams)
             E = E[:,0]
             c = np.where(E<=tol)[0]
         c = np.array(c, dtype=int)
         return c
 
-    def set_condensed(self):
-        self.condensed = (self.lams[0] - self.minLams[0]) < (1e2/len(self.bigTemp))**2
+    def set_condensed(self, lams, minLams, l):
+        self.condensed = (lams[0] - minLams[0]) < (680/l)**2
 
-    def set_delta(self):
+    def set_delta(self, K, MF, minLams, l):
         if self.condensed:
-            self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
-            cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
-            MFp = np.delete(self.MF, cond, axis=0)
-            self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, self.minLams, self.Jzz))
-
+            # self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
+            cond = self.ifcondense(K, minLams, (680/l)**2)
+            MFp = np.delete(MF, cond, axis=0)
+            warnings.filterwarnings('error')
+            try:
+                self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, minLams, self.Jzz))
+            except:
+                self.rhos = np.zeros(2)
+            warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         minLams, K, MF = self.findminLam(chi, chi0, xi)
         self.minLams = minLams
         lams = self.findLambda(MF, minLams)
+        l = len(K)
+        self.set_condensed(lams, minLams, l)
+        self.set_delta(K, MF, lams, l)
         return lams, K, MF
 
     def M_true(self, k):
@@ -907,21 +944,16 @@ class zeroFluxSolver:
 
     def MFE(self):
 
-        # if self.condensed:
-        #     Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-        #              self.lams, self.bigTemp)
-        #     a = np.mod(self.qmin[0], 2*np.pi)
-        #
-        #     for i in range(3):
-        #         if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-        #             a[i] = 0
-        #     Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-        #              self.minLams, a, self.rhos)
-        #     print(Eq, Ep)
-        #     return Ep + Eq
-        # else:
-        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-            self.lams, self.bigTemp)
+        if self.condensed:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                     self.lams, self.bigTemp)
+            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                     self.minLams, self.qmin, self.rhos)
+            print(Eq, Ep)
+            return Ep + Eq
+        else:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+                self.lams, self.bigTemp)
         return Ep
 
     def gapwhere(self):
@@ -1009,13 +1041,11 @@ class zeroFluxSolver:
         if self.condensed:
             # cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
             # Kq = self.bigTemp[cond]
-            a = np.mod(self.qmin[0], 2*np.pi)
-            for i in range(3):
-                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-                    a[i] = 0
-            ffact = contract('k, jk->j', a, NN)
+
+            ffact = contract('ik, jk->j', self.qmin, NN)
             ffactp = np.exp(1j * ffact)
             ffactm = np.exp(-1j * ffact)
+            print(self.rhos)
             con = self.rhos[0]*self.rhos[1]*np.mean(ffactp+ffactm)
             # con = np.mean(contract('ij->i',ffactp+ffactm))
 

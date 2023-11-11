@@ -39,7 +39,7 @@ import warnings
 # graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-# graphdispersion(-1, -1, 1, 0, h1b10, 1, 2, 20, 20, False)
+# graphdispersion(1, 1, 1, 2, h1b10, 1, 2, 20, 20, False)
 # plt.show()
 # C = graphdispersion(1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
 # plt.show()
@@ -101,8 +101,8 @@ import warnings
 # PhaseMagtestH(0, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
 
 
-# PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
-# PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h110, 25, 2, "0.2_h110.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
+PhaseMagtestJP(-0.2, 0.2, 25, 0.2, 3, 25, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h110, 25, 2, "0.5_h110.png")
@@ -126,11 +126,11 @@ import warnings
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.7, 3, 25, h001, 25, 2, "0.7_h001.png")
 #
 
-# PhaseMagtestJP(-0.2, 0.1, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
+# PhaseMagtestJP(-0.2, 0.2, 25, 0, 0, 10, h1b10, 26, 2, "0.png")
 
 # PhaseMagtestH(0, 0.5, 50, 2, 4, 25, h1b10, 30, 1, "4_kappa=1.png")
 # PhaseMagtestJP(0.01, 0.3, 25, 2, 4, 25, h1b10, 26, 2, "4_1.png")
-# MagJP(0.01, 1, 25, 0, 4, 25, h1b10, 26, 1, "Sx_kappa=1.png")
+# MagJP(0.0499, 0.0501, 25, 0, 4, 25, h1b10, 26, 2, "Sx_kappa=1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.23, 4, 25, h1b10, 26, 2, "0.23_h1b10_1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.26, 4, 25, h1b10, 26, 2, "0.26_h1b10_1.png")
 # PhaseMagtestJP(-0.2, 0.1, 25, 0.24, 4, 25, h1b10, 26, 2, "0.24_h1b10_1.png")
@@ -243,7 +243,7 @@ import warnings
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
+# findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 

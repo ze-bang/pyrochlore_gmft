@@ -253,7 +253,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E, V = np.linalg.eigh(M)
     E = E[:,0]
     Em = E.min()
-    dex = np.where(E==Em)
+    dex = np.argmin(E)
     Know = K[dex]
     # print(Know)
     if Know.shape == (3,):
@@ -283,6 +283,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if (abs(Enow - Elast) < 1e-12):
                 stuff = False
     warnings.resetwarnings()
+    Know = np.mod(Know, 2 * np.pi)
+    for i in range(3):
+        if abs(abs(Know[0,i]) - 2 * np.pi) < 5e-6:
+            Know[0, i] = 0
     return -Enow, Know
 
 
@@ -309,7 +313,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.resetwarnings()
     return lams
 
-
+#region Mean field calculation
 def chiCal(lams, M, K, Jzz):
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2 * Jzz * E)
@@ -334,8 +338,38 @@ def xiCal(lams, M, K, Jzz, ns):
     M1 = M1[0, 0]
     return np.real(M1)
 
+def calmeanfield(lams, M, K, Jzz, ns):
+    chi, chi0 = chiCal(lams, M, K, Jzz)
+    return chi, chi0, xiCal(lams, M, K, Jzz, ns)
 
 # endregion
+
+#region Mean Field Calculation Condensed
+def chiCalC(rhos, K):
+
+    ffact = contract('ik,jlk->ijl', K, NNminus)
+    ffactB = np.exp(1j * ffact)
+    A = contract('a, b, ijl,jka, lkb->ikjl', rhos[0:4], rhos[0:4], ffactB, piunitcell, piunitcell)
+    M1 = np.mean(A, axis=0)
+    chi = M1[0, 0, 3]
+    chi0 = np.conj(M1[0, 0, 0])
+    return chi, chi0
+
+def xiCalC(rhos, K):
+
+    ffact = contract('ik,jk->ij', K, NN)
+    ffactA = np.exp(1j * ffact)
+
+    M1 = np.mean(contract('k, a, ij,jka->ikj', rhos[0:4], rhos[4:8], ffactA, piunitcell), axis=0)
+
+    M1 = M1[0, 0]
+    return np.real(M1)
+
+def calmeanfieldC(rhos, K):
+    chi, chi0 = chiCalC(rhos, K)
+    return chi, chi0, xiCalC(rhos, K)
+
+#endregion
 
 
 # graphing BZ
@@ -649,10 +683,14 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
     return E / 4
 
-def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos):
+def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, q, rhos):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
+
+
+    k = np.copy(q)
+    k = k.reshape(3,)
 
     ffact = contract('k, jlk->jl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
@@ -836,23 +874,17 @@ class piFluxSolver:
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
         MF = M_pi(K, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi)
         return minLams, K, MF
-    def calmeanfield(self, lams, MFp, Kps):
-        # cond = self.ifcondense(self.bigTemp)
-        # # leng = len(self.bigTemp)
-        # Kps = np.delete(self.bigTemp, cond, axis=0)
-        # MFp = np.delete(self.MF, cond, axis=0)
-        # if self.condensed:
-        #     MFq = M_pi(self.qmin, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-        #                self.xi)
-        #     chic, chi0c = np.array(chiCal(self.delta, MFq, self.qmin, self.Jzz))
-        #     xic = xiCal(self.delta, MFq, self.qmin, self.Jzz, self.ns)
-        #     chi, chi0 = chiCal(self.minLams, MFp, Kps, self.Jzz)
-        #     xi = xiCal(self.minLams, MFp, Kps, self.Jzz, self.ns)
-        #     return chi + chic, chi0 + chi0c, xi + xic
-        # else:
+    def calmeanfield(self, lams, MF, K):
 
-        chi, chi0 = chiCal(lams, MFp, Kps, self.Jzz)
-        xi = xiCal(lams, MFp, Kps, self.Jzz, self.ns)
+        if self.condensed:
+            # cond = self.ifcondense(K, lams, (680/len(K))**2)
+            # Kps = np.delete(K, cond, axis=0)
+            # MFp = np.delete(MF, cond, axis=0)
+            chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
+            chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
+            return chi + chic, chi0 + chi0c, xi + xic
+        else:
+            chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
         return np.array([chi, chi0, xi])
 
     def solvemeanfield(self, tol=1e-7):
@@ -864,6 +896,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
+            # print(mfs)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
                 break
         if do:
@@ -872,7 +905,6 @@ class piFluxSolver:
         self.lams = lam
         self.MF = MF
         self.bigTemp = K
-        self.set_condensed()
         return 0
 
     def qvec(self):
@@ -882,10 +914,10 @@ class piFluxSolver:
         A = np.where(E == E.min())
         self.q = self.bigB[A]
 
-    def ifcondense(self, q, tol=0):
+    def ifcondense(self, q, lam, tol=0):
         c = np.array([])
         if self.condensed:
-            E, V = self.LV_zero(q,self.minLams)
+            E, V = self.LV_zero(q, lam)
             E = E[:,0]
             c = np.where(E<=tol)[0]
         c = np.array(c, dtype=int)
@@ -896,16 +928,30 @@ class piFluxSolver:
         cond = np.argmin(E[:, 0])
         return self.bigB[cond], E[cond][0]
 
-    def set_condensed(self):
-        A = -self.minLams[0] + self.lams[0]
+    def set_condensed(self, minLams, lams, l):
+        A = -minLams[0] + lams[0]
         # B = (2e2 / len(self.bigB)) ** 2
-        self.condensed = A < (1e2 / len(self.bigTemp)) ** 2
+        self.condensed = A < (680/ l) ** 2
 
+    def set_delta(self, K, MF, minLams, l):
+        if self.condensed:
+            # self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
+            cond = self.ifcondense(K, minLams, (680/ l) ** 2)
+            MFp = np.delete(MF, cond, axis=0)
+            warnings.filterwarnings('error')
+            try:
+                self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp, minLams))
+            except:
+                self.rhos = np.zeros(8)
+            warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         minLams, K, MF = self.findminLam(chi, chi0, xi)
         self.minLams = minLams
         lams = self.findLambda(MF, minLams)
+        l = len(K)
+        self.set_condensed(minLams, lams, l)
+        self.set_delta(K, MF, lams, l)
         return lams, K, MF
 
     def M_true(self, k):
@@ -955,18 +1001,22 @@ class piFluxSolver:
     def GS(self):
         return np.mean(self.E_pi(self.bigB)) - np.mean(self.lams)
 
-    def set_delta(self):
-        if self.condensed:
-            self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
-            cond = self.ifcondense(self.bigTemp, self.gap()**2/(2*self.Jzz))
-            MFp = np.delete(self.MF, cond, axis=0)
-            self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp,self.minLams))
 
             # print(self.rhos)
 
     def MFE(self):
-        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-        self.lams, self.bigTemp)
+        if self.condensed:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+                     self.MF,
+                     self.lams, self.bigTemp)
+
+            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                               self.xi, self.MF,
+                               self.minLams, self.qmin, self.rhos)
+            return Ep + Eq
+        else:
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
+            self.lams, self.bigTemp)
         return Ep
 
     def MFEs(self, chi, chi0, xi, lams, MF, K):
@@ -1078,13 +1128,7 @@ class piFluxSolver:
 
         con = 0
         if self.condensed:
-
-            a = np.mod(self.qmin[0], 2*np.pi)
-            for i in range(3):
-                if abs(abs(a[i]) - 2*np.pi) < 5e-6:
-                    a[i] = 0
-
-            ffact = contract('k, jk->j', a)
+            ffact = contract('ik, jk->j', self.qmin, NN)
             ffactp = np.exp(1j * ffact)
             ffactm = np.exp(-1j * ffact)
 
