@@ -285,7 +285,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.resetwarnings()
     Know = np.mod(Know, 2 * np.pi)
     for i in range(3):
-        if abs(abs(Know[0,i]) - 2 * np.pi) < 5e-6:
+        if abs(abs(Know[0,i]) - 2 * np.pi) < 2e-5:
             Know[0, i] = 0
     return -Enow, Know
 
@@ -1012,7 +1012,7 @@ class piFluxSolver:
 
             Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                                self.xi, self.MF,
-                               self.minLams, self.qmin, self.rhos)
+                               self.lams, self.qmin, self.rhos)
             return Ep + Eq
         else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
