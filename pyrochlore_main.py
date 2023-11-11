@@ -41,7 +41,7 @@ import warnings
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(-1, -1, 1, 0, h1b10, 1, 2, 20, 20, False)
 # plt.show()
-C = graphdispersion(1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
+# C = graphdispersion(1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
 # plt.show()
 
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
@@ -243,7 +243,7 @@ C = graphdispersion(1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
 
 # PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
 
-# findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
+findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 4, 100, h110, 25, 2, "phase_test_110_kappa=2_0_flux")
 

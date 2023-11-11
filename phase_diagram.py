@@ -645,12 +645,10 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         for j in range (nK):
             py0s = py0.zeroFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
             pyps = pypi.piFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
-
             py0s.solvemeanfield(1e-4)
             pyps.solvemeanfield(1e-4)
             GSz = py0s.MFE()
             GSp = pyps.MFE()
-
             if GSz < GSp:
                 # py0s.qvec()
                 # print(pyps.minLams)
@@ -671,6 +669,7 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
                 sendtemp2[i,j] = pyps.xi
                 # print(sendtemp[i, j])
                 # sendtemp2[i,j] = pyps.q
+            print(sendtemp[i,j])
 
             # print(sendtemp[i,j])
 # 
