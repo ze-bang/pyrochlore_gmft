@@ -9,6 +9,13 @@ import sys
 from opt_einsum import contract
 from numba import jit
 from mpi4py import MPI
+from functools import reduce
+
+
+def factors(n, nK):
+    for i in range(1, int(n**0.5) + 1):
+        if n % i == 0 and n / i <= nK:
+            return n / i, i
 
 graphres=60
 

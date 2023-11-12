@@ -512,22 +512,30 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    nb = nK/size
+    sizeK, sizeH = factors(size, nK)
 
-    left = int(rank*nb)
-    right = int((rank+1)*nb)
-    currsize = right-left
+    nb = nK/sizeK
+    nh = nH/sizeH
+
+    rankK = rank % sizeK
+    rankH = rank // sizeK
+
+    leftK = int(rankK*nb)
+    rightK = int((rankK+1)*nb)
+    currsizeK = rightK-leftK
+
+    leftH = int(rankH*nh)
+    rightH = int((rankH+1)*nh)
+    currsizeH = rightH-leftH
 
     JP = np.linspace(JPm, JPmax, nK)
-    currJP = JP[left:right]
+    currJP = JP[leftK:rightK]
+
     h = np.linspace(hm, hmax, nH)
-    # phases = np.zeros((nK, nH), dtype=float)
-    # gap = np.zeros((nK, nH), dtype=float)
+    currH = h[leftH:rightH]
 
-    leng = len(np.concatenate((genBZ(BZres), symK)))
-
-    sendtemp = np.zeros((currsize, nH), dtype=np.float64)
-    sendtemp1 = np.zeros((currsize, nH), dtype=np.float64)
+    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
     # sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
 
     rectemp = None
@@ -539,10 +547,10 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
         # rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
 
-    for i in range (currsize):
-        for j in range (nH):
-            py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
-            pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=h[j], n=n, kappa=kappa, BZres=BZres)
+    for i in range(currsizeK):
+        for j in range (currsizeH):
+            py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=currH[j], n=n, kappa=kappa, BZres=BZres)
+            pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=currH[j], n=n, kappa=kappa, BZres=BZres)
 
             py0s.solvemeanfield()
             pyps.solvemeanfield()
@@ -616,22 +624,29 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    nb = nK/size
+    sizeK, sizeH = factors(size, nK)
 
-    left = int(rank*nb)
-    right = int((rank+1)*nb)
-    currsize = right-left
+    nb = nK / sizeK
+    nh = nK / sizeH
+
+    rankK = rank % sizeK
+    rankH = rank // sizeK
+
+    leftK = int(rankK * nb)
+    rightK = int((rankK + 1) * nb)
+    currsizeK = rightK - leftK
+
+    leftH = int(rankH * nh)
+    rightH = int((rankH + 1) * nh)
+    currsizeH = rightH - leftH
 
     JP = np.linspace(JPm, JPmax, nK)
-    currJP = JP[left:right]
-    # phases = np.zeros((nK, nH), dtype=float)
-    # gap = np.zeros((nK, nH), dtype=float)
+    currJP = JP[leftK:rightK]
+    currH = JP[leftH:rightH]
 
-    leng = len(np.concatenate((genBZ(BZres), symK)))
-
-    sendtemp = np.zeros((currsize, nK), dtype=np.float64)
-    sendtemp1 = np.zeros((currsize, nK), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, nK), dtype=np.float64)
+    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
@@ -642,10 +657,10 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         rectemp1 = np.zeros((nK, nK), dtype=np.float64)
         rectemp2 = np.zeros((nK, nK), dtype=np.float64)
 
-    for i in range (currsize):
-        for j in range (nK):
-            py0s = py0.zeroFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
-            pyps = pypi.piFluxSolver(currJP[i], JP[j], 1, kappa=kappa, BZres=BZres)
+    for i in range (currsizeK):
+        for j in range (currsizeH):
+            py0s = py0.zeroFluxSolver(currJP[i], currH[j], 1, kappa=kappa, BZres=BZres)
+            pyps = pypi.piFluxSolver(currJP[i], currH[j], 1, kappa=kappa, BZres=BZres)
             py0s.solvemeanfield(1e-4)
             pyps.solvemeanfield(1e-4)
             GSz = py0s.MFE()
