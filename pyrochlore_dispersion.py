@@ -264,9 +264,9 @@ def findminLam_old(M, Jzz, tol):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = E[:,0]
+    E = np.around(E[:,0], decimals=15)
     Em = E.min()
-    dex = np.argmin(E)
+    dex = np.where(E==Em)
     Know = K[dex]
 
     if Know.shape == (3,):
@@ -275,11 +275,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if (E==0).all():
         return 0, Know
     step = 1
-
+    Enow = Em*np.ones(len(Know))
     for i in range(len(Know)):
         stuff = True
         init = True
-        Enow = Em
         while stuff:
             # print(Enow, i, Know[i])
             if not init:
@@ -293,17 +292,20 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
             Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            Elast = Enow
-            Enow = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+            Elast = np.copy(Enow[i])
+            Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow - Elast) < 1e-12):
+            if (abs(Enow[i] - Elast) < 1e-12):
                 stuff=False
     warnings.resetwarnings()
+    a = np.argmin(Enow)
+    Know = Know[a].reshape(1,3)
     Know = np.mod(Know, 2 * np.pi)
     for i in range(3):
         if Know[0,i] > np.pi:
             Know[0, i] = Know[0, i] - 2*np.pi
-    return -Enow, Know
+
+    return -Enow[a], Know
 
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
@@ -898,8 +900,11 @@ class zeroFluxSolver:
         return c
 
     def set_condensed(self, lams, minLams, l):
-        self.condensed = (lams[0] - minLams[0]) < (680/l)**2
+        self.condensed = (lams[0]-minLams[0]) < (680/l)**2
+        # self.condensed = self.gap(MF, lams) < 0.05574196166518704
+        # return np.sqrt(lams[0] - minLams[0])*l
 
+    #0.05574196166518704
     def set_delta(self, K, MF, minLams, l):
         if self.condensed:
             # self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
@@ -933,10 +938,13 @@ class zeroFluxSolver:
     def E_zero(self, k):
         return np.sqrt(2*self.Jzz*E_zero_true(self.lams, k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)[0])
 
-    def gap(self):
-        temp = self.MF + np.diag(np.repeat(self.lams,2))
+    def gap(self, MF=0, lams=0):
+        if MF == 0:
+            MF = self.MF
+            lams = self.lams
+        temp = MF + np.diag(np.repeat(lams,2))
         E, V = np.linalg.eigh(temp)
-        dex = np.argmin(E,axis=0)[0]
+        dex = np.argmin(E[:,0],axis=0)
         return np.sqrt(2*self.Jzz*E[dex, 0])
 
     def GS(self):

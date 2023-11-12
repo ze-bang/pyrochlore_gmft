@@ -251,9 +251,9 @@ def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = E[:,0]
+    E = np.around(E[:,0], decimals=15)
     Em = E.min()
-    dex = np.argmin(E)
+    dex = np.where(E==Em)
     Know = K[dex]
     # print(Know)
     if Know.shape == (3,):
@@ -262,10 +262,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if (E==0).all():
         return 0, Know
     step = 1
+    Enow = Em*np.ones(len(Know))
     for i in range(len(Know)):
         stuff = True
         init = True
-        Enow = Em
         while stuff:
             if not init:
                 gradlen = gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi) - gradient(Klast,
@@ -277,17 +277,20 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
             Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            Elast = Enow
-            Enow = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+            Elast = np.copy(Enow[i])
+            Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow - Elast) < 1e-12):
+            if (abs(Enow[i] - Elast) < 1e-12):
                 stuff = False
     warnings.resetwarnings()
+    a = np.argmin(Enow)
+    Know = Know[a].reshape(1,3)
     Know = np.mod(Know, 2 * np.pi)
     for i in range(3):
         if Know[0,i] > np.pi:
             Know[0, i] = Know[0, i] - 2*np.pi
-    return -Enow, Know
+
+    return -Enow[a], Know
 
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):

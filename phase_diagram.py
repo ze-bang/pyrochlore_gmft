@@ -203,7 +203,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s.solvemeanfield()
         # print(py0s.lams, py0s.minLams)
         # gap[i] = py0s.gap()
-        # GS[i] = py0s.condensed()[0]
+        GS[i] = py0s.condensed
         MFE[i] = py0s.MFE()
         # print(MFE[i])
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
@@ -211,13 +211,14 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # phases[i][j] = py0s.phase_test()
         pyp.solvemeanfield()
         # gapp[i] = pyp.gap()
-        # GSp[i] = pyp.condensed()[0]
+        GSp[i] = pyp.condensed
         MFEp[i] = pyp.MFE()
-        print(MFE[i], MFEp[i])
-        # lamdiff[i] = abs(pyp.minLams-pyp.lams)[0]
+        lamdiff[i] = abs(pyp.minLams-pyp.lams)[0]
         # print(pyp.minLams, pyp.lams, lamdiff[i])
-        # condensed[i] = pyp.condensed()[0]
-        # condensed1[i] = 1 if gapp[i] < 0.06 else 0
+        condensed[i] = np.sqrt((py0s.lams[0]-py0s.minLams[0]))*len(py0s.bigTemp)
+        condensed1[i] = np.sqrt((pyp.lams[0]-pyp.minLams[0]))*len(pyp.bigTemp)
+        print(MFE[i], MFEp[i], condensed[i], condensed1[i], GS[i], GSp[i], py0s.gap(), pyp.gap(), py0s.qmin, pyp.qmin)
+        # print(MFE[i], condensed[i], GS[i], py0s.gap(), py0s.qmin)
 
         # condensed[i] = py0s.condensed()[0]
         # dev[i] = py0s.rho_dev()
