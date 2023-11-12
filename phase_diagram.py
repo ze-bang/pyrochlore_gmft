@@ -632,6 +632,8 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     rankK = rank % sizeK
     rankH = rank // sizeK
 
+    print(sizeK, sizeH, rankK, rankH)
+
     leftK = int(rankK * nb)
     rightK = int((rankK + 1) * nb)
     currsizeK = rightK - leftK
