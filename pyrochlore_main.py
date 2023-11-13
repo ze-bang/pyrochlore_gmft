@@ -102,7 +102,7 @@ import warnings
 
 
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
-PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
+# PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h110, 25, 2, "0.5_h110.png")
@@ -138,18 +138,10 @@ PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.23, 3, 25, h001, 35, 2, "0.23.png")
 # PhaseMagtestJP(-0.1, 0.1, 25, 0.24, 3, 25, h001, 35, 2, "0.24.png")
 
-#
-# SSSF(25, 0, np.array([1,1,1]),0.02,25, "SSSF_zero_0.02_h111=0")
-#
-# # SSSF(25, 0, h111,0.06,25, "SSSF_zero_0.06")
-
-# SSSF(25, 0, np.array([1,1,1]),0.04,10, "SSSF_zero_test")
-#
-#
 
 # samplegraph(100, ["SSSF_pi_0.02_DETAILED", "SSSF_pi_0.03_DETAILED", "SSSF_pi_0.04_DETAILED"])
 
-# SSSF(100, 0, h001, hb110, -0.05, 50, "SSSF_pi_-0.05_DETAILED")
+SSSF(100, 0.2, 0.2, 1, 0, h001, hb110, 25, "SSSF_pi_-0.05_DETAILED", True)
 # SSSF(100, 0, h111, hb110, -0.20, 50, "SSSF_pi_-0.20_DETAILED")
 # SSSF(100, 0, h111, hb110, -0.40, 50, "SSSF_pi_-0.40_DETAILED")
 #
