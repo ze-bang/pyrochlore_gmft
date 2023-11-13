@@ -577,7 +577,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                 # print(sendtemp[i, j])
                 # sendtemp2[i,j] = pyps.q
 
-            # print(sendtemp[i,j])
+            print(sendtemp[i,j])
 # 
 
 
