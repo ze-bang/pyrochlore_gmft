@@ -870,12 +870,14 @@ class zeroFluxSolver:
         lam, K, MF = self.condensation_check(mfs)
         mfs = self.calmeanfield(lam, MF, K)
         do = not (self.Jpmpm == 0)
+        counter = 0
         while do:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
             if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all():
                 break
+            counter = counter + 1
         if do:
             lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs

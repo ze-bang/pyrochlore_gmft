@@ -893,15 +893,17 @@ class piFluxSolver:
         mfs = np.array([self.chi, self.chi0, self.xi])
         lam, K, MF = self.condensation_check(mfs)
         mfs = self.calmeanfield(lam, MF, K)
-        print(mfs)
+        # print(mfs)
         do = not (self.Jpmpm == 0)
+        counter = 0
         while do:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            print(mfs)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
+            # print(mfs)
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 10:
                 break
+            counter = counter + 1
         if do:
             lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
