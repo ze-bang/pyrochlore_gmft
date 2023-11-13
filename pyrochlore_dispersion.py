@@ -292,11 +292,11 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
             Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            Elast = np.copy(Enow[i])
+            # Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow[i] - Elast) < 1e-12):
-                stuff=False
+            if (gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)<1e-12).all():
+                stuff = False
     warnings.resetwarnings()
     a = np.argmin(Enow)
     Know = Know[a].reshape(1,3)

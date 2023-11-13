@@ -255,7 +255,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
-    # print(Know)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
@@ -280,7 +279,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow[i] - Elast) < 1e-12):
+            # print(Enow[i], Know[i])
+            if abs(Elast-Enow[i])<1e-12:
                 stuff = False
     warnings.resetwarnings()
     a = np.argmin(Enow)
@@ -289,7 +289,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     for i in range(3):
         if Know[0,i] > np.pi:
             Know[0, i] = Know[0, i] - 2*np.pi
-
     return -Enow[a], Know
 
 
@@ -860,7 +859,7 @@ class piFluxSolver:
         self.condensed = False
 
         self.delta = np.zeros(2)
-        self.rhos = np.zeros(4)
+        self.rhos = np.zeros(8)
 
     # alpha = 1 for A = -1 for B
 
@@ -894,12 +893,13 @@ class piFluxSolver:
         mfs = np.array([self.chi, self.chi0, self.xi])
         lam, K, MF = self.condensation_check(mfs)
         mfs = self.calmeanfield(lam, MF, K)
+        print(mfs)
         do = not (self.Jpmpm == 0)
         while do:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            # print(mfs)
+            print(mfs)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
                 break
         if do:
