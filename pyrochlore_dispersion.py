@@ -292,11 +292,11 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
             Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            Elast = np.copy(Enow[i])
+            # Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (abs(Enow[i] - Elast) < 1e-12):
-                stuff=False
+            if (gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)<1e-12).all():
+                stuff = False
     warnings.resetwarnings()
     a = np.argmin(Enow)
     Know = Know[a].reshape(1,3)
@@ -870,12 +870,14 @@ class zeroFluxSolver:
         lam, K, MF = self.condensation_check(mfs)
         mfs = self.calmeanfield(lam, MF, K)
         do = not (self.Jpmpm == 0)
+        counter = 0
         while do:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
             if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all():
                 break
+            counter = counter + 1
         if do:
             lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
