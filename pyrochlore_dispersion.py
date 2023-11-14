@@ -765,7 +765,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
 
     Emag = contract('iu, u->i',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), rho[0] * rho[1]* zmag)
 
-    Emag = 2*np.real(np.sum(Emag))
+    Emag = 2*np.real(np.mean(Emag))
 
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
@@ -777,7 +777,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     M2a = contract('jl, ij, l->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
     M2b = contract('jl, il, j->i', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
     EAB = M1a + M1b + M2a + M2b
-    EAB = 2 * np.real(EAB)
+    EAB = 2 * np.real(np.mean(EAB))
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
@@ -786,7 +786,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[0] * rho[0])
-    M2 = contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[0] * rho[0])
+    M2 = np.mean(contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[0] * rho[0]))
 
     EAA = np.real(M1+M2)
 
@@ -797,7 +797,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[1] * rho[1])
-    M2 = contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[1] * rho[1])
+    M2 = np.mean(contract('jl, ijl->i', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[1] * rho[1]))
 
     EBB = np.real(M1+M2)
 
@@ -826,7 +826,7 @@ class zeroFluxSolver:
         self.xi = 1
         self.chi0 = 1+1j
 
-        self.delta= 0
+        self.delta= np.zeros(2)
 
         self.BZres = BZres
         self.graphres = graphres
@@ -874,14 +874,14 @@ class zeroFluxSolver:
 
     def solvemeanfield(self, tol=0.005, ns=0):
         mfs = np.array([self.chi, self.chi0, self.xi])
-        start = time.time()
+        # start = time.time()
         lam, K, MF = self.condensation_check(mfs)
-        end = time.time()
-        print('find min lam and lam routine costs ' + str(end-start))
-        start = time.time()
+        # end = time.time()
+        # print('find min lam and lam routine costs ' + str(end-start))
+        # start = time.time()
         mfs = self.calmeanfield(lam, MF, K)
-        end = time.time()
-        print('cal mean field routine costs ' + str(end-start))
+        # end = time.time()
+        # print('cal mean field routine costs ' + str(end-start))
         do = not (self.Jpmpm == 0)
         counter = 0
         while do:
@@ -920,14 +920,14 @@ class zeroFluxSolver:
         # return np.sqrt(lams[0] - minLams[0])*l
 
     #0.05574196166518704
-    def set_delta(self, K, MF, minLams, l):
+    def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:
-            # self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
-            cond = self.ifcondense(K, minLams, (680/l)**2)
+            self.delta = np.sqrt(lams-minLams)*len(self.bigTemp)
+            cond = self.ifcondense(K, lams, (680/l)**2)
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
             try:
-                self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, minLams, self.Jzz))
+                self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, minLams, self.lams))
             except:
                 self.rhos = np.zeros(2)
             warnings.resetwarnings()
@@ -938,7 +938,7 @@ class zeroFluxSolver:
         lams = self.findLambda(MF, minLams)
         l = len(K)
         self.set_condensed(lams, minLams, l)
-        self.set_delta(K, MF, lams, l)
+        self.set_delta(K, MF, minLams, lams, l)
         return lams, K, MF
 
     def M_true(self, k):

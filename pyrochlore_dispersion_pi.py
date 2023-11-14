@@ -697,7 +697,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
 
 
 
-    ffact = contract('ik, jlk->jl', k, NNminus)
+    ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
@@ -941,14 +941,14 @@ class piFluxSolver:
         # B = (2e2 / len(self.bigB)) ** 2
         self.condensed = A < (680/ l) ** 2
 
-    def set_delta(self, K, MF, minLams, l):
+    def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:
-            # self.delta = (self.lams-self.minLams)*len(self.bigTemp)**2
-            cond = self.ifcondense(K, minLams, (680/ l) ** 2)
+            self.delta = np.sqrt(lams-minLams)*len(self.bigTemp)
+            cond = self.ifcondense(K, lams, (680/ l) ** 2)
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
             try:
-                self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp, minLams))
+                self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp, lams))
             except:
                 self.rhos = np.zeros(8)
             warnings.resetwarnings()
@@ -959,7 +959,7 @@ class piFluxSolver:
         lams = self.findLambda(MF, minLams)
         l = len(K)
         self.set_condensed(minLams, lams, l)
-        self.set_delta(K, MF, lams, l)
+        self.set_delta(K, MF, minLams, lams, l)
         return lams, K, MF
 
     def M_true(self, k):

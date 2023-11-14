@@ -41,8 +41,8 @@ import warnings
 # graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
 # graphdispersion(1, 1, 1, 2, h1b10, 1, 2, 20, 20, False)
 # plt.show()
-# C = graphdispersion(1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
-# plt.show()
+C = graphdispersion(-1, 1, 1, 0, h1b10, 1, 2, 20, 25, True)
+plt.show()
 
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 25)
 # C = graphdispersion(-0.08, -0.08, 1, 3, h1b10, 1, 2, 20, 26)
@@ -102,7 +102,7 @@ import warnings
 
 
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
-PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
+# PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.5, 3, 25, h110, 25, 2, "0.5_h110.png")
@@ -141,7 +141,7 @@ PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 
 # samplegraph(100, ["SSSF_pi_0.02_DETAILED", "SSSF_pi_0.03_DETAILED", "SSSF_pi_0.04_DETAILED"])
 
-SSSF(100, 0.2, 0.2, 1, 0, h001, hb110, 25, "SSSF_pi_-0.05_DETAILED", True)
+# SSSF(100, 0.2, 0.2, 1, 0, h001, hb110, 25, "SSSF_pi_-0.05_DETAILED", True)
 # SSSF(100, 0, h111, hb110, -0.20, 50, "SSSF_pi_-0.20_DETAILED")
 # SSSF(100, 0, h111, hb110, -0.40, 50, "SSSF_pi_-0.40_DETAILED")
 #
