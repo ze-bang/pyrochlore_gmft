@@ -10,6 +10,7 @@ from opt_einsum import contract
 from numba import jit
 from mpi4py import MPI
 from functools import reduce
+import time
 
 
 def factors(n, nK):

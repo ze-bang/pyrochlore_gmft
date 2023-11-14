@@ -560,8 +560,8 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
         rectemp5 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
 
 
-    for i in range(currsize):
-        for j in range(K.shape[1]):
+    for i in range(currsizeK):
+        for j in range(currsizeH):
             # start = time.time()
             # count = count + 1
             sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j], sendtemp4[i,j], sendtemp5[i,j] = SSSF_pi(currK[i,j],V, pyp0)

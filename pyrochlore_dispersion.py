@@ -296,10 +296,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
             Klast = np.copy(Know[i])
             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
-            # Elast = np.copy(Enow[i])
+            Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
             init = False
-            if (gradient(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)<1e-12).all():
+            if abs(Elast-Enow[i])<1e-12:
                 stuff = False
     warnings.resetwarnings()
 
@@ -874,8 +874,14 @@ class zeroFluxSolver:
 
     def solvemeanfield(self, tol=0.005, ns=0):
         mfs = np.array([self.chi, self.chi0, self.xi])
+        start = time.time()
         lam, K, MF = self.condensation_check(mfs)
+        end = time.time()
+        print('find min lam and lam routine costs ' + str(end-start))
+        start = time.time()
         mfs = self.calmeanfield(lam, MF, K)
+        end = time.time()
+        print('cal mean field routine costs ' + str(end-start))
         do = not (self.Jpmpm == 0)
         counter = 0
         while do:
