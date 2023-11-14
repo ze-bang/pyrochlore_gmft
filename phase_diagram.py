@@ -91,24 +91,20 @@ def graphMagPhase(JP, h, phases, filename):
 
     X,Y = np.meshgrid(JP, h)
 
-    # plt.imshow(bigphase, cmap='gray', vmin=-3, vmax=3, interpolation='bilinear', extent=[-0.1, 0.1, -1, 1], aspect='auto')
-
-    # cs = plt.contourf(X, Y, phases, levels=[0, 0.13,10000], colors=['#43AC63', '#B5E8C4'])
     plt.contourf(X, Y, phases.T, levels=100)
-    # plt.colorbar()
 
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
     plt.savefig(filename +'.png')
     plt.clf()
 
-    plt.contourf(X, Y, phases.T, levels=[0, 0.05,10000], colors=['#43AC63', '#B5E8C4'])
-    # plt.colorbar()
-
-    plt.xlabel(r'$J_\pm/J_{y}$')
-    plt.ylabel(r'$h/J_{y}$')
-    plt.savefig(filename+'_split.png')
-    plt.clf()
+    # plt.contourf(X, Y, phases.T, levels=[0, 0.05,10000], colors=['#43AC63', '#B5E8C4'])
+    # # plt.colorbar()
+    #
+    # plt.xlabel(r'$J_\pm/J_{y}$')
+    # plt.ylabel(r'$h/J_{y}$')
+    # plt.savefig(filename+'_split.png')
+    # plt.clf()
 
 
 #region Phase for Anisotropy
@@ -537,16 +533,25 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
     sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    # sendtemp2 = np.zeros((currsize, nH, leng, 3), dtype=np.float64)
+    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp3 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp4 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+
 
     rectemp = None
     rectemp1 = None
-    # rectemp2 = None
+    rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+
 
     if rank == 0:
         rectemp = np.zeros((nK, nH), dtype=np.float64)
         rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        # rectemp2 = np.zeros((nK, nH, leng, 3), dtype=np.float64)
+        rectemp2 = np.zeros((nK, nH), dtype=np.float64)
+        rectemp3 = np.zeros((nK, nH), dtype=np.float64)
+        rectemp4 = np.zeros((nK, nH), dtype=np.float64)
+
 
     for i in range(currsizeK):
         for j in range (currsizeH):
@@ -559,23 +564,17 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             GSp = pyps.MFE()
 
             if GSz < GSp:
-                # py0s.qvec()
-                # print(pyps.minLams)
-                # warnings.filterwarnings("error")
                 sendtemp1[i,j] = py0s.gap()
-                # print(py0s.lams, py0s.minLams)
                 sendtemp[i,j] = py0s.condensed
-                # print(sendtemp[i,j])
-                # sendtemp2[i,j] = py0s.q
+                sendtemp2[i,j] = GSz
+                sendtemp3[i,j] = py0s.lams[0]
+                sendtemp4[i,j] = py0s.magnetization()
             else:
-                # print(pyps.minLams)
-                # pyps.qvec()
-                # warnings.filterwarnings("error")
                 sendtemp1[i,j] = pyps.gap()
-                # print(pyps.lams, pyps.minLams)
                 sendtemp[i,j] = pyps.condensed + 5
-                # print(sendtemp[i, j])
-                # sendtemp2[i,j] = pyps.q
+                sendtemp2[i,j] = GSp
+                sendtemp3[i,j] = pyps.lams[0]
+                sendtemp4[i,j] = pyps.magnetization()
 
             print(sendtemp[i,j])
 # 
@@ -583,21 +582,31 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1] * sendtemp2.shape[2] * sendtemp2.shape[3], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0] * sendtemp4.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+
     # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
-        graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
-        plt.contourf(JP, h, rectemp.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'.png')
-        plt.clf()
+        np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
+        np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
+        np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
+
+        graphMagPhase(JP, h, rectemp, 'Files/' + filename)
+        graphMagPhase(JP, h, rectemp1, 'Files/' + filename + '_gap')
+        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+
         # ncfilename = 'Files/' + filename + '_q_condensed.nc'
         # with nc.Dataset(ncfilename, "w") as dataset:
         #     # Create dimensions

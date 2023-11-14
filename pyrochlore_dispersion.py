@@ -1061,7 +1061,6 @@ class zeroFluxSolver:
             ffact = contract('ik, jk->j', self.qmin, NN)
             ffactp = np.exp(1j * ffact)
             ffactm = np.exp(-1j * ffact)
-            print(self.rhos)
             con = self.rhos[0]*self.rhos[1]*np.mean(ffactp+ffactm)
             # con = np.mean(contract('ij->i',ffactp+ffactm))
 
