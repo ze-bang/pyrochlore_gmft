@@ -75,7 +75,7 @@ import warnings
 
 # findPhase(60,20, 20, "Files/phase_diagram.txt")
 
-# PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h110, 30, 2, "ising_h110")
+PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h110, 30, 2, "ising_h110")
 # PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h001, 30, 2, "ising_h001")
 # PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h111, 30, 2, "ising_h111")
 # PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h1b10, 30, 2, "ising_h1b10")
