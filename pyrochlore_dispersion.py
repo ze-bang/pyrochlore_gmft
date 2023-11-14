@@ -927,7 +927,7 @@ class zeroFluxSolver:
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
             try:
-                self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, minLams, self.lams))
+                self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, lams, self.Jzz))
             except:
                 self.rhos = np.zeros(2)
             warnings.resetwarnings()
