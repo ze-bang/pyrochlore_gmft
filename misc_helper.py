@@ -284,17 +284,17 @@ def b(mu):
     if mu == 2:
         return b3
 
+
+
 def obliqueProj(W):
     M = np.zeros((3, 3))
     for i in range(3):
         for j in range(3):
-            M[i][j] = np.dot(b(i), b(j))
+            M[i][j] = np.dot(BasisBZA[i], BasisBZA[j])
 
-    y = np.zeros((3, 1))
-    for i in range(3):
-        y[i] = np.dot(W, b(i))
-    return np.array(np.matmul(np.linalg.inv(M), y)).T[0]
-
+    y = contract('j,ij->i', W, BasisBZA)
+    A = np.array(np.matmul(np.linalg.inv(M), y))
+    return A
 
 
 GammaX = drawLine(Gamma, X, stepN)

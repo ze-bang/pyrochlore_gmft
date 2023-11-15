@@ -288,11 +288,11 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.resetwarnings()
 
     a = np.argmin(Enow)
-    Know = Know[a].reshape((1,3))
-    Know = np.mod(Know, 2 * np.pi)
-    for i in range(3):
-        if abs(Know[0,i] - 2*np.pi) < 5e-6:
-            Know[0, i] = Know[0,i] - 2*np.pi
+    Know = obliqueProj(Know[a])
+    Know = np.mod(Know, 1)
+    if (abs(Know - 1) < 1e-8).all():
+        Know = Know - 1
+    Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
     return -Enow[a], Know
 
 
