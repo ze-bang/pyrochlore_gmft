@@ -25,7 +25,7 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
     py0s.solvemeanfield(1e-3)
     print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
-    return 0
+    return py0s.MF
 
 def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
     if JP >= 0:

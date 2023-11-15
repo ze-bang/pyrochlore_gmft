@@ -99,7 +99,7 @@ def M_pi_single(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def M_pi_mag_sub_AB(k, h, n, theta):
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                  np.exp(1j*A_pi), piunitcell)
     return M
@@ -108,7 +108,7 @@ def M_pi_mag_sub_AB(k, h, n, theta):
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4 * eta[alpha], ffact, piunitcell,
+    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4 * eta[alpha], ffact, piunitcell,
                  piunitcell)
     return M
 
@@ -232,8 +232,9 @@ def E_pi_single(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return [E, V]
 
 
-def Emin(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
-    return E_pi_single(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0]
+def Emin(q, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    k = q.reshape((1,3))
+    return E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0,0]
 
 
 def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
@@ -285,16 +286,14 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if abs(Elast-Enow[i])<1e-12:
                 stuff = False
     warnings.resetwarnings()
-    Em = min(Enow)
-    a = np.where(Enow==Em)
-    Know = Know[a]
+
+    a = np.argmin(Enow)
+    Know = Know[a].reshape((1,3))
     Know = np.mod(Know, 2 * np.pi)
-    for k in range(len(Know)):
-        for i in range(3):
-            if Know[k,i] > np.pi:
-                Know[k, i] = Know[k, i] - 2*np.pi
-    Know = np.unique(Know, axis=0)
-    return -Em, Know
+    for i in range(3):
+        if Know[0,i] > np.pi:
+            Know[0, i] = Know[0, i] - 2*np.pi
+    return -Enow[a], Know
 
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
@@ -623,10 +622,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
 
     E1A = np.mean(
-        contract('jl,kjl, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 0:4, 0:4], ffactA,
+        contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 0:4, 0:4], ffactA,
                  piunitcell, piunitcell), axis=0)
     E1B = np.mean(
-        contract('jl,kjl, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 4:8, 4:8], ffactB,
+        contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 4:8, 4:8], ffactB,
                  piunitcell, piunitcell), axis=0)
 
     # print(E1A)
@@ -634,9 +633,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     Emag = np.mean(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j * A_pi), green[:, 0:4, 4:8], piunitcell), axis=0)
+                            np.exp(1j*A_pi), green[:, 0:4, 4:8], piunitcell), axis=0)
 
     Emag = 2 * np.real(Emag)
 
@@ -712,7 +711,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     Emag = contract('ku, u, ru, r, x, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j * A_pi), rhos[0:4], rhos[4:8], piunitcell)
 

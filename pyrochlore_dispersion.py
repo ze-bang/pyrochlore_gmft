@@ -103,7 +103,7 @@ def M_single(k,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 def exponent_mag(h, n, k, theta):
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
+    ffact = np.exp(-1j*ffact)
     M = contract('ij,j->i', -1/4*h*ffact*(np.cos(theta) - 1j * np.sin(theta)), zmag)
     return M
 
@@ -229,8 +229,9 @@ def rho_true_site(M, lams, Jzz):
     Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
     return np.mean(Ep, axis=0)[0:2]
 
-def Emin(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
-    return E_zero_single(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0]
+def Emin(q, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    k = q.reshape((1,3))
+    return E_zero_true(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0,0]
 
 
 def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
@@ -303,16 +304,13 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
                 stuff = False
     warnings.resetwarnings()
 
-    Em = min(Enow)
-    a = np.where(Enow==Em)
-    Know = Know[a]
+    a = np.argmin(Enow)
+    Know = Know[a].reshape((1,3))
     Know = np.mod(Know, 2 * np.pi)
-    for k in range(len(Know)):
-        for i in range(3):
-            if Know[k,i] > np.pi:
-                Know[k, i] = Know[k, i] - 2*np.pi
-    Know = np.unique(Know, axis=0)
-    return -Em, Know
+    for i in range(3):
+        if Know[0,i] > np.pi:
+            Know[0, i] = Know[0, i] - 2*np.pi
+    return -Enow[a], Know
 
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
@@ -644,7 +642,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     zmag = contract('k,ik->i',n,z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
+    ffact = np.exp(-1j*ffact)
     Emag = np.mean(contract('ku, u, k->k',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), zmag, green[:,0,1]), axis=0)
 
     Emag = 2*np.real(np.sum(Emag))
@@ -761,7 +759,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     zmag = contract('k,ik->i',n,z)
 
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j*ffact)
+    ffact = np.exp(-1j*ffact)
 
     Emag = contract('iu, u->i',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), rho[0] * rho[1]* zmag)
 
