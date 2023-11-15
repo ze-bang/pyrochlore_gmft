@@ -920,10 +920,13 @@ class zeroFluxSolver:
     #0.05574196166518704
     def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:
-            self.delta = np.sqrt(lams-minLams)*len(self.bigTemp)
             cond = self.ifcondense(K, lams, (680/l)**2)
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
+            try:
+                self.delta = np.sqrt(lams - minLams) * len(self.bigTemp)
+            except:
+                self.delta = 0
             try:
                 self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, lams, self.Jzz))
             except:

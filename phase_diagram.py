@@ -91,7 +91,7 @@ def graphMagPhase(JP, h, phases, filename):
 
     X,Y = np.meshgrid(JP, h)
 
-    plt.contourf(X, Y, phases.T, levels=100)
+    plt.pcolormesh(X, Y, phases.T)
 
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
@@ -509,33 +509,23 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    sizeK, sizeH = factors(size, nK)
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
+    le = len(JH)
+    nb = le/size
 
-    nb = nK/sizeK
-    nh = nH/sizeH
-
-    rankK = rank % sizeK
-    rankH = rank // sizeK
-
-    leftK = int(rankK*nb)
-    rightK = int((rankK+1)*nb)
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
     currsizeK = rightK-leftK
 
-    leftH = int(rankH*nh)
-    rightH = int((rankH+1)*nh)
-    currsizeH = rightH-leftH
 
-    JP = np.linspace(JPm, JPmax, nK)
-    currJP = JP[leftK:rightK]
+    currJH = JH[leftK:rightK]
 
-    h = np.linspace(hm, hmax, nH)
-    currH = h[leftH:rightH]
 
-    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp3 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp4 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
 
 
     rectemp = None
@@ -546,45 +536,42 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 
     if rank == 0:
-        rectemp = np.zeros((nK, nH), dtype=np.float64)
-        rectemp1 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp3 = np.zeros((nK, nH), dtype=np.float64)
-        rectemp4 = np.zeros((nK, nH), dtype=np.float64)
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp1 = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+        rectemp3 = np.zeros(le, dtype=np.float64)
+        rectemp4 = np.zeros(le, dtype=np.float64)
 
 
     for i in range(currsizeK):
-        for j in range (currsizeH):
-            py0s = py0.zeroFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=currH[j], n=n, kappa=kappa, BZres=BZres)
-            pyps = pypi.piFluxSolver(-2*currJP[i], -2*currJP[i], 1, h=currH[j], n=n, kappa=kappa, BZres=BZres)
+        py0s = py0.zeroFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
+        pyps = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
 
-            py0s.solvemeanfield()
-            pyps.solvemeanfield()
-            GSz = py0s.MFE()
-            GSp = pyps.MFE()
+        py0s.solvemeanfield()
+        pyps.solvemeanfield()
+        GSz = py0s.MFE()
+        GSp = pyps.MFE()
 
-            if GSz < GSp:
-                sendtemp1[i,j] = py0s.gap()
-                sendtemp[i,j] = py0s.condensed
-                sendtemp2[i,j] = GSz
-                sendtemp3[i,j] = py0s.lams[0]
-                sendtemp4[i,j] = py0s.magnetization()
-            else:
-                sendtemp1[i,j] = pyps.gap()
-                sendtemp[i,j] = pyps.condensed + 5
-                sendtemp2[i,j] = GSp
-                sendtemp3[i,j] = pyps.lams[0]
-                sendtemp4[i,j] = pyps.magnetization()
-
-            print(sendtemp[i,j])
-# 
+        if GSz < GSp:
+            sendtemp1[i] = py0s.gap()
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = GSz
+            sendtemp3[i] = py0s.lams[0]
+            sendtemp4[i] = py0s.magnetization()
+        else:
+            sendtemp1[i] = pyps.gap()
+            sendtemp[i] = pyps.condensed + 5
+            sendtemp2[i] = GSp
+            sendtemp3[i] = pyps.lams[0]
+            sendtemp4[i] = pyps.magnetization()
+#
 
 
-    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
-    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
-    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0] * sendtemp4.shape[1], 0))
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
@@ -595,12 +582,19 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp1 = rectemp1.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        rectemp3 = rectemp3.reshape((nK, nH))
+        rectemp4 = rectemp4.reshape((nK, nH))
+
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
-
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
         graphMagPhase(JP, h, rectemp1, 'Files/' + filename + '_gap')
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
@@ -634,87 +628,80 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    sizeK, sizeH = factors(size, nK)
+    JH = np.mgrid[JPm:JPmax:1j*nK, JPm:JPmax:1j*nK].reshape(2,-1).T
+    le = len(JH)
+    nb = le/size
 
-    nb = nK / sizeK
-    nh = nK / sizeH
-
-    rankK = rank % sizeK
-    rankH = rank // sizeK
-
-    print(sizeK, sizeH, rankK, rankH)
-
-    leftK = int(rankK * nb)
-    rightK = int((rankK + 1) * nb)
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
     currsizeK = rightK - leftK
 
-    leftH = int(rankH * nh)
-    rightH = int((rankH + 1) * nh)
-    currsizeH = rightH - leftH
 
-    JP = np.linspace(JPm, JPmax, nK)
-    currJP = JP[leftK:rightK]
-    currH = JP[leftH:rightH]
+    currJH = JH[leftK:rightK]
 
-    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
     rectemp2 = None
 
     if rank == 0:
-        rectemp = np.zeros((nK, nK), dtype=np.float64)
+        rectemp = np.zeros(le, dtype=np.float64)
         rectemp1 = np.zeros((nK, nK), dtype=np.float64)
         rectemp2 = np.zeros((nK, nK), dtype=np.float64)
 
     for i in range (currsizeK):
-        for j in range (currsizeH):
-            py0s = py0.zeroFluxSolver(currJP[i], currH[j], 1, kappa=kappa, BZres=BZres)
-            pyps = pypi.piFluxSolver(currJP[i], currH[j], 1, kappa=kappa, BZres=BZres)
-            py0s.solvemeanfield(1e-4)
-            pyps.solvemeanfield(1e-4)
-            GSz = py0s.MFE()
-            GSp = pyps.MFE()
-            if GSz < GSp:
-                # py0s.qvec()
-                # print(pyps.minLams)
-                # warnings.filterwarnings("error")
-                sendtemp1[i,j] = py0s.gap()
-                # print(py0s.lams, py0s.minLams)
-                sendtemp[i,j] = py0s.condensed
-                sendtemp2[i,j] = py0s.xi
-                # print(sendtemp[i,j])
-                # sendtemp2[i,j] = py0s.q
-            else:
-                # print(pyps.minLams)
-                # pyps.qvec()
-                # warnings.filterwarnings("error")
-                sendtemp1[i,j] = pyps.gap()
-                # print(pyps.lams, pyps.minLams)
-                sendtemp[i,j] = pyps.condensed + 5
-                sendtemp2[i,j] = pyps.xi
-                # print(sendtemp[i, j])
-                # sendtemp2[i,j] = pyps.q
-            print(sendtemp[i,j])
+        py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+        pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+        py0s.solvemeanfield(1e-4)
+        pyps.solvemeanfield(1e-4)
+        GSz = py0s.MFE()
+        GSp = pyps.MFE()
+        if GSz < GSp:
+            # py0s.qvec()
+            # print(pyps.minLams)
+            # warnings.filterwarnings("error")
+            sendtemp1[i] = py0s.gap()
+            # print(py0s.lams, py0s.minLams)
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = py0s.xi
+            # print(sendtemp[i,j])
+            # sendtemp2[i,j] = py0s.q
+        else:
+            # print(pyps.minLams)
+            # pyps.qvec()
+            # warnings.filterwarnings("error")
+            sendtemp1[i] = pyps.gap()
+            # print(pyps.lams, pyps.minLams)
+            sendtemp[i] = pyps.condensed + 5
+            sendtemp2[i] = pyps.xi
+            # print(sendtemp[i, j])
+            # sendtemp2[i,j] = pyps.q
+        # print(sendtemp[i,j])
 
             # print(sendtemp[i,j])
 # 
 
 
-    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1], 0))
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
     if rank == 0:
+        rectemp = rectemp.reshape((nK,nK))
+        rectemp1 = rectemp1.reshape((nK,nK))
+        rectemp2 = rectemp2.reshape((nK,nK))
+
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp2)
+        JP = np.linspace(JPm, JPmax, nK)
         graphMagPhase(JP, JP, rectemp1,'Files/' + filename + '_gap')
         plt.contourf(JP, JP, rectemp.T)
         plt.xlabel(r'$J_\pm/J_{y}$')
