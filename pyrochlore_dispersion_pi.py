@@ -290,8 +290,9 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     a = np.argmin(Enow)
     Know = obliqueProj(Know[a])
     Know = np.mod(Know, 1)
-    if (abs(Know - 1) < 1e-8).all():
-        Know = Know - 1
+    for i in range(3):
+        if (abs(Know[i] - 1) < 1e-6):
+            Know[i] = Know[i] - 1
     Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
     return -Enow[a], Know
 
@@ -848,7 +849,7 @@ class piFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres), symK))
+        self.bigB = np.concatenate((genBZ(BZres, 1/2), symK))
         self.bigB = np.unique(self.bigB, axis=0)
         # self.bigB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)

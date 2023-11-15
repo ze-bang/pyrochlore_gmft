@@ -148,9 +148,9 @@ for i in range(4):
 
 
 # @nb.njit
-def genBZ(d):
+def genBZ(d, m=1):
     d = d*1j
-    b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3,-1)
+    b = np.mgrid[0:m:d, 0:m:d, 0:m:d].reshape(3,-1)
     temp = contract('ij, ik->jk', b, BasisBZA)
     return temp
 
