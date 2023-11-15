@@ -88,7 +88,7 @@ zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # PhaseMagtestH(0, 0.25, 25, 0, 0.3, 50, h1b10, 30, 2, "ising_h1b10")
 # PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h110, 30, 2, "ising_h110_zoomout")
 # PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h001, 30, 2, "ising_h001_zoomout")
-# PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h111, 30, 2, "ising_h111_zoomout")
+PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h111, 30, 2, "ising_h111_zoomout")
 # PhaseMagtestH(0, 0.25, 25, 0, 1, 50, h1b10, 30, 2, "ising_h1b10_zoomout")
 
 
@@ -204,7 +204,7 @@ zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 #
 # print(temp_var)
 
-findPhaseMag(-0.3, 0.1, 5, 0, 1, 5, h111, 25, 2, "phase_test_111_kappa=2")
+# findPhaseMag(-0.3, 0.1, 5, 0, 1, 5, h111, 25, 2, "phase_test_111_kappa=2")
 # findPhaseMag(-0.3, 0.1, 25, 0, 1, 25, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0.3, 50, 0, 4, 25, h110, 25, 2, "phase_test_110_kappa=2")
 # findPhaseMag(-0.3, 0.3, 30, 0, 1, 25, h111, 25, 2, "phase_test_111_kappa=2")

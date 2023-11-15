@@ -283,7 +283,7 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # print("Finding pi Flux Lambda")
         # pyp.findLambda()
         # MFEpp[i] = pyp.GS()
-        print(MFE[i], py0s.qmin, MFEp[i], pyp.qmin)
+        print(MFE[i], py0s.qmin, py0s.delta, MFEp[i], pyp.qmin, pyp.delta)
 
     plt.plot(h, MFE, color='r')
     plt.plot(h, MFEp, color='b')
