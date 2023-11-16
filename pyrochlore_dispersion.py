@@ -317,13 +317,12 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
     lamMax = 50*np.ones(2)
-    lams = (lamMin + lamMax) / 2
-    rhoguess = rho_true(M, lams, Jzz)
+    lams = lamMax
     # print(self.kappa)
     # yes = True
-    while not ((np.absolute(rhoguess-kappa)<=tol).all()):
+    while True:
+        lamlast = np.copy(lams)
         lams = (lamMin + lamMax) / 2
-             # rhoguess = rho_true(Jzz, M, lams)
         try:
              rhoguess = rho_true(M, lams, Jzz)
              for i in range(2):
@@ -335,7 +334,7 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
         except:
              # print(e)
              lamMin = lams
-        if (lamMax-lamMin<1e-15).all():
+        if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
             break
         # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
     warnings.resetwarnings()
@@ -887,7 +886,7 @@ class zeroFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter >= 10:
+            if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter > 10:
                 break
             counter = counter + 1
         if do:

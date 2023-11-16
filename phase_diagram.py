@@ -5,6 +5,8 @@ import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi_gang_chen as pygang
 import pyrochlore_dispersion_pi_old as pypiold
+import pyrochlore_dispersion_pp00 as pypp00
+
 import netCDF4 as nc
 import warnings
 
@@ -16,6 +18,18 @@ import warnings
 # plt.xlabel(r'$J_{\pm}/J_{zz}$')
 # plt.show()
 
+
+def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
+    if pi == 0:
+        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+    elif pi == 1:
+        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pypp00.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+    py0s.solvemeanfield(1e-3)
+    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
+    py0s.graph(False)
+    return py0s.MF
 
 def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
     if not pi:
