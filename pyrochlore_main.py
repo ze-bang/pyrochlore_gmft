@@ -44,8 +44,8 @@ import warnings
 # zmag1 = contract('k,ik->i',h1b10,z)
 # zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # zmag3 = contract('k,ik->i',hb110,z)
-C = graphdispersion(0.02, 0.02, 1, 0.2, h1b10, 1, 2, 20, 25, 2)
-plt.show()
+# C = graphdispersion(0.02, 0.02, 1, 0.2, h1b10, 1, 2, 20, 25, 2)
+# plt.show()
 
 # D = graphdispersion(0, 0, 1, 0.2, np.array([0,-1,1])/np.sqrt(2), 1, 2, 20, 25, True)
 # E = graphdispersion(0, 0, 1, 0.2, np.array([0,1,1])/np.sqrt(2), 1, 2, 20, 25, True)
@@ -100,7 +100,7 @@ plt.show()
 # PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h111, 30, 1, "ising_h111_kappa=1_zoomout")
 # PhaseMagtestHGS(0, 0.25, 25, 0, 1, 50, h1b10, 30, 1, "ising_h1b10_kappa=1_zoomout")
 
-# PhaseMagtestJP(-0.1, 0.1, 25, 0, 3, 25, h001, 35, 2, "0.png")
+PhaseMagtestJP(-0.5, 0.5, 25, 0, 3, 25, h001, 35, 2, "0.png")
 #
 #
 

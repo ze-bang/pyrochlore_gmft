@@ -673,6 +673,7 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         pyps.solvemeanfield(1e-4)
         GSz = py0s.MFE()
         GSp = pyps.MFE()
+        print(GSz, GSp)
         if GSz < GSp:
             # py0s.qvec()
             # print(pyps.minLams)
@@ -693,7 +694,7 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
             sendtemp2[i] = pyps.xi
             # print(sendtemp[i, j])
             # sendtemp2[i,j] = pyps.q
-        # print(sendtemp[i,j])
+        print(currJH[i], sendtemp[i], sendtemp1[i], sendtemp2[i])
 
             # print(sendtemp[i,j])
 # 

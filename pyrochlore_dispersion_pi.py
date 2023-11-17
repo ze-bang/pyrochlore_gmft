@@ -289,12 +289,11 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     warnings.resetwarnings()
 
     a = np.argmin(Enow)
-    Know = obliqueProj(Know[a])
-    Know = np.mod(Know, 1)
+    Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
     for i in range(3):
-        if (abs(Know[i] - 1) < 1e-6):
-            Know[i] = Know[i] - 1
-    Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
+        if (abs(Know[0,i] - 2*np.pi) < 5e-6):
+            Know[0,i] = Know[0,i] - 2*np.pi
+    # Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
     return -Enow[a], Know
 
 
@@ -905,7 +904,7 @@ class piFluxSolver:
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
             print(mfs, counter)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 10:
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 5:
                 break
             counter = counter + 1
         if do:
