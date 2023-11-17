@@ -455,3 +455,9 @@ h110 = np.array([1,1,0])/np.sqrt(2)
 h1b10 = np.array([1,-1,0])/np.sqrt(2)
 hb110 = np.array([-1,1,0])/np.sqrt(2)
 h100 = np.array([1,0,0])
+
+def beta1(t):
+    return 0.9**t
+
+def beta2(t):
+    return 0.99**t

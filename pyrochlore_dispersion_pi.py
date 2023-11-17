@@ -250,21 +250,24 @@ def gradient(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 
 def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
     E = np.around(E[:,0], decimals=15)
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
+    # Know = np.pi*np.array([1,1,1])
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
     if len(Know) >= 4:
         Know = Know[0:4]
-    if (E==0).all():
-        return 0, np.array([0,0,0]).reshape((1,3))
+
     step = 1
     Enow = Em*np.ones(len(Know))
+
     for i in range(len(Know)):
         stuff = True
         init = True
