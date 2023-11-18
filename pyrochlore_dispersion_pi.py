@@ -300,6 +300,39 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return -Enow[a], Know
 
 
+
+def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1, 1, 1])
+    beta1 = 0.9
+    beta2 = 0.999
+    alpha = 0.001
+    eps = 1e-8
+
+    stuff = True
+    m = 0
+    v = 0
+    t = 0
+
+    while stuff:
+        print(Know)
+        t = t + 1
+        g = gradient(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+        m = beta1 * m + (1-beta1) * g
+        v = beta2 * v + (1-beta2) * g**2
+        mhat = m / (1 - beta1**t)
+        vhat = v / (1 - beta2**t)
+        Klast = np.copy(Know)
+        Know = Know - alpha * mhat / (np.sqrt(vhat) + eps)
+        if (abs(Klast-Know)<1e-15).all():
+            break
+
+    Enow = Emin(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    return -Enow, Know
+
+
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
@@ -906,7 +939,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            print(mfs, counter)
+            # print(mfs, counter)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 5:
                 break
             counter = counter + 1

@@ -560,24 +560,35 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range(currsizeK):
         py0s = py0.zeroFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
         pyps = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
+        pyp0 = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()
-        GSz = py0s.MFE()
-        GSp = pyps.MFE()
+        pyp0.solvemeanfield()
+        # GSz = py0s.MFE()
+        # GSp = pyps.MFE()
+        # GSp0 = pyp0.MFE()
+        GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE()])
+        a = np.argmin(GS)
 
-        if GSz < GSp:
+        if a == 0:
             sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed
-            sendtemp2[i] = GSz
+            sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
+        elif a == 1:
+            sendtemp1[i] = pyp0.gap()
+            sendtemp[i] = pyp0.condensed + 5
+            sendtemp2[i] = GS[a]
+            sendtemp3[i] = pyp0.lams[0]
+            sendtemp4[i] = pyp0.magnetization()
         else:
-            sendtemp1[i] = pyps.gap()
-            sendtemp[i] = pyps.condensed + 5
-            sendtemp2[i] = GSp
-            sendtemp3[i] = pyps.lams[0]
-            sendtemp4[i] = pyps.magnetization()
+            sendtemp1[i] = pyp0.gap()
+            sendtemp[i] = pyp0.condensed + 5
+            sendtemp2[i] = GS[a]
+            sendtemp3[i] = pyp0.lams[0]
+            sendtemp4[i] = pyp0.magnetization()
 #
 
 
