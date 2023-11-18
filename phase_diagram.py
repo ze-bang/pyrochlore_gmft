@@ -585,7 +585,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sendtemp4[i] = pyp0.magnetization()
         else:
             sendtemp1[i] = pyp0.gap()
-            sendtemp[i] = pyp0.condensed + 5
+            sendtemp[i] = pyp0.condensed + 10
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
