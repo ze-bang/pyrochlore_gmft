@@ -193,51 +193,39 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     JP = np.linspace(JPm, JPmax, nK)
 
-    gap = np.zeros(nK)
     GS =  np.zeros(nK)
     MFE = np.zeros(nK)
-    gapp = np.zeros(nK)
     GSp =  np.zeros(nK)
     MFEp = np.zeros(nK)
-    E000 = np.zeros(nK)
-    condensed = np.zeros(nK)
-    condensed1 = np.zeros(nK)
-    lamdiff = np.zeros(nK)
+    GSp0 =  np.zeros(nK)
+    MFEp0 = np.zeros(nK)
     # for i in range (nH):
     for i in range (nK):
         print("Jpm is now " + str(JP[i]))
-        # print("h is now " + str(h[j]))
         py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
-        # phases[i][j] = py0s.phase_test()
         py0s.solvemeanfield()
-        # print(py0s.lams, py0s.minLams)
-        # gap[i] = py0s.gap()
         GS[i] = py0s.condensed
         MFE[i] = py0s.MFE()
-        # print(MFE[i])
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
-        # phases[i][j] = py0s.phase_test()
         pyp.solvemeanfield()
-        # gapp[i] = pyp.gap()
         GSp[i] = pyp.condensed
         MFEp[i] = pyp.MFE()
-        # lamdiff[i] = abs(pyp.minLams-pyp.lams)[0]
-        # print(pyp.minLams, pyp.lams, lamdiff[i])
-        condensed[i] = np.sqrt((py0s.lams[0]-py0s.minLams[0]))*len(py0s.bigTemp)
-        condensed1[i] = np.sqrt((pyp.lams[0]-pyp.minLams[0]))*len(pyp.bigTemp)
-        print(MFE[i], MFEp[i], GS[i], GSp[i], py0s.gap(), pyp.gap(), py0s.delta, pyp.delta, py0s.qmin, pyp.qmin)
-        # print(MFE[i], condensed[i], GS[i], py0s.gap(), py0s.delta, py0s.qmin)
+        pyp0 = pypp00.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
+        print("Finding pi pi 0 0 Lambda")
+        pyp0.solvemeanfield()
+        GSp0[i] = pyp0.condensed
+        MFEp0[i] = pyp0.MFE()
 
-        # condensed[i] = py0s.condensed()[0]
-        # dev[i] = py0s.rho_dev()
     # plt.plot(JP, gap, color='y')
     # plt.plot(JP, gapp, color='m')
     # plt.plot(JP, GS, color='r')
     # plt.plot(JP, GSp, color='b')
     plt.plot(JP, MFE, color='r')
     plt.plot(JP, MFEp, color='b')
+    plt.plot(JP, MFEp0, color='g')
+
     # plt.plot(JP, condensed, color='y')
     # plt.plot(JP, condensed1, color='m')
     # plt.plot(JP, lamdiff, color='b')
@@ -560,7 +548,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range(currsizeK):
         py0s = py0.zeroFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
         pyps = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
-        pyp0 = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
+        pyp0 = pypp00.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()
