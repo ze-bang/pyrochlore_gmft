@@ -677,38 +677,36 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         rectemp1 = np.zeros((nK, nK), dtype=np.float64)
         rectemp2 = np.zeros((nK, nK), dtype=np.float64)
 
+    # for i in range (currsizeK):
+    #     py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+    #     pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+    #     py0s.solvemeanfield(1e-4)
+    #     pyps.solvemeanfield(1e-4)
+    #     GSz = py0s.MFE()
+    #     GSp = pyps.MFE()
+    #     if GSz < GSp:
+    #         sendtemp1[i] = py0s.gap()
+    #         sendtemp[i] = py0s.condensed
+    #         sendtemp2[i] = py0s.xi
+    #     else:
+    #         sendtemp1[i] = pyps.gap()
+    #         sendtemp[i] = pyps.condensed + 5
+    #         sendtemp2[i] = pyps.xi
+
     for i in range (currsizeK):
-        py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-        pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-        py0s.solvemeanfield(1e-4)
-        pyps.solvemeanfield(1e-4)
-        GSz = py0s.MFE()
-        GSp = pyps.MFE()
-        print(GSz, GSp)
-        if GSz < GSp:
-            # py0s.qvec()
-            # print(pyps.minLams)
-            # warnings.filterwarnings("error")
+        JPm = -(currJH[i][0] + currJH[i][1])/4
+        if JPm >= 0:
+            py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+            py0s.solvemeanfield(1e-4)
             sendtemp1[i] = py0s.gap()
-            # print(py0s.lams, py0s.minLams)
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = py0s.xi
-            # print(sendtemp[i,j])
-            # sendtemp2[i,j] = py0s.q
         else:
-            # print(pyps.minLams)
-            # pyps.qvec()
-            # warnings.filterwarnings("error")
+            pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+            pyps.solvemeanfield(1e-4)
             sendtemp1[i] = pyps.gap()
-            # print(pyps.lams, pyps.minLams)
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = pyps.xi
-            # print(sendtemp[i, j])
-            # sendtemp2[i,j] = pyps.q
-        print(currJH[i], sendtemp[i], sendtemp1[i], sendtemp2[i])
-
-            # print(sendtemp[i,j])
-# 
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
