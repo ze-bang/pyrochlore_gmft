@@ -13,8 +13,10 @@ from misc_helper import *
 import netCDF4 as nc
 
 
-findPhaseMag(-0.5, 0.1, 300, 0, 4, 150, h1b10, 25, 2, "phase_1b10_kappa=2_complete")
-findPhaseMag(-0.5, 0.1, 300, 0, 2, 150, h001, 25, 2, "phase_001_kappa=2_complete")
+findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h110, 26, 2, "phase_110_kappa=2_zoomed_in_more")
+findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h001, 26, 2, "phase_001_kappa=2_zoomed_in_more")
+findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h111, 26, 2, "phase_111_kappa=2_zoomed_in_more")
+findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h1b10, 26, 2, "phase_1b10_kappa=2_zoomed_in_more")
 
 
 # findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")

@@ -17,6 +17,7 @@ from misc_helper import *
 findPhaseMag(-0.1, 0.1, 100, 0, 0.3, 100, h110, 26, 2, "phase_110_kappa=2_zoomed_in")
 findPhaseMag(-0.1, 0.1, 100, 0, 0.3, 100, h001, 26, 2, "phase_001_kappa=2_zoomed_in")
 findPhaseMag(-0.1, 0.1, 100, 0, 0.3, 100, h111, 26, 2, "phase_111_kappa=2_zoomed_in")
+findPhaseMag(-0.1, 0.1, 100, 0, 0.3, 100, h1b10, 26, 2, "phase_1b10_kappa=2_zoomed_in")
 
 # SSSF(50, 0.2, h111,hb110, -0.1,31, "SSSF_pi_-0.1_h111=0.2")
 # SSSF(50, 0.3, h111,hb110, -0.1,31, "SSSF_pi_-0.1_h111=0.3")
