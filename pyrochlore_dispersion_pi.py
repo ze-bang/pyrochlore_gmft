@@ -233,7 +233,7 @@ def E_pi_single(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 
 def Emin(q, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
-    k = q.reshape((1,3))
+    k = np.array(q).reshape((1,3))
     return E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0][0,0]
 
 
@@ -267,9 +267,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
     step = 1
     Enow = Em*np.ones(len(Know))
-    #
-    # Know = np.pi*np.array([1,1,1]).reshape((1,3))
-    # Enow = Emin(Know[0], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi) * np.ones(1)
 
     for i in range(len(Know)):
         stuff = True
@@ -302,6 +299,19 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     # Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
     return -Enow[a], Know
 
+def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1,1,1])
+    res = minimize(Emin, Know, args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
+    Know = np.array(res.x)
+    Enow = res.fun
+    Know = np.mod(Know, 2*np.pi).reshape((1,3))
+    for i in range(3):
+        if (abs(Know[0,i] - 2*np.pi) < 1e-5):
+            Know[0,i] = Know[0,i] - 2*np.pi
+    return -Enow, Know
 
 
 def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
@@ -939,7 +949,7 @@ class piFluxSolver:
         return findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def findminLam(self, chi, chi0, xi):
-        minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam_scipy(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
@@ -965,11 +975,29 @@ class piFluxSolver:
         # print(mfs)
         do = not (self.Jpmpm == 0)
         counter = 0
+        cn = 0.8
+        bn = 0.8
+        an = 0.8
         while do:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
+
+            u = (1-cn)*mfs + cn * self.calmeanfield(lam, MF, K)
+            lam, K, MF = self.condensation_check(u)
+            u = self.calmeanfield(lam, MF, K)
+
+            v = (1-bn)*u + bn * self.calmeanfield(lam, MF, K)
+            lam, K, MF = self.condensation_check(v)
+            v = self.calmeanfield(lam, MF, K)
+
+            w = (1-an)*v + cn * self.calmeanfield(lam, MF, K)
+            lam, K, MF = self.condensation_check(w)
+            w = self.calmeanfield(lam, MF, K)
+
+            lam, K, MF = self.condensation_check(w)
             mfs = self.calmeanfield(lam, MF, K)
-            # print(mfs, counter)
+
+            print(mfs, counter)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 5:
                 break
             counter = counter + 1

@@ -330,6 +330,19 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
     return -Enow[a], Know
 
+def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1,1,1])
+    res = minimize(Emin, Know, args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
+    Know = np.array(res.x)
+    Enow = res.fun
+    Know = np.mod(Know, 2*np.pi).reshape((1,3))
+    for i in range(3):
+        if (abs(Know[0,i] - 2*np.pi) < 1e-5):
+            Know[0,i] = Know[0,i] - 2*np.pi
+    return -Enow, Know
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
@@ -839,7 +852,7 @@ class piFluxSolver:
         return findminLam_old(self.MF, self.Jzz, 1e-10)
 
     def findminLam(self, chi, chi0, xi):
-        minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam_scipy(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
