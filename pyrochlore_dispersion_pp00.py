@@ -882,7 +882,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            print(mfs, counter)
+            # print(mfs, counter)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 10:
                 break
             counter = counter + 1
