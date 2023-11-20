@@ -267,6 +267,9 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
     step = 1
     Enow = Em*np.ones(len(Know))
+    #
+    # Know = np.pi*np.array([1,1,1]).reshape((1,3))
+    # Enow = Emin(Know[0], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi) * np.ones(1)
 
     for i in range(len(Know)):
         stuff = True
@@ -326,11 +329,38 @@ def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
         vhat = v / (1 - beta2**t)
         Klast = np.copy(Know)
         Know = Know - alpha * mhat / (np.sqrt(vhat) + eps)
-        if (abs(Klast-Know)<1e-15).all():
+        if (abs(Klast-Know)<1e-8).all():
             break
 
     Enow = Emin(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
     return -Enow, Know
+
+def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1, 1, 1])
+    beta1 = 0.9
+
+    stuff = True
+    m = 0
+    t = 0
+
+    while stuff:
+        print(Know)
+        t = t + 1
+        g = gradient(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+        m = beta1 * m + (1-beta1) * g
+        print(g)
+        Klast = np.copy(Know)
+        Know = Know - m
+        if (abs(Klast-Know)<1e-8).all():
+            break
+
+    Enow = Emin(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    Know = Know.reshape((1,3))
+    return -Enow, Know
+
 
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
@@ -1165,8 +1195,8 @@ class piFluxSolver:
     def magnetization(self):
         green = self.green_pi(self.bigTemp)
         ffact = contract('ik, jk->ij', self.bigTemp, NN)
-        ffactp = np.exp(1j * ffact)
-        ffactm = np.exp(-1j * ffact)
+        ffactp = np.exp(-1j * ffact)
+        ffactm = np.exp(1j * ffact)
 
         magp = contract('ij, ika, kj, jka->i', ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi),
                         piunitcell) / 4
@@ -1176,14 +1206,14 @@ class piFluxSolver:
         con = 0
         if self.condensed:
             ffact = contract('ik, jk->j', self.qmin, NN)
-            ffactp = np.exp(1j * ffact)
-            ffactm = np.exp(-1j * ffact)
+            ffactp = np.exp(-1j * ffact)
+            ffactm = np.exp(1j * ffact)
 
-            magp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * A_pi),
+            tempp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * A_pi),
                             piunitcell) / 4
-            magm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * A_pi),
+            tempm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * A_pi),
                             piunitcell) / 4
 
-            con = np.mean(magp+magm)
+            con = np.mean(tempp+tempm)
 
         return np.real(np.mean(magp + magm)+con) / 4

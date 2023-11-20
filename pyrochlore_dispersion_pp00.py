@@ -1095,25 +1095,25 @@ class piFluxSolver:
     def magnetization(self):
         green = self.green_pi(self.bigTemp)
         ffact = contract('ik, jk->ij', self.bigTemp, NN)
-        ffactp = np.exp(1j * ffact)
-        ffactm = np.exp(-1j * ffact)
+        ffactp = np.exp(-1j * ffact)
+        ffactm = np.exp(1j * ffact)
 
-        magp = contract('ij, ika, kj, jka->i', ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi),
+        magp = contract('ij, ika, kj, jka->i', ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi_here),
                         piunitcell) / 4
-        magm = contract('ij, iak, kj, jka->i', ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi),
+        magm = contract('ij, iak, kj, jka->i', ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi_here),
                         piunitcell) / 4
 
         con = 0
         if self.condensed:
             ffact = contract('ik, jk->j', self.qmin, NN)
-            ffactp = np.exp(1j * ffact)
-            ffactm = np.exp(-1j * ffact)
+            ffactp = np.exp(-1j * ffact)
+            ffactm = np.exp(1j * ffact)
 
-            magp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * A_pi),
+            tempp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * A_pi_here),
                             piunitcell) / 4
-            magm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * A_pi),
+            tempm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * A_pi_here),
                             piunitcell) / 4
 
-            con = np.mean(magp+magm)
+            con = np.mean(tempp+tempm)
 
         return np.real(np.mean(magp + magm)+con) / 4

@@ -311,6 +311,64 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             Know[0,i] = Know[0,i] - 2*np.pi
     return -Enow[a], Know
 
+
+def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1, 1, 1])
+    beta1 = 0.9
+    beta2 = 0.999
+    alpha = 0.001
+    eps = 1e-8
+
+    stuff = True
+    m = 0
+    v = 0
+    t = 0
+
+    while stuff:
+        print(Know)
+        t = t + 1
+        g = gradient(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+        m = beta1 * m + (1-beta1) * g
+        v = beta2 * v + (1-beta2) * g**2
+        mhat = m / (1 - beta1**t)
+        vhat = v / (1 - beta2**t)
+        Klast = np.copy(Know)
+        Know = Know - alpha * mhat / (np.sqrt(vhat) + eps)
+        if (abs(Klast-Know)<1e-8).all():
+            break
+
+    Enow = Emin(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    return -Enow, Know
+
+def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    if Jpm==0 and Jpmpm == 0 and h == 0:
+        return 0, np.array([0,0,0]).reshape((1,3))
+
+    Know = np.pi*np.array([1, 1, 1])
+    beta1 = 0.1
+
+    stuff = True
+    m = 0
+    t = 0
+
+    while stuff:
+        print(Know)
+        t = t + 1
+        g = gradient(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+        m = beta1 * m + (1-beta1) * g
+        Klast = np.copy(Know)
+        Know = Know - m
+        if (abs(Klast-Know)<1e-12).all():
+            break
+
+    Enow = Emin(Know, np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    Know = Know.reshape((1,3))
+    return -Enow, Know
+
+
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
@@ -1051,8 +1109,8 @@ class zeroFluxSolver:
     def magnetization(self):
         green = self.green_zero(self.bigTemp)
         ffact = contract('ik, jk->ij', self.bigTemp, NN)
-        ffactp = np.exp(1j*ffact)
-        ffactm = np.exp(-1j * ffact)
+        ffactp = np.exp(-1j*ffact)
+        ffactm = np.exp(1j * ffact)
 
         magp = contract('ij, i->i', ffactp, green[:,0,1])
         magm = contract('ij, i->i', ffactm, green[:,1,0])
@@ -1064,8 +1122,8 @@ class zeroFluxSolver:
             # Kq = self.bigTemp[cond]
 
             ffact = contract('ik, jk->j', self.qmin, NN)
-            ffactp = np.exp(1j * ffact)
-            ffactm = np.exp(-1j * ffact)
+            ffactp = np.exp(-1j * ffact)
+            ffactm = np.exp(1j * ffact)
             con = self.rhos[0]*self.rhos[1]*np.mean(ffactp+ffactm)
             # con = np.mean(contract('ij->i',ffactp+ffactm))
 

@@ -44,10 +44,10 @@ import warnings
 # zmag1 = contract('k,ik->i',h1b10,z)
 # zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # zmag3 = contract('k,ik->i',hb110,z)
-C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 2)
-C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 1)
-
-plt.show()
+# C = graphdispersion(-0.2, -0.2, 1, 0, h111, 1, 2, 20, 25, 1)
+# C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 1)
+#
+# plt.show()
 
 # D = graphdispersion(0, 0, 1, 0.2, np.arrcd ay([0,-1,1])/np.sqrt(2), 1, 2, 20, 25, True)
 # E = graphdispersion(0, 0, 1, 0.2, np.array([0,1,1])/np.sqrt(2), 1, 2, 20, 25, True)
@@ -107,10 +107,10 @@ plt.show()
 #
 
 
-# PhaseMagtestH(0, 0.1, 25, 0, 3, 25, h001, 25, 2, "0.25.png")
+PhaseMagtestH(0, 0.1, 25, 0, 0.3, 10, h100, 25, 2, "0.25.png")
 
 
-# PhaseMagtestJP(-0.2, 0.2, 25, 0.1, 3, 25, h1b10, 25, 2, "0.1_h1b10.png")
+PhaseMagtestJP(-0.5, 0, 25, 0.2, 3, 25, h111, 25, 2, "0.1_h1b10.png")
 # PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
@@ -207,7 +207,7 @@ plt.show()
 # print(temp_var)
 
 # findPhaseMag(-0.3, 0.1, 5, 0, 1, 5, h111, 25, 2, "phase_test_111_kappa=2")
-# findPhaseMag(-0.3, 0.1, 25, 0, 1, 25, h001, 25, 2, "phase_test_001_kappa=2")
+# findPhaseMag(-0.3, 0.3, 25, 0, 1, 25, h001, 25, 2, "phase_test_001_kappa=2")
 # findPhaseMag(-0.5, 0.3, 50, 0, 4, 25, h110, 25, 2, "phase_test_110_kappa=2")
 # findPhaseMag(-0.3, 0.3, 30, 0, 1, 25, h111, 25, 2, "phase_test_111_kappa=2")
 # findPhaseMag(-0.5, 0.1, 300, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2")
@@ -242,7 +242,7 @@ plt.show()
 
 # print(True*2)
 
-# PhaseMagtestJP(-0.05, 0.05, 10, 0, 0, 0, h111, 20, 2, "test")
+PhaseMagtestJP(-0.3, 0.3, 25, 0.2, 0, 0, h100, 20, 2, "test")
 
 # findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")

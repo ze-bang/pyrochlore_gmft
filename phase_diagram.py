@@ -201,30 +201,30 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     MFEp0 = np.zeros(nK)
     # for i in range (nH):
     for i in range (nK):
-        print("Jpm is now " + str(JP[i]))
-        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
-        print("Finding 0 Flux Lambda")
-        py0s.solvemeanfield()
-        GS[i] = py0s.condensed
-        MFE[i] = py0s.MFE()
+        # print("Jpm is now " + str(JP[i]))
+        # py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
+        # print("Finding 0 Flux Lambda")
+        # py0s.solvemeanfield()
+        # GS[i] = py0s.condensed
+        # MFE[i] = py0s.magnetization()
         pyp = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         pyp.solvemeanfield()
         GSp[i] = pyp.condensed
-        MFEp[i] = pyp.MFE()
-        pyp0 = pypp00.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
-        print("Finding pi pi 0 0 Lambda")
-        pyp0.solvemeanfield()
-        GSp0[i] = pyp0.condensed
-        MFEp0[i] = pyp0.MFE()
+        MFEp[i] = pyp.magnetization()
+        # pyp0 = pypp00.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = hm, n=n, kappa=kappa, BZres=BZres)
+        # print("Finding pi pi 0 0 Lambda")
+        # pyp0.solvemeanfield()
+        # GSp0[i] = pyp0.condensed
+        # MFEp0[i] = pyp0.magnetization()
 
     # plt.plot(JP, gap, color='y')
     # plt.plot(JP, gapp, color='m')
     # plt.plot(JP, GS, color='r')
     # plt.plot(JP, GSp, color='b')
-    plt.plot(JP, MFE, color='r')
+    # plt.plot(JP, MFE, color='r')
     plt.plot(JP, MFEp, color='b')
-    plt.plot(JP, MFEp0, color='g')
+    # plt.plot(JP, MFEp0, color='g')
 
     # plt.plot(JP, condensed, color='y')
     # plt.plot(JP, condensed1, color='m')
@@ -276,11 +276,11 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
         py0s.solvemeanfield()
-        MFE[i] = py0s.MFE()
+        MFE[i] = py0s.magnetization()
         pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         pyp.solvemeanfield()
-        MFEp[i] = pyp.MFE()
+        MFEp[i] = pyp.magnetization()
         # pyp = pygang.piFluxSolver(JPm, h = h[i], n=n, kappa=kappa, BZres=BZres)
         # print("Finding pi Flux Lambda")
         # pyp.findLambda()
