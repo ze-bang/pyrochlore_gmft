@@ -1103,15 +1103,9 @@ class piFluxSolver:
             warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
-        start = time.time()
         minLams, K, MF = self.findminLam(chi, chi0, xi)
-        end = time.time()
-        print('Finding minimum lambda cost ' + str(end-start))
         self.minLams = minLams
-        start = time.time()
         lams = self.findLambda(MF, minLams)
-        end = time.time()
-        print('Finding lambda cost ' + str(end-start))
         l = len(K)
         self.set_condensed(minLams, lams, l)
         self.set_delta(K, MF, minLams, lams, l)

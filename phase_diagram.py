@@ -265,7 +265,6 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
         py0s.solvemeanfield()
-        print(py0s.lams, py0s.minLams)
         MFE[i] = py0s.magnetization()
         pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
@@ -274,7 +273,7 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         pyp0 = pypp00.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         pyp0.solvemeanfield()
-        MFEpp[i] = pyp0.GS()
+        MFEpp[i] = pyp0.magnetization()
         print(MFE[i], MFEp[i], MFEpp[i])
 
     plt.plot(h, MFE, color='r')
