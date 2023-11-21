@@ -44,8 +44,12 @@ import warnings
 # zmag1 = contract('k,ik->i',h1b10,z)
 # zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # zmag3 = contract('k,ik->i',hb110,z)
-# C = graphdispersion(-0.2, -0.2, 1, 0, h111, 1, 2, 20, 25, 1)
-C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 2)
+# C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 0)
+# plt.show()
+
+# C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 1)
+C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 2)
+# C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 2)
 #
 plt.show()
 

@@ -293,8 +293,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= 4:
-        Know = Know[0:4]
+    if len(Know) >= 8:
+        Know = Know[0:8]
     if (E==0).all():
         return 0, np.array([0,0,0]).reshape((1,3))
     step = 1
@@ -334,20 +334,47 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 0, np.array([0,0,0]).reshape((1,3))
 
-    Know = np.pi*np.array([1,1,1])
-    res = minimize(Emin, Know, args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
-    Know = np.array(res.x)
-    Enow = res.fun
-    Know = np.mod(Know, 2*np.pi).reshape((1,3))
+    E, V = np.linalg.eigh(M)
+    E = np.around(E[:,0], decimals=15)
+    Em = E.min()
+    dex = np.where(E==Em)
+    Know = K[dex]
+
+    b = 4
+
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
+
+    if len(Know) >= b:
+        Know = Know[0:b]
+
+    Enow = np.zeros(b)
+
+    for i in range(len(Know)):
+        res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
+        Know[i] = np.array(res.x)
+        Enow[i] = res.fun
+
+    a = np.argmin(Enow)
+    Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
     for i in range(3):
-        if (abs(Know[0,i] - 2*np.pi) < 1e-5):
+        if Know[0,i] > np.pi:
             Know[0,i] = Know[0,i] - 2*np.pi
-    return -Enow, Know
+    return -Enow[a], Know
+
+def check_condensed(Jzz, lamM, M, kappa):
+    if rho_true(Jzz, M, lamM+(1000/len(M))**2)[0] < kappa:
+        return True
+    else:
+        return False
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
-    lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
-    lamMax = 50 * np.ones(2)
+    lamMin = np.copy(lamM)
+    if check_condensed(Jzz, lamM, M, kappa):
+        lamMax = lamM+(1000/len(M))**2
+    else:
+        lamMax = 6*np.copy(lamM)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
     while True:
@@ -819,10 +846,9 @@ class piFluxSolver:
         self.ns = ns
         self.h = h
         self.n = n
-        self.chi = 1
-        # self.chi0 = np.zeros(8, dtype=np.complex128)
-        self.xi = 1
-        self.chi0 = 1
+        self.chi = 0.18
+        self.xi = 0.5
+        self.chi0 = 0.18
 
         self.minLams = np.zeros(2, dtype=np.double)
 
@@ -882,7 +908,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            # print(mfs, counter)
+            print(mfs, counter)
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 4:
                 break
             counter = counter + 1

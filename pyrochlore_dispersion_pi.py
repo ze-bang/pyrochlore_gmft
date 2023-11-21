@@ -1,3 +1,5 @@
+import time
+
 import matplotlib.pyplot as plt
 import warnings
 
@@ -197,6 +199,20 @@ def rho_true(Jzz, M, lams):
     return np.mean(Ep) * np.ones(2)
 
 
+
+def rho_true_zeroed(lams, Jzz, M, kappa):
+    #assumes same lambda for all sites and sublattices
+    temp = M + np.diag(np.repeat(lams, 16))
+    E, V = np.linalg.eigh(temp)
+    Vt = np.real(contract('ijk,ijk->ijk', V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, Jzz / np.sqrt(2 * Jzz * E))
+    a = np.mean(Ep) - kappa
+    return a
+
+def frho(lams, Jzz, M, kappa):
+    tol=1e-16
+    return (rho_true_zeroed(lams+tol, Jzz, M, kappa) - rho_true_zeroed(lams, Jzz, M, kappa))/tol
+
 def rho_true_site(Jzz, M, lams):
     # dumb = np.array([[1,1,1,1,0,0,0,0],[0,0,0,0,1,1,1,1]])
     # print(M)
@@ -254,19 +270,20 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
         return 0, np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
+    E = E[:,0]
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
-    # Know = np.pi*np.array([1,1,1])
+
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= 4:
-        Know = Know[0:4]
+    if len(Know) >= 8:
+        Know = Know[0:8]
 
     step = 1
     Enow = Em*np.ones(len(Know))
+
 
     for i in range(len(Know)):
         stuff = True
@@ -290,29 +307,46 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
             if abs(Elast-Enow[i])<1e-12:
                 stuff = False
     warnings.resetwarnings()
-
     a = np.argmin(Enow)
     Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
     for i in range(3):
         if (abs(Know[0,i] - 2*np.pi) < 5e-6):
             Know[0,i] = Know[0,i] - 2*np.pi
     # Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
+    print(Know, -Enow[a])
     return -Enow[a], Know
 
 def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 0, np.array([0,0,0]).reshape((1,3))
 
-    Know = np.pi*np.array([1,1,1])
-    res = minimize(Emin, Know, args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
-    Know = np.array(res.x)
-    Enow = res.fun
-    Know = np.mod(Know, 2*np.pi).reshape((1,3))
-    for i in range(3):
-        if (abs(Know[0,i] - 2*np.pi) < 1e-5):
-            Know[0,i] = Know[0,i] - 2*np.pi
-    return -Enow, Know
+    E, V = np.linalg.eigh(M)
+    E = np.around(E[:,0], decimals=15)
+    Em = E.min()
+    dex = np.where(E==Em)
+    Know = K[dex]
 
+    b = 4
+
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
+
+    if len(Know) >= b:
+        Know = Know[0:b]
+
+    Enow = np.zeros(b)
+
+    for i in range(len(Know)):
+        res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
+        Know[i] = np.array(res.x)
+        Enow[i] = res.fun
+
+    a = np.argmin(Enow)
+    Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
+    for i in range(3):
+        if Know[0,i] > np.pi:
+            Know[0,i] = Know[0,i] - 2*np.pi
+    return -Enow[a], Know
 
 def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Jpm==0 and Jpmpm == 0 and h == 0:
@@ -372,11 +406,19 @@ def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return -Enow, Know
 
 
+def check_condensed(Jzz, lamM, M, kappa):
+    if rho_true(Jzz, M, lamM+(1000/len(M))**2)[0] < kappa:
+        return True
+    else:
+        return False
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
-    lamMin = np.max(lamM[0]-1, 0)*np.ones(2)
-    lamMax = 50 * np.ones(2)
+    lamMin = np.copy(lamM)
+    if check_condensed(Jzz, lamM, M, kappa):
+        lamMax = lamM+(1000/len(M))**2
+    else:
+        lamMax = 6*np.copy(lamM)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
     while True:
@@ -391,10 +433,21 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
                     lamMax[i] = lams[i]
         except:
             lamMin = lams
+        # print(lams, lamMax-lamMin, rhoguess)
         if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
             break
     warnings.resetwarnings()
     return lams
+
+
+
+def findlambda_pi_scipy(M, Jzz, kappa, tol, lamM):
+    if check_condensed(Jzz, lamM, M, kappa):
+        lamMax = lamM+(1000/len(M))**2
+    else:
+        lamMax = 6*lamM[0]
+    sol = root_scalar(rho_true_zeroed, args=(Jzz, M, kappa), method='brentq', bracket=(lamM[0], lamMax[0]))
+    return sol.root * np.ones(2)
 
 #region Mean field calculation
 def chiCal(lams, M, K, Jzz):
@@ -916,10 +969,9 @@ class piFluxSolver:
         self.ns = ns
         self.h = h
         self.n = n
-        self.chi = 1
-        # self.chi0 = np.zeros(8, dtype=np.complex128)
-        self.xi = 1
-        self.chi0 = 1
+        self.chi = 0.18
+        self.xi = 0.5
+        self.chi0 = 0.18
 
         self.minLams = np.zeros(2, dtype=np.double)
 
@@ -958,15 +1010,25 @@ class piFluxSolver:
     def calmeanfield(self, lams, MF, K):
 
         if self.condensed:
-            # cond = self.ifcondense(K, lams, (680/len(K))**2)
-            # Kps = np.delete(K, cond, axis=0)
-            # MFp = np.delete(MF, cond, axis=0)
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
             chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
             return chi + chic, chi0 + chi0c, xi + xic
         else:
             chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
         return np.array([chi, chi0, xi])
+
+    # def calmeanfield_con(self, lams, MF, K):
+    #     mfs = self.calmeanfield(lams, MF, K)
+    #     tol = 1e-7
+    #     while True:
+    #         mfslast = np.copy(mfs)
+    #         MF = M_pi(K, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, mfs[0],  mfs[1],  mfs[2])
+    #         mfs = self.calmeanfield(lams, MF, K)
+    #         print(mfs, mfslast)
+    #         if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all():
+    #             break
+    #     return mfs
+
 
     def solvemeanfield(self, tol=1e-7):
         mfs = np.array([self.chi, self.chi0, self.xi])
@@ -1037,9 +1099,15 @@ class piFluxSolver:
             warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
+        start = time.time()
         minLams, K, MF = self.findminLam(chi, chi0, xi)
+        end = time.time()
+        print('Finding minimum lambda cost ' + str(end-start))
         self.minLams = minLams
+        start = time.time()
         lams = self.findLambda(MF, minLams)
+        end = time.time()
+        print('Finding lambda cost ' + str(end-start))
         l = len(K)
         self.set_condensed(minLams, lams, l)
         self.set_delta(K, MF, minLams, lams, l)
@@ -1205,6 +1273,19 @@ class piFluxSolver:
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
+
+    def print_rho(self):
+        minLams, K, MF = self.findminLam(self.chi, self.chi0, self.xi)
+        E, V = np.linalg.eigh(MF)
+        a = min(E[:,0])
+        print(a, a+minLams[0])
+        T = np.linspace(minLams, 6*minLams, 50)
+        rho = np.zeros(50)
+        for i in range(50):
+            rho[i] = rho_true(self.Jzz, MF, T[i])[0]
+        print(rho_true_zeroed(minLams[0], self.Jzz, MF, self.kappa), rho_true_zeroed(minLams[0] + (1000/len(MF))**2, self.Jzz, MF, self.kappa))
+        plt.plot(T, rho)
+        plt.show()
 
     def magnetization(self):
         green = self.green_pi(self.bigTemp)

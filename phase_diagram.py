@@ -26,21 +26,10 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
         py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
     else:
         py0s = pypp00.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-    py0s.solvemeanfield(1e-3)
-    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
+    py0s.solvemeanfield()
+    # print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
     return py0s.MF
-
-def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
-    if not pi:
-        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-    else:
-        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-    py0s.solvemeanfield(1e-3)
-    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.chi, py0s.chi0, py0s.xi)
-    py0s.graph(False)
-    return py0s.MF
-
 def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
     if JP >= 0:
         py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
