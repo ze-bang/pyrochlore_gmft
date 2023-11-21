@@ -407,11 +407,15 @@ def check_condensed(Jzz, lamM, M, kappa):
         return False
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
-    lamMin = np.copy(lamM)
-    if check_condensed(Jzz, lamM, M, kappa):
-        lamMax = lamM+(1000/len(M))**2
+    if lamM[0] == 0:
+        lamMin = np.zeros(2)
+        lamMax = np.ones(2)
     else:
-        lamMax = 6*np.copy(lamM)
+        lamMin = np.copy(lamM)
+        if check_condensed(Jzz, lamM, M, kappa):
+            lamMax = lamM+(1000/len(M))**2
+        else:
+            lamMax = 6*np.copy(lamM)
 
     lams = lamMax
 

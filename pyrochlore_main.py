@@ -48,10 +48,10 @@ import warnings
 # plt.show()
 
 # C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 1)
-C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 2)
+# C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 2)
 # C = graphdispersion(0.02, 0.02, 1, 0.2, h100, 1, 2, 20, 25, 2)
 #
-plt.show()
+# plt.show()
 
 # D = graphdispersion(0, 0, 1, 0.2, np.arrcd ay([0,-1,1])/np.sqrt(2), 1, 2, 20, 25, True)
 # E = graphdispersion(0, 0, 1, 0.2, np.array([0,1,1])/np.sqrt(2), 1, 2, 20, 25, True)
