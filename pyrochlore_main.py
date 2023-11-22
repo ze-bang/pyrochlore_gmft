@@ -44,7 +44,21 @@ import warnings
 # zmag1 = contract('k,ik->i',h1b10,z)
 # zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # zmag3 = contract('k,ik->i',hb110,z)
-# C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 0)
+start = time.time()
+C = graphdispersion(-0.3, -0.3, 1, 0.2, h111, 1, 2, 20, 25, 1)
+end = time.time()
+print("Costs " + str(end-start))
+
+start = time.time()
+C = graphdispersion(-0.3, -0.3, 1, 0.2, h111, 1, 2, 20, 25, 0)
+end = time.time()
+print("Costs " + str(end-start))
+
+start = time.time()
+C = graphdispersion(-0.3, -0.3, 1, 0.2, h111, 1, 2, 20, 25, 2)
+end = time.time()
+print("Costs " + str(end-start))
+
 # plt.show()
 
 # C = graphdispersion(-0.1, -0.3, 1, 0, h111, 1, 2, 20, 25, 1)
@@ -111,10 +125,10 @@ import warnings
 #
 
 
-PhaseMagtestH(0, 0.1, 25, 0, 0.3, 10, h100, 25, 2, "0.25.png")
+# PhaseMagtestH(0, 0.1, 25, 0, 0.3, 10, h100, 25, 2, "0.25.png")
 
 
-PhaseMagtestJP(-0.5, 0, 25, 0.2, 3, 25, h111, 25, 2, "0.1_h1b10.png")
+PhaseMagtestJP(-0.3, 0.3, 25, 0, 3, 25, h111, 25, 2, "0.png")
 # PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
@@ -246,7 +260,7 @@ PhaseMagtestJP(-0.5, 0, 25, 0.2, 3, 25, h111, 25, 2, "0.1_h1b10.png")
 
 # print(True*2)
 
-PhaseMagtestJP(-0.3, 0.3, 25, 0.2, 0, 0, h100, 20, 2, "test")
+# PhaseMagtestJP(-0.3, 0.3, 25, 0.2, 0, 0, h100, 20, 2, "test")
 
 # findPhaseMag(-0.1, 0.1, 100, 0, 1, 100, h111, 5, 2, "phase_test_111_kappa=2_0_flux")
 # findPhaseMag(0, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_test_001_kappa=2_0_flux")

@@ -321,7 +321,7 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     dex = np.where(E==Em)
     Know = K[dex]
 
-    b = 4
+    b = 2
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -405,6 +405,15 @@ def check_condensed(Jzz, lamM, M, kappa):
         return True
     else:
         return False
+
+def run(Jzz, lamM, M, kappa):
+    temp = np.copy(lamM)
+    a = 1.3
+    while rho_true(M, temp, Jzz)[0] > kappa:
+        a = a + 0.1
+        temp = a * temp
+    return temp
+
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
@@ -413,10 +422,11 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
     else:
         lamMin = np.copy(lamM)
         if check_condensed(Jzz, lamM, M, kappa):
-            lamMax = lamM+(1000/len(M))**2
+            lamMax = lamM+(680/len(M))**2
         else:
-            lamMax = 6*np.copy(lamM)
+            lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
 
+    print(lamMin, lamMax)
     lams = lamMax
 
     while True:
@@ -437,6 +447,7 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
             break
         # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
     warnings.resetwarnings()
+    print(lams)
     return lams
 
 

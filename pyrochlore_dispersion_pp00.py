@@ -340,7 +340,7 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     dex = np.where(E==Em)
     Know = K[dex]
 
-    b = 4
+    b = 2
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -368,6 +368,14 @@ def check_condensed(Jzz, lamM, M, kappa):
     else:
         return False
 
+def run(Jzz, lamM, M, kappa):
+    temp = np.copy(lamM)
+    a = 1.3
+    while rho_true(Jzz, M, temp)[0] > kappa:
+        a = a + 0.1
+        temp = a * temp
+    return temp
+
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
@@ -376,9 +384,11 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
     else:
         lamMin = np.copy(lamM)
         if check_condensed(Jzz, lamM, M, kappa):
-            lamMax = lamM+(1000/len(M))**2
+            lamMax = lamM+(680/len(M))**2
         else:
-            lamMax = 6*np.copy(lamM)
+            lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
+
+    print(lamMin, lamMax)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
     while True:
@@ -397,6 +407,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
             break
     warnings.resetwarnings()
+    print(lams)
     return lams
 
 #region Mean field calculation
