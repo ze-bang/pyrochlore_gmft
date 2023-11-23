@@ -536,6 +536,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 
     for i in range(currsizeK):
+        start = time.time()
         py0s = py0.zeroFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
         pyps = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
         pyp0 = pypp00.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
@@ -564,6 +565,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
+        end = time.time()
+        print("This iteration costs " + str(end - start))
 #
 
 
@@ -652,24 +655,9 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         rectemp1 = np.zeros((nK, nK), dtype=np.float64)
         rectemp2 = np.zeros((nK, nK), dtype=np.float64)
 
-    # for i in range (currsizeK):
-    #     py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-    #     pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-    #     py0s.solvemeanfield(1e-4)
-    #     pyps.solvemeanfield(1e-4)
-    #     GSz = py0s.MFE()
-    #     GSp = pyps.MFE()
-    #     if GSz < GSp:
-    #         sendtemp1[i] = py0s.gap()
-    #         sendtemp[i] = py0s.condensed
-    #         sendtemp2[i] = py0s.xi
-    #     else:
-    #         sendtemp1[i] = pyps.gap()
-    #         sendtemp[i] = pyps.condensed + 5
-    #         sendtemp2[i] = pyps.xi
-
     for i in range (currsizeK):
         JPm = -(currJH[i][0] + currJH[i][1])/4
+        start = time.time()
         if JPm >= 0:
             py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
             py0s.solvemeanfield(1e-4)
@@ -682,6 +670,8 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
             sendtemp1[i] = pyps.gap()
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = pyps.xi
+        end = time.time()
+        print("This iteration costs " + str(end-start))
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
