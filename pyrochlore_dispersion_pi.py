@@ -270,7 +270,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
         return 0, np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = E[:,0]
+    E = np.around(E[:,0], decimals=15)
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
@@ -278,8 +278,9 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= 8:
-        Know = Know[0:8]
+    b = 8
+    if len(Know) >= b:
+        Know = Know[0:b]
 
     step = 1
     Enow = Em*np.ones(len(Know))
@@ -310,10 +311,10 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     a = np.argmin(Enow)
     Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
     for i in range(3):
-        if (abs(Know[0,i] - 2*np.pi) < 5e-6):
+        if (Know[0,i] > np.pi):
             Know[0,i] = Know[0,i] - 2*np.pi
     # Know = contract('i, ik->k', Know, BasisBZA).reshape((1,3))
-    print(Know, -Enow[a])
+    # print(Know, -Enow[a])
     return -Enow[a], Know
 
 def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
@@ -326,15 +327,14 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     dex = np.where(E==Em)
     Know = K[dex]
 
-    b = 2
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= b:
-        Know = Know[0:b]
+    if len(Know) >= number:
+        Know = Know[0:number]
 
-    Enow = np.zeros(b)
+    Enow = np.zeros(len(Know))
 
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi), method='Nelder-Mead')
@@ -346,7 +346,6 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     for i in range(3):
         if Know[0,i] > np.pi:
             Know[0,i] = Know[0,i] - 2*np.pi
-    print(-Enow[a], Know)
     return -Enow[a], Know
 
 def findminLam_adam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
@@ -416,10 +415,13 @@ def check_condensed(Jzz, lamM, M, kappa):
 def run(Jzz, lamM, M, kappa):
     temp = np.copy(lamM)
     a = 1.3
-    while rho_true(Jzz, M, temp)[0] > kappa:
-        a = a + 0.1
-        temp = a * temp
-    return temp
+    try:
+        while rho_true(Jzz, M, temp)[0] > kappa:
+            a = a + 0.1
+            temp = a * temp
+        return temp
+    except:
+        return 4*temp
 
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
@@ -433,7 +435,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         else:
             lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
 
-    print(lamMin, lamMax)
+    # print(lamMin, lamMax)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
     while True:
@@ -451,7 +453,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         # print(lams, lamMax-lamMin, rhoguess)
         if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
             break
-    print(lams)
+    # print(lams)
     warnings.resetwarnings()
     return lams
 

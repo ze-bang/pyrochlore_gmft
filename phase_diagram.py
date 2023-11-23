@@ -207,6 +207,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         pyp0.solvemeanfield()
         GSp0[i] = pyp0.condensed
         MFEp0[i] = pyp0.MFE()
+        print(py0s.qmin, pyp.qmin, pyp0.qmin)
 
     # plt.plot(JP, gap, color='y')
     # plt.plot(JP, gapp, color='m')
