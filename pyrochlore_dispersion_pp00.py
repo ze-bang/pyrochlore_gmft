@@ -30,7 +30,7 @@ piunitcell_here = np.array([
 ])
 
 
-A_pi_here = np.array([[0,0,0, 0],
+A_pi_here = np.array([[0,0,0, np.pi],
                   [0,np.pi,0,np.pi],
                   [0,np.pi,0,0],
                   [0,0,0,0]])
