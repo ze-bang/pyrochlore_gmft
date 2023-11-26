@@ -15,88 +15,6 @@ from misc_helper import *
 # A_pi = np.ones((4,4))
 
 
-# region Single momentum point Hamiltonian construction
-
-
-def M_pi_mag_sub_AB_single(k, h, n, theta):
-    zmag = contract('k,ik->i', n, z)
-    ffact = contract('k, jk->j', k, NN)
-    ffact = np.exp(1j * ffact)
-    M = contract('u, u, ru, urx->rx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                 np.exp(1j * A_pi), piunitcell)
-    return M
-
-
-def M_pi_sub_intrahopping_AA_single(k, alpha, eta, Jpm):
-    ffact = contract('k, jlk->jl', k, NNminus)
-    ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,kjl,jl, jka, lkb->ab', notrace, -Jpm * A_pi_rs_traced / 4 * eta[alpha], ffact, piunitcell,
-                 piunitcell)
-    return M
-
-
-def M_pi_sub_interhopping_AB_single(k, alpha, Jpmpm, xi):
-    ffact = contract('k, jk->j', k, NN)
-    ffact = np.exp(1j * neta(alpha) * ffact)
-    tempxa = xi[alpha]
-    tempxb = xi[1 - alpha]
-    M1a = contract('jl, kjl, j, kl, jkx->kx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, tempxa, piunitcell)
-    M1b = contract('jl, kjl, l, kj, lkx->kx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, tempxa, piunitcell)
-    M2a = contract('jl, kjl, j, kl, jkx->xk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, np.conj(tempxb),
-                   piunitcell)
-    M2b = contract('jl, kjl, l, kj, lkx->xk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp, ffact, np.conj(tempxb),
-                   piunitcell)
-    return M1a + M1b + M2a + M2b
-
-
-def M_pi_sub_pairing_AA_single(k, alpha, Jpmpm, chi, chi0):
-    di = np.identity(4)
-    ffact = contract('k, jlk->jl', k, NNminus)
-    ffact = np.exp(-1j * neta(alpha) * ffact)
-    beta = 1 - alpha
-    tempchi = chi[beta]
-    tempchi0 = chi0[beta]
-
-    M1 = contract('jl, kjl, kjl,km->km', notrace, Jpmpm * A_pi_rs_traced_pp / 8, tempchi, di)
-    M2 = contract('jl, kjl, jl, k, jka, lkb->ba', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0, piunitcell,
-                  piunitcell)
-    return M1 + M2
-
-
-def M_pi_single(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
-    chi = chi * np.array([chi_A, chi_A])
-    chi0 = chi0 * np.ones((2, 4))
-    xi = xi * np.array([xipicell[0], xipicell[0]])
-
-    dummy = np.zeros((4, 4))
-
-    MAk = M_pi_sub_intrahopping_AA_single(k, 0, eta, Jpm)
-    MBk = M_pi_sub_intrahopping_AA_single(k, 1, eta, Jpm)
-    MAnk = M_pi_sub_intrahopping_AA_single(-k, 0, eta, Jpm)
-    MBnk = M_pi_sub_intrahopping_AA_single(-k, 1, eta, Jpm)
-
-    temp = M_pi_mag_sub_AB_single(k, h, n, theta)
-    temp1 = M_pi_sub_interhopping_AB_single(k, 0, Jpmpm, xi)
-    MagAkBk = temp + temp1
-    MagBkAk = np.conj(np.transpose(MagAkBk))
-    MagAnkBnk = M_pi_mag_sub_AB_single(-k, h, n, theta) + M_pi_sub_interhopping_AB_single(-k, 0, Jpmpm, xi)
-    MagBnkAnk = np.conj(np.transpose(MagAnkBnk))
-
-    MAdkAdnk = M_pi_sub_pairing_AA_single(k, 0, Jpmpm, chi, chi0)
-    MBdkBdnk = M_pi_sub_pairing_AA_single(k, 1, Jpmpm, chi, chi0)
-    MAnkAk = np.conj(np.transpose(MAdkAdnk))
-    MBnkBk = np.conj(np.transpose(MBdkBdnk))
-
-    FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
-                   [MagBkAk, MBk, dummy, MBdkBdnk],
-                   [MAnkAk, dummy, MAnk, MagAnkBnk],
-                   [dummy, MBnkBk, MagBnkAnk, MBnk]])
-
-    return FM
-
-
-# endregion
-
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta):
     zmag = contract('k,ik->i', n, z)
@@ -278,9 +196,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    b = 8
-    if len(Know) >= b:
-        Know = Know[0:b]
+    if len(Know) >= number:
+        Know = Know[0:number]
 
     step = 1
     Enow = Em*np.ones(len(Know))
