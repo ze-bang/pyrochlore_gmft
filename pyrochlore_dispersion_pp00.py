@@ -5,9 +5,34 @@ import numpy as np
 
 from misc_helper import *
 
-A_pi_here = np.array([[0,0,0,np.pi],
-                  [0,0,0,0],
-                  [0,0,0,0],
+
+# Here, magnetic field is applied at the 110 direction. In which case,
+# we need to make the unit cell (0,0,0), (1, 0, 0), (0, 1, 0), (1,1,0)
+# So we need to suffle this a bit.
+
+piunitcell_here = np.array([
+    [[1,0,0,0],
+     [0,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]],
+    [[0,1,0,0],
+     [1,0,0,0],
+     [0,0,0,1],
+     [0,0,1,0]],
+    [[0,0,1,0],
+     [0,0,0,1],
+     [1,0,0,0],
+     [0,1,0,0]],
+    [[1,0,0,0],
+     [0,1,0,0],
+     [0,0,1,0],
+     [0,0,0,1]],
+])
+
+
+A_pi_here = np.array([[0,0,0, 0],
+                  [0,np.pi,0,0],
+                  [0,np.pi,0,0],
                   [0,0,0,0]])
 
 
@@ -53,15 +78,15 @@ def M_pi_mag_sub_AB(k, h, n, theta):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                 np.exp(1j*A_pi_here), piunitcell)
+                 np.exp(1j*A_pi_here), piunitcell_here)
     return M
 
 
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4 * eta[alpha], ffact, piunitcell,
-                 piunitcell)
+    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4 * eta[alpha], ffact, piunitcell_here,
+                 piunitcell_here)
     return M
 
 
@@ -70,12 +95,12 @@ def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi):
     ffact = np.exp(1j * neta(alpha) * ffact)
     tempxa = xi[alpha]
     tempxb = xi[1 - alpha]
-    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell)
-    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell)
+    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell_here)
+    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell_here)
     M2a = contract('jl, kjl, ij, kl, jkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                   piunitcell)
+                   piunitcell_here)
     M2b = contract('jl, kjl, il, kj, lkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                   piunitcell)
+                   piunitcell_here)
     return M1a + M1b + M2a + M2b
 
 
@@ -89,8 +114,8 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0):
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, d, di)
-    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, piunitcell,
-                  piunitcell)
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, piunitcell_here,
+                  piunitcell_here)
     return M1 + M2
 
 
@@ -336,7 +361,7 @@ def chiCal(lams, M, K, Jzz):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', K, NNminus)
     ffactB = np.exp(1j * ffact)
-    A = contract('iab, ijl,jka, lkb->ikjl', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
+    A = contract('iab, ijl,jka, lkb->ikjl', green[:, 8:12, 0:4], ffactB, piunitcell_here, piunitcell_here)
     M1 = np.mean(A, axis=0)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
@@ -349,7 +374,7 @@ def xiCal(lams, M, K, Jzz, ns):
     ffact = contract('ik,jk->ij', K, NN)
     ffactA = np.exp(1j * ffact)
 
-    M1 = np.mean(contract('ika, ij,jka->ikj', green[:, 0:4, 4:8], ffactA, piunitcell), axis=0)
+    M1 = np.mean(contract('ika, ij,jka->ikj', green[:, 0:4, 4:8], ffactA, piunitcell_here), axis=0)
 
     M1 = M1[0, 0]
     return np.real(M1)
@@ -365,7 +390,7 @@ def chiCalC(rhos, K):
 
     ffact = contract('ik,jlk->ijl', K, NNminus)
     ffactB = np.exp(1j * ffact)
-    A = contract('a, b, ijl,jka, lkb->ikjl', rhos[0:4], rhos[0:4], ffactB, piunitcell, piunitcell)
+    A = contract('a, b, ijl,jka, lkb->ikjl', rhos[0:4], rhos[0:4], ffactB, piunitcell_here, piunitcell_here)
     M1 = np.mean(A, axis=0)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
@@ -376,7 +401,7 @@ def xiCalC(rhos, K):
     ffact = contract('ik,jk->ij', K, NN)
     ffactA = np.exp(1j * ffact)
 
-    M1 = np.mean(contract('k, a, ij,jka->ikj', rhos[0:4], rhos[4:8], ffactA, piunitcell), axis=0)
+    M1 = np.mean(contract('k, a, ij,jka->ikj', rhos[0:4], rhos[4:8], ffactA, piunitcell_here), axis=0)
 
     M1 = M1[0, 0]
     return np.real(M1)
@@ -633,10 +658,10 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     E1A = np.mean(
         contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
-                 piunitcell, piunitcell), axis=0)
+                 piunitcell_here, piunitcell_here), axis=0)
     E1B = np.mean(
         contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 4:8, 4:8], ffactB,
-                 piunitcell, piunitcell), axis=0)
+                 piunitcell_here, piunitcell_here), axis=0)
 
     # print(E1A)
     E1 = np.real(E1A + E1B)
@@ -645,7 +670,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
     Emag = np.mean(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell), axis=0)
+                            np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell_here), axis=0)
 
     Emag = 2 * np.real(Emag)
 
@@ -654,15 +679,15 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     tempxb = xi[1]
     tempxa = xi[0]
     M1a = np.mean(contract('jl, kjl, ij, kl, ikx, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], piunitcell), axis=0)
+                           green[:, 0:4, 4:8], piunitcell_here), axis=0)
     M1b = np.mean(contract('jl, kjl, il, kj, ikx, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], piunitcell), axis=0)
+                           green[:, 0:4, 4:8], piunitcell_here), axis=0)
     M2a = np.mean(
         contract('jl, kjl, ij, kl, ixk, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], piunitcell), axis=0)
+                 green[:, 0:4, 4:8], piunitcell_here), axis=0)
     M2b = np.mean(
         contract('jl, kjl, il, kj, ixk, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], piunitcell), axis=0)
+                 green[:, 0:4, 4:8], piunitcell_here), axis=0)
     EAB = 2 * np.real(M1a + M1b + M2a + M2b)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
@@ -675,8 +700,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
                  axis=0)
 
     M2 = np.mean(contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0,
-                          green[:, 0:4, 8:12], piunitcell,
-                          piunitcell), axis=0)
+                          green[:, 0:4, 8:12], piunitcell_here,
+                          piunitcell_here), axis=0)
 
     EAA = 2 * np.real(M1 + M2)
 
@@ -690,8 +715,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
         contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, green[:, 4:8, 12:16]), axis=0)
 
     M2 = np.mean(contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0,
-                          green[:, 4:8, 12:16], piunitcell,
-                          piunitcell), axis=0)
+                          green[:, 4:8, 12:16], piunitcell_here,
+                          piunitcell_here), axis=0)
 
     EBB = 2 * np.real(M1 + M2)
 
@@ -712,9 +737,9 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
 
 
     E1A = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[0:4], rhos[0:4], ffactA,
-                 piunitcell, piunitcell)
+                 piunitcell_here, piunitcell_here)
     E1B = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[4:8], rhos[4:8], ffactB,
-                 piunitcell, piunitcell)
+                 piunitcell_here, piunitcell_here)
 
     # print(E1A)
     E1 = np.real(np.mean(E1A + E1B))
@@ -723,7 +748,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
     Emag = contract('ku, u, ru, r, x, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j * A_pi_here), rhos[0:4], rhos[4:8], piunitcell)
+                            np.exp(1j * A_pi_here), rhos[0:4], rhos[4:8], piunitcell_here)
 
     Emag = 2 * np.real(np.mean(Emag))
 
@@ -731,10 +756,10 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
     ffact = np.exp(1j * ffact)
     tempxb = xi[1]
     tempxa = xi[0]
-    M1a = contract('jl, kjl, ij, kl, k, x, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell)
-    M1b = contract('jl, kjl, il, kj, k, x, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell)
-    M2a = contract('jl, kjl, ij, kl, x, k, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
-    M2b = contract('jl, kjl, il, kj, x, k, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
+    M1a = contract('jl, kjl, ij, kl, k, x, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell_here)
+    M1b = contract('jl, kjl, il, kj, k, x, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell_here)
+    M2a = contract('jl, kjl, ij, kl, x, k, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell_here)
+    M2b = contract('jl, kjl, il, kj, x, k, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell_here)
     EAB = 2 * np.real(np.mean(M1a + M1b + M2a + M2b))
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
@@ -744,8 +769,8 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, kjl, kjl, k, k->', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, rhos[0:4], rhos[0:4])
-    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[0:4], rhos[0:4], piunitcell,
-                          piunitcell))
+    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[0:4], rhos[0:4], piunitcell_here,
+                          piunitcell_here))
 
     EAA = 2 * np.real(M1 + M2)
 
@@ -756,8 +781,8 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos)
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, kjl, kjl, k, k->', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, rhos[4:8], rhos[4:8])
-    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[4:8], rhos[4:8], piunitcell,
-                          piunitcell))
+    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[4:8], rhos[4:8], piunitcell_here,
+                          piunitcell_here))
 
     EBB = 2 * np.real(M1 + M2)
 
@@ -1072,9 +1097,9 @@ class piFluxSolver:
         ffactm = np.exp(1j * ffact)
 
         magp = contract('ij, ika, kj, jka->i', ffactp, green[:, 0:4, 4:8], np.exp(1j * A_pi_here),
-                        piunitcell) / 4
+                        piunitcell_here) / 4
         magm = contract('ij, iak, kj, jka->i', ffactm, green[:, 4:8, 0:4], np.exp(-1j * A_pi_here),
-                        piunitcell) / 4
+                        piunitcell_here) / 4
 
         con = 0
         if self.condensed:
@@ -1083,9 +1108,9 @@ class piFluxSolver:
             ffactm = np.exp(1j * ffact)
 
             tempp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * A_pi_here),
-                            piunitcell) / 4
+                            piunitcell_here) / 4
             tempm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * A_pi_here),
-                            piunitcell) / 4
+                            piunitcell_here) / 4
 
             con = np.mean(tempp+tempm)
 

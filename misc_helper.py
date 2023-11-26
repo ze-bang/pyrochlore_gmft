@@ -461,3 +461,28 @@ def beta1(t):
 
 def beta2(t):
     return 0.99**t
+
+
+# def calFlux_kagome(A_pi):
+#     # pyrochlore's dual lattice is FCC so each tetrahedron has 12 nearest neighbour. In the format of [(e1,e2,e3), unitcell index]
+#     # [(1, 0, 0), 0], [(0, 1, 0), 1], [(0, 0, 1), 2]
+#     # [-(1, 0, 0), 0], [-(0, 1, 0), 1], [-(0, 0, 1), 2]
+#     # [(1, -1, 0), 1], [(1, 0, -1), 2], [(0, 1, -1), 3]
+#     # [(-1, 1, 0), 1], [(-1, 0, 1), 2], [(0, -1, 1), 3]
+#
+#     # Like in Alaric's result, the unit flux are 012, 123, 230, 301,
+#
+#     # A tetrahedron has 6 sides. Each sides will affect 2 flux rings. For example, the 01 side will be accounted in 012 and 301
+#     # Therefore, each tetrahedron will have 12 affect flux rings. In the case, where our unit cell is defined like a diamond
+#     # there are in total,
+#
+#     # Let us think about this in terms of the kagome lattice first, in Alaric's result, they claim that pi pi 0 0 flux has
+#     # pi flux on 012 and 123, in another word, if we look from the perpendicular angle to these flux rings (looking at a kagome)
+#     # then all of the flux rings on that surface will be pi flux.
+#
+#     # So let us think about the first question, how does a pi flux kagome look like in the first place.
+#     # First of all, consider a surface with only one type of loop. For example, 012
+#     # Notice that you need at least unit cell of 2 in order to make it pi flux. Since a hex ring will repeat each unit side twice,
+#     # if you have only unit cell of one then it will simply be accounted for twice, resulting in 0 flux.
+#
+#     # The easiest pi flux unit cell is simply one cell with only one side pi flux and the other completely 0 flux

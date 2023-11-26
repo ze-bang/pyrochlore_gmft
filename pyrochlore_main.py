@@ -128,7 +128,7 @@ import warnings
 # PhaseMagtestH(0, 0.1, 25, 0, 0.3, 10, h100, 25, 2, "0.25.png")
 
 
-PhaseMagtestJP(-0.025, 0.05, 25, 0, 3, 25, h111, 25, 2, "0.png")
+PhaseMagtestJP(-0.05, 0.05, 25, 0, 3, 25, h111, 25, 2, "0.png")
 # PhaseMagtestJP(0.045, 0.0505, 30, 0.2, 3, 30, h110, 25, 2, "0.2_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.3, 3, 25, h110, 25, 2, "0.3_h110.png")
 # PhaseMagtestJP(-0.2, 0.2, 25, 0.4, 3, 25, h110, 25, 2, "0.4_h110.png")
