@@ -13,6 +13,9 @@ from misc_helper import *
 import netCDF4 as nc
 
 
+# findXYZPhase(-1, 1, 20, 26, 2, "XYZ_0_field_more")
+
+
 findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h110, 26, 2, "phase_110_kappa=2_zoomed_in_more")
 findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h001, 26, 2, "phase_001_kappa=2_zoomed_in_more")
 findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h111, 26, 2, "phase_111_kappa=2_zoomed_in_more")

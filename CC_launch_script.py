@@ -8,10 +8,12 @@ from misc_helper import *
 
 
 
-# SSSF(100, 0.2, h001,hb110, -1/3,50, "SSSF_pi_-0.33_h001=0.2")
-# SSSF(100, 0, h001, hb110, -0.05, 35, "SSSF_pi_-0.05_DETAILED")
-# SSSF(100, 0, h111, hb110, -0.20, 35, "SSSF_pi_-0.20_DETAILED")
-# SSSF(100, 0, h111, hb110, -0.40, 35, "SSSF_pi_-0.40_DETAILED")
+
+
+findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h110, 26, 2, "phase_110_kappa=2")
+findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h001, 26, 2, "phase_001_kappa=2")
+findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h111, 26, 2, "phase_111_kappa=2")
+findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h1b10, 26, 2, "phase_1b10_kappa=2")
 
 
 
@@ -53,15 +55,15 @@ from misc_helper import *
 # SSSF(100, 0.8, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=0.8")
 # SSSF(100, 1.0, h110,hb110, 0.02,35, "SSSF_zero_0.02_h110=1.0")
 
-TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
-TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
-TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
+# TWOSPINCON_gang(80, 0, h111, -0.1, 25, "TSC_-0.33_h111=0_gang")
+# TWOSPINCON_gang(80, 0.2, h111,  -0.1, 25, "TSC_-0.33_h111=0.2_gang")
+# TWOSPINCON_gang(80, 1, h111,  -0.1, 25, "TSC_-0.33_h111=1.0_gang")
 
-TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
-TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
+# TWOSPINCON_gang(80, 0.2, h001,  -0.1, 25, "TSC_-0.33_h001=0.2_gang")
+# TWOSPINCON_gang(80, 1, h001,  -0.1, 25, "TSC_-0.33_h001=1.0_gang")
 
-TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
-TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
+# TWOSPINCON_gang(80, 0.2, h110,  -0.1, 25, "TSC_-0.33_h110=0.2_gang")
+# TWOSPINCON_gang(80, 1, h110,  -0.1, 25, "TSC_-0.33_h110=1.0_gang")
 
 
 
