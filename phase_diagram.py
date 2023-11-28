@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
-import pyrochlore_dispersion_pi_gang_chen as pygang
+import pyrochlore_general as pygen
 import pyrochlore_dispersion_pi_old as pypiold
 import pyrochlore_dispersion_pp00 as pypp00
 
@@ -31,21 +31,22 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
     py0s.graph(False)
     return py0s.MF
 
-def graphedges(JP,h, n, kappa, rho, graphres, BZres, old=False):
-    if JP >= 0:
-        py0s = py0.zeroFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findminLam()
-        py0s.findLambda()
+def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, flux):
+    py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.gap(), py0s.magnetization(), py0s.chi, py0s.chi0, py0s.xi)
+    py0s.graph(False)
+    return py0s.MF
+
+def graphedges(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi=False):
+    if not pi:
+        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.solvemeanfield()
         py0s.graph_loweredge(False)
         py0s.graph_loweredge(True)
-    elif JP < 0 and not old:
-        py0s = pypi.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findLambda()
-        py0s.graph_loweredge(False)
-        py0s.graph_upperedge(True)
     else:
-        py0s = pypiold.piFluxSolver(JP,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
-        py0s.findLambda()
+        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s.solvemeanfield()
         py0s.graph_loweredge(False)
         py0s.graph_upperedge(True)
 
@@ -178,6 +179,49 @@ def findPhase(nK, nE, res, filename):
 #endregion
 
 #region Phase for Magnetic Field
+
+
+def generalJPSweep(JPm, JPmax, nK, h, n, BZres, kappa, fluxs, filename):
+
+    JP = np.linspace(JPm, JPmax, nK)
+    GS =  np.zeros((len(fluxs), nK))
+    MFE = np.zeros((len(fluxs), nK))
+
+    # for i in range (nH):
+    for i in range (nK):
+        print("Jpm is now " + str(JP[i]))
+        for j in range(len(fluxs)):
+            py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+            py0s.solvemeanfield()
+            GS[j, i] = py0s.condensed
+            MFE[j, i] = py0s.MFE()
+
+    for i in range(len(fluxs)):
+        plt.plot(JP, MFE[i])
+    plt.savefig(filename)
+    plt.clf()
+
+def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
+
+    h = np.linspace(hm, hmax, nH)
+    GS =  np.zeros((len(fluxs), nH))
+    MFE = np.zeros((len(fluxs), nH))
+
+    # for i in range (nH):
+    for i in range (nH):
+        print("h is now " + str(h[i]))
+        for j in range(len(fluxs)):
+            py0s = pygen.piFluxSolver(-2*JP, -2*JP, 1, h = h[i], n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+            py0s.solvemeanfield()
+            GS[j, i] = py0s.condensed
+            MFE[j, i] = py0s.MFE()
+
+    for i in range(len(fluxs)):
+        plt.plot(h, MFE[i])
+
+    plt.savefig(filename)
+    plt.clf()
+
 
 def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
