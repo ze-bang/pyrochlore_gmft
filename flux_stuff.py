@@ -110,7 +110,7 @@ def totalFlux(unitCell, A_pi):
         A[i] = calFlux(unitCell[i], A_pi, unitCell)
     return A
 
-def constructA_pi(Astart):
+def constructA_pi_012(Astart):
     A00, A01, A02, A03, A10, A20, A21 = Astart
     A11 = A01
     A12 = A00 + A02 - A10
@@ -126,8 +126,7 @@ def constructA_pi(Astart):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-
-def Ainit(Fluxs):
+def Ainit_012(Fluxs):
     A, B, C, D = Fluxs
     A00 = 0
     A01 = 0
@@ -138,13 +137,46 @@ def Ainit(Fluxs):
     A21 = -A01 + (A+B-2*C+D)/3
     return np.array([A00, A01, A02, A03, A10, A20, A21])
 
-# test = np.array([[0,0,0], [1,0,0], [0,1,0], [1,1,0]])
+def constructA_pi(Astart):
+    A00, A01, A02, A03, A10, A11, A20, A21 = Astart
+
+    A12 = A02
+    A13 = A00 + A01 + A03 - A10 - A11
+    A22 = A00 + A01 + A02 - A20 - A21
+    A23 = A03
+    A30 = -A00 + A10 + A20
+    A31 = -A01 + A11 + A21
+    A32 = A00 + A01 + A02 - A20 - A21
+    A33 = A00 + A01 + A03 - A10 - A11
+
+    return np.array([[A00, A01, A02, A03],
+                     [A10, A11, A12, A13],
+                     [A20, A21, A22, A23],
+                     [A30, A31, A32, A33]])
+def Ainit(Fluxs):
+    A, B, C, D = Fluxs
+    A00 = 0
+    A01 = 0
+    A02 = 0
+    A10 = 0
+    A03 = -A00 - A01 - A02 + (A+B+C+D)/6
+    A11 = A - A00 - A01 - 2*A02 - A10
+    A20 = -A10 + (A-2*B+C+D)/3
+    A21 = A00 + A01 + 2*A02 + A10 + (-2*A+B-2*C+D)/3
+    return np.array([A00, A01, A02, A03, A10, A11, A20, A21])
+
+test = np.array([[0,0,0], [0,1,0], [0,0,1], [0,1,1]])
+
+
+#Flux of 012, 123, 230, 301
+
+
+# flux = np.ones(4)*np.pi
 #
+# Astart = Ainit(flux)
 #
-# #Flux of 012, 123, 230, 301
-# Astart = Ainit(np.array([1, 2, 3, 4]))
 # A_pi = constructA_pi(Astart)
 # print(A_pi)
 # A = totalFlux(test, A_pi)
-#
+# #
 # print(A)

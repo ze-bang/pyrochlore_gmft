@@ -180,6 +180,8 @@ A_pi = np.array([[0,0,0,0],
                   [0,np.pi,np.pi,0],
                   [0,0,np.pi,0]])
 
+# A_pi = np.zeros((4,4))
+
 piunitcell = np.array([
     [[1,0,0,0],
      [0,1,0,0],
@@ -196,7 +198,7 @@ piunitcell = np.array([
     [[0,0,1,0],
      [0,0,0,1],
      [1,0,0,0],
-     [0,1,0,0]],
+     [0,1,0,0]]
 ])
 
 number = 4
@@ -236,6 +238,7 @@ for i in range(4):
         for k in range(4):
             for l in range(4):
                 A_pi_rs_rsp_pp[i,j,k,l] = np.real(np.exp(1j * (A_pi[i,k] + A_pi[j,l])))
+
 
 @nb.njit
 def findS(r):

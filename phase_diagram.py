@@ -6,7 +6,7 @@ import pyrochlore_dispersion_pi as pypi
 import pyrochlore_general as pygen
 import pyrochlore_dispersion_pi_old as pypiold
 import pyrochlore_dispersion_pp00 as pypp00
-
+import pyrochlore_dispersion_pi_archived as pyarch
 import netCDF4 as nc
 import warnings
 
@@ -19,20 +19,26 @@ import warnings
 # plt.show()
 
 
-def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi):
+def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, pi):
     if pi == 0:
-        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
     elif pi == 1:
-        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz,eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
     else:
-        py0s = pypp00.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n)
+        py0s = pypp00.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
     py0s.solvemeanfield()
     print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.gap(), py0s.magnetization(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
     return py0s.MF
 
-def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, flux):
-    py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, eta=kappa, kappa=rho, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
+def testdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
+    py0s = pyarch.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
+    py0s.findLambda()
+    py0s.graph(False)
+    return py0s.MF
+
+def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
+    py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.gap(), py0s.magnetization(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
@@ -191,14 +197,18 @@ def generalJPSweep(JPm, JPmax, nK, h, n, BZres, kappa, fluxs, filename):
     for i in range (nK):
         print("Jpm is now " + str(JP[i]))
         for j in range(len(fluxs)):
-            py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+            if (fluxs[j] == np.zeros(4)).all():
+                py0s = py0.zeroFluxSolver(-2 * JP[i], -2 * JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+            else:
+                py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
             py0s.solvemeanfield()
             GS[j, i] = py0s.condensed
             MFE[j, i] = py0s.MFE()
 
     for i in range(len(fluxs)):
-        plt.plot(JP, MFE[i])
-    plt.savefig(filename)
+        plt.plot(JP, MFE[i], label=str(fluxs[i]))
+    plt.legend()
+    plt.savefig(filename+'.png')
     plt.clf()
 
 def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
@@ -211,17 +221,27 @@ def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
     for i in range (nH):
         print("h is now " + str(h[i]))
         for j in range(len(fluxs)):
-            py0s = pygen.piFluxSolver(-2*JP, -2*JP, 1, h = h[i], n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+            if (fluxs[j] == np.zeros(4)).all():
+                py0s = py0.zeroFluxSolver(-2 * JP[i], -2 * JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+            else:
+                py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
             py0s.solvemeanfield()
             GS[j, i] = py0s.condensed
             MFE[j, i] = py0s.MFE()
 
     for i in range(len(fluxs)):
-        plt.plot(h, MFE[i])
+        plt.plot(h, MFE[i], label=str(fluxs[i]))
 
-    plt.savefig(filename)
+    plt.legend()
+    plt.savefig(filename+'.png')
     plt.clf()
 
+    for i in range(1, len(fluxs)):
+        plt.plot(h, MFE[i]-MFE[0], label=str(fluxs[i]))
+
+    plt.legend()
+    plt.savefig(filename+'_diff.png')
+    plt.clf()
 
 def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
@@ -252,6 +272,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         GSp0[i] = pyp0.condensed
         MFEp0[i] = pyp0.MFE()
         a = np.array([MFE[i], MFEp[i], MFEp0[i]])
+        print(py0s.lams, pyp.lams, pyp0.lams)
         print(a)
         print("Phase is " + str(np.argmin(a)))
 
@@ -268,7 +289,7 @@ def PhaseMagtestJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # plt.plot(JP, condensed1, color='m')
     # plt.plot(JP, lamdiff, color='b')
     # plt.plot(JP, dev, color='black')
-    plt.savefig(filename)
+    plt.savefig(filename+'.png')
     # plt.show()
 
     plt.clf()
@@ -294,7 +315,7 @@ def MagJP(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         # print(Sx[i], Sxp[i])
     plt.plot(JP, Sx, color='r')
     # plt.plot(JP, Sxp, color='b')
-    plt.savefig(filename)
+    plt.savefig(filename+'.png')
     # plt.show()
     plt.clf()
 
@@ -314,23 +335,27 @@ def PhaseMagtestH(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s = py0.zeroFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding 0 Flux Lambda")
         py0s.solvemeanfield()
-        MFE[i] = py0s.magnetization()
+        MFE[i] = py0s.MFE()
         pyp = pypi.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         pyp.solvemeanfield()
-        MFEp[i] = pyp.magnetization()
+        MFEp[i] = pyp.MFE()
         pyp0 = pypp00.piFluxSolver(-2*JPm, -2*JPm, 1, h = h[i], n=n, kappa=kappa, BZres=BZres)
         print("Finding pi Flux Lambda")
         pyp0.solvemeanfield()
-        MFEpp[i] = pyp0.magnetization()
+        MFEpp[i] = pyp0.MFE()
         print(MFE[i], MFEp[i], MFEpp[i])
 
-    plt.plot(h, MFE, color='r')
-    plt.plot(h, MFEp, color='b')
+    plt.plot(h, MFE, color='r', label='0 Flux')
+    plt.plot(h, MFEp, color='b', label=r'$\pi$ Flux')
+    plt.plot(h, MFEpp, color='g', label=r'$\pi\pi 0 0$ Flux')
+    plt.legend()
     plt.savefig(filename+'.png')
-    # plt.show()
     plt.clf()
-    plt.plot(h, MFE-MFEp)
+
+    plt.plot(h, MFEp - MFE, color='r', label=r'$\pi$ Flux')
+    plt.plot(h, MFEpp - MFE, color='g', label=r'$\pi\pi 0 0$ Flux')
+    plt.legend()
     plt.savefig(filename+'_diff.png')
     plt.clf()
 

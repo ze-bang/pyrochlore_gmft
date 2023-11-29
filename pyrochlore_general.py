@@ -7,24 +7,7 @@ from flux_stuff import *
 # we need to make the unit cell (0,0,0), (1, 0, 0), (0, 1, 0), (1,1,0)
 # So we need to suffle this a bit.
 
-piunitcell_here = np.array([
-    [[1, 0, 0, 0],
-     [0, 1, 0, 0],
-     [0, 0, 1, 0],
-     [0, 0, 0, 1]],
-    [[0, 1, 0, 0],
-     [1, 0, 0, 0],
-     [0, 0, 0, 1],
-     [0, 0, 1, 0]],
-    [[0, 0, 1, 0],
-     [0, 0, 0, 1],
-     [1, 0, 0, 0],
-     [0, 1, 0, 0]],
-    [[1, 0, 0, 0],
-     [0, 1, 0, 0],
-     [0, 0, 1, 0],
-     [0, 0, 0, 1]],
-])
+piunitcell_here = piunitcell
 
 
 #region Hamiltonian Construction
@@ -40,7 +23,7 @@ def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm, A_pi_rs_traced_here):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4 * eta[alpha], ffact, piunitcell_here,
+    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell_here,
                  piunitcell_here)
     return M
 
@@ -73,7 +56,27 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here):
                   piunitcell_here)
     return M1 + M2
 
+def M_pi_alg_0_flux(k,Jpm, h, n):
 
+    M = np.zeros((len(k),4,4), dtype=np.complex128)
+
+    for i in range(len(k)):
+        kx = k[i, 0]
+        ky = k[i, 1]
+        kz = k[i, 2]
+        M[i] = np.array([[-1/2*(Jpm*np.cos((ky + kz)/2)), -1/2*(Jpm*(np.cos((kx - ky)/2) + \
+        np.cos((kx + kz)/2))), -1/2*(Jpm*(np.cos((kx + ky)/2) + np.cos((kx - \
+        kz)/2))), -1/2*(Jpm*np.cos((ky - kz)/2))], [-1/2*(Jpm*(np.cos((kx - \
+        ky)/2) + np.cos((kx + kz)/2))), -1/2*(Jpm*np.cos((ky + kz)/2)), \
+        -1/2*(Jpm*np.cos((ky - kz)/2)), -1/2*(Jpm*(np.cos((kx + ky)/2) + \
+        np.cos((kx - kz)/2)))], [-1/2*(Jpm*(np.cos((kx + ky)/2) + np.cos((kx \
+        - kz)/2))), -1/2*(Jpm*np.cos((ky - kz)/2)), -1/2*(Jpm*np.cos((ky + \
+        kz)/2)), -1/2*(Jpm*(np.cos((kx - ky)/2) + np.cos((kx + kz)/2)))], \
+        [-1/2*(Jpm*np.cos((ky - kz)/2)), -1/2*(Jpm*(np.cos((kx + ky)/2) + \
+        np.cos((kx - kz)/2))), -1/2*(Jpm*(np.cos((kx - ky)/2) + np.cos((kx + \
+        kz)/2))), -1/2*(Jpm*np.cos((ky + kz)/2))]])
+
+    return M
 def M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
@@ -118,6 +121,7 @@ def E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_r
     M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
     # M = M_pi_alg(k,Jpm, Jpmpm, h, n, lams[0])
     E, V = np.linalg.eigh(M)
+
     return [E, V]
 
 
@@ -758,35 +762,37 @@ class piFluxSolver:
         self.chi0 = 0.18
 
         self.A_pi_here = constructA_pi(Ainit(flux))
-        self.A_pi_rs_traced_here = np.zeros((4, 4, 4))
+        # print(self.A_pi_here)
+        self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
             for j in range(4):
                 for k in range(4):
-                    self.A_pi_rs_traced_here[i, j, k] = np.real(np.exp(1j * (self.A_pi_here[i, j] - self.A_pi_here[i, k])))
+                    self.A_pi_rs_traced_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] - self.A_pi_here[i, k]))
 
-        self.A_pi_rs_traced_pp_here = np.zeros((4, 4, 4))
-
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    self.A_pi_rs_traced_pp_here[i, j, k] = np.real(np.exp(1j * (self.A_pi_here[i, j] + self.A_pi_here[i, k])))
-
-        self.A_pi_rs_rsp_here = np.zeros((4, 4, 4, 4))
+        self.A_pi_rs_traced_pp_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
             for j in range(4):
                 for k in range(4):
-                    for l in range(4):
-                        self.A_pi_rs_rsp_here[i, j, k, l] = np.real(np.exp(1j * (self.A_pi_here[i, k] - self.A_pi_here[j, l])))
+                    self.A_pi_rs_traced_pp_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] + self.A_pi_here[i, k]))
 
-        self.A_pi_rs_rsp_pp_here = np.zeros((4, 4, 4, 4))
+
+        self.A_pi_rs_rsp_here = np.zeros((4, 4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
             for j in range(4):
                 for k in range(4):
                     for l in range(4):
-                        self.A_pi_rs_rsp_pp_here[i, j, k, l] = np.real(np.exp(1j * (self.A_pi_here[i, k] + self.A_pi_here[j, l])))
+                        self.A_pi_rs_rsp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] - self.A_pi_here[j, l]))
+
+        self.A_pi_rs_rsp_pp_here = np.zeros((4, 4, 4, 4), dtype=np.complex128)
+
+        for i in range(4):
+            for j in range(4):
+                for k in range(4):
+                    for l in range(4):
+                        self.A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] + self.A_pi_here[j, l]))
 
 
         self.minLams = np.zeros(2, dtype=np.double)

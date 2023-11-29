@@ -45,12 +45,29 @@ import warnings
 # zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
 # zmag3 = contract('k,ik->i',hb110,z)
 # start = time.time()
-flux = np.array([1, 1, 1, 1]) * np.pi
-C = generaldispersion(0.01, 0.01, 1, 0, h111, 1, 2, 20, 25, flux)
+# C = graphdispersion(-0.01, -0.01, 1, 0, h111, 1, 2, 20, 25, 0)
 # plt.show()
+# B = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 0)
+# C = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 1)
+# D = graphdispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, 1)
+# plt.show()
+
+
+# flux = np.array([0,0,0,0]) * np.pi
+# C = generaldispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, flux)
+# plt.show()
+# #
+fluxs = np.array([[0, 0, 0, 0],
+                  [np.pi, np.pi, np.pi, np.pi],
+                  [np.pi/4, -3*np.pi/4, np.pi/4, np.pi/4]])
+
+# PhaseMagtestJP(-0.05, 0.05, 25,  0, 0.3, 25, h110, 26,2, '0_1')
+generalJPSweep(-0.05, 0.05, 25, 0, h110, 26, 2, fluxs, '0')
+generalHSweep(0, 0, 0.3, 25, h111, 26, 2, fluxs, 'test_111')
 
 fluxs = np.array([[0, 0, 0, 0],
                   [np.pi, np.pi, np.pi, np.pi],
-                  [np.pi/4, np.pi/4, np.pi/4, -3*np.pi/4]])
+                  [np.pi, np.pi, 0, 0]])
 
-generalHSweep(0, 0, 0.3, 25, h111, 26, 2, fluxs, 'test.png')
+generalHSweep(0, 0, 0.3, 25, h110, 26, 2, fluxs, 'test_110')
+# PhaseMagtestH(0, 0, 0,  0, 0.3, 25, h110, 26,2, 'test1_110')

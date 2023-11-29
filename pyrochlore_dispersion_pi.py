@@ -7,12 +7,6 @@ import numpy as np
 
 from misc_helper import *
 
-# A_pi = np.array([[0,0,0,0],
-#                   [0,np.pi,0,0],
-#                   [0,np.pi,np.pi,0],
-#                   [0,0,np.pi,0]])
-
-# A_pi = np.ones((4,4))
 
 
 #region Hamiltonian Construction
@@ -28,7 +22,7 @@ def M_pi_mag_sub_AB(k, h, n, theta):
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4 * eta[alpha], ffact, piunitcell,
+    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced / 4, ffact, piunitcell,
                  piunitcell)
     return M
 

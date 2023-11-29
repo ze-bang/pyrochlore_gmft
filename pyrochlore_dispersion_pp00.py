@@ -1,75 +1,53 @@
 import matplotlib.pyplot as plt
 import warnings
-
-import numpy as np
-
 from misc_helper import *
-
+from flux_stuff import *
 
 # Here, magnetic field is applied at the 110 direction. In which case,
 # we need to make the unit cell (0,0,0), (1, 0, 0), (0, 1, 0), (1,1,0)
 # So we need to suffle this a bit.
 
-piunitcell_here = np.array([
-    [[1,0,0,0],
-     [0,1,0,0],
-     [0,0,1,0],
-     [0,0,0,1]],
-    [[0,1,0,0],
-     [1,0,0,0],
-     [0,0,0,1],
-     [0,0,1,0]],
-    [[0,0,1,0],
-     [0,0,0,1],
-     [1,0,0,0],
-     [0,1,0,0]],
-    [[1,0,0,0],
-     [0,1,0,0],
-     [0,0,1,0],
-     [0,0,0,1]],
-])
+
+piunitcell_here = piunitcell
 
 
-A_pi_here = np.array([[0,0,np.pi, 0],
-                  [0,np.pi,np.pi, 0],
-                  [0,np.pi,0,0],
-                  [0,0,0,0]])
+flux = np.pi*np.array([1,1,0,0])
+A_pi_here = A_pi = constructA_pi(Ainit(flux))
 
-
-A_pi_rs_traced_here = np.zeros((4,4,4))
+A_pi_rs_traced_here = np.zeros((4,4,4), dtype=np.complex128)
 
 
 for i in range(4):
     for j in range(4):
         for k in range(4):
-            A_pi_rs_traced_here[i,j,k] = np.real(np.exp(1j * (A_pi_here[i,j] - A_pi_here[i,k])))
+            A_pi_rs_traced_here[i,j,k] = np.exp(1j * (A_pi_here[i,j] - A_pi_here[i,k]))
 
 
-A_pi_rs_traced_pp_here = np.zeros((4,4,4))
+A_pi_rs_traced_pp_here = np.zeros((4,4,4), dtype=np.complex128)
 
 
 for i in range(4):
     for j in range(4):
         for k in range(4):
-            A_pi_rs_traced_pp_here[i,j,k] = np.real(np.exp(1j * (A_pi_here[i,j] + A_pi_here[i,k])))
+            A_pi_rs_traced_pp_here[i,j,k] = np.exp(1j * (A_pi_here[i,j] + A_pi_here[i,k]))
 
 
-A_pi_rs_rsp_here = np.zeros((4,4,4,4))
+A_pi_rs_rsp_here = np.zeros((4,4,4,4), dtype=np.complex128)
 
 for i in range(4):
     for j in range(4):
         for k in range(4):
             for l in range(4):
-                A_pi_rs_rsp_here[i,j,k,l] = np.real(np.exp(1j * (A_pi_here[i,k] - A_pi_here[j,l])))
+                A_pi_rs_rsp_here[i,j,k,l] = np.exp(1j * (A_pi_here[i,k] - A_pi_here[j,l]))
 
 
-A_pi_rs_rsp_pp_here = np.zeros((4,4,4,4))
+A_pi_rs_rsp_pp_here = np.zeros((4,4,4,4), dtype=np.complex128)
 
 for i in range(4):
     for j in range(4):
         for k in range(4):
             for l in range(4):
-                A_pi_rs_rsp_pp_here[i,j,k,l] = np.real(np.exp(1j * (A_pi_here[i,k] + A_pi_here[j,l])))
+                A_pi_rs_rsp_pp_here[i,j,k,l] = np.exp(1j * (A_pi_here[i,k] + A_pi_here[j,l]))
 
 
 #region Hamiltonian Construction
@@ -85,7 +63,7 @@ def M_pi_mag_sub_AB(k, h, n, theta):
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4 * eta[alpha], ffact, piunitcell_here,
+    M = contract('jl, klj, ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell_here,
                  piunitcell_here)
     return M
 
