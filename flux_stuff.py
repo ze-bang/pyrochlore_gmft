@@ -146,8 +146,8 @@ def constructA_pi(Astart):
     A23 = A03
     A30 = -A00 + A10 + A20
     A31 = -A01 + A11 + A21
-    A32 = A00 + A01 + A02 - A20 - A21
-    A33 = A00 + A01 + A03 - A10 - A11
+    A32 = A22
+    A33 = A13
 
     return np.array([[A00, A01, A02, A03],
                      [A10, A11, A12, A13],

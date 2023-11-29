@@ -3,6 +3,7 @@ from pyrochlore_dispersion_pi import green_pi, green_pi_branch
 from pyrochlore_dispersion import green_zero_branch, green_zero
 import pyrochlore_dispersion_pi_gang_chen as pygang
 import pyrochlore_dispersion_pi_old as pypipyold
+import pyrochlore_general as pygen
 from misc_helper import *
 import matplotlib.pyplot as plt
 import pyrochlore_dispersion as py0
@@ -435,27 +436,6 @@ def SSSFGraph(A,B,d1, filename):
     plt.colorbar()
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
-    # GammaH = np.array([0, 0])
-    # LH =  np.array([1, 1])/2
-    # XH = np.array([0, 1])
-    # KH = np.array([3/4,0])
-    # UH = np.array([1 / 4, 1])
-    # UpH = np.array([1 / 4, -1])
-    #
-    # plt.plot([0],[0], marker='o', color='k')
-    # plt.plot(np.linspace(XH, UH, 2).T[0], np.linspace(XH, UH, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(UH, LH, 2).T[0], np.linspace(UH, LH, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(KH, LH, 2).T[0], np.linspace(KH, LH, 2).T[1], marker='o', color='k')
-    # plt.plot(np.linspace(KH, UpH, 2).T[0], np.linspace(KH, UpH, 2).T[1], color='k')
-    # plt.plot(np.linspace(-UH, UpH, 2).T[0], np.linspace(-UH, UpH, 2).T[1], color='k')
-    # plt.plot(np.linspace(-UH, -KH, 2).T[0], np.linspace(-UH, -KH, 2).T[1], color='k')
-    # plt.plot(np.linspace(-UpH, -KH, 2).T[0], np.linspace(-UpH, -KH, 2).T[1], color='k')
-    # plt.plot(np.linspace(-UpH, UH, 2).T[0], np.linspace(-UpH, UH, 2).T[1], color='k')
-    # plt.text(GammaH[0]+0.03,GammaH[1]+0.03, '$\Gamma$')
-    # plt.text(LH[0]+0.03,LH[1]+0.03, '$L$')
-    # plt.text(XH[0]+0.03,XH[1]+0.03, '$X$')
-    # plt.text(KH[0]+0.03,KH[1]+0.03, '$K$')
-    # plt.text(UH[0] + 0.03, UH[1] + 0.03, '$U$')
     plt.savefig(filename+".png")
     plt.clf()
 #endregion
@@ -588,7 +568,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi):
 #endregion
 
 #region two spinon continuum
-def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
+def TWOSPINCON(nK, h, n, Jxx, Jyy, Jzz, BZres, filename):
 
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -597,14 +577,14 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
     # if Jpm >= 0:
     #     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
     # else:
-    py0s = pypi.piFluxSolver(-2*Jpm, -2*Jpm, 1, BZres=BZres, h=h, n=n, kappa=1)
 
+    py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, kappa=2)
     py0s.solvemeanfield()
 
-    H = np.linspace(0, 1, nK)
-    L = np.linspace(0, 1, nK)
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = twospinon_gangchen(A, B).reshape((nK*nK,3))
+    K = hkltoK(A, B).reshape((nK*nK,3))
 
     n = len(K)/size
     left = int(rank*n)
@@ -630,6 +610,55 @@ def TWOSPINCON(nK, h, n, Jpm, BZres, filename):
         f2 = "Files/" + filename + "_upper"
         loweredge = recvbuf1[:,0]
         upperedge = recvbuf1[:,1]
+        loweredge = loweredge.reshape((nK, nK))
+        upperedge = upperedge.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', loweredge)
+        np.savetxt(f2 + '.txt', upperedge)
+        # d1 = np.loadtxt(f1+'.txt')
+        # d2 = np.loadtxt(f2 + '.txt')
+        TWOSPINONGRAPH(A, B, loweredge, f1)
+        TWOSPINONGRAPH(A, B, upperedge, f2)
+
+
+def TWOSPINCON_general(nK, h, n, Jxx, Jyy, Jzz, BZres, flux, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    # if Jpm >= 0:
+    #     py0s = py0.zeroFluxSolver(Jpm, BZres=BZres, h=h, n=n, kappa=1)
+    # else:
+
+    py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, kappa=2, flux=flux)
+    py0s.solvemeanfield()
+
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, L)
+    K = hkltoK(A, B).reshape((nK * nK, 3))
+
+    n = len(K) / size
+    left = int(rank * n)
+    right = int((rank + 1) * n)
+
+    currK = K[left:right, :]
+
+    sendbuf1 = py0s.minMaxCal(currK)
+
+    recvbuf1 = None
+
+    if rank == 0:
+        recvbuf1 = np.zeros((nK * nK, 2))
+
+    sendcounts = np.array(comm.gather(sendbuf1.shape[0] * sendbuf1.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendbuf1, recvbuf=(recvbuf1, sendcounts), root=0)
+
+    if rank == 0:
+        f1 = "Files/" + filename + "_lower"
+        f2 = "Files/" + filename + "_upper"
+        loweredge = recvbuf1[:, 0]
+        upperedge = recvbuf1[:, 1]
         loweredge = loweredge.reshape((nK, nK))
         upperedge = upperedge.reshape((nK, nK))
         np.savetxt(f1 + '.txt', loweredge)

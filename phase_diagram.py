@@ -7,6 +7,7 @@ import pyrochlore_general as pygen
 import pyrochlore_dispersion_pi_old as pypiold
 import pyrochlore_dispersion_pp00 as pypp00
 import pyrochlore_dispersion_pi_archived as pyarch
+import pyrochlore_dispersion_pi_gang_chen as pysung
 import netCDF4 as nc
 import warnings
 
@@ -33,6 +34,13 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, pi):
 
 def testdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
     py0s = pyarch.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
+    py0s.findLambda()
+    py0s.graph(False)
+    return py0s.MF
+
+def sungdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
+    Jpm = -(Jxx+Jyy)/4
+    py0s = pysung.piFluxSolver(Jpm, Jzz, kappa=kappa, graphres=graphres, BZres=BZres)
     py0s.findLambda()
     py0s.graph(False)
     return py0s.MF
@@ -197,10 +205,10 @@ def generalJPSweep(JPm, JPmax, nK, h, n, BZres, kappa, fluxs, filename):
     for i in range (nK):
         print("Jpm is now " + str(JP[i]))
         for j in range(len(fluxs)):
-            if (fluxs[j] == np.zeros(4)).all():
-                py0s = py0.zeroFluxSolver(-2 * JP[i], -2 * JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
-            else:
-                py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+            # if (fluxs[j] == np.zeros(4)).all():
+            #     py0s = py0.zeroFluxSolver(-2 * JP[i], -2 * JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+            # else:
+            py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
             py0s.solvemeanfield()
             GS[j, i] = py0s.condensed
             MFE[j, i] = py0s.MFE()
@@ -208,7 +216,43 @@ def generalJPSweep(JPm, JPmax, nK, h, n, BZres, kappa, fluxs, filename):
     for i in range(len(fluxs)):
         plt.plot(JP, MFE[i], label=str(fluxs[i]))
     plt.legend()
+    plt.xlabel(r'$J_\pm/J_{yy}$')
+    plt.ylabel(r'$\omega/J_{yy}$')
     plt.savefig(filename+'.png')
+    plt.clf()
+
+def comparePi(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+
+    JP = np.linspace(JPm, JPmax, nK)
+    h = hm
+    GS =  np.zeros((2, nK))
+    MFE = np.zeros((2, nK))
+
+    flux = np.ones(4)*np.pi
+    # for i in range (nH):
+    for i in range (nK):
+        print("JP is now " + str(JP[i]))
+        py0s = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+        py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s.solvemeanfield()
+        py.solvemeanfield()
+        GS[0, i] = py0s.condensed
+        MFE[0, i] = py0s.MFE()
+        GS[1, i] = py.condensed
+        MFE[1, i] = py.MFE()
+
+    plt.plot(JP, MFE[0], label = "old")
+    plt.plot(JP, MFE[1], label = "new")
+    plt.legend()
+    plt.xlabel(r'$h/J_{yy}$')
+    plt.ylabel(r'$\omega/J_{yy}$')
+    plt.savefig(filename+'.png')
+    plt.clf()
+
+    plt.plot(JP, MFE[1]-MFE[0])
+
+    plt.legend()
+    plt.savefig(filename+'_diff.png')
     plt.clf()
 
 def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
@@ -222,9 +266,9 @@ def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
         print("h is now " + str(h[i]))
         for j in range(len(fluxs)):
             if (fluxs[j] == np.zeros(4)).all():
-                py0s = py0.zeroFluxSolver(-2 * JP[i], -2 * JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+                py0s = py0.zeroFluxSolver(-2*JP, -2*JP, 1, h=h[i], n=n, kappa=kappa, BZres=BZres)
             else:
-                py0s = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
+                py0s = pygen.piFluxSolver(-2*JP, -2*JP, 1, h = h[i], n=n, kappa=kappa, BZres=BZres, flux=fluxs[j])
             py0s.solvemeanfield()
             GS[j, i] = py0s.condensed
             MFE[j, i] = py0s.MFE()
@@ -233,6 +277,8 @@ def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
         plt.plot(h, MFE[i], label=str(fluxs[i]))
 
     plt.legend()
+    plt.xlabel(r'$h/J_{yy}$')
+    plt.ylabel(r'$\omega/J_{yy}$')
     plt.savefig(filename+'.png')
     plt.clf()
 
