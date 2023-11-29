@@ -309,9 +309,12 @@ def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     return -Enow, Know
 
 def check_condensed(Jzz, lamM, M, kappa):
-    if rho_true(M, lamM+(1000/len(M))**2, Jzz)[0] < kappa:
-        return True
-    else:
+    try:
+        if rho_true(M, lamM+(680/len(M))**2, Jzz)[0] < kappa:
+            return True
+        else:
+            return False
+    except:
         return False
 
 def run(Jzz, lamM, M, kappa):
@@ -900,7 +903,8 @@ class zeroFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter > 4:
+            print(mfs, counter)
+            if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter >= 3:
                 break
             counter = counter + 1
         if do:

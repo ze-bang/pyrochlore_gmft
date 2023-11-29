@@ -6,7 +6,6 @@ import pyrochlore_dispersion_pi as pypi
 import pyrochlore_general as pygen
 import pyrochlore_dispersion_pi_old as pypiold
 import pyrochlore_dispersion_pp00 as pypp00
-import pyrochlore_dispersion_pi_archived as pyarch
 import pyrochlore_dispersion_pi_gang_chen as pysung
 import netCDF4 as nc
 import warnings
@@ -32,11 +31,11 @@ def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, pi):
     py0s.graph(False)
     return py0s.MF
 
-def testdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
-    py0s = pyarch.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
-    py0s.findLambda()
-    py0s.graph(False)
-    return py0s.MF
+# def testdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
+#     py0s = pyarch.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
+#     py0s.findLambda()
+#     py0s.graph(False)
+#     return py0s.MF
 
 def sungdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres):
     Jpm = -(Jxx+Jyy)/4
@@ -764,52 +763,68 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
     rectemp2 = None
+    rectemp3 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
-        rectemp1 = np.zeros((nK, nK), dtype=np.float64)
-        rectemp2 = np.zeros((nK, nK), dtype=np.float64)
-
+        rectemp1 = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+        rectemp3 = np.zeros(le, dtype=np.float64)
+    
     for i in range (currsizeK):
-        JPm = -(currJH[i][0] + currJH[i][1])/4
+        # JPm = -(currJH[i][0] + currJH[i][1])/4
         start = time.time()
-        if JPm >= 0:
-            py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-            py0s.solvemeanfield(1e-4)
+        py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+        py0s.solvemeanfield(1e-4)
+        pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+        pyps.solvemeanfield(1e-4)
+        GS = py0s.MFE()
+        GSp = pyps.MFE()
+        if GS < GSp:
+            # py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+            # py0s.solvemeanfield(1e-4)
             sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = py0s.xi
+            sendtemp3[i] = GS
         else:
-            pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-            pyps.solvemeanfield(1e-4)
+            # pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
+            # pyps.solvemeanfield(1e-4)
             sendtemp1[i] = pyps.gap()
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = pyps.xi
+            sendtemp3[i] = GSp
         end = time.time()
-        print("This iteration costs " + str(end-start))
+        print(currJH[i], JPm, "This iteration costs " + str(end-start))
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+    sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0)) 
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
     if rank == 0:
         rectemp = rectemp.reshape((nK,nK))
         rectemp1 = rectemp1.reshape((nK,nK))
         rectemp2 = rectemp2.reshape((nK,nK))
+        rectemp3 = rectemp3.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp2)
+        np.savetxt('Files/' + filename + '_MFE.txt', rectemp3)
         JP = np.linspace(JPm, JPmax, nK)
+
         graphMagPhase(JP, JP, rectemp1,'Files/' + filename + '_gap')
         plt.contourf(JP, JP, rectemp.T)
         plt.xlabel(r'$J_\pm/J_{y}$')
@@ -821,6 +836,12 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
         plt.xlabel(r'$J_\pm/J_{y}$')
         plt.ylabel(r'$h/J_{y}$')
         plt.savefig('Files/' + filename+'_xi.png')
+        plt.clf()
+
+        plt.contourf(JP, JP, rectemp3.T)
+        plt.xlabel(r'$J_\pm/J_{y}$')
+        plt.ylabel(r'$h/J_{y}$')
+        plt.savefig('Files/' + filename+'_MFE.png')
         plt.clf()
         # ncfilename = 'Files/' + filename + '_q_condensed.nc'
         # with nc.Dataset(ncfilename, "w") as dataset:

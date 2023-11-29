@@ -63,22 +63,24 @@ import warnings
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()
 
-TWOSPINCON(100, 0, h111, 0.2, 0.2, 1, 20, 'TSC_PI_PSG')
+# TWOSPINCON(100, 0, h111, 0.2, 0.2, 1, 20, 'TSC_PI_PSG')
 
-TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.ones(4)*np.pi, 'TSC_PI_GENERAL')
+# TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.ones(4)*np.pi, 'TSC_PI_GENERAL')
 
-fluxs = np.array([[0, 0, 0, 0],
-                  [np.pi, np.pi, np.pi, np.pi],
-                  [np.pi/4, -3*np.pi/4, np.pi/4, np.pi/4]])
+# fluxs = np.array([[0, 0, 0, 0],
+#                   [np.pi, np.pi, np.pi, np.pi],
+#                   [np.pi/4, -3*np.pi/4, np.pi/4, np.pi/4]])
 
 # # PhaseMagtestJP(-0.05, 0.05, 25,  0, 0.3, 25, h110, 26,2, '0_1')
-generalJPSweep(-0.05, 0.05, 25, 0, h110, 26, 2, fluxs, '01')
-generalHSweep(0, 0, 0.3, 25, h111, 26, 2, fluxs, 'test_111_1')
-#
-fluxs = np.array([[0, 0, 0, 0],
-                  [np.pi, np.pi, np.pi, np.pi],
-                  [np.pi, np.pi, 0, 0]])
+# generalJPSweep(-0.05, 0.05, 25, 0, h110, 26, 2, fluxs, '01')
+# generalHSweep(0, 0, 0.3, 25, h111, 26, 2, fluxs, 'test_111_1')
+# #
+# fluxs = np.array([[0, 0, 0, 0],
+#                   [np.pi, np.pi, np.pi, np.pi],
+#                   [np.pi, np.pi, 0, 0]])
 
-generalJPSweep(-0.05, 0.05, 25, 0, h110, 26, 2, fluxs, '0_pp00')
-generalHSweep(0, 0, 0.3, 25, h110, 26, 2, fluxs, 'test_110_1')
-PhaseMagtestH(0, 0, 0,  0, 0.3, 25, h110, 26,2, 'test1_110_1')
+# generalJPSweep(-0.05, 0.05, 25, 0, h110, 26, 2, fluxs, '0_pp00')
+# generalHSweep(0, 0, 0.3, 25, h110, 26, 2, fluxs, 'test_110_1')
+# PhaseMagtestH(0, 0, 0,  0, 0.3, 25, h110, 26,2, 'test1_110_1')
+
+findXYZPhase(-1, 1, 5, 26, 2, "XYZ_0_field")

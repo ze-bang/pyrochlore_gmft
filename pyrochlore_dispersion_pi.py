@@ -318,9 +318,12 @@ def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 
 def check_condensed(Jzz, lamM, M, kappa):
-    if rho_true(Jzz, M, lamM+(1000/len(M))**2)[0] < kappa:
-        return True
-    else:
+    try:
+        if rho_true(Jzz, M, lamM+(680/len(M))**2)[0] < kappa:
+            return True
+        else:
+            return False
+    except:
         return False
 
 def run(Jzz, lamM, M, kappa):
@@ -973,8 +976,8 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            # print(mfs, counter)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter > 4:
+            print(mfs, counter)
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 3:
                 break
             counter = counter + 1
         if do:
@@ -1031,9 +1034,15 @@ class piFluxSolver:
             warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
+        start = time.time()
         minLams, K, MF = self.findminLam(chi, chi0, xi)
+        end = time.time()
+        print('Finding minimum lambda costs ' + str(end-start))
         self.minLams = minLams
+        start = time.time()
         lams = self.findLambda(MF, minLams)
+        end = time.time()
+        print('Finding lambda costs ' + str(end-start))
         l = len(K)
         self.set_condensed(minLams, lams, l)
         self.set_delta(K, MF, minLams, lams, l)
