@@ -320,13 +320,15 @@ def check_condensed(Jzz, lamM, M, kappa):
 def run(Jzz, lamM, M, kappa):
     temp = np.copy(lamM)
     a = 1.3
-    try:
-        while rho_true(M, temp, Jzz)[0] > kappa:
-            a = a + 0.1
-            temp = a * temp
-        return temp
-    except:
-        return 4*temp
+    while True:
+        a = a + 0.1
+        temp = a * temp
+        try:
+            if rho_true(M, temp, Jzz)[0] < kappa:
+                break
+        except:
+            pass
+    return temp
 
 def findLambda_zero(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
@@ -548,13 +550,14 @@ def maxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, K):
         temp[i] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,-1] + maxs)
     return temp
 
-def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, K):
+def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     temp = np.zeros((len(q),2))
-    maxs = np.sqrt(2 * Jzz * E_zero_true(lams, K,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
+    E = np.sqrt(2 * Jzz * E_zero_true(lams, K,eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
+    mins = E[:, 0]
+    maxs = E[:,-1]
     for i in range(len(q)):
-        stuff = np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0]) + maxs
-        temp[i,0] = np.min(stuff)
-        temp[i,1] = np.max(stuff)
+        temp[i, 0] = np.min(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,0] + mins)
+        temp[i, 1] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,-1] + maxs)
     return temp
 
 
@@ -1012,7 +1015,9 @@ class zeroFluxSolver:
     def rho(self, lams):
         return rho_true(self.MF, lams, self.Jzz)
 
-
+    def minMaxCal(self, K):
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+                         self.chi, self.chi0, self.xi)
     def graphAlg(self, show):
         calAlgDispersion(self.lams, self.Jzz, self.h)
         if show:

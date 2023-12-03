@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 import warnings
 from misc_helper import *
 from flux_stuff import *
+from numpy.testing import assert_almost_equal, assert_allclose
 
 # Here, magnetic field is applied at the 110 direction. In which case,
 # we need to make the unit cell (0,0,0), (1, 0, 0), (0, 1, 0), (1,1,0)
-# So we need to suffle this a bit.
+# So we need to shuffle this a bit.
 
 piunitcell_here = piunitcell
 
@@ -264,14 +265,15 @@ def check_condensed(Jzz, lamM, M, kappa):
 def run(Jzz, lamM, M, kappa):
     temp = np.copy(lamM)
     a = 1.3
-    try:
-        while rho_true(Jzz, M, temp)[0] > kappa:
-            a = a + 0.1
-            temp = a * temp
-        return temp
-    except:
-        return 4*temp
-
+    while True:
+        a = a + 0.1
+        temp = a * temp
+        try:
+            if rho_true(Jzz, M, temp)[0] < kappa:
+                break
+        except:
+            pass
+    return temp
 def findlambda_pi(M, Jzz, kappa, tol, lamM):
     warnings.filterwarnings("error")
     if lamM[0] == 0:

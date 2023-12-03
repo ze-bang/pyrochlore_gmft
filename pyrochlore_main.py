@@ -55,17 +55,17 @@ import warnings
 #
 #
 # flux = np.array([1,1,1,1])*np.pi
-# flux = np.zeros(4)
-# C = generaldispersion(-0.05, -0.05, 1, 0, h111, 2, 20, 25, flux)
-# plt.show()
+flux = np.zeros(4)
 #
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
+# compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
+
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()
 
-# TWOSPINCON(100, 0, h111, 0.2, 0.2, 1, 20, 'TSC_PI_PSG')
+# TWOSPINCON_0(100, 0, h111, 0.2, 0.2, 1, 20, 'TSC_0_PSG')
 
-# TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.ones(4)*np.pi, 'TSC_PI_GENERAL')
+TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.zeros(4), 'TSC_0_GENERAL')
 
 # fluxs = np.array([[0, 0, 0, 0],
 #                   [np.pi, np.pi, np.pi, np.pi],
@@ -83,4 +83,4 @@ import warnings
 # generalHSweep(0, 0, 0.3, 25, h110, 26, 2, fluxs, 'test_110_1')
 # PhaseMagtestH(0, 0, 0,  0, 0.3, 25, h110, 26,2, 'test1_110_1')
 
-findXYZPhase(-1, 1, 5, 26, 2, "XYZ_0_field")
+# findXYZPhase(-1, 1, 5, 26, 2, "XYZ_0_field")
