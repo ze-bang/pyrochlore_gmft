@@ -299,11 +299,12 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
                     lamMin[i] = lams[i]
                 else:
                     lamMax[i] = lams[i]
+            if (abs(lamlast - lams) < 1e-15).all() or ((np.absolute(rhoguess - kappa) <= tol).all()):
+                break
         except:
             lamMin = lams
         # print(lams, lamMax-lamMin, rhoguess)
-        if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
-            break
+
     warnings.resetwarnings()
     # print(lams)
     return lams

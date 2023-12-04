@@ -356,11 +356,12 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
                      lamMin[i] = lams[i]
                  else:
                      lamMax[i] = lams[i]
+             if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
+                 break
         except:
              # print(e)
              lamMin = lams
-        if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
-            break
+
         # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
     warnings.resetwarnings()
     # print(lams)
