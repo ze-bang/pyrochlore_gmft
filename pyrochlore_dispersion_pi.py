@@ -351,7 +351,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         else:
             lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
 
-    print(lamMin, lamMax)
+    # print(lamMin, lamMax)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
     while True:
@@ -980,7 +980,7 @@ class piFluxSolver:
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
             print(mfs, counter)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 3:
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 6:
                 break
             counter = counter + 1
         if do:
