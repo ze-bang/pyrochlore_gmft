@@ -979,8 +979,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            print(mfs, counter)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 6:
+            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 8:
                 break
             counter = counter + 1
         if do:
@@ -1037,15 +1036,9 @@ class piFluxSolver:
             warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
-        start = time.time()
         minLams, K, MF = self.findminLam(chi, chi0, xi)
-        end = time.time()
-        print('Finding minimum lambda costs ' + str(end-start))
         self.minLams = minLams
-        start = time.time()
         lams = self.findLambda(MF, minLams)
-        end = time.time()
-        print('Finding lambda costs ' + str(end-start))
         l = len(K)
         self.set_condensed(minLams, lams, l)
         self.set_delta(K, MF, minLams, lams, l)

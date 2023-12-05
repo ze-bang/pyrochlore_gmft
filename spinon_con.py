@@ -487,7 +487,7 @@ def SSSFGraph(A,B,d1, filename):
 #region SSSF DSSF Admin
 
 
-def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, tol, which, flux=np.zeros(4)):
+def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
 
     if which == 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n)
@@ -500,7 +500,10 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, tol, which, flux=np.zeros(4)):
 
     kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    e = np.arange(py0s.TWOSPINON_GAP(kk)-0.5, py0s.TWOSPINON_MAX(kk)+0.5, nE)
+    emin = py0s.TWOSPINON_GAP(kk)-0.5
+    emax = py0s.TWOSPINON_MAX(kk)+0.5
+    e = np.arange(emin, emax, nE)
+    tol = nE/2
 
 
     if not MPI.Is_initialized():
@@ -510,7 +513,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, tol, which, flux=np.zeros(4)):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    if not pi:
+    if which == 0:
         d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
     else:
         d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
@@ -538,19 +541,6 @@ def samplegraph(nK, filenames):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-
-
-    # maxs = np.zeros(3)
-    # mins = np.ones(3)*20
-    # for i in range(len(filenames)):
-    #     f1 = "Files/" + filenames[i] + "_local"
-    #     f2 = "Files/" + filenames[i] + "_global"
-    #     f3 = "Files/" + filenames[i] + "_NSF"
-    #     d1 = np.loadtxt(f1+'.txt')
-    #     d2 = np.loadtxt(f2 + '.txt')
-    #     d3 = np.loadtxt(f3 + '.txt')
-    #     d = [d1,d2,d3]
-
     for i in range(len(filenames)):
         f1 = "Files/" + filenames[i] + "_local"
         f2 = "Files/" + filenames[i] + "_global"
@@ -588,7 +578,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi, flux=np.zeros(4)):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    if not pi:
+    if pi == 0:
         d1, d2, d3, d4, d5, d6 = graph_SSSF_zero(py0s, K, v, rank, size)
     else:
         d1, d2, d3, d4, d5, d6 = graph_SSSF_pi(py0s, K, v, rank, size)

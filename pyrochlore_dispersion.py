@@ -708,70 +708,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ, E1, Emag, EAB, EAA, EBB)
     return E
-
-
-# def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, q, rho):
-#
-#     chi = chi * np.array([notrace, notrace])
-#     chi0 = chi0 * np.ones(2)
-#     xi = xi * np.array([xipicell_zero[0], xipicell_zero[0]])
-#
-#     k = np.copy(q)
-#     k = k.reshape(3,)
-#
-#     ffact = contract('k, jlk->jl', k, NNminus)
-#     ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
-#
-#     E1 = contract('jl, jl->', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
-#
-#     zmag = contract('k,ik->i',n,z)
-#
-#     ffact = contract('k, jk->j', k, NN)
-#     ffact = np.exp(1j*ffact)
-#
-#     Emag = contract('u, u->',-1/4*h*ffact*(np.cos(theta)-1j*np.sin(theta)), rho[0] * rho[1]* zmag)
-#
-#     Emag = 2*np.real(np.sum(Emag))
-#
-#     ffact = contract('k, jk->j', k, NN)
-#     ffact = np.exp(1j * ffact)
-#     tempxb = xi[1]
-#     tempxa = xi[0]
-#
-#     M1a = contract('jl, j, l->', notrace, Jpmpm / 4 * ffact, tempxa * rho[0] * rho[1])
-#     M1b = contract('jl, l, j->', notrace, Jpmpm / 4 * ffact, tempxa* rho[0] * rho[1])
-#     M2a = contract('jl, j, l->', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
-#     M2b = contract('jl, l, j->', notrace, Jpmpm / 4 * ffact, np.conj(tempxb)* rho[0] * rho[1])
-#     EAB = M1a + M1b + M2a + M2b
-#     EAB = 2 * np.real(EAB)
-#
-#     ffact = contract('k, jlk->jl', k, NNminus)
-#     ffact = np.exp(-1j * ffact)
-#     beta = 1
-#     tempchi = chi[beta]
-#     tempchi0 = chi0[beta]
-#
-#     M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[0] * rho[0])
-#     M2 = contract('jl, jl->', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[0] * rho[0])
-#
-#     EAA = np.real(M1+M2)
-#
-#     ffact = contract('k, jlk->jl', k, NNminus)
-#     ffact = np.exp(1j * ffact)
-#     beta = 0
-#     tempchi = chi[beta]
-#     tempchi0 = chi0[beta]
-#
-#     M1 = contract('jl, jl->', notrace, Jpmpm / 8 * tempchi * rho[1] * rho[1])
-#     M2 = contract('jl, jl->', notrace, Jpmpm / 8 * ffact * tempchi0 * rho[1] * rho[1])
-#
-#     EBB = np.real(M1+M2)
-#
-#     # print(E1, Emag, EAB, EAA, EBB)
-#     E = Emag + E1 + EAB + EAA + EBB
-#     return np.real(E)
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     chi = chi * np.array([notrace, notrace])
