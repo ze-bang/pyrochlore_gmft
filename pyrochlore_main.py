@@ -1,3 +1,5 @@
+import os
+os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 import pyrochlore_dispersion
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
@@ -60,7 +62,7 @@ import warnings
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
 
-DSSF(1, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
+DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()
