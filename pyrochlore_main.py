@@ -54,13 +54,16 @@ import warnings
 # plt.show()
 #
 #
-# flux = np.array([1,1,1,1])*np.pi
+flux = np.array([1,1,1,1])*np.pi
 # flux = np.zeros(4)
+
+D = generaldispersion(0.2, 0.2, 1, 0, h110, 2, 20, 25, flux)
+plt.show()
 #
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
 
-DSSF(1, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
+# DSSF(1, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()

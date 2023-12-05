@@ -747,6 +747,8 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos,
     # print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
     return E / 4
 
+
+
 class piFluxSolver:
 
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20,
@@ -806,7 +808,6 @@ class piFluxSolver:
         self.graphres = graphres
         self.bigB = np.concatenate((genBZ(BZres, 1/2), symK))
         self.bigB = np.unique(self.bigB, axis=0)
-        # self.bigB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)
         self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
@@ -819,7 +820,10 @@ class piFluxSolver:
         self.delta = np.zeros(2)
         self.rhos = np.zeros(8)
 
-    # alpha = 1 for A = -1 for B
+        #goal is to also iterate through the different fluxes. One way to expediate this process is by looking at how
+        #magnetic field will affect each hex ring.
+        #Ring 012, 123, 230, 301 are perpendicular to
+        #[1, 1, -1], [-1,-1,-1], [-1, 1, 1], [1,-1, 1]
 
     def findLambda(self, MF, minLams):
         return findlambda_pi(MF, self.Jzz, self.kappa, self.tol, minLams)

@@ -464,3 +464,21 @@ def beta1(t):
 
 def beta2(t):
     return 0.99**t
+
+
+def size_non_h(A):
+    sum = 0
+    for i in range(len(A)):
+        sum = sum + len(A[i])
+    return sum
+
+def non_h_unique(A):
+    B = []
+    for i in range(len(A)):
+        unique = True
+        for j in range(i+1, len(A)):
+            if (A[i] == A[j]).all():
+                unique = False
+        if unique:
+            B = B + [A[i]]
+    return B

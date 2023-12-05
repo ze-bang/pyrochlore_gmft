@@ -502,6 +502,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
                          , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
     emin = py0s.TWOSPINON_GAP(kk)-0.5
     emax = py0s.TWOSPINON_MAX(kk)+0.5
+    print(emin, emax)
     e = np.arange(emin, emax, nE)
     tol = nE/2
 
