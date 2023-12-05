@@ -108,6 +108,49 @@ def DSSF_pi(q, omega, pyp0, tol):
     Sxx = np.mean(contract('ijk->i',Sxx))
     return Szz, Sglobalzz, Sxx, Sglobalxx
 
+
+def Spm_pi_DSSF(Ks, Qs, q, omega, tol, pyp0, lam = 0):
+
+    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
+    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+
+    deltapm = delta(tempE, tempQ, omega, tol)
+
+    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
+    ffactpm = np.exp(1j * ffact)
+    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
+    ffactpp = np.exp(1j * ffact)
+
+    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
+                   deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+                   ffactpm) / 4
+
+    Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
+                   deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                   ffactpp) / 4
+
+
+    return Spm, Spp
+
+
+def DSSF_pi(q, omega, pyp0, tol):
+    Ks = pyp0.bigB
+    Qs = Ks - q
+
+
+    Spm, Spp = Spm_pi_DSSF(Ks, Qs, q, omega, tol, pyp0)
+
+    Szz = (np.real(Spm) + np.real(Spp))/2/4
+    Sxx = (np.real(Spm) - np.real(Spp))/2/4
+
+    Sglobalzz = np.mean(contract('ijk,jk->i', Szz, g(q)))
+    Szz = np.mean(contract('ijk->i',Szz))
+
+    Sglobalxx = np.mean(contract('ijk,jk->i', Sxx, g(q)))
+    Sxx = np.mean(contract('ijk->i',Sxx))
+    return Szz, Sglobalzz, Sxx, Sglobalxx
+
+
 def graph_DSSF_zero(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
     n = len(E)/size
@@ -444,12 +487,14 @@ def SSSFGraph(A,B,d1, filename):
 #region SSSF DSSF Admin
 
 
-def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, tol, pi):
+def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, tol, which, flux=np.zeros(4)):
 
-    if not pi:
+    if which == 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n)
-    else:
+    elif which == 1:
         py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
 
     py0s.solvemeanfield()
 
@@ -520,11 +565,13 @@ def samplegraph(nK, filenames):
             axs[j, i].set_xlabel(r'$(H,H,0)$')
     plt.show()
 
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi):
-    if not pi:
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi, flux=np.zeros(4)):
+    if pi == 0:
         py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n)
-    else:
+    elif pi == 1:
         py0s = pypi.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n)
+    else:
+        py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
 
     py0s.solvemeanfield()
     

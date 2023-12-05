@@ -65,7 +65,7 @@ flux = np.zeros(4)
 
 # TWOSPINCON_0(100, 0, h111, 0.2, 0.2, 1, 20, 'TSC_0_PSG')
 
-TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.zeros(4), 'TSC_0_GENERAL')
+# TWOSPINCON_general(100, 0, h111, 0.2, 0.2, 1, 20, np.zeros(4), 'TSC_0_GENERAL')
 
 # fluxs = np.array([[0, 0, 0, 0],
 #                   [np.pi, np.pi, np.pi, np.pi],

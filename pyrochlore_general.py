@@ -5,8 +5,7 @@ from flux_stuff import *
 from numpy.testing import assert_almost_equal, assert_allclose
 
 # Here, magnetic field is applied at the 110 direction. In which case,
-# we need to make the unit cell (0,0,0), (1, 0, 0), (0, 1, 0), (1,1,0)
-# So we need to shuffle this a bit.
+
 
 piunitcell_here = piunitcell
 
