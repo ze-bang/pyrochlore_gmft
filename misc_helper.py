@@ -122,7 +122,10 @@ def g(q):
     M = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
-            M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            if not np.dot(q,q) == 0:
+                M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            else:
+                M[i, j] = np.dot(z[i], z[j])
     return M
 
 def gNSF(v):
