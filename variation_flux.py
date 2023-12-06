@@ -40,15 +40,21 @@ def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres):
     init = True
     while True:
         if not init:
-            gradlen = gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux) - gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux)
+            gradnow = gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux)
+            gradlen = gradnow - gradlast
             try:
                 step = abs(np.dot(flux - fluxlast, gradlen)) / np.linalg.norm(gradlen) ** 2
             except:
                 step = 0
-
-        fluxlast = np.copy(flux)
-        flux = flux - step * gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux)
-        init = False
+            fluxlast = np.copy(flux)
+            gradlast = np.copy(gradnow)
+            flux = flux - step * gradlast
+            init = False
+        else:
+            fluxlast = np.copy(flux)
+            gradlast = gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux)
+            flux = flux - step * gradlast
+            init = False
         if (abs(flux - fluxlast) < 1e-7).all():
             break
     return flux
