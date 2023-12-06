@@ -57,7 +57,10 @@ import warnings
 #
 #
 # flux = np.array([1,1,1,1])*np.pi
-# flux = np.zeros(4)
+# # flux = np.zeros(4)
+#
+# D = generaldispersion(0.2, 0.2, 1, 0, h110, 2, 20, 25, flux)
+# plt.show()
 #
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')

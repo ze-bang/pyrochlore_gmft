@@ -10,14 +10,6 @@ import pyrochlore_dispersion_pi_gang_chen as pysung
 import netCDF4 as nc
 import warnings
 
-# JP, zgaps, zlambdas, zGS, pgaps, plambdas, pGS = np.loadtxt("test2.txt", delimiter=' ')
-#
-# plt.plot(JP, 0.5-zlambdas, JP, 0.5-plambdas)
-# plt.legend(["Zero Flux", "Pi Flux"])
-# plt.ylabel(r'$GS$')
-# plt.xlabel(r'$J_{\pm}/J_{zz}$')
-# plt.show()
-
 
 def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, pi):
     if pi == 0:

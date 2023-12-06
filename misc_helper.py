@@ -122,7 +122,10 @@ def g(q):
     M = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
-            M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            if not np.dot(q,q) == 0:
+                M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            else:
+                M[i, j] = np.dot(z[i], z[j])
     return M
 
 def gNSF(v):
@@ -464,3 +467,21 @@ def beta1(t):
 
 def beta2(t):
     return 0.99**t
+
+
+def size_non_h(A):
+    sum = 0
+    for i in range(len(A)):
+        sum = sum + len(A[i])
+    return sum
+
+def non_h_unique(A):
+    B = []
+    for i in range(len(A)):
+        unique = True
+        for j in range(i+1, len(A)):
+            if (A[i] == A[j]).all():
+                unique = False
+        if unique:
+            B = B + [A[i]]
+    return B
