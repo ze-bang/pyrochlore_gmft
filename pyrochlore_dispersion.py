@@ -657,6 +657,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = green_zero(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k,NNminus)
+
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
@@ -718,7 +719,10 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
 
-    E1 = contract('jl, ijl->i', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+    E1A = contract('jl, ijl->i', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+    E1B = contract('jl, ijl->i', notrace, -Jpm / 4 * ffactA * rho[1] * rho[1])
+
+    E1 = np.real(np.mean(E1A + E1B))
 
     zmag = contract('k,ik->i',n,z)
 

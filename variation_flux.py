@@ -59,3 +59,4 @@ def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres):
             break
     return flux
 
+

@@ -259,13 +259,14 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range (nK):
         print("JP is now " + str(JP[i]))
         py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
-        py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
         py.solvemeanfield()
         GS[0, i] = py0s.condensed
         MFE[0, i] = py0s.MFE()
         GS[1, i] = py.condensed
         MFE[1, i] = py.MFE()
+        print(MFE[0,i], MFE[1,i])
 
     plt.plot(JP, MFE[0], label = "old")
     plt.plot(JP, MFE[1], label = "new")
