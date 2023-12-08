@@ -1209,7 +1209,6 @@ class piFluxSolver:
             rho[i] = rho_true(self.Jzz, MF, T[i])[0]
         print(rho_true_zeroed(minLams[0], self.Jzz, MF, self.kappa), rho_true_zeroed(minLams[0] + (1000/len(MF))**2, self.Jzz, MF, self.kappa))
         plt.plot(T, rho)
-        plt.show()
 
     def magnetization(self):
         green = self.green_pi(self.bigTemp)
