@@ -689,9 +689,9 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
 
-    E1A = np.mean(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 0:4, 0:4], ffactA,
+    E1A = np.mean(contract('jl, klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 0:4, 0:4], ffactA,
                  piunitcell, piunitcell), axis=0)
-    E1B = np.mean(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 4:8, 4:8], ffactB,
+    E1B = np.mean(contract('jl, klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced / 4, green[:, 4:8, 4:8], ffactB,
                  piunitcell, piunitcell), axis=0)
 
     # print(E1A)

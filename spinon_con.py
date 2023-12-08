@@ -498,11 +498,11 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
 
     py0s.solvemeanfield()
 
-    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
-                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    emin = py0s.TWOSPINON_GAP(kk)-0.5
-    emax = py0s.TWOSPINON_MAX(kk)+0.5
+    kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
+    emin = py0s.TWOSPINON_GAP(kk)-0.1
+    emax = py0s.TWOSPINON_MAX(kk)+0.1
     print(emin, emax)
+
     e = np.arange(emin, emax, nE)
     tol = nE/2
 
