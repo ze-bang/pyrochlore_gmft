@@ -639,10 +639,6 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 
 def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
-    # totaltask = nK*nH
-    # increment = totaltask/50
-    # count = 0
-    #
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -749,22 +745,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
-
-        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        # with nc.Dataset(ncfilename, "w") as dataset:
-        #     # Create dimensions
-        #     dataset.createDimension("Jpm", nK)
-        #     dataset.createDimension("h", nH)
-        #     dataset.createDimension("n", leng)
-        #     dataset.createDimension("xyz", 3)
-
-        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
-
-        #     # Assign data to variables
-        #     temp_var[:, :, :, :] = rectemp2
-
-        #     # Add attributes
-        #     temp_var.long_name = "Condensed Wave Vectors"
 
 
 
