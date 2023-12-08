@@ -508,10 +508,9 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     mins = A[:,0]
     maxs = A[:,-1]
     for i in range(len(q)):
-        temp[i, 0] = np.min(
-            np.sqrt(2 * Jzz * E_pi(lams, K - q[i], eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:, 0] + mins)
-        temp[i, 1] = np.max(
-            np.sqrt(2 * Jzz * E_pi(lams, K - q[i], eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:, -1] + maxs)
+        tt = np.sqrt(2 * Jzz * E_pi(lams, K - q[i], eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
+        temp[i, 0] = np.min(tt[:, 0] + mins)
+        temp[i, 1] = np.max(tt[:, -1] + maxs)
     return temp
 
 
@@ -986,10 +985,6 @@ class piFluxSolver:
         self.lams = lam
         self.MF = MF
         self.bigTemp = K
-        self.chi, self.chi0, self.xi = mfs
-        self.lams = lam
-        self.MF = MF
-        self.bigTemp = K
         return 0
 
     def qvec(self):
@@ -1152,38 +1147,38 @@ class piFluxSolver:
             plt.show()
 
     def minCal(self, K):
-        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta,
                       self.chi, self.chi0, self.xi)
 
     def maxCal(self, K):
-        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta,
                       self.chi, self.chi0, self.xi)
 
     def minMaxCal(self, K):
-        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta,
                          self.chi, self.chi0, self.xi)
 
     def EMAX(self):
         return np.sqrt(2 * self.Jzz * EMAX(self.MF, self.lams))
 
     def TWOSPINON_GAP(self, k):
-        return np.min(
-            minCal(self.lams, k, self.Jzz, self.Jpmpm, self.Jpm, self.eta, self.h, self.n, self.bigB, self.theta,
-                   self.chi, self.chi0, self.xi))
+        return np.min(self.minCal(k))
 
     def TWOSPINON_MAX(self, k):
-        return np.max(
-            maxCal(self.lams, k, self.Jzz, self.Jpmpm, self.Jpm, self.eta, self.h, self.n, self.bigB, self.theta,
-                   self.chi, self.chi0, self.xi))
+        return np.max(self.maxCal(k))
+
+    def TWOSPINON_DOMAIN(self, k):
+        A = self.minMaxCal(k)
+        return np.min(A[:,0]), np.max(A[:,1])
 
     def graph_loweredge(self, show):
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi,
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta, self.chi,
                   self.chi0, self.xi)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi,
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta, self.chi,
                   self.chi0, self.xi)
         if show:
             plt.show()

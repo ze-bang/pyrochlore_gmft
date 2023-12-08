@@ -497,13 +497,9 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
         py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
 
     py0s.solvemeanfield()
-
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
-    emin = py0s.TWOSPINON_GAP(kk)-0.1
-    emax = py0s.TWOSPINON_MAX(kk)+0.1
-    print(emin, emax)
-
-    e = np.arange(emin, emax, nE)
+    emin, emax = py0s.TWOSPINON_DOMAIN(kk)
+    e = np.arange(max(emin-0.1, 0), emax+0.1, nE)
     tol = nE/2
 
 

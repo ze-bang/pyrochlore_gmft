@@ -557,8 +557,9 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     mins = E[:, 0]
     maxs = E[:,-1]
     for i in range(len(q)):
-        temp[i, 0] = np.min(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,0] + mins)
-        temp[i, 1] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,-1] + maxs)
+        tt = np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
+        temp[i, 0] = np.min(tt[:,0] + mins)
+        temp[i, 1] = np.max(tt[:,-1] + maxs)
     return temp
 
 
@@ -957,9 +958,6 @@ class zeroFluxSolver:
     def rho(self, lams):
         return rho_true(self.MF, lams, self.Jzz)
 
-    def minMaxCal(self, K):
-        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
-                         self.chi, self.chi0, self.xi)
     def graphAlg(self, show):
         calAlgDispersion(self.lams, self.Jzz, self.h)
         if show:
@@ -978,29 +976,33 @@ class zeroFluxSolver:
         return EMAX(self.MF, self.lams, self.Jzz)
 
     def graph_loweredge(self, show):
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB)
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB)
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
         if show:
             plt.show()
 
-    # def minCal(self, K):
-    #     return minCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
-    #
-    # def maxCal(self, K):
-    #     return maxCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
-    #
-    # def minMaxCal(self, K):
-    #     return minMaxCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
+    def minCal(self, K):
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
+
+    def maxCal(self, K):
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
+
+    def minMaxCal(self, K):
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta, self.chi, self.chi0, self.xi)
 
     def TWOSPINON_GAP(self, k):
-        return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB))
+        return np.min(self.minCal(k))
 
     def TWOSPINON_MAX(self, k):
-        return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB))
+        return np.max(self.maxCal(k))
+
+    def TWOSPINON_DOMAIN(self, k):
+        A = self.minMaxCal(k)
+        return np.min(A[:,0]), np.max(A[:,1])
 
     def green_zero(self, k, lam=np.zeros(2)):
         E, V = self.LV_zero(k, lam)
