@@ -511,9 +511,9 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
     rank = comm.Get_rank()
 
     if which == 0:
-        d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, kk, tol, rank, size)
     else:
-        d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, kk, tol, rank, size)
 
     if rank == 0:
 
