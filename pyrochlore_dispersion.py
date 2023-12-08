@@ -126,10 +126,18 @@ def green_f(M, lams, omega):
 def rho_true(M, lams, Jzz):
     temp = M + np.diag(np.repeat(lams,2))
     E,V = np.linalg.eigh(temp)
+    E = np.sqrt(2*Jzz*E)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
+    Ep = contract('ijk, ik->ij', Vt, Jzz/E)
+
     return np.mean(Ep)*np.ones(2)
 
+def rho_true_zeroed(M, lams, Jzz, kappa):
+    temp = M + np.diag(np.repeat(lams,2))
+    E,V = np.linalg.eigh(temp)
+    Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
+    return (np.mean(Ep) - kappa)*np.ones(2)
 
 def rho_true_site(M, lams, Jzz):
     temp = M + np.diag(np.repeat(lams,2))
@@ -229,7 +237,6 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
-
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -341,7 +348,8 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
             lamMax = lamM+(680/len(M))**2
         else:
             lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
-
+        # lamMin = np.zeros(2)
+        # lamMax = np.ones(2)*50
     # print(lamMin, lamMax)
     lams = lamMax
 
@@ -356,13 +364,14 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
                      lamMin[i] = lams[i]
                  else:
                      lamMax[i] = lams[i]
-             if (abs(lamlast-lams)<1e-15).all() or ((np.absolute(rhoguess-kappa)<=tol).all()):
+             # print([lams, lamlast, lamMin, lamMax, lamMax - lamMin, rhoguess])
+             if (abs(lamlast-lams)<1e-15).all() or (np.absolute(rhoguess-kappa)<=tol).all():
                  break
         except:
              # print(e)
              lamMin = lams
 
-        # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
+
     warnings.resetwarnings()
     # print(lams)
     return lams
@@ -557,8 +566,9 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi):
     mins = E[:, 0]
     maxs = E[:,-1]
     for i in range(len(q)):
-        temp[i, 0] = np.min(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,0] + mins)
-        temp[i, 1] = np.max(np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])[:,-1] + maxs)
+        tt = np.sqrt(2 * Jzz * E_zero_true(lams, K-q[i],eta,Jpm, Jpmpm, h, n, theta, chi, chi0, xi)[0])
+        temp[i, 0] = np.min(tt[:,0] + mins)
+        temp[i, 1] = np.max(tt[:,-1] + maxs)
     return temp
 
 
@@ -657,10 +667,13 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = green_zero(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k,NNminus)
+
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
+
+    # temp = contract('jl, i, ijl->ijl', notrace, -Jpm/4 * green[:,0,0], ffactA)
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
@@ -708,6 +721,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
+    print(EQ, E1, Emag, EAB, EAA, EBB, E)
     return E
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
@@ -718,7 +732,10 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact) + np.exp(1j * ffact)
 
-    E1 = contract('jl, ijl->i', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+    E1A = contract('jl, ijl->i', notrace, -Jpm/4 * ffactA * rho[0] * rho[0])
+    E1B = contract('jl, ijl->i', notrace, -Jpm / 4 * ffactA * rho[1] * rho[1])
+
+    E1 = np.real(np.mean(E1A + E1B))
 
     zmag = contract('k,ik->i',n,z)
 
@@ -844,7 +861,6 @@ class zeroFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            print(mfs, counter)
             if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter >= 4:
                 break
             counter = counter + 1
@@ -953,9 +969,6 @@ class zeroFluxSolver:
     def rho(self, lams):
         return rho_true(self.MF, lams, self.Jzz)
 
-    def minMaxCal(self, K):
-        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
-                         self.chi, self.chi0, self.xi)
     def graphAlg(self, show):
         calAlgDispersion(self.lams, self.Jzz, self.h)
         if show:
@@ -974,29 +987,33 @@ class zeroFluxSolver:
         return EMAX(self.MF, self.lams, self.Jzz)
 
     def graph_loweredge(self, show):
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB)
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB)
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
         if show:
             plt.show()
 
-    # def minCal(self, K):
-    #     return minCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
-    #
-    # def maxCal(self, K):
-    #     return maxCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
-    #
-    # def minMaxCal(self, K):
-    #     return minMaxCal(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, K)
+    def minCal(self, K):
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
+
+    def maxCal(self, K):
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigTemp)
+
+    def minMaxCal(self, K):
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigTemp, self.theta, self.chi, self.chi0, self.xi)
 
     def TWOSPINON_GAP(self, k):
-        return np.min(minCal(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB))
+        return np.min(self.minCal(k))
 
     def TWOSPINON_MAX(self, k):
-        return np.max(maxCal(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.bigB))
+        return np.max(self.maxCal(k))
+
+    def TWOSPINON_DOMAIN(self, k):
+        A = self.minMaxCal(k)
+        return np.min(A[:,0]), np.max(A[:,1])
 
     def green_zero(self, k, lam=np.zeros(2)):
         E, V = self.LV_zero(k, lam)
@@ -1007,7 +1024,16 @@ class zeroFluxSolver:
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_zero_branch(E, V, self.Jzz), E
-
+    def print_rho(self):
+        minLams, K, MF = self.findminLam(self.chi, self.chi0, self.xi)
+        E, V = np.linalg.eigh(MF)
+        a = min(E[:,0])
+        print(a, a+minLams[0], self.lams)
+        T = np.linspace(self.lams*0.8, 1.2*self.lams, 50)
+        rho = np.zeros(50)
+        for i in range(50):
+            rho[i] = rho_true(MF, T[i], self.Jzz)[0]
+        plt.plot(T, rho)
     def mag_con(self):
         return np.mean(E_zero_fixed(np.zeros(2), self.MF)[0])
 

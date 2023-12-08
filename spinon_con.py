@@ -497,13 +497,9 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
         py0s = pygen.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
 
     py0s.solvemeanfield()
-
-    kk = np.concatenate((np.linspace(gGamma1, gX, len(GammaX)), np.linspace(gX, gW1, len(XW)), np.linspace(gW1, gK, len(WK))
-                         , np.linspace(gK,gGamma2, len(KGamma)), np.linspace(gGamma2, gL, len(GammaL)), np.linspace(gL, gU, len(LU)), np.linspace(gU, gW2, len(UW))))
-    emin = py0s.TWOSPINON_GAP(kk)-0.5
-    emax = py0s.TWOSPINON_MAX(kk)+0.5
-    print(emin, emax)
-    e = np.arange(emin, emax, nE)
+    kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
+    emin, emax = py0s.TWOSPINON_DOMAIN(kk)
+    e = np.arange(max(emin-0.1, 0), emax+0.1, nE)
     tol = nE/2
 
 
@@ -515,9 +511,9 @@ def DSSF(nE, Jxx, Jyy, Jzz, h,n, filename, BZres, which, flux=np.zeros(4)):
     rank = comm.Get_rank()
 
     if which == 0:
-        d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_zero(py0s, e, kk, tol, rank, size)
     else:
-        d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW)), tol, rank, size)
+        d1, d2, d3, d4 = graph_DSSF_pi(py0s, e, kk, tol, rank, size)
 
     if rank == 0:
 

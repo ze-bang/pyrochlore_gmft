@@ -259,13 +259,14 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     for i in range (nK):
         print("JP is now " + str(JP[i]))
         py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
-        py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h = h, n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
         py.solvemeanfield()
         GS[0, i] = py0s.condensed
         MFE[0, i] = py0s.MFE()
         GS[1, i] = py.condensed
         MFE[1, i] = py.MFE()
+        print(MFE[0,i], MFE[1,i])
 
     plt.plot(JP, MFE[0], label = "old")
     plt.plot(JP, MFE[1], label = "new")
@@ -637,11 +638,7 @@ def findPhaseMag_zero(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         #     temp_var.long_name = "Condensed Wave Vectors"
 
 
-def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
-    # totaltask = nK*nH
-    # increment = totaltask/50
-    # count = 0
-    #
+def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -684,7 +681,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         start = time.time()
         py0s = py0.zeroFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
         pyps = pypi.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
-        pyp0 = pypp00.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres)
+        pyp0 = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()
@@ -748,22 +745,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
-
-        # ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        # with nc.Dataset(ncfilename, "w") as dataset:
-        #     # Create dimensions
-        #     dataset.createDimension("Jpm", nK)
-        #     dataset.createDimension("h", nH)
-        #     dataset.createDimension("n", leng)
-        #     dataset.createDimension("xyz", 3)
-
-        #     temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "n", "xyz"))
-
-        #     # Assign data to variables
-        #     temp_var[:, :, :, :] = rectemp2
-
-        #     # Add attributes
-        #     temp_var.long_name = "Condensed Wave Vectors"
 
 
 
