@@ -12,6 +12,7 @@ from misc_helper import *
 # DSSF(0.1, 0.2, h1b10,-0.1, "DSSF_-0.1_h1b10=0.2_crude", 35, 0.2)
 
 
+
 findXYZPhase(0, 1, 50, 26, 2, "XYZ_0_field_upper_quadrant")
 #findPhaseMag(-0.5, 0.1, 100, 0, 2, 100, h001, 26, 2, "phase_001_kappa=2_crude_faster")
 
