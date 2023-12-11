@@ -50,40 +50,40 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # start = time.time()
 # C = graphdispersion(-0.01, -0.01, 1, 0, h111, 1, 2, 20, 25, 0)
 # plt.show()
-Jpm=0.04
-B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
-# C = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 1)
-# D = graphdispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, 1)
-plt.show()
-# #
-# #
-# flux = np.array([1,1,1,1])*np.pi
-flux = np.zeros(4)
-D = generaldispersion(-2*Jpm, -2*Jpm, 1, 0, h110, 2, 20, 25, flux)
-plt.show()
+# Jpm=0.04
+# B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
+# # C = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 1)
+# # D = graphdispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, 1)
+# plt.show()
+# # #
+# # #
+# # flux = np.array([1,1,1,1])*np.pi
+# flux = np.zeros(4)
+# D = generaldispersion(-2*Jpm, -2*Jpm, 1, 0, h110, 2, 20, 25, flux)
+# plt.show()
 
-Jxx = -0.08
-Jyy = -0.08
-Jzz = 1
-kappa = 2
-BZres = 26
-h = 0
-n = h111
+# Jxx = -0.08
+# Jyy = -0.08
+# Jzz = 1
+# kappa = 2
+# BZres = 26
+# h = 0
+# n = h111
 
-py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
-pyg = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
-py0s.solvemeanfield()
-pyg.solvemeanfield()
-py0s.graph(False)
-pyg.graph(False)
-plt.show()
-py0s.MFE()
-pyg.MFE()
-A = py0s.green_zero(py0s.bigB, py0s.lams)
-B = pyg.green_pi(py0s.bigB, py0s.lams)
-C = py0.rho_true(py0s.MF, py0s.lams, py0s.Jzz)
-D = pygen.rho_true(pyg.Jzz, pyg.MF, pyg.lams)
-print(C, D)
+# py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
+# pyg = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
+# py0s.solvemeanfield()
+# pyg.solvemeanfield()
+# py0s.graph(False)
+# pyg.graph(False)
+# plt.show()
+# py0s.MFE()
+# pyg.MFE()
+# A = py0s.green_zero(py0s.bigB, py0s.lams)
+# B = pyg.green_pi(py0s.bigB, py0s.lams)
+# C = py0.rho_true(py0s.MF, py0s.lams, py0s.Jzz)
+# D = pygen.rho_true(pyg.Jzz, pyg.MF, pyg.lams)
+# print(C, D)
 # py0s.print_rho()
 # pyg.print_rho()
 # plt.show()
@@ -91,7 +91,7 @@ print(C, D)
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
 
-# DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
+DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 40, 2)
 
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()
