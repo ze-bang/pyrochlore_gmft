@@ -13,7 +13,7 @@ from misc_helper import *
 
 
 
-findXYZPhase(0.2, 0.8, 0, 0.2, 50, 35, 2, "XYZ_0_flux_non_condensed")
+findXYZPhase(0, 1, 50, 35, 2, "XYZ_0_field_upper_quadrant")
 #findPhaseMag(-0.5, 0.1, 100, 0, 2, 100, h001, 26, 2, "phase_001_kappa=2_crude_faster")
 
 # findPhaseMag_pi(-0.5, 0.1, 300, 0, 4, 150, h1b10, 25, 2, "phase_1b10_kappa=2_pi_flux")
