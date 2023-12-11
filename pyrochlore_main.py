@@ -58,10 +58,10 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # # #
 # # #
 # # flux = np.array([1,1,1,1])*np.pi
-# flux = np.zeros(4)
-# D = generaldispersion(-2*Jpm, -2*Jpm, 1, 0, h110, 2, 20, 25, flux)
-# plt.show()
-
+flux = np.zeros(4)
+D = generaldispersion(0.06, 0.016, 1, 0, h110, 2, 20, 25, flux)
+plt.show()
+#
 # Jxx = -0.08
 # Jyy = -0.08
 # Jzz = 1
@@ -69,7 +69,7 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # BZres = 26
 # h = 0
 # n = h111
-
+#
 # py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
 # pyg = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
 # py0s.solvemeanfield()
@@ -91,7 +91,7 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
 
-DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 35, 2)
+# DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
 # sungdispersion(0.2, 0.2, 25, 0, h110, 2, 20, 26)
 # plt.show()

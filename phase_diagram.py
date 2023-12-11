@@ -258,7 +258,7 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # for i in range (nH):
     for i in range (nK):
         print("JP is now " + str(JP[i]))
-        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres)
+        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=2*BZres)
         py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
         py.solvemeanfield()
@@ -748,7 +748,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
 
-def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
+def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     # totaltask = nK*nH
     # increment = totaltask/50
     # count = 0
@@ -757,7 +757,7 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    JH = np.mgrid[JPm:JPmax:1j*nK, JPm:JPmax:1j*nK].reshape(2,-1).T
+    JH = np.mgrid[JPm:JPmax:1j*nK, JP1m:JP1max:1j*nK].reshape(2,-1).T
     le = len(JH)
     nb = le/size
 
