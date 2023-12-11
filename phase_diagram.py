@@ -787,7 +787,7 @@ def findXYZPhase(JPm, JPmax, nK, BZres, kappa, filename):
     for i in range (currsizeK):
         # JPm = -(currJH[i][0] + currJH[i][1])/4
         start = time.time()
-        py0s = pygen.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        py0s = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
         py0s.solvemeanfield(1e-4)
         pyps = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         pyps.solvemeanfield(1e-4)

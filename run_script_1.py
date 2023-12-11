@@ -1,3 +1,5 @@
+import os
+os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_dispersion_pi as pygang
