@@ -50,11 +50,11 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # start = time.time()
 # C = graphdispersion(-0.01, -0.01, 1, 0, h111, 1, 2, 20, 25, 0)
 # plt.show()
-Jpm=0.01
-B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 25, 0)
+Jpm=0.04
+B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
 # C = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 1)
 # D = graphdispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, 1)
-# plt.show()
+plt.show()
 # #
 # #
 # flux = np.array([1,1,1,1])*np.pi

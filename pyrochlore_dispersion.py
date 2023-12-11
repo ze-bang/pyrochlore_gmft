@@ -126,10 +126,8 @@ def green_f(M, lams, omega):
 def rho_true(M, lams, Jzz):
     temp = M + np.diag(np.repeat(lams,2))
     E,V = np.linalg.eigh(temp)
-    E = np.sqrt(2*Jzz*E)
     Vt = np.real(contract('ijk,ijk->ijk',V, np.conj(V)))
-    Ep = contract('ijk, ik->ij', Vt, Jzz/E)
-
+    Ep = contract('ijk, ik->ij', Vt, Jzz/np.sqrt(2*Jzz*E))
     return np.mean(Ep)*np.ones(2)
 
 def rho_true_zeroed(M, lams, Jzz, kappa):
@@ -348,8 +346,7 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
             lamMax = lamM+(680/len(M))**2
         else:
             lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
-        # lamMin = np.zeros(2)
-        # lamMax = np.ones(2)*50
+
     # print(lamMin, lamMax)
     lams = lamMax
 
@@ -364,14 +361,13 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
                      lamMin[i] = lams[i]
                  else:
                      lamMax[i] = lams[i]
-             # print([lams, lamlast, lamMin, lamMax, lamMax - lamMin, rhoguess])
-             if (abs(lamlast-lams)<1e-15).all() or (np.absolute(rhoguess-kappa)<=tol).all():
+             if (abs(lamlast-lams)<1e-15).all() or ((rhoguess-kappa)<=tol).all():
                  break
         except:
              # print(e)
              lamMin = lams
 
-
+        # print([lams, lamMin, lamMax,lamMax-lamMin, rhoguess])
     warnings.resetwarnings()
     # print(lams)
     return lams
@@ -673,7 +669,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E/2), axis=0))/2)
 
-    # temp = contract('jl, i, ijl->ijl', notrace, -Jpm/4 * green[:,0,0], ffactA)
+    temp = contract('jl, i, ijl->ijl', notrace, -Jpm/4 * green[:,0,0], ffactA)
 
     E1A = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,0,0], ffactA), axis=0)
     E1B = np.mean(contract('jl, i, ijl->i', notrace, -Jpm/4 * green[:,1,1], ffactB), axis=0)
