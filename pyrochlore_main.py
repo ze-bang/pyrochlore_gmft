@@ -57,9 +57,10 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # plt.show()
 # # #
 # # #
-# # flux = np.array([1,1,1,1])*np.pi
-flux = np.zeros(4)
-D = generaldispersion(0.06, 0.016, 1, 0, h110, 2, 20, 25, flux)
+flux = np.array([1,1,1,1])*np.pi
+# flux = np.zeros(4)
+# D = generaldispersion(-0.1, -0.1, 1, 0, h110, 2, 20, 25, flux)
+D = generaldispersion(0.6, 1, 1, 0, h110, 2, 20, 25, flux)
 plt.show()
 #
 # Jxx = -0.08

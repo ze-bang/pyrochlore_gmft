@@ -485,3 +485,6 @@ def non_h_unique(A):
         if unique:
             B = B + [A[i]]
     return B
+
+
+deltamin = 250
