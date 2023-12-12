@@ -819,7 +819,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
             sendtemp5[i] = pyps.chi0
 
         end = time.time()
-        print(currJH[i], JPm, "This iteration costs " + str(end-start))
+        # print(currJH[i], JPm, "This iteration costs " + str(end-start))
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))

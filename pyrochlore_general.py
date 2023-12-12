@@ -615,10 +615,6 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     ffactB = np.exp(1j * ffact)
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
-
-    temp = contract('jl,klj, iab, ijl, jka, lkb->ijl', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
-                 piunitcell, piunitcell)
-
     E1A = np.mean(
         contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
                  piunitcell, piunitcell), axis=0)
@@ -683,7 +679,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
+    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
