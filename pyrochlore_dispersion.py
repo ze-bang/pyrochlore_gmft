@@ -315,7 +315,7 @@ def findminLam_momentum(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
 
 def check_condensed(Jzz, lamM, M, kappa):
     try:
-        if rho_true(M, lamM+(680/len(M))**2, Jzz)[0] < kappa:
+        if rho_true(M, lamM+(deltamin/len(M))**2, Jzz)[0] < kappa:
             return True
         else:
             return False
@@ -343,9 +343,9 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
     else:
         # lamMin = np.copy(lamM)
         # if check_condensed(Jzz, lamM, M, kappa):
-        #     lamMax = lamM+(680/len(M))**2
+        #     lamMax = lamM+(deltamin/len(M))**2
         # else:
-        #     lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
+        #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
         lamMin = np.zeros(2)
         lamMax = np.ones(2)*10
     # print(lamMin, lamMax)
@@ -835,7 +835,7 @@ class zeroFluxSolver:
 
     def calmeanfield(self, lam, MF, K):
         if self.condensed:
-            # cond = self.ifcondense(K, lam, (680 / len(K)) ** 2)
+            # cond = self.ifcondense(K, lam, (deltamin / len(K)) ** 2)
             # Kps = np.delete(K, cond, axis=0)
             # MFp = np.delete(MF, cond, axis=0)
 
@@ -885,14 +885,14 @@ class zeroFluxSolver:
         return c
 
     def set_condensed(self, lams, minLams, l):
-        self.condensed = (lams[0]-minLams[0]) < (680/l)**2
+        self.condensed = (lams[0]-minLams[0]) < (deltamin/l)**2
         # self.condensed = self.gap(MF, lams) < 0.05574196166518704
         # return np.sqrt(lams[0] - minLams[0])*l
 
     #0.05574196166518704
     def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:
-            cond = self.ifcondense(K, lams, (680/l)**2)
+            cond = self.ifcondense(K, lams, (deltamin/l)**2)
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
             try:
