@@ -345,12 +345,13 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         lamMin = np.zeros(2)
         lamMax = np.ones(2)
     else:
-        lamMin = np.copy(lamM)
-        if check_condensed(Jzz, lamM, M, kappa):
-            lamMax = lamM+(680/len(M))**2
-        else:
-            lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
-
+        # lamMin = np.copy(lamM)
+        # if check_condensed(Jzz, lamM, M, kappa):
+        #     lamMax = lamM+(680/len(M))**2
+        # else:
+        #     lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
+        lamMin = np.zeros(2)
+        lamMax = np.ones(2)*10
     # print(lamMin, lamMax)
     lams = lamMax
     # rhoguess = rho_true(Jzz, M, lams)
