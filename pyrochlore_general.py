@@ -258,13 +258,11 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
 
     a = np.argmin(Enow)
     Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
-    for i in range(3):
-        if Know[0,i] > np.pi:
-            Know[0,i] = Know[0,i] - 2*np.pi
+    Know = np.where(Know>np.pi, Know-2*np.pi, Know)
     return -Enow[a], Know
 
 def check_condensed(Jzz, lamM, M, kappa):
-    if rho_true(Jzz, M, lamM+(1000/len(M))**2)[0] < kappa:
+    if rho_true(Jzz, M, lamM+(deltamin/len(M))**2)[0] < kappa:
         return True
     else:
         return False
@@ -289,9 +287,9 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
     else:
         lamMin = np.copy(lamM)
         if check_condensed(Jzz, lamM, M, kappa):
-            lamMax = lamM+(680/len(M))**2
+            lamMax = lamM+(deltamin/len(M))**2
         else:
-            lamMax = run(Jzz, lamM+(680/len(M))**2, M, kappa)
+            lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
         # lamMin = np.zeros(2)
         # lamMax = np.ones(2)*50
     lams = lamMax
@@ -615,10 +613,6 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     ffactB = np.exp(1j * ffact)
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
-
-    temp = contract('jl,klj, iab, ijl, jka, lkb->ijl', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
-                 piunitcell, piunitcell)
-
     E1A = np.mean(
         contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
                  piunitcell, piunitcell), axis=0)
@@ -683,7 +677,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
+    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -846,7 +840,7 @@ class piFluxSolver:
     def calmeanfield(self, lams, MF, K):
 
         if self.condensed:
-            # cond = self.ifcondense(K, lams, (680/len(K))**2)
+            # cond = self.ifcondense(K, lams, (deltamin/len(K))**2)
             # Kps = np.delete(K, cond, axis=0)
             # MFp = np.delete(MF, cond, axis=0)
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
@@ -873,6 +867,7 @@ class piFluxSolver:
             counter = counter + 1
         if do:
             lam, K, MF = self.condensation_check(mfs)
+        # print(mfs)
         self.chi, self.chi0, self.xi = mfs
         self.lams = lam
         self.MF = MF
@@ -903,11 +898,11 @@ class piFluxSolver:
     def set_condensed(self, minLams, lams, l):
         A = -minLams[0] + lams[0]
         # B = (2e2 / len(self.bigB)) ** 2
-        self.condensed = A < (680/ l) ** 2
+        self.condensed = A < (deltamin/ l) ** 2
 
     def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:
-            cond = self.ifcondense(K, lams, (680/ l) ** 2)
+            cond = self.ifcondense(K, lams, (deltamin/ l) ** 2)
             MFp = np.delete(MF, cond, axis=0)
             warnings.filterwarnings('error')
             try:
