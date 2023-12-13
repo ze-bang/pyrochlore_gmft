@@ -791,12 +791,10 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         rectemp5 = np.zeros(le, dtype=np.float64)
 
     for i in range (currsizeK):
-        # JPm = -(currJH[i][0] + currJH[i][1])/4
-        start = time.time()
         py0s = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
-        py0s.solvemeanfield(1e-4)
+        py0s.solvemeanfield()
         pyps = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
-        pyps.solvemeanfield(1e-4)
+        pyps.solvemeanfield()
         GS = py0s.MFE()
         GSp = pyps.MFE()
         if GS < GSp:
