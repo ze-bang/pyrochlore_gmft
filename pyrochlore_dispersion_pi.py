@@ -350,7 +350,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         #     lamMax = lamM+(deltamin/len(M))**2
         # else:
         #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
-        lamMin = np.zeros(2)
+        lamMin = np.copy(lamM)
         lamMax = np.ones(2)*10
     # print(lamMin, lamMax)
     lams = lamMax

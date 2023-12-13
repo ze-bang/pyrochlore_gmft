@@ -346,7 +346,7 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
         #     lamMax = lamM+(deltamin/len(M))**2
         # else:
         #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
-        lamMin = lamM
+        lamMin = np.copy(lamM)
         lamMax = np.ones(2)*10
     lams = lamMax
 

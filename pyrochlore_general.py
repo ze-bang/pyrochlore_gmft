@@ -215,7 +215,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
             Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
             init = False
-            # print(Enow[i], Know[i])
             if abs(Elast-Enow[i])<1e-12:
                 stuff = False
     warnings.resetwarnings()
@@ -284,7 +283,7 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         #     lamMax = lamM+(deltamin/len(M))**2
         # else:
         #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
-        lamMin = np.zeros(2)
+        lamMin = np.copy(lamM)
         lamMax = np.ones(2)*10
     lams = lamMax
     while True:
