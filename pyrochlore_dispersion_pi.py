@@ -1022,7 +1022,7 @@ class piFluxSolver:
             try:
                 self.delta = np.sqrt(lams - minLams) * len(self.bigTemp)
             except:
-                self.delta = 0
+                self.delta = np.zeros(2)
             try:
                 self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp, lams))
             except:

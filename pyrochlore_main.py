@@ -52,15 +52,16 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # plt.show()
 # Jpm=0.04
 # B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
-# # C = graphdispersion(-0.01, -0.01, 1, 0, h111, 2, 20, 25, 1)
-# # D = graphdispersion(0.2, 0.2, 1, 0, h111, 2, 20, 25, 1)
+# C = graphdispersion(-0.10, -0.10, 1, 0, h111, 2, 20, 25, 0)
+# plt.show()
+# D = graphdispersion(1, 1, 1, 0, h111, 2, 20, 25, 1)
 # plt.show()
 # # #
 # # #
 flux = np.array([1,1,1,1])*np.pi
 # flux = np.zeros(4)
 # D = generaldispersion(-0.1, -0.1, 1, 0, h110, 2, 20, 25, flux)
-D = generaldispersion(0.6, 1, 1, 0, h110, 2, 20, 25, flux)
+D = generaldispersion(0.08, 0.08, 1, 0, h110, 2, 20, 25, flux)
 plt.show()
 #
 # Jxx = -0.08

@@ -83,16 +83,10 @@ def M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
 
     dummy = np.zeros((len(k), 4, 4))
 
-    # MAk = M_pi_sub_intrahopping_AA(k, 0, eta, Jpm, A_pi_rs_traced_here)
-    # MBk = M_pi_sub_intrahopping_AA(k, 1, eta, Jpm, A_pi_rs_traced_here)
-    # MAnk = M_pi_sub_intrahopping_AA(-k, 0, eta, Jpm, A_pi_rs_traced_here)
-    # MBnk = M_pi_sub_intrahopping_AA(-k, 1, eta, Jpm, A_pi_rs_traced_here)
-
-    t = M_pi_alg_0_flux(k,Jpm)
-    MAk = t
-    MBk = t
-    MAnk = t
-    MBnk = t
+    MAk = M_pi_sub_intrahopping_AA(k, 0, eta, Jpm, A_pi_rs_traced_here)
+    MBk = M_pi_sub_intrahopping_AA(k, 1, eta, Jpm, A_pi_rs_traced_here)
+    MAnk = M_pi_sub_intrahopping_AA(-k, 0, eta, Jpm, A_pi_rs_traced_here)
+    MBnk = M_pi_sub_intrahopping_AA(-k, 1, eta, Jpm, A_pi_rs_traced_here)
 
     temp = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here)
     temp1 = M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
@@ -769,16 +763,13 @@ class piFluxSolver:
         self.chi0 = 0.18
 
         self.A_pi_here = constructA_pi(Ainit(flux))
-        # print(self.A_pi_here)
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
             for j in range(4):
                 for k in range(4):
                     self.A_pi_rs_traced_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] - self.A_pi_here[i, k]))
-
         self.A_pi_rs_traced_pp_here = np.zeros((4, 4, 4), dtype=np.complex128)
-
         for i in range(4):
             for j in range(4):
                 for k in range(4):
@@ -909,7 +900,7 @@ class piFluxSolver:
             try:
                 self.delta = np.sqrt(lams - minLams) * len(self.bigTemp)
             except:
-                self.delta = 0
+                self.delta = np.zeros(2)
             try:
                 self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MFp, lams))
             except:

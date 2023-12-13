@@ -346,9 +346,8 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
         #     lamMax = lamM+(deltamin/len(M))**2
         # else:
         #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
-        lamMin = np.zeros(2)
+        lamMin = lamM
         lamMax = np.ones(2)*10
-    # print(lamMin, lamMax)
     lams = lamMax
 
     while True:
@@ -362,7 +361,7 @@ def findLambda_zero(M, Jzz, kappa, tol, lamM):
                      lamMin[i] = lams[i]
                  else:
                      lamMax[i] = lams[i]
-             if (abs(lamlast-lams)<1e-15).all() or ((rhoguess-kappa)<=tol).all():
+             if (abs(lamlast-lams)<1e-15).all() or (np.absolute(rhoguess-kappa)<=tol).all():
                  break
         except:
              # print(e)
@@ -898,7 +897,7 @@ class zeroFluxSolver:
             try:
                 self.delta = np.sqrt(lams - minLams) * len(self.bigTemp)
             except:
-                self.delta = 0
+                self.delta = np.zeros(2)
             try:
                 self.rhos = np.sqrt(self.kappa - rho_true_site(MFp, lams, self.Jzz))
             except:

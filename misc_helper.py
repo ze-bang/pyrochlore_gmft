@@ -487,4 +487,4 @@ def non_h_unique(A):
     return B
 
 
-deltamin = 250
+deltamin = 100
