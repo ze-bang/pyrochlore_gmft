@@ -744,6 +744,20 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
+
+        ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        with nc.Dataset(ncfilename, "w") as dataset:
+            # Create dimensions
+            dataset.createDimension("Jpm", nK)
+            dataset.createDimension("h", nH)
+            dataset.createDimension("xyz", 3)
+            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
+            # Assign data to variables
+            temp_var[:, :, :, :] = rectemp5
+            # Add attributes
+            temp_var.long_name = "Condensed Wave Vectors"
+
+
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)

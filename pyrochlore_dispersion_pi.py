@@ -980,6 +980,7 @@ class piFluxSolver:
             if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 30:
                 break
             counter = counter + 1
+
         lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
         self.lams = lam
