@@ -660,6 +660,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros((currsizeK,3), dtype=np.float64)
 
 
     rectemp = None
@@ -667,7 +668,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
-
+    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
@@ -675,7 +676,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
-
+        rectemp5 = np.zeros((le, 3), dtype=np.float64)
 
     for i in range(currsizeK):
         start = time.time()
@@ -695,18 +696,21 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
+            sendtemp5[i] = py0s.qmin.reshape(3,-1)
         elif a == 1:
             sendtemp1[i] = pyp0.gap()
             sendtemp[i] = pyp0.condensed + 5
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
+            sendtemp5[i] = py0s.qmin.reshape(3,-1)
         else:
             sendtemp1[i] = pyp0.gap()
             sendtemp[i] = pyp0.condensed + 10
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
+            sendtemp5[i] = py0s.qmin.reshape(3,-1)
         end = time.time()
         print("This iteration costs " + str(end - start))
 #
@@ -717,12 +721,14 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
@@ -732,7 +738,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
-
+        rectemp5 = rectemp5.reshape((nK, nH, 3))
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
@@ -745,6 +751,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+
 
 
 
