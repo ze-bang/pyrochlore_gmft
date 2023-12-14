@@ -58,11 +58,11 @@ D = graphdispersion(0.6, 1, 1, 0, h111, 2, 20, 25, 1)
 plt.show()
 # # #
 # # #
-flux = np.array([1,1,1,1])*np.pi
+# flux = np.array([1,1,1,1])*np.pi
 # flux = np.zeros(4)
 # D = generaldispersion(-0.1, -0.1, 1, 0, h110, 2, 20, 25, flux)
-D = generaldispersion(0.6, 1, 1, 0, h110, 2, 20, 25, flux)
-plt.show()
+# D = generaldispersion(0.6, 1, 1, 0, h110, 2, 20, 25, flux)
+# plt.show()
 #
 # Jxx = -0.08
 # Jyy = -0.08

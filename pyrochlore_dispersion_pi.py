@@ -396,6 +396,8 @@ def chiCal(lams, M, K, Jzz):
     M1 = np.mean(A, axis=0)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
+    chi = chi * np.sign(chi)
+    chi0 = chi0 * np.sign(chi0)
     return chi, chi0
 
 def xiCal(lams, M, K, Jzz, ns):
@@ -408,7 +410,7 @@ def xiCal(lams, M, K, Jzz, ns):
     M1 = np.mean(contract('ika, ij,jka->ikj', green[:, 0:4, 4:8], ffactA, piunitcell), axis=0)
 
     M1 = M1[0, 0]
-    return np.real(M1)
+    return np.real(np.abs(M1))
 
 def calmeanfield(lams, M, K, Jzz, ns):
     chi, chi0 = chiCal(lams, M, K, Jzz)
@@ -425,6 +427,8 @@ def chiCalC(rhos, K):
     M1 = np.mean(A, axis=0)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
+    chi = chi * np.sign(chi)
+    chi0 = chi0 * np.sign(chi0)
     return chi, chi0
 
 def xiCalC(rhos, K):
@@ -435,7 +439,7 @@ def xiCalC(rhos, K):
     M1 = np.mean(contract('k, a, ij,jka->ikj', rhos[0:4], rhos[4:8], ffactA, piunitcell), axis=0)
 
     M1 = M1[0, 0]
-    return np.real(M1)
+    return np.real(np.abs(M1))
 
 def calmeanfieldC(rhos, K):
     chi, chi0 = chiCalC(rhos, K)
@@ -977,7 +981,7 @@ class piFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            if (abs(mfs+mfslast) < tol).all() or (abs(mfs-mfslast) < tol).all() or counter >= 30:
+            if (abs(mfs-mfslast) < tol).all() or counter >= 30:
                 break
             counter = counter + 1
 
@@ -1011,8 +1015,8 @@ class piFluxSolver:
 
     def set_condensed(self, minLams, lams, l):
         A = -minLams[0] + lams[0]
-        # B = (2e2 / len(self.bigB)) ** 2
-        self.condensed = A < (deltamin/ l) ** 2
+        self.condensed = A < (deltamin /l) ** 2
+
 
     def set_delta(self, K, MF, minLams, lams, l):
         if self.condensed:

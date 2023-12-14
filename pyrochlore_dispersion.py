@@ -427,14 +427,14 @@ def chiCal(lams, M, K, Jzz):
 
     M1 = np.mean(contract('i, jl, ijl->ijl', green[:,2,0], notrace, ffactB), axis=0)
     M1 = M1[0,3]
-    return M1
+    return M1*np.sign(M1)
 
 def chi0Cal(lams, M, Jzz):
     E, V = E_zero_fixed(lams, M)
     E = np.sqrt(2*Jzz*E)
     green = green_zero(E, V, Jzz)
     chi0A = np.mean(green[:, 0, 2])
-    return chi0A
+    return chi0A*np.sign(chi0A)
 
 def xiCal(lams, M, K, Jzz, ns):
     E, V = E_zero_fixed(lams, M)
@@ -444,7 +444,7 @@ def xiCal(lams, M, K, Jzz, ns):
     ffactA = np.exp(1j * ffact)
     A = contract('i, ij->ij', green[:,0,1], ffactA)
     A = np.mean(A, axis=0)
-    return np.real(A[0])
+    return np.real(np.abs(A[0]))
 
 def calmeanfield(lams, M, K, Jzz, ns):
     return chiCal(lams, M, K, Jzz), chi0Cal(lams, M, Jzz), xiCal(lams, M, K, Jzz, ns)
@@ -458,18 +458,18 @@ def chiCalC(rhos, K):
     ffactB = np.exp(1j * ffact)
     M1 = np.mean(contract('jl, ijl->ijl', rhos[0] * rhos[0] * notrace, ffactB), axis=0)
     M1 = M1[0,3]
-    return M1
+    return M1*np.sign(M1)
 
 def chi0CalC(rhos):
     chi0A = rhos[0] * rhos[0]
-    return chi0A
+    return chi0A*np.sign(chi0A)
 
 def xiCalC(rhos, K):
     ffact = contract('ik,jk->ij', K, NN)
     ffactA = np.exp(1j * ffact)
     A = rhos[0] * rhos[1] * ffactA
     A = np.mean(A, axis=0)
-    return np.real(A[0])
+    return np.real(np.abs(A[0]))
 
 def calmeanfieldC(rhos, K):
     return chiCalC(rhos, K), chi0CalC(rhos), xiCalC(rhos, K)
@@ -857,7 +857,7 @@ class zeroFluxSolver:
             mfslast = np.copy(mfs)
             lam, K, MF = self.condensation_check(mfs)
             mfs = self.calmeanfield(lam, MF, K)
-            if (abs(mfs + mfslast) < tol).all() or (abs(mfs - mfslast) < tol).all() or counter >= 30:
+            if (abs(mfs - mfslast) < tol).all() or counter >= 30:
                 break
             counter = counter + 1
         lam, K, MF = self.condensation_check(mfs)
