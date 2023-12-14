@@ -54,7 +54,7 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
 # C = graphdispersion(-0.10, -0.10, 1, 0, h111, 2, 20, 25, 0)
 # plt.show()
-D = graphdispersion(0.6, 1, 1, 0, h111, 2, 20, 25, 1)
+D = graphdispersion(1, 1, 1, 0, h111, 2, 20, 25, 1)
 plt.show()
 # # #
 # # #

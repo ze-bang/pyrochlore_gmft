@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import warnings
 from misc_helper import *
 from flux_stuff import *
 import pyrochlore_general as pygen
@@ -69,8 +68,7 @@ def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres, fluxstart):
             init = False
     return flux, pm
 
-def flux_converge(h, hat):
-    n = 4
+def flux_converge(h, hat, n):
     fluxs = np.zeros((n,4))
     mfes = np.zeros(n)
     for i in range(n):
@@ -90,9 +88,20 @@ def flux_converge_scipy(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     a = np.argmin(mfes)
     return fluxs[a]
 
-flux_converge_scipy(0, 0, 1, 0.3, h111, 2, 26)
-flux_converge_scipy(0, 0, 1, 0.3, h110, 2, 26)
-flux_converge_scipy(0, 0, 1, 0.3, h001, 2, 26)
+def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n):
+    JP = np.linspace(Jmin, Jmax, nJ)
+    fluxs = np.zeros((nJ,4))
+    for i in range(nJ):
+        fluxs[i] = flux_converge_scipy(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
+        print(JP[i], fluxs[i])
+    return fluxs
+
+A = flux_converge_line(-0.005, 0.02, 20, 0.3, h111, 2, 26, 1)
+B = flux_converge_line(-0.005, 0.02, 20, 0.3, h110, 2, 26, 1)
+print(A)
+print(B)
+np.savetxt("h111_flux_line.txt", A)
+np.savetxt("h110_flux_line.txt", B)
 
 
 
