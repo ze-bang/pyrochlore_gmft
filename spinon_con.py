@@ -329,31 +329,20 @@ def graph_SSSF_zero(pyp0, K, V, rank, size):
 
     comm = MPI.COMM_WORLD
     nK = len(K)
+    nb = nK / size
 
-    sizeK, sizeH = factors(size, nK)
-
-    nb = nK / sizeK
-    nh = nK / sizeH
-
-    rankK = rank % sizeK
-    rankH = rank // sizeK
-
-    leftK = int(rankK * nb)
-    rightK = int((rankK + 1) * nb)
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
     currsizeK = rightK - leftK
 
-    leftH = int(rankH * nh)
-    rightH = int((rankH + 1) * nh)
-    currsizeH = rightH - leftH
+    currK = K[leftK:rightK, :]
 
-    currK = K[leftK:rightK, leftH:rightH, :]
-
-    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp3 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp4 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
@@ -363,24 +352,23 @@ def graph_SSSF_zero(pyp0, K, V, rank, size):
     rectemp5 = None
 
     if rank == 0:
-        rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp3 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp4 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp5 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
+        rectemp = np.zeros(len(K), dtype=np.float64)
+        rectemp1 = np.zeros(len(K), dtype=np.float64)
+        rectemp2 = np.zeros(len(K), dtype=np.float64)
+        rectemp3 = np.zeros(len(K), dtype=np.float64)
+        rectemp4 = np.zeros(len(K), dtype=np.float64)
+        rectemp5 = np.zeros(len(K), dtype=np.float64)
 
 
     for i in range(currsizeK):
-        for j in range(currsizeH):
-            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j], sendtemp4[i,j], sendtemp5[i,j] = SSSF_zero(currK[i,j],V, pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF_zero(currK[i],V, pyp0)
 
-    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
-    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0]*sendtemp3.shape[1], 0))
-    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0]*sendtemp4.shape[1], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+    sendcounts = np.array(comm.gather(len(sendtemp), 0))
+    sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
+    sendcounts2 = np.array(comm.gather(len(sendtemp2), 0))
+    sendcounts3 = np.array(comm.gather(len(sendtemp3), 0))
+    sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
+    sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
@@ -396,31 +384,20 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
 
     comm = MPI.COMM_WORLD
     nK = len(K)
+    nb = nK / size
 
-    sizeK, sizeH = factors(size, nK)
-
-    nb = nK / sizeK
-    nh = nK / sizeH
-
-    rankK = rank % sizeK
-    rankH = rank // sizeK
-
-    leftK = int(rankK * nb)
-    rightK = int((rankK + 1) * nb)
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
     currsizeK = rightK - leftK
 
-    leftH = int(rankH * nh)
-    rightH = int((rankH + 1) * nh)
-    currsizeH = rightH - leftH
+    currK = K[leftK:rightK, :]
 
-    currK = K[leftK:rightK, leftH:rightH, :]
-    
-    sendtemp = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp1 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp2 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp3 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp4 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK, currsizeH), dtype=np.float64)
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
@@ -430,24 +407,22 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
     rectemp5 = None
 
     if rank == 0:
-        rectemp = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp1 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp2 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp3 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp4 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-        rectemp5 = np.zeros((K.shape[0], K.shape[1]), dtype=np.float64)
-
+        rectemp = np.zeros(len(K), dtype=np.float64)
+        rectemp1 = np.zeros(len(K), dtype=np.float64)
+        rectemp2 = np.zeros(len(K), dtype=np.float64)
+        rectemp3 = np.zeros(len(K), dtype=np.float64)
+        rectemp4 = np.zeros(len(K), dtype=np.float64)
+        rectemp5 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        for j in range(currsizeH):
-            sendtemp[i,j], sendtemp1[i,j], sendtemp2[i,j], sendtemp3[i,j], sendtemp4[i,j], sendtemp5[i,j] = SSSF_pi(currK[i,j],V, pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF_pi(currK[i],V, pyp0)
 
-    sendcounts = np.array(comm.gather(sendtemp.shape[0]*sendtemp.shape[1], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0]*sendtemp1.shape[1], 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0]*sendtemp2.shape[1], 0))
-    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0]*sendtemp3.shape[1], 0))
-    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0]*sendtemp4.shape[1], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+    sendcounts = np.array(comm.gather(len(sendtemp), 0))
+    sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
+    sendcounts2 = np.array(comm.gather(len(sendtemp2), 0))
+    sendcounts3 = np.array(comm.gather(len(sendtemp3), 0))
+    sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
+    sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
@@ -456,10 +431,7 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
-
-
     return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5
-
 
 #endregion
 
@@ -565,7 +537,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi, flux=np.zeros(4)):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B)
+    K = hkltoK(A, B).reshape((nK*nK, 2))
 
     
     if not MPI.Is_initialized():

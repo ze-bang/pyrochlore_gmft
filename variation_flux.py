@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from misc_helper import *
 from flux_stuff import *
 import pyrochlore_general as pygen
+from phase_diagram import graphMagPhase
 
 # n = h111
 ringv = np.array([[1 ,1 ,-1] ,[-1 ,-1 ,-1] ,[-1 ,1 ,1] ,[1 ,-1 ,1]] ) /np.sqrt(3)
@@ -32,6 +33,18 @@ def gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux, p0M):
 def fluxMFE(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=flux)
+    p0.solvemeanfield()
+    return p0.MFE()
+
+def fluxMFE_110(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+                            flux=np.array([flux[0], flux[0], flux[1], flux[1]]))
+    p0.solvemeanfield()
+    return p0.MFE()
+
+def fluxMFE_111(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+                            flux=np.array([flux[0], flux[1], flux[0], flux[0]]))
     p0.solvemeanfield()
     return p0.MFE()
 
@@ -84,24 +97,118 @@ def flux_converge_scipy(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
         res = minimize(fluxMFE, np.random.rand(4), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi), (0,2*np.pi),(0,2*np.pi),(0,2*np.pi)))
         fluxs[i] = np.array(res.x)
         mfes[i] = res.fun
-    print(fluxs)
+    a = np.argmin(mfes)
+    return fluxs[a]
+
+def flux_converge_scipy_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
+    fluxs = np.zeros((n,2))
+    mfes = np.zeros(n)
+    for i in range(n):
+        res = minimize(fluxMFE_110, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi), (0,2*np.pi)))
+        fluxs[i] = np.array(res.x)
+        mfes[i] = res.fun
+    a = np.argmin(mfes)
+    return fluxs[a]
+
+def flux_converge_scipy_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
+    fluxs = np.zeros((n,2))
+    mfes = np.zeros(n)
+    for i in range(n):
+        res = minimize(fluxMFE_111, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi),(0,2*np.pi)))
+        fluxs[i] = np.array(res.x)
+        mfes[i] = res.fun
     a = np.argmin(mfes)
     return fluxs[a]
 
 def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n):
     JP = np.linspace(Jmin, Jmax, nJ)
-    fluxs = np.zeros((nJ,4))
+    fluxs = np.zeros((nJ,2))
+    
     for i in range(nJ):
-        fluxs[i] = flux_converge_scipy(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
+        if (hat == h111).all():
+            fluxs[i] = flux_converge_scipy_111(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
+        elif (hat == h110).all():
+            fluxs[i] = flux_converge_scipy_110(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
         print(JP[i], fluxs[i])
     return fluxs
 
-A = flux_converge_line(-0.005, 0.02, 20, 0.3, h111, 2, 26, 1)
-B = flux_converge_line(-0.005, 0.02, 20, 0.3, h110, 2, 26, 1)
-print(A)
-print(B)
-np.savetxt("h111_flux_line.txt", A)
-np.savetxt("h110_flux_line.txt", B)
+def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    fluxplane = np.mgrid[0:1j*n:2*np.pi, 0:1j*n:2*np.pi].reshape((n**2, 2))
+
+    le = n**2
+    nb = le/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i] = fluxMFE_110(fluxplane[i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    
+    if rank == 0:
+        rectemp = rectemp.reshape((n, n))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        graphMagPhase(np.linspace(0, 2*np.pi, n), np.linspace(0, 2*np.pi, n), rectemp, 'Files/' + filename)
+
+
+def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    fluxplane = np.mgrid[0:1j*n:2*np.pi, 0:1j*n:2*np.pi].reshape((n**2, 2))
+
+    le = n**2
+    nb = le/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i] = fluxMFE_111(fluxplane[i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    
+    if rank == 0:
+        rectemp = rectemp.reshape((n, n))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        graphMagPhase(np.linspace(0, 2*np.pi, n), np.linspace(0, 2*np.pi, n), rectemp, 'Files/' + filename)
+
+
+
+
+def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
+    if hat == h111:
+        return plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
+    elif hat == h110:
+        return plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
+
+
+
+
+# A = flux_converge_line(-0.005, 0.02, 20, 0.3, h111, 2, 26, 4)
+# B = flux_converge_line(-0.005, 0.02, 20, 0.3, h110, 2, 26, 4)
+# np.savetxt("h111_flux_line.txt", A)
+# np.savetxt("h110_flux_line.txt", B)
 
 
 
