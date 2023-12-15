@@ -10,7 +10,12 @@ from misc_helper import *
 from variation_flux import *
 
 
-
 plot_MFE_flux_110(-0.005, -0.005, 1, 0.3, h110, 2, 26, 40, "h110_flux_plane.txt")
 plot_MFE_flux_110(0.1, 0.1, 1, 0.3, h110, 2, 26, 40, "h110_flux_plane.txt")
 plot_MFE_flux_110(-0.08, -0.08, 1, 0.3, h110, 2, 26, 40, "h110_flux_plane.txt")
+
+
+# A = flux_converge_line(-0.005, 0.02, 20, 0.3, h111, 2, 26, 4)
+# B = flux_converge_line(-0.005, 0.02, 20, 0.3, h110, 2, 26, 4)
+# np.savetxt("h111_flux_line.txt", A)
+# np.savetxt("h110_flux_line.txt", B)
