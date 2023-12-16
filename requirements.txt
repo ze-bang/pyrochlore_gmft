@@ -1,0 +1,8 @@
+numpy
+scipy
+sympy
+matplotlib
+opt_einsum
+numba
+mpi4py
+netCDF4

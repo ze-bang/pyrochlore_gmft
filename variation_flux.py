@@ -129,7 +129,6 @@ def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n):
             fluxs[i] = flux_converge_scipy_111(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
         elif (hat == h110).all():
             fluxs[i] = flux_converge_scipy_110(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
-        print(JP[i], fluxs[i])
     return fluxs
 
 def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
@@ -137,7 +136,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[0:1j*n:2*np.pi, 0:1j*n:2*np.pi].reshape((n**2, 2))
+    fluxplane = np.mgrid[0:2*np.pi:1j*n, 0:2*np.pi:1j*n].reshape((n**2, 2))
 
     le = n**2
     nb = le/size
@@ -197,9 +196,9 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
 
 
 def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
-    if hat == h111:
+    if (hat == h111).all():
         return plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
-    elif hat == h110:
+    elif (hat == h110).all():
         return plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
 
 
