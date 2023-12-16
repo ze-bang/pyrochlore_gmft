@@ -9,5 +9,4 @@ from phase_diagram import *
 from misc_helper import *
 
 
-findXYZPhase(0.2, 0.8, 0, 0.2, 40, 35, 2, "XYZ_0_field_upper_quadrant")
-
+findXYZPhase(0.2, 0.8, 0, 0.2, 50, 26, 2, "XYZ_0_flux_non_condensed")
