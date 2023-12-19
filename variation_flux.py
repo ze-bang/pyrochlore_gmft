@@ -98,7 +98,7 @@ def flux_converge_scipy(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
         fluxs[i] = np.array(res.x)
         mfes[i] = res.fun
     a = np.argmin(mfes)
-    return fluxs[a]
+    return fluxs[a] 
 
 def flux_converge_scipy_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,2))
