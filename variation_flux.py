@@ -159,7 +159,15 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        graphMagPhase(np.linspace(0, 2*np.pi, n), np.linspace(0, 2*np.pi, n), rectemp, 'Files/' + filename)
+        FD = np.linspace(-np.pi,np.pi,n)
+        X,Y = np.meshgrid(FD, FD)
+
+        plt.pcolormesh(X, Y, rectemp.T)
+        plt.colorbar()
+        plt.xlabel(r'$F_\alpha$')
+        plt.ylabel(r'$F_\beta$')
+        plt.savefig(filename +'.png')
+        plt.clf()
 
 
 def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
@@ -190,8 +198,15 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        graphMagPhase(np.linspace(0, 2*np.pi, n), np.linspace(0, 2*np.pi, n), rectemp, 'Files/' + filename)
+        FD = np.linspace(-np.pi,np.pi,n)
+        X,Y = np.meshgrid(FD, FD)
 
+        plt.pcolormesh(X, Y, rectemp.T)
+        plt.colorbar()
+        plt.xlabel(r'$F_\alpha$')
+        plt.ylabel(r'$F_\beta$')
+        plt.savefig(filename +'.png')
+        plt.clf()
 
 
 
