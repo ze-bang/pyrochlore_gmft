@@ -696,7 +696,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
-            print(py0s.qmin.shape)
             sendtemp5[i] = py0s.qmin
         elif a == 1:
             sendtemp1[i] = pyp0.gap()
@@ -754,7 +753,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             dataset.createDimension("xyz", 3)
             temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
             # Assign data to variables
-            temp_var[:, :, :, :] = rectemp5
+            temp_var[:, :, :] = rectemp5
             # Add attributes
             temp_var.long_name = "Condensed Wave Vectors"
 
