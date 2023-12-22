@@ -136,14 +136,14 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape((n**2, 2))
+    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1)
 
     le = n**2
     nb = le/size
     leftK = int(rank*nb)
     rightK = int((rank+1)*nb)
     currsizeK = rightK-leftK
-    currFlux = fluxplane[leftK:rightK, :]
+    currFlux = fluxplane[:, leftK:rightK]
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
@@ -151,7 +151,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         rectemp = np.zeros(le, dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i] = fluxMFE_110(currFlux[i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+        sendtemp[i] = fluxMFE_110(currFlux[:,i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)

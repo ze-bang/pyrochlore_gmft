@@ -953,8 +953,6 @@ class piFluxSolver:
         return np.mean(self.E_pi(self.bigB)) - np.mean(self.lams)
 
 
-            # print(self.rhos)
-
     def MFE(self):
         if self.condensed:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,

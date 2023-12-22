@@ -643,7 +643,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape((nK*nH, 2))
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
     le = nK*nH
     nb = le/size
 
