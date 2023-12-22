@@ -175,7 +175,7 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape((n**2, 2))
+    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1).T
 
     le = n**2
     nb = le/size
