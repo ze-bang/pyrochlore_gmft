@@ -258,7 +258,7 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     # for i in range (nH):
     for i in range (nK):
         print("JP is now " + str(JP[i]))
-        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=2*BZres)
+        py0s = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=4*BZres)
         py = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, h=h, n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
         py.solvemeanfield()
@@ -281,6 +281,31 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     plt.legend()
     plt.savefig(filename+'_diff.png')
     plt.clf()
+
+
+def checkConvergence(JP, h, n, BZst, BZe, BZn, kappa, filename):
+    BZ = np.linspace(BZst, BZe, BZn, dtype=int)
+    BZlong = np.linspace(BZst, 2*BZe, BZn, dtype=int)
+    MFE = np.zeros((2, BZn))
+
+    flux = np.zeros(4)
+    # for i in range (nH):
+    for i in range(BZn):
+        py0s = py0.zeroFluxSolver(-2*JP, -2*JP, 1, h=h, n=n, kappa=kappa, BZres=BZlong[i])
+        py = pygen.piFluxSolver(-2*JP, -2*JP, 1, h=h, n=n, kappa=kappa, BZres=BZ[i], flux=flux)
+        py0s.solvemeanfield()
+        py.solvemeanfield()
+        MFE[0, i] = py0s.MFE()
+        MFE[1, i] = py.MFE()
+
+    plt.plot(BZlong, MFE[0], label = "old")
+    plt.plot(BZ, MFE[1], label = "new")
+    plt.legend()
+    plt.xlabel(r'$BZ grid$')
+    plt.ylabel(r'$\omega/J_{yy}$')
+    plt.savefig(filename+'.png')
+    plt.clf()
+
 
 def generalHSweep(JP, hm, hmax, nH, n, BZres, kappa, fluxs, filename):
 

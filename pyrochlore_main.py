@@ -38,61 +38,19 @@ from variation_flux import *
 #endregion
 
 
-# graphedges(-0.1, 0.2, h001, 1, 1, 20, 20, True)
-# graphedges(-0.1, 0.2, h1b10, 1, 1, 20, 20, True)
 
-# graphdispersion(0.1, 1, h1b10, 1, 2, 20, 20)
-# graphdispersion(1, 1, 1, 2, h1b10, 1, 2, 20, 20, False)
-# plt.show()
-# zmag1 = contract('k,ik->i',h1b10,z)
-# zmag2 = contract('k,ik->i',np.array([0,-1,1])/np.sqrt(2),z)
-# zmag3 = contract('k,ik->i',hb110,z)
-# start = time.time()
-# C = graphdispersion(-0.01, -0.01, 1, 0, h111, 1, 2, 20, 25, 0)
-# plt.show()
-# Jpm=0.04
-# B = graphdispersion(-2*Jpm, -2*Jpm, 1, 0, h111, 2, 20, 100, 0)
-# C = graphdispersion(-0.10, -0.10, 1, 0, h111, 2, 20, 25, 0)
-# plt.show()
-# D = graphdispersion(1, 1, 1, 0, h111, 2, 20, 25, 1)
-# plt.show()
-# # #
-# # #
-# flux = np.array([1,1,1,1])*np.pi
 # flux = np.zeros(4)
-# D = generaldispersion(-0.1, -0.1, 1, 0, h110, 2, 20, 25, flux)
-# D = generaldispersion(0.6, 1, 1, 0, h110, 2, 20, 25, flux)
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# flux = np.array([1,1,1,1])*np.pi
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# flux = np.array([-2.3,-2.3,-1,-1])
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
 # plt.show()
-#
-# Jxx = -0.08
-# Jyy = -0.08
-# Jzz = 1
-# kappa = 2
-# BZres = 26
-# h = 0
-# n = h111
-#
-# py0s = py0.zeroFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
-# pyg = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n)
-# py0s.solvemeanfield()
-# pyg.solvemeanfield()
-# py0s.graph(False)
-# pyg.graph(False)
-# plt.show()
-# py0s.MFE()
-# pyg.MFE()
-# A = py0s.green_zero(py0s.bigB, py0s.lams)
-# B = pyg.green_pi(py0s.bigB, py0s.lams)
-# C = py0.rho_true(py0s.MF, py0s.lams, py0s.Jzz)
-# D = pygen.rho_true(pyg.Jzz, pyg.MF, pyg.lams)
-# print(C, D)
-# py0s.print_rho()
-# pyg.print_rho()
-# plt.show()
-#
+
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
-# compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
+# compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0_1')
+checkConvergence(0.03, 0, h110, 1, 50, 50, 2, 'check_conv')
 
 # DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
-plot_MFE_flux(-0.001, -0.001, 1, 0.3, h110, 2, 26, 25)
+# plot_MFE_flux(-0.001, -0.001, 1, 0.3, h110, 2, 26, 25)
