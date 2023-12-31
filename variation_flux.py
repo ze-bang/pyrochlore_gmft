@@ -104,7 +104,7 @@ def flux_converge_scipy_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,2))
     mfes = np.zeros(n)
     for i in range(n):
-        res = minimize(fluxMFE_110, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi), (0,2*np.pi)))
+        res = minimize(fluxMFE_110, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,np.pi), (-np.pi,np.pi)))
         fluxs[i] = np.array(res.x)
         mfes[i] = res.fun
     a = np.argmin(mfes)
@@ -114,22 +114,45 @@ def flux_converge_scipy_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,2))
     mfes = np.zeros(n)
     for i in range(n):
-        res = minimize(fluxMFE_111, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi),(0,2*np.pi)))
+        res = minimize(fluxMFE_111, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,np.pi), (-np.pi,np.pi)))
         fluxs[i] = np.array(res.x)
         mfes[i] = res.fun
     a = np.argmin(mfes)
     return fluxs[a]
 
-def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n):
+def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n, filename):
     JP = np.linspace(Jmin, Jmax, nJ)
-    fluxs = np.zeros((nJ,2))
     
-    for i in range(nJ):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    nb = nJ/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+    currJP = JP[leftK, rightK]
+
+    sendtemp = np.zeros((currsizeK, 2))
+    rectemp = None
+
+    if rank == 0:
+        rectemp = np.zeros((nJ, 2))
+
+    for i in range(currsizeK):
         if (hat == h111).all():
-            fluxs[i] = flux_converge_scipy_111(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
+            sendtemp[i] = flux_converge_scipy_111(-2*currJP[i], -2*currJP[i], 1, h, hat, kappa, BZres, n)
         elif (hat == h110).all():
-            fluxs[i] = flux_converge_scipy_110(-2*JP[i], -2*JP[i], 1, h, hat, kappa, BZres, n)
-    return fluxs
+            sendtemp[i] = flux_converge_scipy_110(-2*currJP[i], -2*currJP[i], 1, h, hat, kappa, BZres, n)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+
+    if rank == 0:
+        toSave = np.zerso((n, 3))
+        toSave[:,0] = JP
+        toSave[:,1:-1] = rectemp
+        np.savetxt('Files/' + filename + '.txt', toSave)
 
 def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
@@ -175,7 +198,7 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape((n**2, 2))
+    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1).T
 
     le = n**2
     nb = le/size
@@ -219,10 +242,10 @@ def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
 
 
 
-# A = flux_converge_line(-0.005, 0.02, 20, 0.3, h111, 2, 26, 4)
-# B = flux_converge_line(-0.005, 0.02, 20, 0.3, h110, 2, 26, 4)
-# np.savetxt("h111_flux_line.txt", A)
-# np.savetxt("h110_flux_line.txt", B)
+A = flux_converge_line(-0.04, 0.04, 20, 0.3, h111, 2, 26, 4)
+B = flux_converge_line(-0.04, 0.04, 20, 0.3, h110, 2, 26, 4)
+np.savetxt("h111_flux_line.txt", A)
+np.savetxt("h110_flux_line.txt", B)
 
 
 
