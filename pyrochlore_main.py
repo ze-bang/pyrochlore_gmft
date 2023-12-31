@@ -91,8 +91,8 @@ from variation_flux import *
 # plt.show()
 #
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
-# compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0')
+compare0(-0.05, 0.05, 50, 0, 0, 0, h110, 35, 2, 'compare0')
 
 # DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
-plot_MFE_flux(-0.001, -0.001, 1, 0.3, h110, 2, 26, 25)
+# plot_MFE_flux(-0.001, -0.001, 1, 0.3, h110, 2, 26, 25)

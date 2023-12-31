@@ -242,10 +242,6 @@ def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
 
 
 
-A = flux_converge_line(-0.04, 0.04, 20, 0.3, h111, 2, 26, 4)
-B = flux_converge_line(-0.04, 0.04, 20, 0.3, h110, 2, 26, 4)
-np.savetxt("h111_flux_line.txt", A)
-np.savetxt("h110_flux_line.txt", B)
 
 
 
