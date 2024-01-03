@@ -81,7 +81,7 @@ def M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
-    dummy = np.zeros((len(k), 4, 4))
+    dummy = np.zeros((len(k), 4, 4), dtype=np.complex128)
 
     MAk = M_pi_sub_intrahopping_AA(k, 0, eta, Jpm, A_pi_rs_traced_here)
     MBk = M_pi_sub_intrahopping_AA(k, 1, eta, Jpm, A_pi_rs_traced_here)
@@ -763,12 +763,14 @@ class piFluxSolver:
         self.chi0 = 0.18
 
         self.A_pi_here = constructA_pi(Ainit(flux))
+
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
             for j in range(4):
                 for k in range(4):
                     self.A_pi_rs_traced_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] - self.A_pi_here[i, k]))
+
         self.A_pi_rs_traced_pp_here = np.zeros((4, 4, 4), dtype=np.complex128)
         for i in range(4):
             for j in range(4):

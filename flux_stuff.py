@@ -100,9 +100,9 @@ def calFlux(site, A_pi, unitCell):
             temp = getIndex(indexRule(site + rings[i,j,0], unitCell), unitCell)
             for k in range(2):
                 fluxs[a, b] = fluxs[a, b] + A_pi[temp, rings[i,j,1,k]]
-    A = np.mod(fluxs, 2*np.pi)
-    A = np.where(A > np.pi, A-2*np.pi, A)
-    return A
+    # A = np.mod(fluxs, 2*np.pi)
+    # A = np.where(A > np.pi, A-2*np.pi, A)
+    return fluxs
 
 def totalFlux(unitCell, A_pi):
     A = np.zeros((4,4,3))
@@ -139,7 +139,6 @@ def Ainit_012(Fluxs):
 
 def constructA_pi(Astart):
     A00, A01, A02, A03, A10, A11, A20, A21 = Astart
-
     A12 = A02
     A13 = A00 + A01 + A03 - A10 - A11
     A22 = A00 + A01 + A02 - A20 - A21
@@ -149,10 +148,13 @@ def constructA_pi(Astart):
     A32 = A22
     A33 = A13
 
-    return np.array([[A00, A01, A02, A03],
+    M = np.array([[A00, A01, A02, A03],
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
+    M = np.mod(M, 2*np.pi)
+    M = np.where(M>np.pi, M-2*np.pi, M)
+    return M
 def Ainit(Fluxs):
     A, B, C, D = Fluxs
     A00 = 0
@@ -171,12 +173,32 @@ test = np.array([[0,0,0], [0,1,0], [0,0,1], [0,1,1]])
 #Flux of 012, 123, 230, 301
 
 
-# flux = np.ones(4)*np.pi
-#
-# Astart = Ainit(flux)
-#
-# A_pi = constructA_pi(Astart)
-# print(A_pi)
+flux = np.array([0,0,2*np.pi, 2*np.pi])
+
+Astart = Ainit(flux)
+
+A_pi = constructA_pi(Astart)
+print(A_pi)
+# A = totalFlux(test, A_pi)
+# #
+# print(A)
+
+flux = np.array([0,0, 0, 2*np.pi])
+
+Astart = Ainit(flux)
+
+A_pi = constructA_pi(Astart)
+print(A_pi)
+# A = totalFlux(test, A_pi)
+# #
+# print(A)
+
+flux = np.array([2*np.pi,2*np.pi, 2*np.pi, 2*np.pi])
+
+Astart = Ainit(flux)
+
+A_pi = constructA_pi(Astart)
+print(A_pi)
 # A = totalFlux(test, A_pi)
 # #
 # print(A)

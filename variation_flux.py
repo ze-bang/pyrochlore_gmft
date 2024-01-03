@@ -182,7 +182,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        FD = np.linspace(-2*np.pi,2*np.pi,n)
+        FD = np.linspace(-np.pi,np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
         plt.pcolormesh(X, Y, rectemp.T)
@@ -238,7 +238,6 @@ def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
         return plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
     elif (hat == h110).all():
         return plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n)
-
 
 
 

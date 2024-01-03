@@ -285,7 +285,7 @@ def compare0(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
 def checkConvergence(JP, h, n, BZst, BZe, BZn, kappa, filename):
     BZ = np.linspace(BZst, BZe, BZn, dtype=int)
-    BZlong = np.linspace(BZst, 2*BZe, BZn, dtype=int)
+    BZlong = np.linspace(BZst, 3*BZe, BZn, dtype=int)
     MFE = np.zeros((2, BZn))
 
     flux = np.zeros(4)

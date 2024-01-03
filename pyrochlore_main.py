@@ -38,18 +38,49 @@ from variation_flux import *
 #endregion
 
 
+k = genBZ(25)
+zmag = contract('k,ik->i', h111, z)
+ffact = contract('ik, jk->ij', k, NN)
+ffact = np.exp(1j * ffact)
 
-# flux = np.zeros(4)
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# flux = np.array([1,1,1,1])*np.pi
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# flux = np.array([-2.3,-2.3,-1,-1])
+flux = np.zeros(4)
+A = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+E0 = A.A_pi_here
+B0 = A.A_pi_rs_traced_here
+M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
 # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
 # plt.show()
 
+flux = np.array([2,2,2,2])*np.pi
+B = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+E1 = B.A_pi_here
+B1 = B.A_pi_rs_traced_here
+M1 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E1), piunitcell)
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# plt.show()
+
+flux = np.array([2,2,0,0])*np.pi
+C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+E2 = C.A_pi_here
+B2 = C.A_pi_rs_traced_here
+M2 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E2), piunitcell)
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# plt.show()
+
+flux = np.array([2,0,0,0])*np.pi
+C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+E3 = C.A_pi_here
+B3 = C.A_pi_rs_traced_here
+M3 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E3), piunitcell)
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# plt.show()
+
+print()
+# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')
 # compare0(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare0_1')
-checkConvergence(0.03, 0, h110, 1, 50, 50, 2, 'check_conv')
+# checkConvergence(0.03, 0, h110, 1, 50, 50, 2, 'check_conv')
 
 # DSSF(0.02, -0.08, -0.08, 1, 0, h111, 'DSSF_general_0_flux', 26, 2)
 
