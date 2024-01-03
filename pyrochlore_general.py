@@ -21,7 +21,7 @@ def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
 
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm, A_pi_rs_traced_here):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j * neta(alpha) * ffact)
+    ffact = np.exp(-1j * neta(alpha) * ffact)
     M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell,
                  piunitcell)
     return M
@@ -604,8 +604,8 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     green = green_pi(E, V, Jzz)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffactA = np.exp(1j * ffact)
-    ffactB = np.exp(-1j * ffact)
+    ffactA = np.exp(-1j * ffact)
+    ffactB = np.exp(1j * ffact)
 
     EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
     E1A = np.mean(

@@ -159,7 +159,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1)
+    fluxplane = np.mgrid[-2*np.pi:2*np.pi:1j*n, -2*np.pi:2*np.pi:1j*n].reshape(2,-1)
 
     le = n**2
     nb = le/size
@@ -182,7 +182,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        FD = np.linspace(-np.pi,np.pi,n)
+        FD = np.linspace(-2*np.pi,2*np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
         plt.pcolormesh(X, Y, rectemp.T)
