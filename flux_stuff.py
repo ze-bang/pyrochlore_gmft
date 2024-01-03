@@ -167,38 +167,38 @@ def Ainit(Fluxs):
     A21 = A00 + A01 + 2*A02 + A10 + (-2*A+B-2*C+D)/3
     return np.array([A00, A01, A02, A03, A10, A11, A20, A21])
 
-test = np.array([[0,0,0], [0,1,0], [0,0,1], [0,1,1]])
-
-
-#Flux of 012, 123, 230, 301
-
-
-flux = np.array([0,0,2*np.pi, 2*np.pi])
-
-Astart = Ainit(flux)
-
-A_pi = constructA_pi(Astart)
-print(A_pi)
-# A = totalFlux(test, A_pi)
-# #
-# print(A)
-
-flux = np.array([0,0, 0, 2*np.pi])
-
-Astart = Ainit(flux)
-
-A_pi = constructA_pi(Astart)
-print(A_pi)
-# A = totalFlux(test, A_pi)
-# #
-# print(A)
-
-flux = np.array([2*np.pi,2*np.pi, 2*np.pi, 2*np.pi])
-
-Astart = Ainit(flux)
-
-A_pi = constructA_pi(Astart)
-print(A_pi)
-# A = totalFlux(test, A_pi)
-# #
-# print(A)
+# test = np.array([[0,0,0], [0,1,0], [0,0,1], [0,1,1]])
+#
+#
+# #Flux of 012, 123, 230, 301
+#
+#
+# flux = np.array([0,0,2*np.pi, 2*np.pi])
+#
+# Astart = Ainit(flux)
+#
+# A_pi = constructA_pi(Astart)
+# print(A_pi)
+# # A = totalFlux(test, A_pi)
+# # #
+# # print(A)
+#
+# flux = np.array([0,0, 0, 2*np.pi])
+#
+# Astart = Ainit(flux)
+#
+# A_pi = constructA_pi(Astart)
+# print(A_pi)
+# # A = totalFlux(test, A_pi)
+# # #
+# # print(A)
+#
+# flux = np.array([2*np.pi,2*np.pi, 2*np.pi, 2*np.pi])
+#
+# Astart = Ainit(flux)
+#
+# A_pi = constructA_pi(Astart)
+# print(A_pi)
+# # A = totalFlux(test, A_pi)
+# # #
+# # print(A)
