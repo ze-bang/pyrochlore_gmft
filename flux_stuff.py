@@ -152,10 +152,10 @@ def constructA_pi(Astart):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-    M = np.mod(M, 2*np.pi)
-    M = np.where(M>np.pi, M-2*np.pi, M)
     return M
 def Ainit(Fluxs):
+    Fluxs = np.mod(Fluxs, 2*np.pi)
+    Fluxs = np.where(Fluxs>np.pi, Fluxs-2*np.pi, Fluxs)
     A, B, C, D = Fluxs
     A00 = 0
     A01 = 0
