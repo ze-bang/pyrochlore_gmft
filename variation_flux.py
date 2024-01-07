@@ -131,7 +131,7 @@ def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n, filename):
     leftK = int(rank*nb)
     rightK = int((rank+1)*nb)
     currsizeK = rightK-leftK
-    currJP = JP[leftK, rightK]
+    currJP = JP[leftK: rightK]
 
     sendtemp = np.zeros((currsizeK, 2))
     rectemp = None
