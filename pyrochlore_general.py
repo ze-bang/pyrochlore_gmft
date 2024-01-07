@@ -619,7 +619,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     Emag = np.mean(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell), axis=0)
 
