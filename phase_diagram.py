@@ -723,19 +723,19 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             sendtemp4[i] = py0s.magnetization()
             sendtemp5[i] = py0s.qmin
         elif a == 1:
-            sendtemp1[i] = pyp0.gap()
-            sendtemp[i] = pyp0.condensed + 5
+            sendtemp1[i] = pyps.gap()
+            sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GS[a]
-            sendtemp3[i] = pyp0.lams[0]
-            sendtemp4[i] = pyp0.magnetization()
-            sendtemp5[i] = py0s.qmin
+            sendtemp3[i] = pyps.lams[0]
+            sendtemp4[i] = pyps.magnetization()
+            sendtemp5[i] = pyps.qmin
         else:
             sendtemp1[i] = pyp0.gap()
             sendtemp[i] = pyp0.condensed + 10
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
-            sendtemp5[i] = py0s.qmin
+            sendtemp5[i] = pyp0.qmin
         end = time.time()
         print("This iteration costs " + str(end - start))
 #
