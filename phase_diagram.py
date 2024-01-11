@@ -705,6 +705,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
     for i in range(currsizeK):
         # start = time.time()
+        # print(currJH[i])
         py0s = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
         pyps = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         pyp0 = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
@@ -714,7 +715,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         pyp0.solvemeanfield()
         GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE()])
         a = np.argmin(GS)
-
+        # print(GS, a)
         if a == 0:
             sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed

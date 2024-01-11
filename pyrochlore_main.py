@@ -37,45 +37,69 @@ from variation_flux import *
 
 #endregion
 
-
-k = genBZ(25)
-zmag = contract('k,ik->i', h111, z)
-ffact = contract('ik, jk->ij', k, NN)
-ffact = np.exp(1j * ffact)
-
-flux = np.zeros(4)
-A = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
-E0 = A.A_pi_here
-B0 = A.A_pi_rs_traced_here
-M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# n = 50
+# JP = np.linspace(0,0.05, n)
+# MFE0 = np.zeros(n)
+# MFEpp00 = np.zeros(n)
+# MFE0old = np.zeros(n)
+# for i in range(n):
+#     # A = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=120, h=0.3, n=h110)
+#     B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.2, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+#     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.2, n=h110, flux=np.zeros(4))
+#     # A.solvemeanfield()
+#     B.solvemeanfield()
+#     C.solvemeanfield()
+#     # MFE0[i] = A.MFE()
+#     MFEpp00[i] = B.MFE()
+#     MFE0old[i] = C.MFE()
+#
+# # plt.plot(JP, MFE0, label='0 Flux')
+# plt.plot(JP, MFEpp00, label='pp00 Flux')
+# plt.plot(JP, MFE0old, label='0 Flux')
+# plt.legend()
 # plt.show()
+# flux = np.array([np.pi, np.pi, 0, 0])
+# findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
-flux = np.array([2,2,2,2])*np.pi
-B = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
-E1 = B.A_pi_here
-B1 = B.A_pi_rs_traced_here
-M1 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E1), piunitcell)
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# plt.show()
 
-flux = np.array([2,2,0,0])*np.pi
-C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
-E2 = C.A_pi_here
-B2 = C.A_pi_rs_traced_here
-M2 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E2), piunitcell)
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# plt.show()
+# k = genBZ(25)
+# zmag = contract('k,ik->i', h111, z)
+# ffact = contract('ik, jk->ij', k, NN)
+# ffact = np.exp(1j * ffact)
 
-flux = np.array([2,0,0,0])*np.pi
-C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
-E3 = C.A_pi_here
-B3 = C.A_pi_rs_traced_here
-M3 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E3), piunitcell)
-# D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# plt.show()
+# flux = np.zeros(4)
+# A = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+# E0 = A.A_pi_here
+# B0 = A.A_pi_rs_traced_here
+# M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
+# # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# # plt.show()
 
-print()
+# flux = np.array([2,2,2,2])*np.pi
+# B = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+# E1 = B.A_pi_here
+# B1 = B.A_pi_rs_traced_here
+# M1 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E1), piunitcell)
+# # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# # plt.show()
+
+# flux = np.array([2,2,0,0])*np.pi
+# C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+# E2 = C.A_pi_here
+# B2 = C.A_pi_rs_traced_here
+# M2 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E2), piunitcell)
+# # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# # plt.show()
+
+# flux = np.array([2,0,0,0])*np.pi
+# C = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
+# E3 = C.A_pi_here
+# B3 = C.A_pi_rs_traced_here
+# M3 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E3), piunitcell)
+# # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
+# # plt.show()
+
+# print()
 # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
 
 # comparePi(-0.05, 0.05, 25, 0, 0, 0, h110, 26, 2, 'compare')

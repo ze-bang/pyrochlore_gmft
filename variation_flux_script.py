@@ -10,14 +10,11 @@ from misc_helper import *
 from variation_flux import *
 
 
-# plot_MFE_flux_110(-0.001, -0.001, 1, 0.2, h110, 2, 40, 101, "h110_flux_plane_mid_0.3")
-# plot_MFE_flux_110(0.1, 0.1, 1, 0.2, h110, 2, 40, 101, "h110_flux_plane_pi_0.3")
-plot_MFE_flux_110(-0.05, -0.05, 1, 0.3, h110, 2, 40, 101, "h110_flux_plane_zero_0.3_JP_0.025")
-plot_MFE_flux_110(-0.09, -0.09, 1, 0.3, h110, 2, 40, 101, "h110_flux_plane_zero_0.3_JP_0.45")
-plot_MFE_flux_110(-0.098, -0.098, 1, 0.3, h110, 2, 40, 101, "h110_flux_plane_zero_0.3_JP_0.454")
-# plot_MFE_flux_110(-0.09, -0.09, 1, 0.3, h110, 2, 40, 101, "h110_flux_plane_zero_0.3_JP_0.45")
+# plot_MFE_flux_110(-0.001, -0.001, 1, 0.2, h110, 2, 40, 101, "h110_flux_plane_mid_0.2")
+# plot_MFE_flux_110(0.1, 0.1, 1, 0.2, h110, 2, 40, 101, "h110_flux_plane_pi_0.2")
+# plot_MFE_flux_110(-0.08, -0.08, 1, 0.2, h110, 2, 40, 101, "h110_flux_plane_zero_0.2")
 
-# flux_converge_line(-0.05, 0.05, 120, 0.1, h110, 2, 35, 3, 'flux_converge_h110')
+flux_converge_line(-0.05, 0.05, 50, 0.1, h110, 2, 35, 3, 'flux_converge_h110')
 # flux_converge_line(-0.05, 0.05, 50, 0.1, h111, 2, 35, 3, 'flux_converge_h111')
 
 # plot_MFE_flux_111(-0.001, -0.001, 1, 0.3, h111, 2, 26, 101, "h111_flux_plane_mid")
