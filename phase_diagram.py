@@ -704,7 +704,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp5 = np.zeros((le, 3), dtype=np.float64)
 
     for i in range(currsizeK):
-        start = time.time()
+        # start = time.time()
         py0s = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
         pyps = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         pyp0 = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
@@ -736,8 +736,8 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
             sendtemp5[i] = pyp0.qmin
-        end = time.time()
-        print("This iteration costs " + str(end - start))
+        # end = time.time()
+        # print("This iteration costs " + str(end - start))
 #
 
 
