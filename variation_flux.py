@@ -185,7 +185,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         FD = np.linspace(-np.pi,np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
-        plt.pcolormesh(X, Y, rectemp.T)
+        plt.pcolormesh(X, Y, rectemp)
         plt.colorbar()
         plt.xlabel(r'$F_\alpha$')
         plt.ylabel(r'$F_\beta$')
@@ -224,7 +224,7 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         FD = np.linspace(-np.pi,np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
-        plt.pcolormesh(X, Y, rectemp.T)
+        plt.pcolormesh(X, Y, rectemp)
         plt.colorbar()
         plt.xlabel(r'$F_\alpha$')
         plt.ylabel(r'$F_\beta$')

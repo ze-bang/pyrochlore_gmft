@@ -17,9 +17,6 @@ sp.init_printing(use_unicode=True) # allow LaTeX printing
 # GammaX = np.linspace(Gamma, X, 20)
 #
 # print(np.einsum('ij,j->i', GammaX, L))
-a = np.array([1,0])
-b = np.array([3,5])
-print(a*b)
 
 # H = np.linspace(-2, 2, 5)
 # L = np.linspace(-2, 2, 5)
@@ -87,7 +84,7 @@ def color_sungbin(A, mu):
         return 'r'
 
 fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
+# ax = fig.add_subplot(projection='3d')
 e = [[0,1/2,1/2], [1/2, 0, 1/2], [1/2 ,1/2 , 0]]
 
 def drawline(A,B, c):
@@ -290,8 +287,23 @@ def algHamSungbin():
 
 # algHamSungbin()
 
-lams = -np.pi/2
+# lams = -np.pi/2
+#
+# A = np.zeros((3,4))
+#
+# print(np.mean(A, axis=0))
 
-A = np.zeros((3,4))
+n1 = 5
+n2 = 10
+JH = np.mgrid[0:7:1j*n1, 0:3:1j*n2].reshape(2,-1).T
 
-print(np.mean(A, axis=0))
+A = np.linspace(0, 3, n1)
+B = np.linspace(0, 100, n2)
+X, Y = np.meshgrid(A, B)
+test = np.zeros(n1*n2)
+for i in range(n1*n2):
+    test[i] = JH[i,0]+JH[i,1]
+# print(test)
+test = test.reshape((n2, n1))
+plt.pcolormesh(X, Y, test)
+plt.show()
