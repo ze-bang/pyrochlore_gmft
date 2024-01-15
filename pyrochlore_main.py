@@ -37,27 +37,33 @@ from variation_flux import *
 
 #endregion
 
-# n = 50
-# JP = np.linspace(0,0.05, n)
-# MFE0 = np.zeros(n)
-# MFEpp00 = np.zeros(n)
-# MFE0old = np.zeros(n)
-# for i in range(n):
-#     # A = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=120, h=0.3, n=h110)
-#     B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.2, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-#     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.2, n=h110, flux=np.zeros(4))
-#     # A.solvemeanfield()
-#     B.solvemeanfield()
-#     C.solvemeanfield()
-#     # MFE0[i] = A.MFE()
-#     MFEpp00[i] = B.MFE()
-#     MFE0old[i] = C.MFE()
-#
-# # plt.plot(JP, MFE0, label='0 Flux')
-# plt.plot(JP, MFEpp00, label='pp00 Flux')
-# plt.plot(JP, MFE0old, label='0 Flux')
-# plt.legend()
-# plt.show()
+n = 50
+JP = np.linspace(0,0.05, n)
+MFE0 = np.zeros(n)
+MFEpp00 = np.zeros(n)
+MFE0old = np.zeros(n)
+MFEpiold = np.zeros(n)
+for i in range(n):
+    # A = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=120, h=0.3, n=h110)
+    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+    # C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.zeros(4))
+    D = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110)
+    # A.solvemeanfield()
+    B.solvemeanfield()
+    # C.solvemeanfield()
+    D.solvemeanfield()
+    # MFE0old[i] = A.MFE()
+    MFEpp00[i] = B.MFE()
+    # MFE0[i] = C.MFE()
+    MFEpiold[i] = D.MFE()
+    print(JP[i], MFEpp00[ i], MFEpiold[i])
+
+# plt.plot(JP, MFE0old, label='0 Flux old')
+plt.plot(JP, MFEpp00, label='pp00 Flux')
+# plt.plot(JP, MFE0, label='0 Flux')
+plt.plot(JP, MFEpiold, label='pi Flux old')
+plt.legend()
+plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 

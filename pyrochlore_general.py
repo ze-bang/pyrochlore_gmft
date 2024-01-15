@@ -672,7 +672,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
+    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -762,8 +762,8 @@ class piFluxSolver:
         self.xi = 0.5
         self.chi0 = 0.18
 
-        self.A_pi_here = constructA_pi(Ainit(flux))
-
+        # self.A_pi_here = constructA_pi(Ainit(flux))
+        self.A_pi_here = constructA_pi_0(flux)
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
