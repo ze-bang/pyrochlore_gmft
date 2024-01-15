@@ -12,7 +12,7 @@ piunitcell_here = piunitcell
 
 
 flux = np.pi*np.array([1,1,0,0])
-A_pi_here = A_pi = constructA_pi(Ainit(flux))
+A_pi_here = constructA_pi(flux)
 
 A_pi_rs_traced_here = np.zeros((4,4,4), dtype=np.complex128)
 

@@ -763,7 +763,7 @@ class piFluxSolver:
         self.chi0 = 0.18
 
         # self.A_pi_here = constructA_pi(Ainit(flux))
-        self.A_pi_here = constructA_pi_0(flux)
+        self.A_pi_here = constructA_pi(flux)
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
