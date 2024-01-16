@@ -37,33 +37,33 @@ from variation_flux import *
 
 #endregion
 
-n = 50
-JP = np.linspace(0,0.05, n)
-MFE0 = np.zeros(n)
-MFEpp00 = np.zeros(n)
-MFE0old = np.zeros(n)
-MFEpiold = np.zeros(n)
-for i in range(n):
-    # A = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=120, h=0.3, n=h110)
-    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-    # C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.zeros(4))
-    D = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110)
-    # A.solvemeanfield()
-    B.solvemeanfield()
-    # C.solvemeanfield()
-    D.solvemeanfield()
-    # MFE0old[i] = A.MFE()
-    MFEpp00[i] = B.MFE()
-    # MFE0[i] = C.MFE()
-    MFEpiold[i] = D.MFE()
-    print(JP[i], MFEpp00[ i], MFEpiold[i])
+# n = 20
+# JP = np.linspace(0,0.05, n)
+# MFE0 = np.zeros(n)
+# MFEpp00 = np.zeros(n)
+# MFE0old = np.zeros(n)
+# MFEpiold = np.zeros(n)
+# for i in range(n):
+#     # A = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=120, h=0.3, n=h110)
+#     B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]), A00=np.pi/6, A01=np.pi/6, A02=np.pi/6, A10=0)
+#     # C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]), A00=0, A01=0, A02=0, A10=0)
+#     D = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=35, h=0.3, n=h110)
+#     # A.solvemeanfield()
+#     B.solvemeanfield()
+#     # C.solvemeanfield()
+#     D.solvemeanfield()
+#     # MFE0old[i] = A.MFE()
+#     MFEpp00[i] = B.MFE()
+#     # MFE0[i] = C.MFE()
+#     MFEpiold[i] = D.MFE()
+#     print(JP[i], MFEpp00[i], MFEpiold[i])
 
-# plt.plot(JP, MFE0old, label='0 Flux old')
-plt.plot(JP, MFEpp00, label='pp00 Flux')
-# plt.plot(JP, MFE0, label='0 Flux')
-plt.plot(JP, MFEpiold, label='pi Flux old')
-plt.legend()
-plt.show()
+# # plt.plot(JP, MFE0old, label='0 Flux old')
+# plt.plot(JP, MFEpp00, label='pi Flux')
+# # plt.plot(JP, MFE0, label='pi Flux weird')
+# plt.plot(JP, MFEpiold, label='pi Flux old')
+# plt.legend()
+# plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
@@ -73,13 +73,17 @@ plt.show()
 # ffact = contract('ik, jk->ij', k, NN)
 # ffact = np.exp(1j * ffact)
 
-# flux = np.zeros(4)
+flux = np.ones(4)*np.pi
 # A = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
 # E0 = A.A_pi_here
 # B0 = A.A_pi_rs_traced_here
 # M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
-# # D = generaldispersion(-0.08, -0.08, 1, 0.3, h110, 2, 20, 25, flux)
-# # plt.show()
+D = generaldispersion(0.1, 0.1, 1, 0.3, h110, 2, 20, 25, flux)
+plt.show()
+
+graphdispersion(0.2, 0.2, 1, 0.3, h110, 2, 20, 25, 1)
+plt.show()
+
 
 # flux = np.array([2,2,2,2])*np.pi
 # B = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
