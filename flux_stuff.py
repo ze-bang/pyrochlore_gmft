@@ -132,29 +132,25 @@ def constructA_pi_012(Astart):
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
 
-def constructA_pi(flux):
+def constructA_pi(flux, A00 = 0, A01 = 0, A02 = 0, A10 = 0):
     A, B, C, D = flux
-    A00 = 0
-    A01 = 0
-    A02 = -A01 + (A + B + C + D) / 6
-    A03 = -A00
-    A10 = -A00 + (2 * A - B - C - D) / 3
-    A11 = A01
-    A12 = -A01 + (A + B + C + D) / 6
-    A13 = A00 + (-2 * A + B + C + D) / 3
-    A20 = A00 + (-A - B + 2 * C + 2 * D) / 3
-    A21 = -A01 + (A + B - 2 * C + D) / 3
-    A22 = A01 + (A + B + C - 5 * D) / 6
-    A23 = -A00
+
+    A03 = -A00 - A01 - A02 + (A + B + C + D) / 6
+    A11 = A - A00 - A01 - 2 * A02 - A10
+    A12 = A02
+    A13 = A00 + A01 + A02 + (-5 * A + B + C + D) / 6
+    A20 = -A10 + (A - 2 * B + C + D) / 3
+    A21 = A00 + A01 + 2 * A02 + A10 + (-2 * A + B - 2 * C + D) / 3
+    A22 = -A02 + (A + B + C - 2 * D) / 3
+    A23 = -A00 - A01 - A02 + (A + B + C + D) / 6
     A30 = -A00 + (A - 2 * B + C + D) / 3
     A31 = -A01 + (A + B - 2 * C + D) / 3
-    A32 = A01 + (A + B + C - 5 * D) / 6
-    A33 = A00 + (-2 * A + B + C + D) / 3
-
+    A32 = -A02 + (A + B + C - 2 * D) / 3
+    A33 = A00 + A01 + A02 + (-5 * A + B + C + D) / 6
     M = np.array([[A00, A01, A02, A03],
-                     [A10, A11, A12, A13],
-                     [A20, A21, A22, A23],
-                     [A30, A31, A32, A33]])
+                 [A10, A11, A12, A13],
+                 [A20, A21, A22, A23],
+                 [A30, A31, A32, A33]])
     return M
 
 def constructA_pi_0(fluxs):
@@ -168,6 +164,8 @@ def constructA_pi_0(fluxs):
     A02 = 0
     A03 = 0
     A12 = 0
+
+
     A13 = -A10 - A11
     A22 = -A20 - A21
     A23 = 0
@@ -200,14 +198,14 @@ def Ainit(Fluxs, A00=0, A01=0, A02=0, A10=0):
 
 # # #
 # test = np.array([[0,0,0], [0,1,0], [0,0,1], [0,1,1]])
-#
-#
-# #Flux of 012, 123, 230, 301
-#
-#
+# #
+# #
+# # #Flux of 012, 123, 230, 301
+# #
+# #
 # flux = np.array([np.pi, np.pi, np.pi, np.pi])
-# # # #
-# # Astart = Ainit(flux)
+# # # # #
+# # # Astart = Ainit(flux)
 # # # Astart = np.array([0, 0, 0, 0, 0, 0, np.pi])
 # A_pi = constructA_pi(flux)
 # print(A_pi)

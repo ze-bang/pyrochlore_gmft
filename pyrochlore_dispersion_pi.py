@@ -756,7 +756,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
+    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos):
