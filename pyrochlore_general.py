@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import warnings
+
+import numpy as np
+
 from misc_helper import *
 from flux_stuff import *
 from numpy.testing import assert_almost_equal, assert_allclose
@@ -7,7 +10,52 @@ from numpy.testing import assert_almost_equal, assert_allclose
 # Here, magnetic field is applied at the 110 direction. In which case,
 
 
+def M_pi_AA_gen(k, Jpm):
+    M = np.zeros((len(k),4,4),dtype=np.complex128)
+    for i in range(len(k)):
+        kx, ky, kz = k[i]
+        M[i] = np.array([[-1/2*(Jpm*np.cos((ky + kz)/2)), -1/2*(Jpm*(np.cos((kx + kz)/2) + \
+1.0j*np.sin((kx - ky)/2))), ((1.0j + np.sqrt(3))*Jpm*(np.cos((kx + \
+ky)/2) + 1.0j*np.sin((kx - kz)/2)))/4, ((1 - \
+1.0j*np.sqrt(3))*Jpm*np.sin((ky - kz)/2))/4], [-1/2*(Jpm*(np.cos((kx \
++ kz)/2) - 1.0j*np.sin((kx - ky)/2))), (Jpm*np.cos((ky + kz)/2))/2, \
+(1.0j/4)*(1.0j + np.sqrt(3))*Jpm*np.sin((ky - kz)/2), -1/4*((1.0j + \
+np.sqrt(3))*Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - kz)/2)))], \
+[((-1.0j + np.sqrt(3))*Jpm*(np.cos((kx + ky)/2) - 1.0j*np.sin((kx - \
+kz)/2)))/4, -1/4*((1 + 1.0j*np.sqrt(3))*Jpm*np.sin((ky - kz)/2)), \
+(Jpm*np.cos((ky + kz)/2))/2, -1/2*(Jpm*(np.cos((kx + kz)/2) - \
+1.0j*np.sin((kx - ky)/2)))], [((1 + 1.0j*np.sqrt(3))*Jpm*np.sin((ky - \
+kz)/2))/4, -1/4*((-1.0j + np.sqrt(3))*Jpm*(np.cos((kx + ky)/2) + \
+1.0j*np.sin((kx - kz)/2))), -1/2*(Jpm*(np.cos((kx + kz)/2) + \
+1.0j*np.sin((kx - ky)/2))), -1/2*(Jpm*np.cos((ky + kz)/2))]])
+    return M
 
+def M_pi_mag_alg(k, h, n):
+    hx, hy, hz = n
+    M = np.zeros((len(k),4,4),dtype=np.complex128)
+    for i in range(len(k)):
+        kx, ky, kz = k[i]
+        M[i] = np.array([[((-1)**(7/8)*h*(hx + hy + np.exp((1j/2)*(ky + kz))*(hx - hy - \
+hz) + hz))/(4*np.sqrt(3)*np.exp((1j/4)*(kx + ky + kz))), \
+-1/4*((-1)**(7/8)*np.exp((1j/4)*(kx - ky + kz))*h*(hx - hy + \
+hz))/np.sqrt(3), -1/4*((-1)**(1/24)*np.exp((1j/4)*(kx + ky - \
+kz))*h*(hx + hy - hz))/np.sqrt(3), 0], \
+[-1/4*((-1)**(7/8)*np.exp((1j/4)*(kx - ky + kz))*h*(hx - hy + \
+hz))/np.sqrt(3), ((-1)**(7/8)*h*(hx + hy + hz + np.exp((1j/2)*(ky + \
+kz))*(-hx + hy + hz)))/(4*np.sqrt(3)*np.exp((1j/4)*(kx + ky + \
+kz))), 0, ((-1)**(1/24)*np.exp((1j/4)*(kx + ky - kz))*h*(hx + hy - \
+hz))/(4*np.sqrt(3))], [-1/4*((-1)**(1/24)*np.exp((1j/4)*(kx + ky - \
+kz))*h*(hx + hy - hz))/np.sqrt(3), 0, ((-1)**(5/24)*h*(-hx - hy + \
+np.exp((1j/2)*(ky + kz))*(hx - hy - hz) - \
+hz))/(4*np.sqrt(3)*np.exp((1j/4)*(kx + ky + kz))), \
+((-1)**(5/24)*np.exp((1j/4)*(kx - ky + kz))*h*(hx - hy + \
+hz))/(4*np.sqrt(3))], [0, ((-1)**(1/24)*np.exp((1j/4)*(kx + ky - \
+kz))*h*(hx + hy - hz))/(4*np.sqrt(3)), \
+((-1)**(5/24)*np.exp((1j/4)*(kx - ky + kz))*h*(hx - hy + \
+hz))/(4*np.sqrt(3)), ((-1)**(5/24)*h*(-hx - hy - hz + \
+np.exp((1j/2)*(ky + kz))*(-hx + hy + \
+hz)))/(4*np.sqrt(3)*np.exp((1j/4)*(kx + ky + kz)))]])
+    return M
 
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
@@ -22,7 +70,7 @@ def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
 def M_pi_sub_intrahopping_AA(k, alpha, eta, Jpm, A_pi_rs_traced_here):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,klj,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell,
+    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell,
                  piunitcell)
     return M
 
@@ -88,9 +136,18 @@ def M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
     MAnk = M_pi_sub_intrahopping_AA(-k, 0, eta, Jpm, A_pi_rs_traced_here)
     MBnk = M_pi_sub_intrahopping_AA(-k, 1, eta, Jpm, A_pi_rs_traced_here)
 
-    temp = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here)
-    temp1 = M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
-    MagAkBk = temp + temp1
+
+    # MAk = M_pi_AA_gen(k, Jpm)
+    # MBk = np.conj(M_pi_AA_gen(k, Jpm))
+    # MAnk = M_pi_AA_gen(-k, Jpm)
+    # MBnk = np.conj(M_pi_AA_gen(-k, Jpm))
+    #
+    # MagAkBk = M_pi_mag_alg(k, h, n) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
+    # MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
+    # MagAnkBnk = M_pi_mag_alg(-k, h, n) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
+    # MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
+
+    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
     MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
     MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
@@ -762,9 +819,18 @@ class piFluxSolver:
         self.xi = 0.5
         self.chi0 = 0.18
 
-        # self.A_pi_here = constructA_pi(Ainit(flux))
-        self.A_pi_here = constructA_pi(flux)
-        # print(self.A_pi_here)
+        if (n == h110).all():
+            self.A_pi_here = constructA_pi_110(flux)
+        elif (n == h111).all():
+            if not flux[2]==flux[3]:
+                print("Invalid Flux Configuration, Equating C and D automatically to D")
+            self.A_pi_here = constructA_pi_111(flux)
+        elif (n == h001).all():
+            if not (flux[2]==flux[3] and flux[0]==flux[1]):
+                print("Invalid Flux Configuration, Equating C and D automatically to D, A and B to A")
+            self.A_pi_here = constructA_pi_001(flux)
+
+        print(self.A_pi_here)
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):

@@ -7,8 +7,6 @@ import numpy as np
 
 from misc_helper import *
 
-
-
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta):
     zmag = contract('k,ik->i', n, z)
@@ -67,6 +65,7 @@ def M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     MBk = M_pi_sub_intrahopping_AA(k, 1, eta, Jpm)
     MAnk = M_pi_sub_intrahopping_AA(-k, 0, eta, Jpm)
     MBnk = M_pi_sub_intrahopping_AA(-k, 1, eta, Jpm)
+
 
     temp = M_pi_mag_sub_AB(k, h, n, theta)
     temp1 = M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi)

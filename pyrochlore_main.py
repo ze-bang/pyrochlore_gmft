@@ -57,7 +57,7 @@ from variation_flux import *
 #     # MFE0[i] = C.MFE()
 #     MFEpiold[i] = D.MFE()
 #     print(JP[i], MFEpp00[i], MFEpiold[i])
-
+#
 # # plt.plot(JP, MFE0old, label='0 Flux old')
 # plt.plot(JP, MFEpp00, label='pi Flux')
 # # plt.plot(JP, MFE0, label='pi Flux weird')
@@ -78,11 +78,11 @@ flux = np.ones(4)*np.pi
 # E0 = A.A_pi_here
 # B0 = A.A_pi_rs_traced_here
 # M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
-D = generaldispersion(0.1, 0.1, 1, 0.3, h110, 2, 20, 25, flux)
+D = generaldispersion(0.2, 0.2, 1, 0.3, h111, 2, 20, 25, flux)
 plt.show()
 
-graphdispersion(0.2, 0.2, 1, 0.3, h110, 2, 20, 25, 1)
-plt.show()
+# graphdispersion(0.2, 0.2, 1, 0, h110, 2, 20, 25, 1)
+# plt.show()
 
 
 # flux = np.array([2,2,2,2])*np.pi
