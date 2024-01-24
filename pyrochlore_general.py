@@ -830,7 +830,6 @@ class piFluxSolver:
                 print("Invalid Flux Configuration, Equating C and D automatically to D, A and B to A")
             self.A_pi_here = constructA_pi_001(flux)
 
-        print(self.A_pi_here)
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
         for i in range(4):
