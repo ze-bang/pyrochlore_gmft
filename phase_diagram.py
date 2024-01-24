@@ -41,7 +41,7 @@ def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
     py0s.solvemeanfield()
     print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(), py0s.gap(), py0s.magnetization(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
-    return py0s.MF
+    return 0
 
 def graphedges(Jxx, Jyy, Jzz, h, n, kappa, rho, graphres, BZres, pi=False):
     if not pi:
@@ -713,6 +713,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         py0s.solvemeanfield()
         pyps.solvemeanfield()
         pyp0.solvemeanfield()
+
         GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE()])
         a = np.argmin(GS)
         # print(GS, a)

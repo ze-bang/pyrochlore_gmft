@@ -191,9 +191,11 @@ def Ainit(Fluxs, A00=0, A01=0, A02=0, A10=0):
 
 
 def constructA_pi_110(Fluxs):
-    n1, n2, n4 = 1, 1, 0
-
-    A00, A01, A03,F = A_init110(Fluxs, n1, n2)
+    n4 = 0
+    try:
+        A00, A01, A03, F, n1, n2 = A_init110(Fluxs)
+    except:
+        return -1
     A02 = A01 + n4*np.pi + F
 
     A10 = A00
@@ -214,18 +216,27 @@ def constructA_pi_110(Fluxs):
                      [A30, A31, A32, A33]])
     return np.mod(M, 2*np.pi)
 
-def A_init110(Fluxs, n1, n2):
-    A, B, C, D = Fluxs-np.pi*np.array([n1,n1,n2,n2])
-    A00 = (A - 2 * B + C + D) / 6
-    A01 = (A + B - 2 * C + D) / 6
-    A03 = (-2 * A + B + C + D) / 6
-    F = (C - D) / 2
-    return np.array([A00,A01,A03,F])
+def A_init110(Fluxs):
+    A, B, C, D = Fluxs
+    if (B-C) % np.pi == 0 and (-A + C - D) % np.pi == 0:
+        A00 = 0
+        A01 = 0
+        A03 = A00 + (-A + B) / 2
+        n1 = (-2 * A00) / np.pi - (4 * A01) / np.pi - (-A + C - D) / np.pi
+        n2 = (-4 * A00) / np.pi - (2 * A01) / np.pi - (-A + B - D) / np.pi
+        F = (C - D) / 2
+        return np.array([A00, A01, A03,F, n1,n2])
+    else:
+        print("Invalid Configuration!")
+        return -1
 
 def constructA_pi_001(Fluxs):
 
-    n1, n2, n4, n5 = 1, 1, 0,0
-    A00, A01 = A_init001(Fluxs, n1, n2)
+    n4, n5 = 0,0
+    try:
+        A00, A01, n1, n2 = A_init001(Fluxs)
+    except:
+        return -1
 
     A03 = A00 + (n4+n5)*np.pi
     A02 = A01 + n5*np.pi
@@ -243,23 +254,33 @@ def constructA_pi_001(Fluxs):
     A23 = A03
     A33 = A03
 
-    return np.array([[A00, A01, A02, A03],
+    M = np.array([[A00, A01, A02, A03],
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
+    return np.mod(M, 2*np.pi)
 
-def A_init001(Fluxs, n1, n2):
+def A_init001(Fluxs):
     ## A=B, C=D
-    A, B, C, D = Fluxs - np.array([n1,n2,n2,n1])*np.pi
-
-    A00 = (-A + 2*C)/6
-    A01 = (2*A - C)/6
-    return np.array([A00,A01])
+    A, B, C, D = Fluxs
+    if (A-2*D)%np.pi==0 and (2*A-B-2*D)%np.pi==0 and A+C==B+D:
+        A00=0
+        A01 = A00 + (A - D) / 2
+        n1 = (-6 * A00) / np.pi - (A - 2 * D) / np.pi
+        n2 = (-6 * A00) / np.pi - (2 * A - B - 2 * D) / np.pi
+        C = -A + B + D
+        return np.array([A00,A01, n1, n2])
+    else:
+        print("Invalid Configuration!")
+        return -1
 
 def constructA_pi_111(Fluxs):
-    n1, n5 = 1, 0
+    n5 = 0
+    try:
+        A00, A01, F, n1 = A_init111(Fluxs)
+    except:
+        return -1
 
-    A00, A01, F = A_init111(Fluxs)
     A02 = A01 + n5*np.pi
     A03 = A01 + n5*np.pi + F
 
@@ -278,16 +299,28 @@ def constructA_pi_111(Fluxs):
     A22 = A02 + n1*np.pi
     A32 = A02 + n1*np.pi
 
-    return np.array([[A00, A01, A02, A03],
+    M = np.array([[A00, A01, A02, A03],
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
+    return np.mod(M, 2*np.pi)
 
 def A_init111(Fluxs):
     ## C=D
-    A, B, C, D = Fluxs - np.ones(4)*np.pi
+    A, B, C, D = Fluxs
 
-    A00 = (A - 2 * B + 2 * D) / 6
-    A01 = (A + B - D) / 6
-    F = (-A + D) / 2
-    return np.array([A00,A01,F])
+    if (-A + 2 * B - 2 * C) % np.pi == 0:
+        A00=0
+        A01 = A00 + (B - C) / 2
+        n1 = (-6 * A00) / np.pi - (-A + 2 * B - 2 * C) / np.pi
+        F = (-A + C) / 2
+        return np.array([A00,A01, F, n1])
+    else:
+        print("Invalid Configuration!")
+        return -1
+
+# test = np.array([[0,0,0],[0,1,0],[0,0,1],[0,1,1]])
+# Api=constructA_pi_110(np.array([np.pi,np.pi,0,0]))
+# print(Api)
+# print(totalFlux(test,Api))
+

@@ -73,12 +73,13 @@ from variation_flux import *
 # ffact = contract('ik, jk->ij', k, NN)
 # ffact = np.exp(1j * ffact)
 
-flux = np.ones(4)*np.pi
+flux = np.array([np.pi, np.pi, 0, 0])
+flux = np.array([1,2,3,4])
 # A = pygen.piFluxSolver(0, 0, 1, kappa=2, graphres=graphres, BZres=25, h=0, n=h110, flux=flux)
 # E0 = A.A_pi_here
 # B0 = A.A_pi_rs_traced_here
 # M0 = contract('ku, u, ru, urx->krx', ffact, zmag, np.exp(1j*E0), piunitcell)
-D = generaldispersion(0.2, 0.2, 1, 0.3, h001, 2, 20, 25, flux)
+D = generaldispersion(0.2, 0.2, 1, 0, h110, 2, 20, 25, flux)
 plt.show()
 
 # graphdispersion(0.2, 0.2, 1, 0, h110, 2, 20, 25, 1)

@@ -293,18 +293,22 @@ def algHamSungbin():
 #
 # print(np.mean(A, axis=0))
 
-n1 = 5
-n2 = 10
-JH = np.mgrid[0:3:1j*n1, 0:100:1j*n2].reshape(2,-1).T
-print(JH.shape)
-A = np.linspace(0, 3, n1)
-B = np.linspace(0, 100, n2)
-X, Y = np.meshgrid(A, B)
-test = np.zeros(n1*n2)
-for i in range(n1*n2):
-    test[i] = JH[i,0]+JH[i,1]
-print(test)
-test = test.reshape((n1, n2))
-plt.pcolormesh(X, Y, test.T)
-plt.colorbar()
-plt.show()
+# n1 = 5
+# n2 = 10
+# JH = np.mgrid[0:3:1j*n1, 0:100:1j*n2].reshape(2,-1).T
+# print(JH.shape)
+# A = np.linspace(0, 3, n1)
+# B = np.linspace(0, 100, n2)
+# X, Y = np.meshgrid(A, B)
+# test = np.zeros(n1*n2)
+# for i in range(n1*n2):
+#     test[i] = JH[i,0]+JH[i,1]
+# print(test)
+# test = test.reshape((n1, n2))
+# plt.pcolormesh(X, Y, test.T)
+# plt.colorbar()
+# plt.show()
+
+a = -1
+a=np.ones(1)
+a.shape
