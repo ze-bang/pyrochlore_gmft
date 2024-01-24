@@ -17,7 +17,7 @@ from flux_stuff import *
 
 # findXYZPhase(-1, 1, 20, 26, 2, "XYZ_0_field_more")
 
-flux = generateflux111(-np.pi/4, np.pi/4,1)
+generateflux111(np.pi/4,np.pi/4,-1)
 
 # findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h110, 26, 2, flux, "FF_phase_110_kappa=2_zoomed_in_more")
 # findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h001, 26, 2, flux, "FF_phase_001_kappa=2_zoomed_in_more")
