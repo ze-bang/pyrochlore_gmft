@@ -221,11 +221,11 @@ def A_init110(Fluxs):
     if (B-C) % np.pi == 0 and (-A + C - D) % np.pi == 0:
         A00 = 0
         A01 = 0
-        A03 = A00 + (-A + B) / 2
-        n1 = (-2 * A00) / np.pi - (4 * A01) / np.pi - (-A + C - D) / np.pi
-        n2 = (-4 * A00) / np.pi - (2 * A01) / np.pi - (-A + B - D) / np.pi
+        A03 = (-A + B) / 2
+        n1 = - (-A + C - D) / np.pi
+        n2 = - (-A + B - D) / np.pi
         F = (C - D) / 2
-        return np.array([A00, A01, A03,F, n1,n2])
+        return np.array([A00, A01, A03, F,n1,n2])
     else:
         print("Invalid Configuration!")
         return -1
@@ -263,12 +263,11 @@ def constructA_pi_001(Fluxs):
 def A_init001(Fluxs):
     ## A=B, C=D
     A, B, C, D = Fluxs
-    if (A-2*D)%np.pi==0 and (2*A-B-2*D)%np.pi==0 and A+C==B+D:
-        A00=0
-        A01 = A00 + (A - D) / 2
-        n1 = (-6 * A00) / np.pi - (A - 2 * D) / np.pi
-        n2 = (-6 * A00) / np.pi - (2 * A - B - 2 * D) / np.pi
-        C = -A + B + D
+    if (A-2*D)%np.pi==0 and (2*A-B-2*D)%np.pi==0 and (A+C-B-D) % (2*np.pi)==0:
+        A00 = 0
+        A01 = (A - D) / 2
+        n1 = -((A - 2 * D) / np.pi)
+        n2 = -((2 * A - B - 2 * D) / np.pi)
         return np.array([A00,A01, n1, n2])
     else:
         print("Invalid Configuration!")
@@ -308,31 +307,30 @@ def constructA_pi_111(Fluxs):
 def A_init111(Fluxs):
     ## C=D
     A, B, C, D = Fluxs
-
     if (-A + 2 * B - 2 * C) % np.pi == 0:
-        A00=0
-        A01 = A00 + (B - C) / 2
-        n1 = (-6 * A00) / np.pi - (-A + 2 * B - 2 * C) / np.pi
+        A00 = 0
+        A01 = (B - C) / 2
+        n1 = -((-A + 2 * B - 2 * C) / np.pi)
         F = (-A + C) / 2
         return np.array([A00,A01, F, n1])
     else:
         print("Invalid Configuration!")
         return -1
 
-def generateflux111(A, C, n):
+def generateflux111(A, C, n1):
     D = C
-    B = (A+2*C+n*np.pi)/2
+    B = (A + 2*C - n1*np.pi)/2
     return np.array([A,B,C,D])
 
-def generateflux001(D, n1, n2):
-
-    A = 2*D+n1*np.pi
-    B = 2*A-2*D+n2*np.pi
-    C = -A + B + D
+def generateflux001(A, n1, n2):
+    B = A - n1 * np.pi + n2 * np.pi
+    C = (A - n1 * np.pi + 2 * n2 * np.pi) / 2
+    D = (A + n1 * np.pi) / 2
     return np.array([A,B,C,D])
-def generateflux110(C, D, n1, n2):
-    B = C + n1*np.pi
-    A = C- D+ n2*np.pi
+
+def generateflux110(A, C, n1, n2):
+    B = C + n1 * np.pi - n2 * np.pi
+    D = -A + C + n1 * np.pi
     return np.array([A,B,C,D])
 
 
