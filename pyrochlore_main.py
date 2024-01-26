@@ -32,6 +32,12 @@ from variation_flux import *
 # graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
 # graphMagPhase(JP, h, rectemp,'Files/' + filename)
 
+A = flux_converge_scipy_110(-0.005, -0.005, 1, 0.3, h110, 2, 30, 1)
+print(A)
+
+B = flux_converge_scipy_111(-0.005, -0.005, 1, 0.3, h111, 2, 30, 1)
+print(B)
+
 
 #region graph dispersion
 

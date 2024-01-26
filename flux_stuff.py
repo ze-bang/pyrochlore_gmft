@@ -317,20 +317,20 @@ def A_init111(Fluxs):
         print("Invalid Configuration!")
         return -1
 
-def generateflux111(A, C, n1):
+def generateflux111(B, C, n1):
     D = C
-    B = (A + 2*C - n1*np.pi)/2
+    A = 2*B - 2*C + n1*np.pi
     return np.array([A,B,C,D])
 
-def generateflux001(A, n1, n2):
-    B = A - n1 * np.pi + n2 * np.pi
-    C = (A - n1 * np.pi + 2 * n2 * np.pi) / 2
-    D = (A + n1 * np.pi) / 2
+def generateflux001(C, n1, n2):
+    A = 2 * C + n1 * np.pi
+    B = 2 * C - n2 * np.pi
+    D = C + (n1 - n2) * np.pi
     return np.array([A,B,C,D])
 
-def generateflux110(A, C, n1, n2):
-    B = C + n1 * np.pi - n2 * np.pi
-    D = -A + C + n1 * np.pi
+def generateflux110(A, D, n1, n2):
+    B = A + D - n2 * np.pi
+    C = A + D - n1 * np.pi
     return np.array([A,B,C,D])
 
 
