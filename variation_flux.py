@@ -252,7 +252,7 @@ def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
 
 
 
-def plot_MFE_flux_111_restrained(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+def plot_MFE_flux_111_restrained(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -272,7 +272,7 @@ def plot_MFE_flux_111_restrained(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filenam
         rectemp = np.zeros(le, dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i] = fluxMFE(generateflux111(currFlux[i],currFlux[i],0), Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+        sendtemp[i] = fluxMFE(generateflux111(currFlux[i],currFlux[i],0), n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
