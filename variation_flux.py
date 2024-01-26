@@ -36,18 +36,18 @@ def fluxMFE(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0.solvemeanfield()
     return p0.MFE()
 
-def fluxMFE_110(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+def fluxMFE_110(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
-                            flux=np.array([flux[0], flux[0], flux[1], flux[1]]))
+                            flux=generateflux110(flux[0], flux[1], n1, n2))
     if p0.validgauge:
         p0.solvemeanfield()
         return p0.MFE()
     else:
         return np.NaN
 
-def fluxMFE_111(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+def fluxMFE_111(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
-                            flux=np.array([flux[0], flux[1], flux[0], flux[0]]))
+                            flux=generateflux111(flux[0], flux[1], n1))
     if p0.validgauge:
         p0.solvemeanfield()
         return p0.MFE()
@@ -110,9 +110,16 @@ def flux_converge_scipy_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,2))
     mfes = np.zeros(n)
     for i in range(n):
-        res = minimize(fluxMFE_110, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,np.pi), (-np.pi,np.pi)))
-        fluxs[i] = np.array(res.x)
-        mfes[i] = res.fun
+        tempMFE = np.zeros(4)
+        tempFluxs = np.zeros((4,4))
+        for n1 in range(2):
+            for n2 in range(2):
+                res = minimize(fluxMFE_110, np.random.rand(2), args=(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((-np.pi,np.pi), (-np.pi,np.pi)))
+                tempFluxs[2 * n1 + n2] = np.array(res.x)
+                tempMFE[2*n1+n2] = res.fun
+        mindex = np.argmin(tempMFE)
+        mfes[i] = tempMFE[mindex]
+        fluxs[i] = tempFluxs[mindex]
     a = np.argmin(mfes)
     return fluxs[a]
 
@@ -120,9 +127,15 @@ def flux_converge_scipy_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,2))
     mfes = np.zeros(n)
     for i in range(n):
-        res = minimize(fluxMFE_111, np.random.rand(2), args=(Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,np.pi), (-np.pi,np.pi)))
-        fluxs[i] = np.array(res.x)
-        mfes[i] = res.fun
+        tempMFE = np.zeros(4)
+        tempFluxs = np.zeros((2,4))
+        for n1 in range(2):
+            res = minimize(fluxMFE_111, np.random.rand(2), args=(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((-np.pi,np.pi), (-np.pi,np.pi)))
+            tempFluxs[n1] = np.array(res.x)
+            tempMFE[n1] = res.fun
+        mindex = np.argmin(tempMFE)
+        mfes[i] = tempMFE[mindex]
+        fluxs[i] = tempFluxs[mindex]
     a = np.argmin(mfes)
     return fluxs[a]
 
@@ -160,7 +173,7 @@ def flux_converge_line(Jmin, Jmax, nJ, h, hat, kappa, BZres, n, filename):
         toSave[:,1:-1] = rectemp
         np.savetxt('Files/' + filename + '.txt', toSave)
 
-def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+def plot_MFE_flux_110(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -180,7 +193,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         rectemp = np.zeros(le, dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i] = fluxMFE_110(currFlux[i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+        sendtemp[i] = fluxMFE_110(currFlux[i], n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
@@ -199,7 +212,7 @@ def plot_MFE_flux_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         plt.clf()
 
 
-def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -219,7 +232,7 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         rectemp = np.zeros(le, dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i] = fluxMFE_111(currFlux[i], Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+        sendtemp[i] = fluxMFE_111(currFlux[i], n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
