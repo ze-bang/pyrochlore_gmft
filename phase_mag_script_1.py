@@ -9,9 +9,10 @@ from phase_diagram import *
 from misc_helper import *
 from flux_stuff import *
 
-
-
-flux = generateflux111(np.pi/4,np.pi/4,-1)
+n1=0
+C = np.pi/4
+B = (3*np.pi/4-n1*np.pi)/2
+flux = generateflux111(B, C, n1)
 # findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h110, 26, 2, flux, "FF_phase_110_kappa=2")
 # findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h001, 26, 2, flux, "FF_phase_001_kappa=2")
 findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, flux, "FF_phase_111_kappa=2")

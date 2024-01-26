@@ -127,11 +127,11 @@ def flux_converge_scipy_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,4))
     mfes = np.zeros(n)
     for i in range(n):
-        tempMFE = np.zeros(2)
-        tempFluxs = np.zeros((2,4))
-        for n1 in range(2):
+        tempMFE = np.zeros(4)
+        tempFluxs = np.zeros((4,4))
+        for n1 in range(4):
             res = minimize(fluxMFE_111, np.random.rand(2), args=(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((-np.pi,np.pi), (-np.pi,np.pi)))
-            tempFluxs[n1] = generateflux110(res.x[0], res.x[1], n1)
+            tempFluxs[n1] = generateflux111(res.x[0], res.x[1], n1)
             tempMFE[n1] = res.fun
         mindex = np.argmin(tempMFE)
         mfes[i] = tempMFE[mindex]
