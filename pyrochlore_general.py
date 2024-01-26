@@ -802,7 +802,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos,
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, flux=np.zeros(4), A00=0, A01=0, A02=0, A10=0):
+                 ns=1, flux=np.zeros(4)):
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
         self.Jpmpm = (Jxx - Jyy) / 4
@@ -822,12 +822,8 @@ class piFluxSolver:
         if (n == h110).all():
             self.A_pi_here = constructA_pi_110(flux)
         elif (n == h111).all():
-            if not flux[2]==flux[3]:
-                print("Invalid Flux Configuration, Equating C to D")
             self.A_pi_here = constructA_pi_111(flux)
         elif (n == h001).all():
-            if not (flux[2]==flux[3] and flux[0]==flux[1]):
-                print("Invalid Flux Configuration, Equating C to D, B to A")
             self.A_pi_here = constructA_pi_001(flux)
 
         self.minLams = np.zeros(2, dtype=np.double)
