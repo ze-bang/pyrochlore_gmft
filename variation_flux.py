@@ -239,6 +239,40 @@ def plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
 
 
 
+def plot_MFE_flux_111_restrained(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    fluxplane = np.linspace(-np.pi,np.pi,n)
+
+    le = n**2
+    nb = le/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+    currFlux = fluxplane[leftK:rightK]
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i] = fluxMFE(generateflux111(currFlux[i],currFlux[i],0), Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    
+    if rank == 0:
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        plt.plot(fluxplane, rectemp)
+        plt.savefig('Files/' + filename +'.png')
+        plt.clf()
+
+
+
+
 def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if (hat == h111).all():
         return plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename)
