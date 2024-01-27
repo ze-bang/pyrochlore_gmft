@@ -9,7 +9,7 @@ from phase_diagram import *
 from misc_helper import *
 from flux_stuff import *
 
-n1=0
+n1=1
 C = np.pi/4
 B = (3*np.pi/4-n1*np.pi)/2
 flux = generateflux111(B, C, n1)
