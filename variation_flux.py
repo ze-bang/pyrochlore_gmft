@@ -114,7 +114,7 @@ def flux_converge_scipy_110(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
         tempFluxs = np.zeros((4,4))
         for n1 in range(2):
             for n2 in range(2):
-                res = minimize(fluxMFE_110, np.random.rand(2), args=(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((-np.pi,np.pi), (-np.pi,np.pi)))
+                res = minimize(fluxMFE_110, np.random.rand(2), args=(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi), (0,2*np.pi)))
                 tempFluxs[2 * n1 + n2] = generateflux110(res.x[0], res.x[1], n1, n2)
                 tempMFE[2*n1+n2] = res.fun
         mindex = np.argmin(tempMFE)
@@ -130,7 +130,7 @@ def flux_converge_scipy_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
         tempMFE = np.zeros(4)
         tempFluxs = np.zeros((4,4))
         for n1 in range(4):
-            res = minimize(fluxMFE_111, np.random.rand(2), args=(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((-np.pi,np.pi), (-np.pi,np.pi)))
+            res = minimize(fluxMFE_111, np.random.rand(2), args=(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres), method='Nelder-Mead', bounds=((0,2*np.pi), (0,2*np.pi)))
             tempFluxs[n1] = generateflux111(res.x[0], res.x[1], n1)
             tempMFE[n1] = res.fun
         mindex = np.argmin(tempMFE)
@@ -178,7 +178,7 @@ def plot_MFE_flux_110(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1).T
+    fluxplane = np.mgrid[0:2*np.pi:1j*n, 0:2*np.pi:1j*n].reshape(2,-1).T
 
     le = n**2
     nb = le/size
@@ -201,7 +201,7 @@ def plot_MFE_flux_110(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        FD = np.linspace(-np.pi,np.pi,n)
+        FD = np.linspace(0,2*np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
         plt.pcolormesh(X, Y, rectemp.T)
@@ -217,7 +217,7 @@ def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    fluxplane = np.mgrid[-np.pi:np.pi:1j*n, -np.pi:np.pi:1j*n].reshape(2,-1).T
+    fluxplane = np.mgrid[0:2*np.pi:1j*n, 0:2*np.pi:1j*n].reshape(2,-1).T
 
     le = n**2
     nb = le/size
@@ -240,7 +240,7 @@ def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if rank == 0:
         rectemp = rectemp.reshape((n, n))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        FD = np.linspace(-np.pi,np.pi,n)
+        FD = np.linspace(0,2*np.pi,n)
         X,Y = np.meshgrid(FD, FD)
 
         plt.pcolormesh(X, Y, rectemp.T)

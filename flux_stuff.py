@@ -308,18 +308,18 @@ def A_init111(Fluxs):
 def generateflux111(B, C, n1):
     D = C
     A = 2*B - 2*C + n1*np.pi
-    return np.array([A,B,C,D])
+    return np.mod(np.array([A,B,C,D]), 2*np.pi)
 
 def generateflux001(C, n1, n2):
     A = 2 * C + n1 * np.pi
     B = 2 * C - n2 * np.pi
     D = C + (n1 - n2) * np.pi
-    return np.array([A,B,C,D])
+    return np.mod(np.array([A,B,C,D]), 2*np.pi)
 
 def generateflux110(A, D, n1, n2):
     B = A + D - n2 * np.pi
     C = A + D - n1 * np.pi
-    return np.array([A,B,C,D])
+    return np.mod(np.array([A,B,C,D]), 2*np.pi)
 
 
 # test = np.array([[0,0,0],[0,1,0],[0,0,1],[0,1,1]])
