@@ -296,10 +296,10 @@ def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
 
 
 def getminflux110(filename):
-    n10n20=np.loadtxt(filename+"n1=0_n2=0.txt", dtype=np.float64)
-    n11n20=np.loadtxt(filename+"n1=1_n2=0.txt", dtype=np.float64)
-    n10n21=np.loadtxt(filename+"n1=0_n2=1.txt", dtype=np.float64)
-    n11n21=np.loadtxt(filename+"n1=1_n2=1.txt", dtype=np.float64)
+    n10n20=np.loadtxt(filename+"_n1=0_n2=0.txt", dtype=np.float64)
+    n11n20=np.loadtxt(filename+"_n1=1_n2=0.txt", dtype=np.float64)
+    n10n21=np.loadtxt(filename+"_n1=0_n2=1.txt", dtype=np.float64)
+    n11n21=np.loadtxt(filename+"_n1=1_n2=1.txt", dtype=np.float64)
     flux = np.linspace(0, 2*np.pi, len(n10n20))
     n10n20dex = np.unravel_index(np.argmin(n10n20, axis=None), n10n20.shape)
     n11n20dex = np.unravel_index(np.argmin(n11n20, axis=None), n11n20.shape)
@@ -313,14 +313,15 @@ def getminflux110(filename):
     n2 = nminds % 2
     A = flux[dexes[nminds][0]]
     D = flux[dexes[nminds][1]]
+    print(n1,n2,A,D)
     return generateflux110(A, D, n1, n2)
 
 
 def getminflux111(filename):
-    n10n20=np.loadtxt(filename+"n1=0.txt", dtype=np.float64)
-    n11n20=np.loadtxt(filename+"n1=1.txt", dtype=np.float64)
-    n10n21=np.loadtxt(filename+"n1=2.txt", dtype=np.float64)
-    n11n21=np.loadtxt(filename+"n1=3.txt", dtype=np.float64)
+    n10n20=np.loadtxt(filename+"_n1=0.txt", dtype=np.float64)
+    n11n20=np.loadtxt(filename+"_n1=1.txt", dtype=np.float64)
+    n10n21=np.loadtxt(filename+"_n1=2.txt", dtype=np.float64)
+    n11n21=np.loadtxt(filename+"_n1=3.txt", dtype=np.float64)
     flux = np.linspace(0, 2*np.pi, len(n10n20))
     n10n20dex = np.unravel_index(np.argmin(n10n20, axis=None), n10n20.shape)
     n11n20dex = np.unravel_index(np.argmin(n11n20, axis=None), n11n20.shape)

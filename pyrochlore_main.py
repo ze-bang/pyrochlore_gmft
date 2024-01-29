@@ -17,40 +17,14 @@ import netCDF4 as nc
 import warnings
 from numpy.testing import assert_almost_equal, assert_allclose
 from variation_flux import *
-# JP = np.linspace(-0.5, 0.1, 400)
-# h = np.linspace(0, 1, 100)
-#
-# filename="phase_111_kappa=2_complete"
-#
-# rectemp1 = np.loadtxt("CC_Files/phase_111_kappa=2_complete_gap.txt")
-# rectemp = np.loadtxt("CC_Files/phase_111_kappa=2_complete.txt")
-#
-# plt.contourf(JP, h, rectemp.T)
-#
-# plt.show()
 
-# graphMagPhase(JP, h, rectemp1,'Files/' + filename + '_gap')
-# graphMagPhase(JP, h, rectemp,'Files/' + filename)
-
-# A = flux_converge_scipy_110(-0.005, -0.005, 1, 0.3, h110, 2, 30, 1)
-# print(A)
-#
-# B = flux_converge_scipy_111(-0.005, -0.005, 1, 0.3, h111, 2, 30, 1)
-# print(B)
-# JP = 0.1
-# A = pygen.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-# D = py0.zeroFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
-# A.solvemeanfield()
-# D.solvemeanfield()
-# print(A.qmin, D.qmin)
-# print(A.MFE(), D.MFE())
 
 #region graph dispersion
 
 #endregion
 
 n = 20
-JP = np.linspace(-0.03,0.03, n)
+JP = np.linspace(0.001,0.05, n)
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
 MFEpp00 = np.zeros(n)
@@ -78,7 +52,7 @@ for i in range(n):
     MFEpi[i] = C.MFE()
     # MFE0old[i] = D.MFE()
     # MFEpiold[i] = E.MFE()
-    print(JP[i], MFE0[i], MFEpi[i], MFEpp00[i])
+    print(JP[i], MFE0[i], A.qmin, MFEpp00[i], B.qmin, MFEpi[i], C.qmin)
 
 plt.plot(JP, MFE0, label='0')
 plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')

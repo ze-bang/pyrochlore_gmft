@@ -310,5 +310,4 @@ def algHamSungbin():
 # plt.show()
 
 a = -1
-a=np.ones(1)
-a.shape
+print(np.mod(a,2*np.pi))
