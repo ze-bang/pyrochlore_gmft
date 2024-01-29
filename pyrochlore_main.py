@@ -37,56 +37,56 @@ from variation_flux import *
 #
 # B = flux_converge_scipy_111(-0.005, -0.005, 1, 0.3, h111, 2, 30, 1)
 # print(B)
-JP = 0.1
-A = pygen.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-D = py0.zeroFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
-A.solvemeanfield()
-D.solvemeanfield()
-print(A.qmin, D.qmin)
-print(A.MFE(), D.MFE())
+# JP = 0.1
+# A = pygen.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
+# D = py0.zeroFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
+# A.solvemeanfield()
+# D.solvemeanfield()
+# print(A.qmin, D.qmin)
+# print(A.MFE(), D.MFE())
 
 #region graph dispersion
 
 #endregion
 
-# n = 20
-# JP = np.linspace(-0.05,0.05, n)
-# MFE0 = np.zeros(n)
-# MFEpi = np.zeros(n)
-# MFEpp00 = np.zeros(n)
+n = 20
+JP = np.linspace(-0.03,0.03, n)
+MFE0 = np.zeros(n)
+MFEpi = np.zeros(n)
+MFEpp00 = np.zeros(n)
 # MFE0old = np.zeros(n)
 # MFEpiold = np.zeros(n)
-#
+
 # print(constructA_pi_110(np.zeros(4)))
 # print(constructA_pi_110(np.array([np.pi, np.pi, 0, 0])))
 # print(constructA_pi_110(np.array([np.pi, np.pi, np.pi, np.pi])))
-#
-# for i in range(n):
-#     A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-#     B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-#     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-#     D = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
-#     E = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
-#
-#     A.solvemeanfield()
-#     B.solvemeanfield()
-#     C.solvemeanfield()
-#     D.solvemeanfield()
-#     E.solvemeanfield()
-#     MFE0[i] = A.MFE()
-#     MFEpp00[i] = B.MFE()
-#     MFEpi[i] = C.MFE()
-#     MFE0old[i] = D.MFE()
-#     MFEpiold[i] = E.MFE()
-#     print(JP[i], MFE0[i], MFEpi[i], MFEpp00[i], MFE0old[i], MFEpiold[i])
-#
-# plt.plot(JP, MFE0, label='0')
-# plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
-# plt.plot(JP, MFEpi, label=r'$\pi$')
+
+for i in range(n):
+    A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
+    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+    C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+    # D = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
+    # E = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
+
+    A.solvemeanfield()
+    B.solvemeanfield()
+    C.solvemeanfield()
+    # D.solvemeanfield()
+    # E.solvemeanfield()
+    MFE0[i] = A.MFE()
+    MFEpp00[i] = B.MFE()
+    MFEpi[i] = C.MFE()
+    # MFE0old[i] = D.MFE()
+    # MFEpiold[i] = E.MFE()
+    print(JP[i], MFE0[i], MFEpi[i], MFEpp00[i])
+
+plt.plot(JP, MFE0, label='0')
+plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
+plt.plot(JP, MFEpi, label=r'$\pi$')
 # plt.plot(JP, MFE0old, label='0 old')
 # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-# plt.legend()
-# plt.show()
+plt.legend()
+plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
