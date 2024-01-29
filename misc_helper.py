@@ -204,7 +204,7 @@ piunitcell = np.array([
      [0,1,0,0]]
 ])
 
-number = 4
+number = 8
 notrace = np.ones((4,4))-np.diag([1,1,1,1])
 
 A_pi_rs_traced = np.zeros((4,4,4))

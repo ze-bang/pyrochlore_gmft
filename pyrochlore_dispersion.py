@@ -717,7 +717,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k):
     EBB = np.real(M1+M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ, E1, Emag, EAB, EAA, EBB, E)
+    print(EQ, E1, Emag, EAB, EAA, EBB, E)
     return E
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
@@ -777,6 +777,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rho):
     EBB = np.real(M1+M2)
 
     E = np.mean(Emag + E1 + EAB + EAA + EBB)
+    print(E1, Emag, EAB, EAA, EBB)
     return np.real(E)
 
 class zeroFluxSolver:

@@ -287,17 +287,19 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 0, np.array([0,0,0]).reshape((1,3))
 
-    E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
-    Em = E.min()
-    dex = np.where(E==Em)
-    Know = K[dex]
+    # E, V = np.linalg.eigh(M)
+    # E = np.around(E[:,0], decimals=14)
+    # Em = E.min()
+    # dex = np.where(E==Em)
+    # Know = K[dex]
+
+    Know = np.random.rand(4,3)*np.pi
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= number:
-        Know = Know[0:number]
+    # if len(Know) >= number:
+    #     Know = Know[0:number]
 
     Enow = np.zeros(len(Know))
 
@@ -729,7 +731,7 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     EBB = 2 * np.real(M1 + M2)
 
     E = EQ + Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
+    print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return E / 4
 
 def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -795,7 +797,7 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos,
     EBB = 2 * np.real(M1 + M2)
 
     E = Emag + E1 + EAB + EAA + EBB
-    # print(EQ/4, E1/4, Emag/4, EAB, EAA, EBB)
+    print(E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
     return E / 4
 
 
@@ -926,7 +928,6 @@ class piFluxSolver:
         mfs = np.array([self.chi, self.chi0, self.xi])
         lam, K, MF = self.condensation_check(mfs)
         mfs = self.calmeanfield(lam, MF, K)
-        # print(mfs)
         do = not (self.Jpmpm == 0)
         counter = 0
         while do:
@@ -937,8 +938,8 @@ class piFluxSolver:
             if (abs(mfs-mfslast) < tol).all() or counter >= 30:
                 break
             counter = counter + 1
-        lam, K, MF = self.condensation_check(mfs)
-        # print(mfs)
+        if do:
+            lam, K, MF = self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
         self.lams = lam
         self.MF = MF
