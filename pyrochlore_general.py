@@ -336,8 +336,8 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
         Enow[i] = res.fun
 
     a = np.argmin(Enow)
-    Enowm = Enow.min()
-    dex = np.where(Enow==Enowm)
+    # Enowm = Enow.min()
+    # dex = np.where(Enow==Enowm)
     # print(Em, Enowm, dex, Know[dex])
     Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
     # print(Know)
