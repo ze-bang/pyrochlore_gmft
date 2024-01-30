@@ -91,6 +91,7 @@ def BasisBZ(mu):
         return 2*np.pi*np.array([1,1,-1])
 
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
+
 @nb.njit
 def neta(alpha):
     if alpha == 0:
@@ -150,12 +151,15 @@ for i in range(4):
         NNplus[i,j,:] = NN[i]+NN[j]
 
 
+
 # @nb.njit
 def genBZ(d, m=1):
     d = d*1j
-    b = np.mgrid[0:m:d, 0:m:d, 0:m:d].reshape(3,-1)
-    temp = contract('ij, ik->jk', b, BasisBZA)
-    return temp
+    b = np.mgrid[0:m:d, 0:m:d, 0:m:d].reshape(3,-1).T
+    b = np.unique(np.concatenate((b, genALLSymPointsBare())), axis=0)
+    temp = contract('ij, jk->ik', b, BasisBZA)
+    return temp, b
+
 
 # def genBZfolded(d):
 #     d = d*1j
@@ -388,6 +392,29 @@ def permute(G):
     for i in msp(G):
         B += [i]
     return B
+
+def genALLSymPointsBare():
+    d = 9 * 1j
+    b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3, -1).T
+    return b
+
+def equi_class_c3(K1, K2):
+    if (K1 == K2).all() or (K1 == np.array([K2[2], K2[0], K2[1]])).all() or (K1 == np.array([K2[1], K2[2], K2[0]])).all():
+        return True
+    else:
+        return False
+def symmetry_equivalence(K):
+    L = len(K)
+    dind = []
+    keep = []
+    for i in range(L):
+        for j in range(L):
+            if (not i == j) and equi_class_c3(K[i], K[j]) and (not j in keep):
+                keep += [i]
+                dind += [j]
+    K = np.delete(K, dind, 0)
+    return np.array(K)
+
 
 def genALLSymPoints():
     d = 9 * 1j

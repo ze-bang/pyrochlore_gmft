@@ -261,15 +261,16 @@ def hessian(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
            + Emin(np.array([kx, ky, kz - step]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
 
-def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 0, np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
+    E = np.around(E[:,0], decimals=16)
     Em = E.min()
     dex = np.where(E==Em)
-    Know = K[dex]
+    Know = np.unique(np.around(K[dex], decimals=15), axis=0)
+    Know = Know + (np.random.rand(Know.shape[0], Know.shape[1])-1/2) / (2*BZres)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -305,30 +306,29 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     Know = np.where(Know>np.pi, Know-2*np.pi, Know)
     return -Enow[a], Know
 
-def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 0, np.array([0,0,0]).reshape((1,3))
 
-    # E, V = np.linalg.eigh(M)
-    # E = np.around(E[:,0], decimals=14)
-    # Em = E.min()
-    # dex = np.where(E==Em)
-    # Know = K[dex]
-
-    Know = np.random.rand(4,3)*2*np.pi - np.pi
+    E, V = np.linalg.eigh(M)
+    E = np.around(E[:,0], decimals=16)
+    Em = E.min()
+    dex = np.where(E==Em)
+    Know = np.unique(np.around(K[dex], decimals=15), axis=0)
+    # Know = symmetry_equivalence(Know)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    # if len(Know) >= number:
-    #     Know = Know[0:number]
+    if len(Know) >= number:
+        Know = Know[0:number]
 
     Enow = np.zeros(len(Know))
 
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
                                                A_pi_rs_traced_here, A_pi_rs_traced_pp_here),
-                       method='Nelder-Mead', bounds=((-np.pi, np.pi),(-np.pi, np.pi),(-np.pi, np.pi)), tol=1e-15)
+                       method='Nelder-Mead')
         # res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
         #                                        A_pi_rs_traced_here, A_pi_rs_traced_pp_here), method='L-BFGS-B',
         #                bounds=((-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)),jac='2-point')
@@ -336,9 +336,13 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
         Enow[i] = res.fun
 
     a = np.argmin(Enow)
-    # Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
-    # Know = np.where(Know>np.pi, Know-2*np.pi, Know)
-    return -Enow[a], Know[a].reshape((1,3))
+    Enowm = Enow.min()
+    dex = np.where(Enow==Enowm)
+    print(Em, Enowm, dex, Know[dex])
+    Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
+    print(Know)
+    Know = np.where(Know>np.pi, Know-2*np.pi, Know)
+    return -Enow[a], Know
 
 def check_condensed(Jzz, lamM, M, kappa):
     if rho_true(Jzz, M, lamM+(deltamin/len(M))**2)[0] < kappa:
@@ -858,8 +862,7 @@ class piFluxSolver:
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres), symK))
-        self.bigB = np.unique(self.bigB, axis=0)
+        self.bigB, self.bareB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)
         self.q = np.nan
         self.qmin = np.empty(3)
@@ -929,8 +932,8 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         if not self.validgauge:
             return -1
-        minLams, self.qmin = findminLam_scipy(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        minLams, self.qmin = findminLam_scipy(self.MF, self.bareB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
         MF = M_pi(K, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)

@@ -916,8 +916,7 @@ class piFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres, 1/2), symK))
-        self.bigB = np.unique(self.bigB, axis=0)
+        self.bigB, self.bareB = genBZ(BZres)
         # self.bigB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)
         self.MF = M_pi(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,

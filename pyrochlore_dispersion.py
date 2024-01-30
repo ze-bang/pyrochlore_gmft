@@ -806,9 +806,7 @@ class zeroFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB = np.concatenate((genBZ(BZres), symK))
-        self.bigB = np.unique(self.bigB, axis=0)
-        # self.bigB = genBZ(BZres)
+        self.bigB, self.bareB = genBZ(BZres)
         self.bigTemp = np.copy(self.bigB)
         self.MF = M_true(self.bigB, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi)
         self.MForig = np.copy(self.MF)

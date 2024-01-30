@@ -25,39 +25,35 @@ from variation_flux import *
 
 n = 20
 JP = np.linspace(-0.01,0.01, n)
-pp00f = generateflux110(0, np.pi, 0, 0)
-print(pp00f)
+ppp0f = generateflux110(0, np.pi, 0, 0)
+pp00f = generateflux110(np.pi, 0, 1, 0)
+
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
+MFEppp0 = np.zeros(n)
 MFEpp00 = np.zeros(n)
-# MFE0old = np.zeros(n)
-# MFEpiold = np.zeros(n)
-
-# print(constructA_pi_110(np.zeros(4)))
-# print(constructA_pi_110(np.array([np.pi, np.pi, 0, 0])))
-# print(constructA_pi_110(np.array([np.pi, np.pi, np.pi, np.pi])))
 
 for i in range(n):
     A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=pp00f)
+    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=ppp0f)
+    D = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=pp00f)
     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-    # D = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
-    # E = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
 
     A.solvemeanfield()
     B.solvemeanfield()
+    D.solvemeanfield()
     C.solvemeanfield()
-    # D.solvemeanfield()
-    # E.solvemeanfield()
+
     MFE0[i] = A.MFE()
-    MFEpp00[i] = B.MFE()
+    MFEppp0[i] = B.MFE()
+    MFEpp00[i] = D.MFE()
     MFEpi[i] = C.MFE()
-    # MFE0old[i] = D.MFE()
-    # MFEpiold[i] = E.MFE()
-    print(JP[i], MFE0[i], A.qmin, MFEpp00[i], B.qmin, MFEpi[i], C.qmin)
+
+    print(JP[i], MFE0[i], A.qmin, MFEppp0[i], B.qmin, MFEpp00[i], D.qmin, MFEpi[i], C.qmin)
 
 plt.plot(JP, MFE0, label='0')
 plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
+plt.plot(JP, MFEppp0, label=r'$\pi\pi \pi 0$')
 plt.plot(JP, MFEpi, label=r'$\pi$')
 # plt.plot(JP, MFE0old, label='0 old')
 # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
