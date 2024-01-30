@@ -23,8 +23,10 @@ from variation_flux import *
 
 #endregion
 
-n = 20
-JP = np.linspace(-0.01,0.01, n)
+n = 1
+h = 0
+BZres = 40
+JP = np.linspace(0,0, n)
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
 
@@ -34,10 +36,10 @@ MFEppp0 = np.zeros(n)
 MFEpp00 = np.zeros(n)
 
 for i in range(n):
-    A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=ppp0f)
-    D = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=pp00f)
-    C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+    A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=ppp0f)
+    D = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
+    C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
 
     A.solvemeanfield()
     B.solvemeanfield()

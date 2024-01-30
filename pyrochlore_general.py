@@ -309,14 +309,13 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
 
 def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return 0, np.array([0,0,0]).reshape((1,3))
+        return -1/2, np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
     E = np.around(E[:,0], decimals=16)
     Em = E.min()
     dex = np.where(E==Em)
     Know = np.unique(np.around(K[dex], decimals=15), axis=0)
-    # Know = symmetry_equivalence(Know)
     Know = contract('ij, jk->ik', Know, BasisBZA)
 
     if Know.shape == (3,):
@@ -370,11 +369,6 @@ def findlambda_pi(M, Jzz, kappa, tol, lamM):
         lamMin = np.zeros(2)
         lamMax = np.ones(2)
     else:
-        # lamMin = np.copy(lamM)
-        # if check_condensed(Jzz, lamM, M, kappa):
-        #     lamMax = lamM+(deltamin/len(M))**2
-        # else:
-        #     lamMax = run(Jzz, lamM+(deltamin/len(M))**2, M, kappa)
         lamMin = np.copy(lamM)
         lamMax = np.ones(2)*10
     lams = lamMax
@@ -635,47 +629,9 @@ def green_pi_wrong(E, V, Jzz):
 
 
 def green_pi(E, V, Jzz):
-    Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = Jzz / E
-    green = contract('ikjl, ik->ijl', Vt, green)
+    green = contract('ilk, ijk, ik->ijl', V, np.conj(V), green)
     return green
-
-
-# region outdated
-def green_pi_phid_phi_branch(E, V, Jzz):
-    Vt1 = contract('ijk, ikl->iklj', V[:, :, 0:8], np.transpose(np.conj(V), (0, 2, 1))[:, 0:8, :])
-    Vt2 = contract('ijk, ikl->iklj', V[:, :, 8:16], np.transpose(np.conj(V), (0, 2, 1))[:, 8:16, :])
-    green = Jzz / E
-    green1 = contract('ikjl, ik->ikjl', Vt1, green[:, 0:8])
-    green2 = contract('iklj, ik->ikjl', Vt2, green[:, 8:16])
-    green = np.zeros((len(E), 16, 16, 16))
-    green[:, 0:8] = green1
-    green[:, 8:16] = green2
-    return green
-
-
-def green_pi_phi_phi_branch(E, V, Jzz):
-    Vt1 = contract('ijk, ilk->ikjl', V[:, 0:8, 8:16], V[:, 0:8, 0:8])
-    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
-    green = Jzz / E
-    green1 = contract('ikjl, ik->ikjl', Vt1, green[:, 8:16])
-    green2 = contract('iklj, ik->ikjl', Vt2, green[:, 0:8])
-    green = np.zeros((len(E), 16, 8, 8))
-    green[:, 0:8] = green2
-    green[:, 8:16] = green1
-    return green
-
-
-def green_pi_branch_wrong(E, V, Jzz):
-    green_phi_phi = green_pi_phi_phi_branch(E, V, Jzz)
-    green_phid_phid = np.transpose(np.conj(green_phi_phi), (0, 1, 3, 2))
-    green_phid_phi = green_pi_phid_phi_branch(E, V, Jzz)
-    green = np.block([[green_phid_phi[:, :, 0:8, 0:8], green_phid_phid],
-                      [green_phi_phi, green_phid_phi[:, :, 8:16, 8:16]]])
-    return green
-
-
-# endregion
 
 def green_pi_branch(E, V, Jzz):
     Vt = contract('ijk, ilk->iklj', V, np.conj(V))
@@ -692,14 +648,14 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi
     M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
-    Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = green_pi(E, V, Jzz)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
 
-    EQ = np.real(np.trace(np.mean(contract('ikjl, ik->ijl', Vt, E / 2), axis=0)) / 2)
+    EQ = np.real(np.trace(np.mean(contract('ilk, ijk,ik->ijl',  V, np.conj(V) , E / 2), axis=0)) / 2)
+
     E1A = np.mean(
         contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA,
                  piunitcell, piunitcell), axis=0)
@@ -934,7 +890,7 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         if not self.validgauge:
             return -1
-        minLams, self.qmin = findminLam_scipy(self.MF, self.bareB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam(self.MF, self.bareB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)
