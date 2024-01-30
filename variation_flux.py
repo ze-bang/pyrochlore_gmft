@@ -320,15 +320,12 @@ def getminflux110(filename):
 def getminflux111(filename):
     n10n20=np.loadtxt(filename+"_n1=0.txt", dtype=np.float64)
     n11n20=np.loadtxt(filename+"_n1=1.txt", dtype=np.float64)
-    n10n21=np.loadtxt(filename+"_n1=2.txt", dtype=np.float64)
-    n11n21=np.loadtxt(filename+"_n1=3.txt", dtype=np.float64)
     flux = np.linspace(0, 2*np.pi, len(n10n20))
     n10n20dex = np.unravel_index(np.argmin(n10n20, axis=None), n10n20.shape)
     n11n20dex = np.unravel_index(np.argmin(n11n20, axis=None), n11n20.shape)
-    n10n21dex = np.unravel_index(np.argmin(n10n21, axis=None), n10n21.shape)
-    n11n21dex = np.unravel_index(np.argmin(n11n21, axis=None), n11n21.shape)
-    dexes = np.array([n10n20dex,n10n21dex,n11n20dex,n11n21dex])
-    fluxes = np.array([n10n20[n10n20dex], n10n21[n10n21dex], n11n20[n11n20dex], n11n21[n11n21dex]])
+
+    dexes = np.array([n10n20dex,n11n20dex])
+    fluxes = np.array([n10n20[n10n20dex], n11n20[n11n20dex]])
     nminds = np.argmin(fluxes)
 
     n1 = nminds
