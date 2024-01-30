@@ -270,6 +270,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     Em = E.min()
     dex = np.where(E==Em)
     Know = K[dex]
+
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
@@ -301,9 +302,7 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
 
     a = np.argmin(Enow)
     Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
-    for i in range(3):
-        if (Know[0,i] > np.pi):
-            Know[0,i] = Know[0,i] - 2*np.pi
+    Know = np.where(Know>np.pi, Know-2*np.pi, Know)
     return -Enow[a], Know
 
 def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -930,7 +929,7 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         if not self.validgauge:
             return -1
-        minLams, self.qmin = findminLam_scipy(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)

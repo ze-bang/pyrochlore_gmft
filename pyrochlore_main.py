@@ -24,7 +24,7 @@ from variation_flux import *
 #endregion
 
 n = 20
-JP = np.linspace(0.001,0.05, n)
+JP = np.linspace(0,0.01, n)
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
 MFEpp00 = np.zeros(n)
