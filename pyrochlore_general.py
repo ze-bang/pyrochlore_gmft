@@ -929,7 +929,7 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         if not self.validgauge:
             return -1
-        minLams, self.qmin = findminLam(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam_scipy(self.MF, self.bigB, self.tol, self.eta, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         minLams = np.ones(2) * minLams
         K = np.unique(np.concatenate((self.bigB, self.qmin)), axis=0)

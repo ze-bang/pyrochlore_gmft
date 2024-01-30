@@ -24,7 +24,9 @@ from variation_flux import *
 #endregion
 
 n = 20
-JP = np.linspace(0,0.01, n)
+JP = np.linspace(-0.01,0.01, n)
+pp00f = generateflux110(0, np.pi, 0, 0)
+print(pp00f)
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
 MFEpp00 = np.zeros(n)
@@ -37,7 +39,7 @@ MFEpp00 = np.zeros(n)
 
 for i in range(n):
     A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.zeros(4))
-    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=pp00f)
     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
     # D = py0.zeroFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
     # E = pypi.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=30, h=0.3, n=h110)
