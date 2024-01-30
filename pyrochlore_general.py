@@ -270,7 +270,8 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     Em = E.min()
     dex = np.where(E==Em)
     Know = np.unique(np.around(K[dex], decimals=15), axis=0)
-    Know = Know + (np.random.rand(Know.shape[0], Know.shape[1])-1/2) / (2*BZres)
+    # Know = Know + (np.random.rand(Know.shape[0], Know.shape[1])-1/2) / (2*BZres)
+    Know = contract('ij, jk->ik', Know, BasisBZA)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -316,6 +317,7 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
     dex = np.where(E==Em)
     Know = np.unique(np.around(K[dex], decimals=15), axis=0)
     # Know = symmetry_equivalence(Know)
+    Know = contract('ij, jk->ik', Know, BasisBZA)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
