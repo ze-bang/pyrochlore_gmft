@@ -23,10 +23,10 @@ from variation_flux import *
 
 #endregion
 
-n = 1
+n = 2
 h = 0
 BZres = 40
-JP = np.linspace(0,0, n)
+JP = np.linspace(0.1,1, n)
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
 
