@@ -333,7 +333,8 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
 
     a = np.argmin(Enow)
     Know = contract('i,ik->k', Know[a], BasisBZA).reshape((1,3))
-    # Know = np.where(Know>np.pi, Know-2*np.pi, Know)
+    Know = np.mod(Know, 2*np.pi)
+    Know = np.where(Know>np.pi, Know-2*np.pi, Know)
     return -Enow[a], Know
 
 def check_condensed(Jzz, lamM, M, kappa):
