@@ -19,14 +19,18 @@ from numpy.testing import assert_almost_equal, assert_allclose
 from variation_flux import *
 
 
-#region graph dispersion
+getminflux110("Niagara_data_3/h110_flux_plane_zero_0.2")
+getminflux110("Niagara_data_3/h110_flux_plane_pi_0.2")
+getminflux110("Niagara_data_3/h110_flux_plane_mid_0.2")
 
-#endregion
+getminflux111("Niagara_data_3/h111_flux_plane_zero_0.2")
+getminflux111("Niagara_data_3/h111_flux_plane_pi_0.2")
+getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
 
-n = 2
-h = 0
+n = 20
+h = 0.3
 BZres = 40
-JP = np.linspace(0.1,1, n)
+JP = np.linspace(0,1, n)
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
 
