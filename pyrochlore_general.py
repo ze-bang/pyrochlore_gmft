@@ -222,7 +222,7 @@ def findminLam_old(M, Jzz, tol):
 
 
 def Emin(q, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    k = q.reshape((1,3))
+    k = contract('k, ik->i', q, BasisBZA).reshape((1,3))
     return E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0][0,0]
 
 
@@ -271,7 +271,6 @@ def findminLam(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     dex = np.where(E==Em)
     Know = np.unique(np.around(K[dex], decimals=15), axis=0)
     # Know = Know + (np.random.rand(Know.shape[0], Know.shape[1])-1/2) / (2*BZres)
-    Know = contract('ij, jk->ik', Know, BasisBZA)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -316,7 +315,6 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
     Em = E.min()
     dex = np.where(E==Em)
     Know = np.unique(np.around(K[dex], decimals=15), axis=0)
-    Know = contract('ij, jk->ik', Know, BasisBZA)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -329,10 +327,7 @@ def findminLam_scipy(M, K, tol, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_p
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
                                                A_pi_rs_traced_here, A_pi_rs_traced_pp_here),
-                       method='Nelder-Mead')
-        # res = minimize(Emin, x0=Know[i], args=(np.zeros(2), eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
-        #                                        A_pi_rs_traced_here, A_pi_rs_traced_pp_here), method='L-BFGS-B',
-        #                bounds=((-np.pi, np.pi), (-np.pi, np.pi), (-np.pi, np.pi)),jac='2-point')
+                       method='Nelder-Mead', bounds=((0,1), (0,1), (0,1)))
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
 
