@@ -1049,6 +1049,9 @@ class piFluxSolver:
             self.lams, self.bigTemp, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         return Ep
 
+    def MFE_alternative(self):
+        return self.MFE() - self.lams[0]
+
     def MFEs(self, chi, chi0, xi, lams, MF, K):
 
         Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MF,

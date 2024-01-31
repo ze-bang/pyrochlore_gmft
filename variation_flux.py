@@ -46,6 +46,15 @@ def fluxMFE_110(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
         return p0.MFE()
     else:
         return np.NaN
+    
+def fluxMFE_110_alt(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+                            flux=generateflux110(flux[0], flux[1], n1, n2))
+    if p0.validgauge:
+        p0.solvemeanfield()
+        return p0.GS()
+    else:
+        return np.NaN
 
 def fluxMFE_111(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
@@ -53,6 +62,15 @@ def fluxMFE_111(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     if p0.validgauge:
         p0.solvemeanfield()
         return p0.MFE()
+    else:
+        return np.NaN
+    
+def fluxMFE_111_alt(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
+    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+                            flux=generateflux111(flux[0], flux[1], n1))
+    if p0.validgauge:
+        p0.solvemeanfield()
+        return p0.GS()
     else:
         return np.NaN
 
@@ -213,6 +231,45 @@ def plot_MFE_flux_110(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         plt.savefig('Files/' + filename +'.png')
         plt.clf()
 
+def plot_MFE_flux_110_alt(n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    fluxplane = np.mgrid[0:2*np.pi:1j*n, 0:2*np.pi:1j*n].reshape(2,-1).T
+
+    le = n**2
+    nb = le/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+    currFlux = fluxplane[leftK:rightK, :]
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i] = fluxMFE_110_alt(currFlux[i], n1, n2, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    
+    if rank == 0:
+        rectemp = rectemp.reshape((n, n))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        FD = np.linspace(0,2*np.pi,n)
+        X,Y = np.meshgrid(FD, FD)
+
+        plt.pcolormesh(X, Y, rectemp.T)
+        plt.colorbar()
+        plt.xlabel(r'$F_\alpha$')
+        plt.ylabel(r'$F_\beta$')
+        plt.savefig('Files/' + filename +'.png')
+        plt.clf()
+
+
 
 def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
@@ -235,6 +292,44 @@ def plot_MFE_flux_111(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
 
     for i in range(currsizeK):
         sendtemp[i] = fluxMFE_111(currFlux[i], n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    
+    if rank == 0:
+        rectemp = rectemp.reshape((n, n))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        FD = np.linspace(0,2*np.pi,n)
+        X,Y = np.meshgrid(FD, FD)
+
+        plt.pcolormesh(X, Y, rectemp.T)
+        plt.colorbar()
+        plt.xlabel(r'$F_\alpha$')
+        plt.ylabel(r'$F_\beta$')
+        plt.savefig('Files/' + filename +'.png')
+        plt.clf()
+
+def plot_MFE_flux_111_alt(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    fluxplane = np.mgrid[0:2*np.pi:1j*n, 0:2*np.pi:1j*n].reshape(2,-1).T
+
+    le = n**2
+    nb = le/size
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+    currFlux = fluxplane[leftK:rightK, :]
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i] = fluxMFE_111_alt(currFlux[i], n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
