@@ -19,18 +19,25 @@ from numpy.testing import assert_almost_equal, assert_allclose
 from variation_flux import *
 
 
-getminflux110("Niagara_data_3/h110_flux_plane_zero_0.2")
-getminflux110("Niagara_data_3/h110_flux_plane_pi_0.2")
-getminflux110("Niagara_data_3/h110_flux_plane_mid_0.2")
+# getminflux110("Niagara_data_3/h110_flux_plane_zero_0.2")
+# getminflux110("Niagara_data_3/h110_flux_plane_pi_0.2")
+# getminflux110("Niagara_data_3/h110_flux_plane_mid_0.2")
+#
+# getminflux111("Niagara_data_3/h111_flux_plane_zero_0.2")
+# getminflux111("Niagara_data_3/h111_flux_plane_pi_0.2")
+# getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
 
-getminflux111("Niagara_data_3/h111_flux_plane_zero_0.2")
-getminflux111("Niagara_data_3/h111_flux_plane_pi_0.2")
-getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
+generaldispersion(0,0,1,0.3,h110,2,20,30,np.ones(4)*4)
+plt.show()
+generaldispersion(0,0,1,0.3,h110,2,20,30,np.array([np.pi,np.pi,0,0]))
+plt.show()
+# generaldispersion(0,0,1,0.3,h111,2,20,30,generateflux111(np.pi/2, -np.pi/4, 0))
+# plt.show()
 
 n = 20
 h = 0.3
 BZres = 40
-JP = np.linspace(0,1, n)
+JP = np.linspace(0,0.05, n)
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
 
@@ -38,6 +45,11 @@ MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
 MFEppp0 = np.zeros(n)
 MFEpp00 = np.zeros(n)
+
+GS0 = np.zeros(n)
+GSpi = np.zeros(n)
+GSppp0 = np.zeros(n)
+GSpp00 = np.zeros(n)
 
 for i in range(n):
     A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
@@ -55,12 +67,27 @@ for i in range(n):
     MFEpp00[i] = D.MFE()
     MFEpi[i] = C.MFE()
 
-    print(JP[i], MFE0[i], A.qmin, MFEppp0[i], B.qmin, MFEpp00[i], D.qmin, MFEpi[i], C.qmin)
+    GS0[i] = A.GS()
+    GSppp0[i] = B.GS()
+    GSpp00[i] = D.GS()
+    GSpi[i] = C.GS()
+
+
+    print(JP[i], MFE0[i], GS0[i], A.qmin, MFEppp0[i], GSppp0[i], B.qmin, MFEpp00[i], GSpp00[i], D.qmin, MFEpi[i], GSpi[i], C.qmin)
 
 plt.plot(JP, MFE0, label='0')
 plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
 plt.plot(JP, MFEppp0, label=r'$\pi\pi \pi 0$')
 plt.plot(JP, MFEpi, label=r'$\pi$')
+# plt.plot(JP, MFE0old, label='0 old')
+# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+plt.legend()
+plt.show()
+
+plt.plot(JP, GS0, label='0')
+plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
+plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
+plt.plot(JP, GSpi, label=r'$\pi$')
 # plt.plot(JP, MFE0old, label='0 old')
 # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
 plt.legend()
