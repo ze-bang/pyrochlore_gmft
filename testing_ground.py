@@ -311,4 +311,20 @@ def algHamSungbin():
 
 # a = np.array([[1,2,3],[4,5,6]])
 
+a1 = np.array([[0,0,0],
+              [1,0,0],
+              [0,1,0],
+              [0,0,1],
+              [1,1,1]])
+a2 = np.array([[0,0,0],
+               [1,1,1]])
+
+a1_rows = a1.view([('', a1.dtype)] * a1.shape[1])
+print(a1_rows)
+a2_rows = a2.view([('', a2.dtype)] * a2.shape[1])
+print(a1_rows)
+print(np.in1d(a1_rows, a2_rows))
+print(np.where(np.in1d(a1_rows, a2_rows)==False)[0])
+print(np.setdiff1d(a1_rows, a2_rows).view(a1.dtype).reshape(-1, a1.shape[1]))
+
 

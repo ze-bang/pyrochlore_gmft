@@ -150,15 +150,43 @@ for i in range(4):
     for j in range(4):
         NNplus[i,j,:] = NN[i]+NN[j]
 
+def genmask(b):
+    a = np.sum(np.where((b==0)|(b==1), 1, 0))
+    if a == 3:
+        return 1/8
+    if a == 2:
+        return 1/4
+    if a == 1:
+        return 1/2
+    else:
+        return 1
 
+def applymask(b):
+    return np.apply_along_axis(genmask, 1, b)
+
+
+def setdiff3d(a1, a2):
+    a1_rows = a1.view([('', a1.dtype)] * a1.shape[1])
+    a2_rows = a2.view([('', a2.dtype)] * a2.shape[1])
+    return np.setdiff1d(a1_rows, a2_rows).view(a1.dtype).reshape(-1, a1.shape[1])
+
+def indextoignore(a1, a2):
+    a1_temp = np.copy(a1)
+    a2_temp = np.copy(a2)
+    a1_rows = a1_temp.view([('', np.float64)] * a1_temp.shape[1])
+    a2_rows = a2_temp.view([('', np.float64)] * a2_temp.shape[1])
+    return np.array(np.where(np.in1d(a1_rows, a2_rows)==True)[0], dtype=int)
 
 # @nb.njit
 def genBZ(d, m=1):
-    d = d*1j
-    b = np.mgrid[0:m:d, 0:m:d, 0:m:d].reshape(3,-1).T
-    b = np.unique(np.concatenate((b, genALLSymPointsBare())), axis=0)
-    temp = contract('ij, jk->ik', b, BasisBZA)
-    return temp, b
+    dj = d*1j
+    b = np.mgrid[0:m:dj, 0:m:dj, 0:m:dj].reshape(3,-1).T
+    b = np.concatenate((b,genALLSymPointsBare()))
+    # mask = applymask(b)
+    mask = np.ones(len(b))
+    dV = 1/(len(b))
+    temp = np.array(contract('ij, jk->ik', b, BasisBZA), order='C')
+    return temp, b, mask, dV
 
 
 # def genBZfolded(d):

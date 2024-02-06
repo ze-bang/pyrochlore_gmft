@@ -26,20 +26,35 @@ from variation_flux import *
 # getminflux111("Niagara_data_3/h111_flux_plane_zero_0.2")
 # getminflux111("Niagara_data_3/h111_flux_plane_pi_0.2")
 # getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
+ppp0f = generateflux110(0, np.pi, 0, 0)
+pp00f = generateflux110(np.pi, 0, 1, 0)
+JP = 0.03
+h = 0
+BZres = 40
 
-generaldispersion(0,0,1,0.3,h110,2,20,30,np.ones(4)*4)
-plt.show()
-generaldispersion(0,0,1,0.3,h110,2,20,30,np.array([np.pi,np.pi,0,0]))
-plt.show()
+
+
+N = 20
+lams = np.zeros(N)
+offset=60
+for i in range(offset,offset+N):
+    z0 = pygen.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.zeros(4))
+    z0.solvemeanfield()
+    lams[i-offset] = z0.lams[0]
+    print(i+1,lams[i-offset])
+
+plt.plot(lams)
+
+# generaldispersion(-2*JP,-2*JP,1,h,h110,2,20,50,np.ones(4)*np.pi)
+# generaldispersion(-2*JP,-2*JP,1,h,h110,2,20,50,np.array([0,np.pi,np.pi,np.pi]))
 # generaldispersion(0,0,1,0.3,h111,2,20,30,generateflux111(np.pi/2, -np.pi/4, 0))
 # plt.show()
 
 n = 20
 h = 0.3
-BZres = 40
-JP = np.linspace(0,0.05, n)
-ppp0f = generateflux110(0, np.pi, 0, 0)
-pp00f = generateflux110(np.pi, 0, 1, 0)
+BZres = 50
+JP = np.linspace(-0.01,0.01, n)
+
 
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
@@ -83,7 +98,7 @@ plt.plot(JP, MFEpi, label=r'$\pi$')
 # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
 plt.legend()
 plt.show()
-
+#
 plt.plot(JP, GS0, label='0')
 plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
 plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
