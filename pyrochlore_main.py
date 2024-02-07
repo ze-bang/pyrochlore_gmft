@@ -4,6 +4,7 @@ import pyrochlore_dispersion
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_general as pygen
+import pyrochlore_conclusive as pycon
 import numpy as np
 import matplotlib.pyplot as plt
 from spinon_con import *
@@ -32,81 +33,82 @@ JP = 0.03
 h = 0
 BZres = 40
 
-
-
-N = 20
-lams = np.zeros(N)
-offset=60
-for i in range(offset,offset+N):
-    z0 = pygen.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.zeros(4))
-    z0.solvemeanfield()
-    lams[i-offset] = z0.lams[0]
-    print(i+1,lams[i-offset])
-
-plt.plot(lams)
-
-# generaldispersion(-2*JP,-2*JP,1,h,h110,2,20,50,np.ones(4)*np.pi)
-# generaldispersion(-2*JP,-2*JP,1,h,h110,2,20,50,np.array([0,np.pi,np.pi,np.pi]))
-# generaldispersion(0,0,1,0.3,h111,2,20,30,generateflux111(np.pi/2, -np.pi/4, 0))
-# plt.show()
-
-n = 20
-h = 0.3
-BZres = 50
-JP = np.linspace(-0.01,0.01, n)
-
-
-MFE0 = np.zeros(n)
-MFEpi = np.zeros(n)
-MFEppp0 = np.zeros(n)
-MFEpp00 = np.zeros(n)
-
-GS0 = np.zeros(n)
-GSpi = np.zeros(n)
-GSppp0 = np.zeros(n)
-GSpp00 = np.zeros(n)
-
-for i in range(n):
-    A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-    B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=ppp0f)
-    D = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
-    C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-
-    A.solvemeanfield()
-    B.solvemeanfield()
-    D.solvemeanfield()
-    C.solvemeanfield()
-
-    MFE0[i] = A.MFE()
-    MFEppp0[i] = B.MFE()
-    MFEpp00[i] = D.MFE()
-    MFEpi[i] = C.MFE()
-
-    GS0[i] = A.GS()
-    GSppp0[i] = B.GS()
-    GSpp00[i] = D.GS()
-    GSpi[i] = C.GS()
-
-
-    print(JP[i], MFE0[i], GS0[i], A.qmin, MFEppp0[i], GSppp0[i], B.qmin, MFEpp00[i], GSpp00[i], D.qmin, MFEpi[i], GSpi[i], C.qmin)
-
-plt.plot(JP, MFE0, label='0')
-plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
-plt.plot(JP, MFEppp0, label=r'$\pi\pi \pi 0$')
-plt.plot(JP, MFEpi, label=r'$\pi$')
-# plt.plot(JP, MFE0old, label='0 old')
-# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-plt.legend()
-plt.show()
+z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+# print(z0.rho(0.12))
+z0.findminLam(z0.chi,z0.chi0,z0.xi)
+# print(z0.minLams)
+print(z0.findLambda())
 #
-plt.plot(JP, GS0, label='0')
-plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
-plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
-plt.plot(JP, GSpi, label=r'$\pi$')
-# plt.plot(JP, MFE0old, label='0 old')
-# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-plt.legend()
-plt.show()
+#
+# N = 20
+# lams = np.zeros(N)
+# offset=60
+# for i in range(offset,offset+N):
+#     z0 = pygen.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.zeros(4))
+#     z0.solvemeanfield()
+#     lams[i-offset] = z0.lams[0]
+#     print(i+1,lams[i-offset])
+#
+# plt.plot(lams)
+
+
+# n = 20
+# h = 0.3
+# BZres = 65
+# JP = np.linspace(-0.01,0.01, n)
+#
+#
+# MFE0 = np.zeros(n)
+# MFEpi = np.zeros(n)
+# MFEppp0 = np.zeros(n)
+# MFEpp00 = np.zeros(n)
+#
+# GS0 = np.zeros(n)
+# GSpi = np.zeros(n)
+# GSppp0 = np.zeros(n)
+# GSpp00 = np.zeros(n)
+#
+# for i in range(n):
+#     A = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+#     B = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=ppp0f)
+#     D = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
+#     C = pygen.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+#
+#     A.solvemeanfield()
+#     B.solvemeanfield()
+#     D.solvemeanfield()
+#     C.solvemeanfield()
+#
+#     MFE0[i] = A.MFE()
+#     MFEppp0[i] = B.MFE()
+#     MFEpp00[i] = D.MFE()
+#     MFEpi[i] = C.MFE()
+#
+#     GS0[i] = A.GS()
+#     GSppp0[i] = B.GS()
+#     GSpp00[i] = D.GS()
+#     GSpi[i] = C.GS()
+#
+#
+#     print(JP[i], MFE0[i], GS0[i], A.qmin, MFEppp0[i], GSppp0[i], B.qmin, MFEpp00[i], GSpp00[i], D.qmin, MFEpi[i], GSpi[i], C.qmin)
+#
+# plt.plot(JP, MFE0, label='0')
+# plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
+# plt.plot(JP, MFEppp0, label=r'$\pi\pi \pi 0$')
+# plt.plot(JP, MFEpi, label=r'$\pi$')
+# # plt.plot(JP, MFE0old, label='0 old')
+# # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+# plt.legend()
+# plt.show()
+# #
+# plt.plot(JP, GS0, label='0')
+# plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
+# plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
+# plt.plot(JP, GSpi, label=r'$\pi$')
+# # plt.plot(JP, MFE0old, label='0 old')
+# # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+# plt.legend()
+# plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import sympy as sp
 from sympy import re, im, I, E, symbols
 from sympy.printing.mathml import mathml
+from misc_helper import adaptive_simpsons_3D, adaptive_gauss_quadrature_3d
 sp.init_printing(use_unicode=True) # allow LaTeX printing
 
 # from misc_helper import *
@@ -311,20 +312,28 @@ def algHamSungbin():
 
 # a = np.array([[1,2,3],[4,5,6]])
 
-a1 = np.array([[0,0,0],
-              [1,0,0],
-              [0,1,0],
-              [0,0,1],
-              [1,1,1]])
-a2 = np.array([[0,0,0],
-               [1,1,1]])
+# a1 = np.array([[0,0,0],
+#               [1,0,0],
+#               [0,1,0],
+#               [0,0,1],
+#               [1,1,1]])
+# a2 = np.array([[0,0,0],
+#                [1,1,1]])
+#
+# a1_rows = a1.view([('', a1.dtype)] * a1.shape[1])
+# print(a1_rows)
+# a2_rows = a2.view([('', a2.dtype)] * a2.shape[1])
+# print(a1_rows)
+# print(np.in1d(a1_rows, a2_rows))
+# print(np.where(np.in1d(a1_rows, a2_rows)==False)[0])
+# print(np.setdiff1d(a1_rows, a2_rows).view(a1.dtype).reshape(-1, a1.shape[1]))
+#
+#
 
-a1_rows = a1.view([('', a1.dtype)] * a1.shape[1])
-print(a1_rows)
-a2_rows = a2.view([('', a2.dtype)] * a2.shape[1])
-print(a1_rows)
-print(np.in1d(a1_rows, a2_rows))
-print(np.where(np.in1d(a1_rows, a2_rows)==False)[0])
-print(np.setdiff1d(a1_rows, a2_rows).view(a1.dtype).reshape(-1, a1.shape[1]))
+def f(k, a, b, c):
+    x,y,z=k
+    return a*x**2+b*y**2+c*z**2
 
+n = 10
 
+print(adaptive_gauss_quadrature_3d(f, -1, 1, -1, 1, -1, 1, 1e-16,1,1,1))

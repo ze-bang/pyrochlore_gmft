@@ -541,5 +541,158 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
+deltamin=100
+def adaptive_simpsons_3D(f, x0, x1, y0, y1, z0, z1, tol, *args):
+    def simpsons_core(f, x0, x1, y0, y1, z0, z1, *args):
+        hx = (x1 - x0) / 2
+        hy = (y1 - y0) / 2
+        hz = (z1 - z0) / 2
 
-deltamin = 100
+        x_mid = x0 + hx
+        y_mid = y0 + hy
+        z_mid = z0 + hz
+
+        integral = (hx * hy * hz / 27) * (
+                f(x0, y0, z0, *args) + 4 * f(x_mid, y0, z0, *args) + f(x1, y0, z0, *args) +
+                4 * f(x0, y_mid, z0, *args) + 16 * f(x_mid, y_mid, z0, *args) + 4 * f(x1, y_mid, z0, *args) +
+                f(x0, y1, z0, *args) + 4 * f(x_mid, y1, z0, *args) + f(x1, y1, z0, *args) +
+                4 * f(x0, y0, z_mid, *args) + 16 * f(x_mid, y0, z_mid, *args) + 4 * f(x1, y0, z_mid, *args) +
+                16 * f(x0, y_mid, z_mid, *args) + 64 * f(x_mid, y_mid, z_mid, *args) + 16 * f(x1, y_mid, z_mid, *args) +
+                4 * f(x0, y1, z_mid, *args) + 16 * f(x_mid, y1, z_mid, *args) + 4 * f(x1, y1, z_mid, *args) +
+                f(x0, y0, z1, *args) + 4 * f(x_mid, y0, z1, *args) + f(x1, y0, z1, *args) +
+                4 * f(x0, y_mid, z1, *args) + 16 * f(x_mid, y_mid, z1, *args) + 4 * f(x1, y_mid, z1, *args) +
+                f(x0, y1, z1, *args) + 4 * f(x_mid, y1, z1, *args) + f(x1, y1, z1, *args)
+        )
+        return integral
+
+
+    def adaptive_simpsons_aux(f, x0, x1, y0, y1, z0, z1, tol, integral_prev, *args):
+        x_mid = (x0 + x1) / 2
+        y_mid = (y0 + y1) / 2
+        z_mid = (z0 + z1) / 2
+
+        integral_left_bottom_front = simpsons_core(f, x0, x_mid, y0, y_mid, z0, z_mid, *args)
+        integral_left_bottom_back = simpsons_core(f, x0, x_mid, y0, y_mid, z_mid, z1, *args)
+        integral_left_top_front = simpsons_core(f, x0, x_mid, y_mid, y1, z0, z_mid, *args)
+        integral_left_top_back = simpsons_core(f, x0, x_mid, y_mid, y1, z_mid, z1, *args)
+        integral_right_bottom_front = simpsons_core(f, x_mid, x1, y0, y_mid, z0, z_mid, *args)
+        integral_right_bottom_back = simpsons_core(f, x_mid, x1, y0, y_mid, z_mid, z1, *args)
+        integral_right_top_front = simpsons_core(f, x_mid, x1, y_mid, y1, z0, z_mid, *args)
+        integral_right_top_back = simpsons_core(f, x_mid, x1, y_mid, y1, z_mid, z1, *args)
+
+        integral = (integral_left_bottom_front + integral_left_bottom_back +
+                    integral_left_top_front + integral_left_top_back +
+                    integral_right_bottom_front + integral_right_bottom_back +
+                    integral_right_top_front + integral_right_top_back)
+
+        error = abs(integral - integral_prev)
+        # print(x_mid, y_mid, z_mid, integral, integral_prev, error < 15*tol)
+        if error < 15 * tol:
+            return integral + error / 15
+        else:
+            integral_left_bottom_front = adaptive_simpsons_aux(f, x0, x_mid, y0, y_mid, z0, z_mid, tol / 8,
+                                                               integral_left_bottom_front, *args)
+            integral_left_bottom_back = adaptive_simpsons_aux(f, x0, x_mid, y0, y_mid, z_mid, z1, tol / 8,
+                                                              integral_left_bottom_back, *args)
+            integral_left_top_front = adaptive_simpsons_aux(f, x0, x_mid, y_mid, y1, z0, z_mid, tol / 8,
+                                                             integral_left_top_front, *args)
+            integral_left_top_back = adaptive_simpsons_aux(f, x0, x_mid, y_mid, y1, z_mid, z1, tol / 8,
+                                                            integral_left_top_back, *args)
+            integral_right_bottom_front = adaptive_simpsons_aux(f, x_mid, x1, y0, y_mid, z0, z_mid, tol / 8,
+                                                                integral_right_bottom_front, *args)
+            integral_right_bottom_back = adaptive_simpsons_aux(f, x_mid, x1, y0, y_mid, z_mid, z1, tol / 8,
+                                                               integral_right_bottom_back, *args)
+            integral_right_top_front = adaptive_simpsons_aux(f, x_mid, x1, y_mid, y1, z0, z_mid, tol / 8,
+                                                              integral_right_top_front, *args)
+            integral_right_top_back = adaptive_simpsons_aux(f, x_mid, x1, y_mid, y1, z_mid, z1, tol / 8,
+                                                             integral_right_top_back, *args)
+
+            return (integral_left_bottom_front + integral_left_bottom_back +
+                    integral_left_top_front + integral_left_top_back +
+                    integral_right_bottom_front + integral_right_bottom_back +
+                    integral_right_top_front + integral_right_top_back)
+
+    integral_approx = adaptive_simpsons_aux(f, x0, x1, y0, y1, z0, z1, tol, 0, *args)
+    return integral_approx
+
+
+def gauss_quadrature_3d(f, a, b, c, d, e, g, n, *args):
+    """
+    3D Gaussian quadrature for integrating a function over a 3D region.
+
+    Parameters:
+    - f: Function to integrate.
+    - a, b, c, d, e, g: Integration limits in the x, y, and z directions.
+    - n: Number of nodes (and weights).
+
+    Returns:
+    - Integral approximation.
+    """
+    # Define the nodes and weights for Gaussian quadrature
+    nodes, weights = np.polynomial.legendre.leggauss(n)
+
+    amp = np.array([(b-a)/2,(d-c)/2,(g-e)/2])
+    # Map nodes from the interval [-1, 1] to the interval [a, b]
+    gauss_pts = contract('k, ik->ik',amp,np.array(np.meshgrid(nodes, nodes, nodes)).reshape(3, -1).T) + np.array([(a+b)/2,(c+d)/2,(e+g)/2])
+    weights = contract('i,j,k->ijk', weights, weights, weights).ravel()
+
+    integral_approximation = np.dot(weights, np.apply_along_axis(f, 1, gauss_pts, *args))
+
+    # Scale by the interval widths
+    integral_approximation *= 0.125 * (b - a) * (d - c) * (g - e)
+
+    return integral_approximation
+
+def adaptive_gauss_quadrature_3d(f, a, b, c, d, e, g, tol, *args, max_depth=10, n=3):
+    """
+    Adaptive Gaussian quadrature for integrating a function over a 3D region.
+
+    Parameters:
+    - f: Function to integrate.
+    - a, b, c, d, e, g: Integration limits in the x, y, and z directions.
+    - tol: Tolerance for accuracy.
+    - max_depth: Maximum recursion depth.
+    - n: Number of nodes (and weights).
+
+    Returns:
+    - Integral approximation.
+    """
+    def adaptively_integrate(x0, x1, y0, y1, z0, z1, n, depth, last, *args):
+        """
+        Recursive function to adaptively integrate over the region.
+        """
+        if depth == 0:
+            integral_approximation = gauss_quadrature_3d(f, x0, x1, y0, y1, z0, z1, n, *args)
+        else:
+            integral_approximation = last
+        x_mid = 0.5 * (x0 + x1)
+        y_mid = 0.5 * (y0 + y1)
+        z_mid = 0.5 * (z0 + z1)
+
+        subregions = [
+            (x0, x_mid, y0, y_mid, z0, z_mid),
+            (x_mid, x1, y0, y_mid, z0, z_mid),
+            (x0, x_mid, y_mid, y1, z0, z_mid),
+            (x_mid, x1, y_mid, y1, z0, z_mid),
+            (x0, x_mid, y0, y_mid, z_mid, z1),
+            (x_mid, x1, y0, y_mid, z_mid, z1),
+            (x0, x_mid, y_mid, y1, z_mid, z1),
+            (x_mid, x1, y_mid, y1, z_mid, z1)
+        ]
+        # Compute the integral approximation for the four subregions
+        subregion_integrals = np.array([gauss_quadrature_3d(f, *subregion, n, *args) for subregion in subregions])
+
+        # Compute the error
+        error = np.abs(np.sum(subregion_integrals) - integral_approximation)
+
+        if error < tol or depth >= max_depth:
+            return integral_approximation
+
+        integral = 0.0
+        for i in range(8):
+            integral += adaptively_integrate(*subregions[i], n, depth + 1, subregion_integrals[i], *args)
+
+        return integral
+
+    # Define the initial subregion
+    return adaptively_integrate(a, b, c, d, e, g, n, 0, 0, *args)
