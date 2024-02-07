@@ -636,7 +636,7 @@ def gauss_quadrature_3d(f, a, b, c, d, e, g, n, *args):
     gauss_pts = contract('k, ik->ik',amp,np.array(np.meshgrid(nodes, nodes, nodes)).reshape(3, -1).T) + np.array([(a+b)/2,(c+d)/2,(e+g)/2])
     weights = contract('i,j,k->ijk', weights, weights, weights).ravel()
 
-    integral_approximation = np.dot(weights, np.apply_along_axis(f, 1, gauss_pts, *args))
+    integral_approximation = np.dot(weights, f(gauss_pts, *args))
 
     # Scale by the interval widths
     integral_approximation *= 0.125 * (b - a) * (d - c) * (g - e)

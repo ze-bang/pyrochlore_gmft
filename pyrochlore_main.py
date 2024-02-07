@@ -34,9 +34,8 @@ h = 0
 BZres = 40
 
 z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-# print(z0.rho(0.12))
 z0.findminLam(z0.chi,z0.chi0,z0.xi)
-# print(z0.minLams)
+print(z0.minLams)
 print(z0.findLambda())
 #
 #

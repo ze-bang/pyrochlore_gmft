@@ -173,19 +173,24 @@ def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_tra
 
 
 def I3_integrand(a, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    k = contract('i,ik->k',a, BasisBZA)
-    temp = M_pi_single(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    k = contract('ij,jk->ik',a, BasisBZA)
+    temp = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
     E, V = np.linalg.eigh(temp)
     E = np.sqrt(2*Jzz*E)
-    Vt = np.real(contract('jk,jk->jk', V, np.conj(V)))
-    Ep = contract('jk, k->j', Vt, Jzz / E)
-    return np.mean(Ep)
+    Vt = np.real(contract('ijk,ijk->ijk', V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, Jzz / E)
+    return np.mean(Ep,axis=1)
 
 
-def rho_true(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    # return adaptive_simpsons_3D(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    # return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    return gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, BZres,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+
+def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     # return adaptive_simpsons_3D(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-
+    # return gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, 35,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 def Emin(q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     k = contract('i, ik->k', q, BasisBZA).reshape((1,3))
@@ -317,22 +322,20 @@ def findlambda_pi(kappa, tol, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
-        # try:
-        print(lams)
-        start = time.time()
-        rhoguess = rho_true(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-        end = time.time()
-        print(lams, lamMin, lamMax, rhoguess,end-start)
-        for i in range(2):
-            if rhoguess[i] - kappa > 0:
-                lamMin[i] = lams[i]
+        try:
+            rhoguess = rho_true(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+            # errorlast = error
+            error = rhoguess-kappa
+            print(lams, lamMin, lamMax, error)
+            if error > 0:
+                lamMin = lams
             else:
-                lamMax[i] = lams[i]
-        if (abs(lamlast - lams) < 1e-15).all() or ((np.absolute(rhoguess - kappa) <= tol).all()):
-            break
-    # except:
-        lamMin = lams
-        # print(lams, rhoguess)
+                lamMax = lams
+            if (abs(lamlast - lams) < 1e-15).all() or ((np.absolute(rhoguess - kappa) <= tol).all()):
+                break
+        except:
+            lamMin = lams
+            # print(lams, rhoguess)
     warnings.resetwarnings()
     return lams
 
@@ -743,7 +746,7 @@ class piFluxSolver:
         self.theta = theta
         self.kappa = kappa
         self.eta = np.array([eta, 1], dtype=float)
-        self.tol = 1e-5
+        self.tol = 1e-8
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
         self.h = h
@@ -820,7 +823,7 @@ class piFluxSolver:
 
 
     def findLambda(self):
-        return findlambda_pi(self.kappa,1e-8,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+        return findlambda_pi(self.kappa,self.tol,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
 
     def findminLam(self, chi, chi0, xi):
         minLams, self.qmin = findminLam_scipy(self.MF, self.bareB, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
