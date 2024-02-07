@@ -1,13 +1,10 @@
-
-from pyrochlore_dispersion_pi import green_pi, green_pi_branch
-from pyrochlore_dispersion import green_zero_branch, green_zero
-import pyrochlore_dispersion_pi_gang_chen as pygang
-import pyrochlore_dispersion_pi_old as pypipyold
-import pyrochlore_general as pygen
+# import pyrochlore_dispersion_pi_gang_chen as pygang
+from archive import pyrochlore_dispersion_pi_old as pypipyold
+# import pyrochlore_general as pygen
 from misc_helper import *
 import matplotlib.pyplot as plt
-import pyrochlore_dispersion as py0
-import pyrochlore_dispersion_pi as pypi
+# import pyrochlore_dispersion as py0
+# import pyrochlore_dispersion_pi as pypi
 from matplotlib import cm
 
 

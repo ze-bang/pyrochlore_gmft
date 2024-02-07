@@ -3,8 +3,7 @@ import numpy as np
 
 from misc_helper import *
 from flux_stuff import *
-import pyrochlore_general as pygen
-from phase_diagram import graphMagPhase
+import pyrochlore_conclusive as pygen
 
 # n = h111
 ringv = np.array([[1 ,1 ,-1] ,[-1 ,-1 ,-1] ,[-1 ,1 ,1] ,[1 ,-1 ,1]] ) /np.sqrt(3)

@@ -158,7 +158,6 @@ def M_pi_single(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_tr
 
 #endregion
 
-#endregion
 def E_pi_fixed(lams, M):
     M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
     E, V = np.linalg.eigh(M)
@@ -183,14 +182,10 @@ def I3_integrand(a, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
 
 
 def rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    # return adaptive_simpsons_3D(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    # return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     return gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, BZres,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    # return adaptive_simpsons_3D(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    # return gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, 35,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 def Emin(q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     k = contract('i, ik->k', q, BasisBZA).reshape((1,3))
@@ -208,28 +203,28 @@ def gradient(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs
         np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step
     return np.array([fx, fy, fz])
 
-def hessian(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     kx, ky, kz = k
     step = 1e-8
 
-    fxx = (Emin(np.array([kx + step, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx - step, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
-    fxy = (Emin(np.array([kx, ky + step, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx - step, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
-    fxz = (Emin(np.array([kx, ky, kz + step]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx - step, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
-    fyy = (Emin(np.array([kx, ky+ step, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx, ky - step, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
-    fyz = (Emin(np.array([kx, ky, kz+ step]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx, ky - step, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
-    fzz = (Emin(np.array([kx, ky, kz + step]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
-        np.array([kx, ky, kz]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-           + Emin(np.array([kx, ky, kz - step]), lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fxx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fxy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fxz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fyy = (Emin(np.array([kx, ky+ step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fyz = (Emin(np.array([kx, ky, kz+ step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
+    fzz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - 2*Emin(
+        np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+           + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
 
 def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
@@ -310,7 +305,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     return -Enowm, Know
 
-def findlambda_pi(kappa, tol, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
         lamMin = np.zeros(2)
@@ -323,10 +318,10 @@ def findlambda_pi(kappa, tol, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
-            rhoguess = rho_true(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+            rhoguess = rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
             # errorlast = error
             error = rhoguess-kappa
-            print(lams, lamMin, lamMax, error)
+            # print(lams, lamMin, lamMax, error)
             if error > 0:
                 lamMin = lams
             else:
@@ -402,19 +397,19 @@ def calmeanfieldC(rhos, K):
 
 # graphing BZ
 
-def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    temp = np.sqrt(2 * Jzz * E_pi(k, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    temp = np.sqrt(2 * Jzz * E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
     return temp
 
 
-def calDispersion(lams, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    dGammaX = dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dXW = dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    dGammaX = dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dXW = dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
     for i in range(dGammaX.shape[1]):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:, i], 'b')
@@ -440,45 +435,45 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, eta, h, n, theta, chi, chi0, xi, A_pi_h
 
 
 # @nb.njit(parallel=True, cache=True)
-def minCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def minCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     temp = np.zeros(len(q))
-    mins = np.sqrt(2 * Jzz * E_pi(K, lams,  eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, 0]
+    mins = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, 0]
     for i in range(len(q)):
         temp[i] = np.min(
-            np.sqrt(2 * Jzz * E_pi(K - q[i], lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, 0] + mins)
+            np.sqrt(2 * Jzz * E_pi(K - q[i], lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, 0] + mins)
     return temp
 
 
 # @nb.njit(parallel=True, cache=True)
-def maxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def maxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     temp = np.zeros(len(q))
-    maxs = np.sqrt(2 * Jzz * E_pi(K, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, -1]
+    maxs = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, -1]
     for i in range(len(q)):
         temp[i] = np.max(
-            np.sqrt(2 * Jzz * E_pi(K - q[i], lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, -1] + maxs)
+            np.sqrt(2 * Jzz * E_pi(K - q[i], lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])[:, -1] + maxs)
     return temp
 
 
-def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     temp = np.zeros((len(q), 2))
-    Ek = np.sqrt(2 * Jzz * E_pi(K, lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    Ek = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
     mins = Ek[:,0]
     maxs = Ek[:,-1]
     for i in range(len(q)):
-        tt = np.sqrt(2 * Jzz * E_pi(K - q[i], lams, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+        tt = np.sqrt(2 * Jzz * E_pi(K - q[i], lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
         temp[i, 0] = np.min(tt[:, 0] + mins)
         temp[i, 1] = np.max(tt[:, -1] + maxs)
     return temp
 
 
-def loweredge(lams, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dWK = minCal(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dKGamma = minCal(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dGammaL = minCal(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dLU = minCal(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dUW = minCal(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dWK = minCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dKGamma = minCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dGammaL = minCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dLU = minCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dUW = minCal(lams, UW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
     plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
@@ -502,14 +497,14 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_he
     plt.xticks(xlabpos, labels)
 
 
-def upperedge(lams, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dWK = maxCal(lams, WK, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dKGamma = maxCal(lams, KGamma, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dGammaL = maxCal(lams, GammaL, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dLU = maxCal(lams, LU, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dUW = maxCal(lams, UW, Jzz, Jpm, Jpmpm, eta, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dWK = maxCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dKGamma = maxCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dGammaL = maxCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dLU = maxCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    dUW = maxCal(lams, UW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b')
     plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b')
@@ -738,15 +733,14 @@ def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos,
 
 
 class piFluxSolver:
-    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), eta=1, kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, flux=np.zeros(4)):
+    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
+                 ns=1, tol=1e-8, flux=np.zeros(4)):
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
         self.Jpmpm = (Jxx - Jyy) / 4
         self.theta = theta
         self.kappa = kappa
-        self.eta = np.array([eta, 1], dtype=float)
-        self.tol = 1e-8
+        self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
         self.h = h
@@ -770,9 +764,7 @@ class piFluxSolver:
 
         self.BZres = BZres
         self.graphres = graphres
-        self.bigB, self.bareB, self.mask, self.dV = genBZ(BZres)
 
-        # self.bigTemp = np.copy(self.bigB)
         self.q = np.nan
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
@@ -817,22 +809,20 @@ class piFluxSolver:
                         self.A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] + self.A_pi_here[j, l]))
 
 
-
-        self.MF = M_pi(self.bigB, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                       self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-
-
     def findLambda(self):
-        return findlambda_pi(self.kappa,self.tol,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+        return findlambda_pi(self.kappa,self.tol, self.BZres,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
 
     def findminLam(self, chi, chi0, xi):
-        minLams, self.qmin = findminLam_scipy(self.MF, self.bareB, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
+        B, bare = genBZ(10)
+        MF = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                       self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        minLams, self.qmin = findminLam_scipy(MF, bare, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, 10)
         self.minLams = np.ones(2) * minLams
         return minLams
 
     def rho(self,lam):
-        return rho_true(self.tol, np.ones(2)*lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        return rho_true(self.BZres, lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
     def calmeanfield(self, lams, MF, K):
         if not self.validgauge:
@@ -850,28 +840,21 @@ class piFluxSolver:
             return -1
         mfs = np.array([self.chi, self.chi0, self.xi])
         self.condensation_check(mfs)
-        mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
-        do = not (self.Jpmpm == 0)
-        counter = 0
-        while do:
-            mfslast = np.copy(mfs)
-            self.condensation_check(mfs)
-            mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
-            print(mfs, self.lams, self.minLams)
-            if (abs(mfs-mfslast) < tol).all() or counter >= 30:
-                break
-            counter = counter + 1
-        if do:
-            lam, K = self.condensation_check(mfs)
+        # mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
+        # do = not (self.Jpmpm == 0)
+        # counter = 0
+        # while do:
+        #     mfslast = np.copy(mfs)
+        #     self.condensation_check(mfs)
+        #     mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
+        #     print(mfs, self.lams, self.minLams)
+        #     if (abs(mfs-mfslast) < tol).all() or counter >= 30:
+        #         break
+        #     counter = counter + 1
+        # if do:
+        #     self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
         return 0
-
-    def qvec(self):
-        E = \
-        E_pi(self.bigB, np.zeros(2), self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0][:, 0]
-        A = np.where(E == E.min())
-        self.q = self.bigB[A]
 
     def ifcondense(self, q, lam, tol=0):
         c = np.array([])
@@ -886,44 +869,36 @@ class piFluxSolver:
         cond = np.argmin(E[:, 0])
         return self.bigB[cond], E[cond][0]
 
-    def set_condensed(self, l):
-        A = -self.minLams[0] + self.lams[0]
-        # B = (2e2 / len(self.bigB)) ** 2
-        self.condensed = A < (deltamin/ l) ** 2
-        if self.condensed==True:
-            self.toignore = indextoignore(self.bigB, self.qmin)
+    def set_condensed(self):
+        self.condensed = self.rho(self.minLams) < self.kappa
 
-    def set_delta(self, MF, minLams, lams):
-        if self.condensed:
-            warnings.filterwarnings('error')
-            try:
-                self.delta = np.sqrt(lams - minLams) * len(self.bigB)
-            except:
-                self.delta = np.zeros(2)
-            try:
-                self.rhos = np.sqrt(self.kappa - rho_true_site(self.Jzz, MF, self.toignore, self.mask, self.dV, lams))
-            except:
-                self.rhos = np.zeros(8)
-            warnings.resetwarnings()
+    def set_delta(self):
+        warnings.filterwarnings('error')
+        try:
+            self.rhos = np.sqrt(self.kappa - self.rho(self.minLams))*np.ones(8)
+            self.delta = np.sqrt(self.Jzz/2)/self.rhos**2
+        except:
+            self.rhos = np.zeros(8)
+            self.delta = np.zeros(2)
+        warnings.resetwarnings()
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         self.findminLam(chi, chi0, xi)
-        self.lams = self.findLambda()
-        l = len(self.bigB)
-        self.set_condensed(l)
-        self.set_delta(self.MF, self.minLams, self.lams)
+        self.set_condensed()
+        if self.condensed:
+            self.set_delta()
+            self.lams=self.minLams
+        else:
+            self.lams = self.findLambda()
 
     def M_true(self, k):
-        if not self.validgauge:
-            return -1
-        return M_pi(k, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def E_pi(self, k):
-        if not self.validgauge:
-            return -1
-        return np.sqrt(2 * self.Jzz *
-                       E_pi(k, self.lams, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
-                            self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
+        k = contract('ij,jk->ik', k, BasisBZA)
+        return np.mean(np.sqrt(2 * self.Jzz *
+                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
+                            self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0]),axis=1)
 
     def E_pi_fixed(self):
         if not self.validgauge:
@@ -933,7 +908,7 @@ class piFluxSolver:
     def dispersion(self, k):
         if not self.validgauge:
             return -1
-        return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta,
+        return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
                              self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def LV_zero(self, k, lam=np.zeros(2)):
@@ -941,7 +916,7 @@ class piFluxSolver:
             return -1
         if np.any(lam == 0):
             lam = self.lams
-        return E_pi(k, lam, self.eta, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def gap(self):
         if not self.validgauge:
@@ -964,9 +939,7 @@ class piFluxSolver:
         return np.mean(E_pi_fixed(np.zeros(2), self.MF)[0])
 
     def GS(self):
-        if not self.validgauge:
-            return -1
-        return np.mean(self.E_pi(self.bigB)) - np.mean(self.lams)
+        return gauss_quadrature_3d(self.E_pi, 0, 1, 0, 1, 0, 1, self.BZres) - self.lams[0]
 
 
     def MFE(self):
@@ -1015,7 +988,7 @@ class piFluxSolver:
     def graph(self, show):
         if not self.validgauge:
             return -1
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.theta, self.chi,
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                       self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
@@ -1023,19 +996,19 @@ class piFluxSolver:
     def minCal(self, K):
         if not self.validgauge:
             return -1
-        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                       self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def maxCal(self, K):
         if not self.validgauge:
             return -1
-        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                       self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def minMaxCal(self, K):
         if not self.validgauge:
             return -1
-        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta,
+        return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                          self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def EMAX(self):
@@ -1062,7 +1035,7 @@ class piFluxSolver:
     def graph_loweredge(self, show):
         if not self.validgauge:
             return -1
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi,
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
@@ -1070,7 +1043,7 @@ class piFluxSolver:
     def graph_upperedge(self, show):
         if not self.validgauge:
             return -1
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.eta, self.h, self.n, self.bigB, self.theta, self.chi,
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()

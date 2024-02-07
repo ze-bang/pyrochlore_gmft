@@ -1,14 +1,12 @@
-import numpy as np
 import matplotlib.pyplot as plt
 from misc_helper import *
 import pyrochlore_dispersion as py0
 import pyrochlore_dispersion_pi as pypi
 import pyrochlore_general as pygen
-import pyrochlore_dispersion_pi_old as pypiold
+from archive import pyrochlore_dispersion_pi_old as pypiold
 import pyrochlore_dispersion_pp00 as pypp00
 import pyrochlore_dispersion_pi_gang_chen as pysung
 import netCDF4 as nc
-import warnings
 
 
 def graphdispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, pi):
