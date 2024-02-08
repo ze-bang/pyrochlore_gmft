@@ -88,7 +88,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
@@ -96,7 +95,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
     rectemp = None
-    rectemp1 = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
@@ -104,7 +102,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
-        rectemp1 = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
@@ -125,21 +122,18 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         a = np.argmin(GS)
         # print(GS, a)
         if a == 0:
-            sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
             sendtemp5[i] = py0s.qmin
         elif a == 1:
-            sendtemp1[i] = pyps.gap()
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyps.lams[0]
             sendtemp4[i] = pyps.magnetization()
             sendtemp5[i] = pyps.qmin
         else:
-            sendtemp1[i] = pyp0.gap()
             sendtemp[i] = pyp0.condensed + 10
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
@@ -151,14 +145,12 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
     sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
-    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
@@ -168,13 +160,11 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
     if rank == 0:
         rectemp = rectemp.reshape((nK, nH))
-        rectemp1 = rectemp1.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
         rectemp5 = rectemp5.reshape((nK, nH, 3))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
@@ -195,7 +185,6 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp1, 'Files/' + filename + '_gap')
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
@@ -371,7 +360,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     for i in range(currsizeK):
         # start = time.time()
         # print(currJH[i])
-        py0s = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
 
         sendtemp[i] = py0s.condensed
@@ -440,7 +429,6 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
 
 
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
@@ -448,7 +436,6 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
 
 
     rectemp = None
-    rectemp1 = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
@@ -456,7 +443,6 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
-        rectemp1 = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
@@ -465,22 +451,20 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
     for i in range(currsizeK):
         # start = time.time()
         # print(currJH[i])
-        py0s = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
-        pyps = pygen.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+        py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        pyps = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         py0s.solvemeanfield()
         pyps.solvemeanfield()
         GS = np.array([py0s.MFE(), pyps.MFE()])
         a = np.argmin(GS)
         # print(GS, a)
         if a == 0:
-            sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed + 5*a
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
             sendtemp5[i] = py0s.qmin
         elif a == 1:
-            sendtemp1[i] = pyps.gap()
             sendtemp[i] = pyps.condensed + 5*a
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyps.lams[0]
@@ -492,14 +476,12 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
     sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
-    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
@@ -509,13 +491,11 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
 
     if rank == 0:
         rectemp = rectemp.reshape((nK, nH))
-        rectemp1 = rectemp1.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
         rectemp5 = rectemp5.reshape((nK, nH, 3))
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
@@ -536,7 +516,6 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp1, 'Files/' + filename + '_gap')
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
@@ -564,14 +543,12 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     currJH = JH[leftK:rightK]
 
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
-    rectemp1 = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
@@ -579,23 +556,21 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
-        rectemp1 = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
         rectemp5 = np.zeros(le, dtype=np.float64)
 
     for i in range (currsizeK):
-        py0s = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
         py0s.solvemeanfield()
-        pyps = pygen.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+        pyps = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         pyps.solvemeanfield()
         GS = py0s.MFE()
         GSp = pyps.MFE()
         if GS < GSp:
             # py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
             # py0s.solvemeanfield(1e-4)
-            sendtemp1[i] = py0s.gap()
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS
             sendtemp3[i] = py0s.xi
@@ -604,7 +579,6 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         else:
             # pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
             # pyps.solvemeanfield(1e-4)
-            sendtemp1[i] = pyps.gap()
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GSp
             sendtemp3[i] = pyps.xi
@@ -616,14 +590,12 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
     sendcounts5 =  np.array(comm.gather(sendtemp5.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
-    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
@@ -631,14 +603,12 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
     if rank == 0:
         rectemp = rectemp.reshape((nK,nK))
-        rectemp1 = rectemp1.reshape((nK,nK))
         rectemp2 = rectemp2.reshape((nK,nK))
         rectemp3 = rectemp3.reshape((nK,nK))
         rectemp4 = rectemp4.reshape((nK,nK))
         rectemp5 = rectemp5.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
-        np.savetxt('Files/' + filename + '_gap.txt', rectemp1)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
         np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
@@ -646,7 +616,6 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
         JP = np.linspace(JPm, JPmax, nK)
 
-        graphMagPhase(JP, JP, rectemp1,'Files/' + filename + '_gap')
         plt.contourf(JP, JP, rectemp.T)
         plt.xlabel(r'$J_\pm/J_{y}$')
         plt.ylabel(r'$h/J_{y}$')

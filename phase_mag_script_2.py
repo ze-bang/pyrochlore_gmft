@@ -1,6 +1,6 @@
 import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-from archive.phase_diagram import *
+from phase_diagram import *
 from misc_helper import *
 from flux_stuff import *
 

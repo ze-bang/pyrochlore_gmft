@@ -40,38 +40,27 @@ def fluxMFE(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
 def fluxMFE_110(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux110(flux[0], flux[1], n1, n2))
-    if p0.validgauge:
-        p0.solvemeanfield()
-        return p0.MFE()
-    else:
-        return np.NaN
+    p0.solvemeanfield()
+    return p0.MFE()
     
 def fluxMFE_110_alt(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux110(flux[0], flux[1], n1, n2))
-    if p0.validgauge:
-        p0.solvemeanfield()
-        return p0.GS()
-    else:
-        return np.NaN
+    p0.solvemeanfield()
+    return p0.GS()
+
 
 def fluxMFE_111(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux111(flux[0], flux[1], n1))
-    if p0.validgauge:
-        p0.solvemeanfield()
-        return p0.MFE()
-    else:
-        return np.NaN
+    p0.solvemeanfield()
+    return p0.MFE()
     
 def fluxMFE_111_alt(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
     p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux111(flux[0], flux[1], n1))
-    if p0.validgauge:
-        p0.solvemeanfield()
-        return p0.GS()
-    else:
-        return np.NaN
+    p0.solvemeanfield()
+    return p0.GS()
 
 def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres, fluxstart):
     step = 1

@@ -14,14 +14,14 @@ from variation_flux import *
 # getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
-JP = 0.06
-h = 0
+JP = 0.02
+h = 0.3
 BZres = 20
 
 z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
 z0.solvemeanfield()
-print(z0.condensed, z0.lams, z0.minLams, z0.qmin, z0.GS(), z0.MFE(), z0.rhos, z0.delta)
-z0.graph(True)
+print(z0.condensed, z0.lams, z0.minLams, z0.qmin, z0.GS(), z0.MFE(), z0.rhos, z0.delta, z0.magnetization())
+z0.graph(False)
 # #
 #
 # N = 20

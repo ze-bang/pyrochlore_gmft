@@ -967,38 +967,36 @@ class piFluxSolver:
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
-    def print_rho(self):
-        minLams = self.findminLam(self.chi, self.chi0, self.xi)
-        E, V = np.linalg.eigh(self.MF)
-        a = min(E[:,0])
-        print(a, a+ minLams, self.lams)
-        T = np.linspace(minLams-1e-10, minLams+1e-10, 50)
-        rho = np.zeros(50)
-        for i in range(50):
-            rho[i] = rho_true(self.Jzz,self.MF, self.Mcondensed, self.mask, self.dV, T[i]*np.ones(2))[0]
-        plt.plot(T, rho)
+
+    def mag_integrand(self, k):
+        k = contract('ij,jk->ik', k, BasisBZA)
+        M = M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here,
+                 self.A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(self.lams, 4), 2))
+        E, V = np.linalg.eigh(M)
+        E = np.sqrt(2 * self.Jzz * E)
+        green = green_pi(E, V, self.Jzz)
+
+        ffact = contract('ik, jk->ij', k, NN)
+        ffact = np.exp(-1j * ffact)
+
+        magp = 2 * np.real(contract('ku, ru, krx, urx->k', ffact,
+                             np.exp(1j * self.A_pi_here), green[:, 0:4, 4:8], piunitcell))
+        return magp
+
+
     def magnetization(self):
-        green = self.green_pi(self.bigB)
-        ffact = contract('ik, jk->ij', self.bigB, NN)
-        ffactp = np.exp(-1j * ffact)
-        ffactm = np.exp(1j * ffact)
-
-        magp = contract('ij, ika, kj, jka->i', ffactp, green[:, 0:4, 4:8], np.exp(1j * self.A_pi_here),
-                        piunitcell) / 4
-        magm = contract('ij, iak, kj, jka->i', ffactm, green[:, 4:8, 0:4], np.exp(-1j * self.A_pi_here),
-                        piunitcell) / 4
-
+        mag = gauss_quadrature_3d(self.mag_integrand, 0, 1, 0, 1, 0, 1, self.BZres)
         con = 0
         if self.condensed:
-            ffact = contract('ik, jk->j', self.qmin, NN)
+            ffact = contract('ik, jk->ij', self.qmin, NN)
             ffactp = np.exp(-1j * ffact)
             ffactm = np.exp(1j * ffact)
 
-            tempp = contract('j, k, a, kj, jka->j', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * self.A_pi_here),
+            tempp = contract('ij, k, a, kj, jka->i', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * self.A_pi_here),
                             piunitcell) / 4
-            tempm = contract('j, a, k, kj, jka->j', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * self.A_pi_here),
+            tempm = contract('ij, a, k, kj, jka->i', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * self.A_pi_here),
                             piunitcell) / 4
 
             con = np.mean(tempp+tempm)
 
-        return np.real(np.mean(magp + magm)+con) / 4
+        return  np.real(mag+con)

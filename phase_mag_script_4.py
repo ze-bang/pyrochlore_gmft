@@ -1,6 +1,6 @@
 import os 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-from archive.phase_diagram import *
+from phase_diagram import *
 from misc_helper import *
 
 flux = np.array([np.pi, np.pi, 0, 0])
