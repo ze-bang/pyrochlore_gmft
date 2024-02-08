@@ -14,15 +14,15 @@ from variation_flux import *
 # getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
 ppp0f = generateflux110(0, np.pi, 0, 0)
 pp00f = generateflux110(np.pi, 0, 1, 0)
-# JP = 0.045
-# h = 0
-# BZres = 20
-#
-# z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-# z0.solvemeanfield()
-# print(z0.condensed, z0.lams, z0.minLams, z0.qmin, z0.GS(), z0.rhos, z0.delta)
-# z0.graph(True)
-#
+JP = 0.06
+h = 0
+BZres = 20
+
+z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+z0.solvemeanfield()
+print(z0.condensed, z0.lams, z0.minLams, z0.qmin, z0.GS(), z0.MFE(), z0.rhos, z0.delta)
+z0.graph(True)
+# #
 #
 # N = 20
 # lams = np.zeros(N)
@@ -36,43 +36,43 @@ pp00f = generateflux110(np.pi, 0, 1, 0)
 # plt.plot(lams)
 
 
-n = 20
-h = 0
-BZres = 20
-JP = np.linspace(-0.01,0.01, n)
-
-GS0 = np.zeros(n)
-GSpi = np.zeros(n)
-GSppp0 = np.zeros(n)
-GSpp00 = np.zeros(n)
-
-for i in range(n):
-    A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-    B = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=ppp0f)
-    D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
-    C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-
-    A.solvemeanfield()
-    B.solvemeanfield()
-    D.solvemeanfield()
-    C.solvemeanfield()
-
-    GS0[i] = A.GS()
-    GSppp0[i] = B.GS()
-    GSpp00[i] = D.GS()
-    GSpi[i] = C.GS()
-
-
-    print(JP[i], GS0[i], A.qmin, GSppp0[i], B.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
-
-plt.plot(JP, GS0, label='0')
-plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
-plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
-plt.plot(JP, GSpi, label=r'$\pi$')
-# plt.plot(JP, MFE0old, label='0 old')
-# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-plt.legend()
-plt.show()
+# n = 20
+# h = 0
+# BZres = 20
+# JP = np.linspace(-0.01,0.01, n)
+#
+# GS0 = np.zeros(n)
+# GSpi = np.zeros(n)
+# GSppp0 = np.zeros(n)
+# GSpp00 = np.zeros(n)
+#
+# for i in range(n):
+#     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+#     B = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=ppp0f)
+#     D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
+#     C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+#
+#     A.solvemeanfield()
+#     B.solvemeanfield()
+#     D.solvemeanfield()
+#     C.solvemeanfield()
+#
+#     GS0[i] = A.MFE()
+#     GSppp0[i] = B.MFE()
+#     GSpp00[i] = D.MFE()
+#     GSpi[i] = C.MFE()
+#
+#
+#     print(JP[i], GS0[i], A.qmin, GSppp0[i], B.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
+#
+# plt.plot(JP, GS0, label='0')
+# plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
+# plt.plot(JP, GSppp0, label=r'$\pi\pi \pi 0$')
+# plt.plot(JP, GSpi, label=r'$\pi$')
+# # plt.plot(JP, MFE0old, label='0 old')
+# # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+# plt.legend()
+# plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 

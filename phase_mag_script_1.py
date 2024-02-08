@@ -1,11 +1,7 @@
 import os 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-import pyrochlore_dispersion as py0
-import pyrochlore_dispersion_pi as pypi
 # import numpy as np
-import matplotlib.pyplot as plt
-from spinon_con import *
-from phase_diagram import *
+from archive.phase_diagram import *
 from misc_helper import *
 from flux_stuff import *
 

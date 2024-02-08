@@ -1,18 +1,7 @@
 import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-import pyrochlore_dispersion as py0
-import pyrochlore_dispersion_pi as pypi
-import pyrochlore_dispersion_pi as pygang
-import numpy as np
-import matplotlib.pyplot as plt
-from spinon_con import *
-import math
-import time
-import sys
-from phase_diagram import *
-from numba import jit
+from archive.phase_diagram import *
 from misc_helper import *
-import netCDF4 as nc
 from flux_stuff import *
 
 # findXYZPhase(-1, 1, 20, 26, 2, "XYZ_0_field_more")

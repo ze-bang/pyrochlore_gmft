@@ -280,12 +280,14 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     E = np.around(E[:,0], decimals=16)
     Em = E.min()
     dex = np.where(E==Em)
-    Know = np.unique(np.around(K[dex], decimals=15), axis=0)
+    Know = np.unique(np.mod(K[dex],1), axis=0)
 
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
+    if len(Know) > 8:
+        Know = Know[0:8]
 
     Enow = np.zeros(len(Know))
 
@@ -312,16 +314,15 @@ def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, ch
         lamMax = np.ones(2)
     else:
         lamMin = np.copy(lamM)
-        lamMax = 5*np.copy(lamM)
+        lamMax = 10*np.ones(2)
     lams = lamMax
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
             rhoguess = rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-            # errorlast = error
             error = rhoguess-kappa
-            # print(lams, lamMin, lamMax, error)
+            # print(lams, lamMin, lamMax, rhoguess,error)
             if error > 0:
                 lamMin = lams
             else:
@@ -585,86 +586,84 @@ def green_pi_branch(E, V, Jzz):
     return green
 
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, mask):
+
+def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
-    M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    k = contract('ij,jk->ik', k, BasisBZA)
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
-    green = green_pi(E, V, Jzz)
 
+    EQ = np.mean(E,axis=1)
+
+    green = green_pi(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
-    ffactB = np.exp(1j * ffact)
-
-    EQ = np.real(np.trace(np.mean(contract('ilk, ijk,ik, i->ijl',  V, np.conj(V) , E / 2, mask),axis=0)) / 2)
-
-    E1A = np.mean(contract('jl,klj, iab, ijl, i, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 0:4, 0:4], ffactA, mask,
+    E1 = 2*np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
                  piunitcell, piunitcell))
-    E1B = np.mean(contract('jl,klj, iab, ijl, i, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:, 4:8, 4:8], ffactB, mask,
-                 piunitcell, piunitcell))
-
-    E1 = np.real(E1A + E1B)
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
-    Emag = np.mean(contract('ku, u, ru, krx, k, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j*A_pi_here), green[:, 0:4, 4:8], mask, piunitcell), axis=0)
 
-    Emag = 2 * np.real(Emag)
+    Emag = 2*np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
+                            np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell))
 
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
     tempxb = xi[1]
     tempxa = xi[0]
-    M1a = np.mean(contract('jl, kjl, ij, kl, ikx, i, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], mask, piunitcell), axis=0)
-    M1b = np.mean(contract('jl, kjl, il, kj, ikx, i, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], mask, piunitcell), axis=0)
-    M2a = np.mean(
-        contract('jl, kjl, ij, kl, ixk, i, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], mask, piunitcell), axis=0)
-    M2b = np.mean(
-        contract('jl, kjl, il, kj, ixk, i, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], mask, piunitcell), axis=0)
+
+    M1a = contract('jl, kjl, ij, kl, ikx, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
+                           green[:, 0:4, 4:8], piunitcell)
+    M1b = contract('jl, kjl, il, kj, ikx, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
+                           green[:, 0:4, 4:8], piunitcell)
+    M2a = contract('jl, kjl, ij, kl, ixk, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
+                 green[:, 0:4, 4:8], piunitcell)
+    M2b = contract('jl, kjl, il, kj, ixk, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
+                 green[:, 0:4, 4:8], piunitcell)
+
     EAB = 2 * np.real(M1a + M1b + M2a + M2b)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
-    beta = 1
-    tempchi = chi[beta]
-    tempchi0 = chi0[beta]
+    tempchi = chi[1]
+    tempchi0 = chi0[1]
 
-    M1 = np.mean(contract('jl, kjl, kjl, i, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, mask, green[:, 0:4, 8:12]),
-                 axis=0)
+    M1 = contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, green[:, 0:4, 8:12])
 
-    M2 = np.mean(contract('jl, kjl, ijl, k, iba, i, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0,
-                          green[:, 0:4, 8:12], mask, piunitcell, piunitcell), axis=0)
+    M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
+                          green[:, 0:4, 8:12], piunitcell, piunitcell)
 
-    EAA = 2 * np.real(M1 + M2)
+    EAA = 2 * np.real(M1+M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
-    beta = 0
-    tempchi = chi[beta]
-    tempchi0 = chi0[beta]
+    tempchi = chi[0]
+    tempchi0 = chi0[0]
 
-    M1 = np.mean(
-        contract('jl, kjl, kjl, i, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, mask, green[:, 4:8, 12:16]), axis=0)
+    M1 = contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, tempchi, green[:, 4:8, 12:16])
 
-    M2 = np.mean(contract('jl, kjl, ijl, k, iba, i, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0,
-                          green[:, 4:8, 12:16], mask, piunitcell, piunitcell), axis=0)
+    M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
+                          green[:, 4:8, 12:16], piunitcell, piunitcell)
+    EBB = 2 * np.real(M1+ M2)
+    Etot = EQ + Emag + E1 + EAB + EAA + EBB
 
-    EBB = 2 * np.real(M1 + M2)
+    return Etot
 
-    E = EQ + Emag + E1 + EAB + EAA + EBB
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
+
+
+    Eall = gauss_quadrature_3d(Encompassing_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+
+    E = Eall - lams[0]
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
-    return E / 4
+    return E
 
-def MFE_condensed(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, M, lams, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
@@ -748,7 +747,6 @@ class piFluxSolver:
         self.chi = 0.18
         self.xi = 0.5
         self.chi0 = 0.18
-        self.validgauge = True
 
         if (n == h110).all():
             self.A_pi_here = constructA_pi_110(flux)
@@ -759,8 +757,6 @@ class piFluxSolver:
 
 
         self.minLams = np.zeros(2, dtype=np.double)
-        self.Mcondensed = np.zeros((16,16))
-        self.toignore = np.array([],dtype=int)
 
         self.BZres = BZres
         self.graphres = graphres
@@ -771,12 +767,6 @@ class piFluxSolver:
         self.condensed = False
         self.delta = np.zeros(2)
         self.rhos = np.zeros(8)
-
-        try:
-            self.A_pi_here.shape
-        except:
-            self.validgauge=False
-            return None
 
         self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
 
@@ -813,11 +803,12 @@ class piFluxSolver:
         return findlambda_pi(self.kappa,self.tol, self.BZres,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
 
     def findminLam(self, chi, chi0, xi):
-        B, bare = genBZ(10)
+        n = 30
+        B, bare = genBZ(n)
         MF = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         minLams, self.qmin = findminLam_scipy(MF, bare, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, 10)
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, n)
         self.minLams = np.ones(2) * minLams
         return minLams
 
@@ -825,8 +816,6 @@ class piFluxSolver:
         return rho_true(self.BZres, lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
     def calmeanfield(self, lams, MF, K):
-        if not self.validgauge:
-            return -1
         if self.condensed:
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
             chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
@@ -836,8 +825,6 @@ class piFluxSolver:
         return np.array([chi, chi0, xi])
 
     def solvemeanfield(self, tol=1e-15):
-        if not self.validgauge:
-            return -1
         mfs = np.array([self.chi, self.chi0, self.xi])
         self.condensation_check(mfs)
         # mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
@@ -881,6 +868,7 @@ class piFluxSolver:
             self.rhos = np.zeros(8)
             self.delta = np.zeros(2)
         warnings.resetwarnings()
+
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         self.findminLam(chi, chi0, xi)
@@ -900,164 +888,82 @@ class piFluxSolver:
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                             self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0]),axis=1)
 
-    def E_pi_fixed(self):
-        if not self.validgauge:
-            return -1
-        return np.sqrt(2 * self.Jzz * E_pi_fixed(self.lams, self.MF)[0])
-
     def dispersion(self, k):
-        if not self.validgauge:
-            return -1
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
                              self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def LV_zero(self, k, lam=np.zeros(2)):
-        if not self.validgauge:
-            return -1
         if np.any(lam == 0):
             lam = self.lams
         return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
-    def gap(self):
-        if not self.validgauge:
-            return -1
-        return np.sqrt(2 * self.Jzz * gap(self.MF, self.lams))
-
-    def gapwhere(self):
-        if not self.validgauge:
-            return -1
-        temp = self.MF + np.diag(np.repeat(self.lams, 4))
-        E, V = np.linalg.eigh(temp)
-        # E = np.sqrt(2*self.Jzz*E)
-        dex = np.argmin(E[:, 0])
-        return np.mod(self.bigB[dex], 2 * np.pi)
-
-
-    def mag_con(self):
-        if not self.validgauge:
-            return -1
-        return np.mean(E_pi_fixed(np.zeros(2), self.MF)[0])
 
     def GS(self):
         return gauss_quadrature_3d(self.E_pi, 0, 1, 0, 1, 0, 1, self.BZres) - self.lams[0]
 
 
     def MFE(self):
-        if not self.validgauge:
-            return -1
         if self.condensed:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                     np.delete(self.MF, self.toignore, axis=0),
-                     self.lams, np.delete(self.bigB,self.toignore, axis=0), self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, np.delete(self.mask, self.toignore))
+                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
 
-            Eq = MFE_condensed(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                               self.xi, self.MF,
-                               self.lams, self.qmin, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+            Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                               self.xi, self.qmin, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
             return Ep + Eq
         else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.MF,
-            self.lams, self.bigB, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.mask)
+            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+            self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
         return Ep
-
-    def MFE_alternative(self):
-        return self.MFE() - self.lams[0]
-
-    def MFEs(self, chi, chi0, xi, lams, MF, K):
-
-        Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, chi0, xi, MF,
-        lams, K, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        return Ep
-
-    def SCE(self, mfs, lams, MF, K):
-        tol = 1e-8
-        chi, chi0, xi = mfs
-        temp = self.MFEs(chi, chi0, xi, lams, MF, K)
-        tempChi = (self.MFEs(chi + tol, chi0, xi, lams, MF, K) - temp) / tol
-        tempChiC = (self.MFEs(chi + 1j*tol, chi0, xi, lams, MF, K) - temp) / tol
-        tempChi0 = (self.MFEs(chi, chi0 + tol, xi, lams, MF, K) - temp) / tol
-        tempChi0C = (self.MFEs(chi, chi0 + 1j*tol, xi, lams, MF, K) - temp) / tol
-        tempXi = (self.MFEs(chi, chi0, xi + tol, lams, MF, K) - temp) / tol
-        return np.array([tempChi+1j*tempChiC, tempChi0+1j*tempChi0C, tempXi])
-
-    def Jacobian(self, mfs, mfslast, f, flast):
-        df = f - flast
-        dx = mfs - mfslast
-        A = contract('i,j->ij', df, 1/dx)
-        return A
 
     def graph(self, show):
-        if not self.validgauge:
-            return -1
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                       self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
 
     def minCal(self, K):
-        if not self.validgauge:
-            return -1
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                       self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def maxCal(self, K):
-        if not self.validgauge:
-            return -1
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                       self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def minMaxCal(self, K):
-        if not self.validgauge:
-            return -1
         return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta,
                          self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def EMAX(self):
-        if not self.validgauge:
-            return -1
         return np.sqrt(2 * self.Jzz * EMAX(self.MF, self.lams))
 
     def TWOSPINON_GAP(self, k):
-        if not self.validgauge:
-            return -1
         return np.min(self.minCal(k))
 
     def TWOSPINON_MAX(self, k):
-        if not self.validgauge:
-            return -1
         return np.max(self.maxCal(k))
 
     def TWOSPINON_DOMAIN(self, k):
-        if not self.validgauge:
-            return -1
         A = self.minMaxCal(k)
         return np.min(A[:,0]), np.max(A[:,1])
 
     def graph_loweredge(self, show):
-        if not self.validgauge:
-            return -1
         loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        if not self.validgauge:
-            return -1
         upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
 
     def green_pi(self, k, lam=np.zeros(2)):
-        if not self.validgauge:
-            return -1
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
     def green_pi_branch(self, k, lam=np.zeros(2)):
-        if not self.validgauge:
-            return -1
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
@@ -1072,8 +978,6 @@ class piFluxSolver:
             rho[i] = rho_true(self.Jzz,self.MF, self.Mcondensed, self.mask, self.dV, T[i]*np.ones(2))[0]
         plt.plot(T, rho)
     def magnetization(self):
-        if not self.validgauge:
-            return -1
         green = self.green_pi(self.bigB)
         ffact = contract('ik, jk->ij', self.bigB, NN)
         ffactp = np.exp(-1j * ffact)

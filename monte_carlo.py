@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from opt_einsum import contract
-from numba import njit, jit
+from numba import njit
 from mpi4py import MPI
 from misc_helper import hkltoK, genBZ
-from spinon_con import SSSFGraph
+from archive.spinon_con import SSSFGraph
 
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
