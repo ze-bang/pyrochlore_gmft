@@ -18,7 +18,7 @@ flux = np.array([np.pi, np.pi, 0, 0])
 
 # findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h110, 40, 2, flux, "phase_110_kappa=2_zoomed_in_more")
 
-findPhaseMag_alt(-0.05, 0.05, 100, 0, 0.3, 100, h110, 40, 2, flux, "phase_110_kappa=2_zoomed_in_more_alt")
+findPhaseMag110(-0.05, 0.05, 100, 0, 0.3, 100, h110, 25, 2, "phase_110_kappa=2_zoomed_in_more")
 
 # findPhaseMag_simple(-0.05, 0.05, 100, 0, 0.3, 100, h001, 26, 2, flux, "phase_001_pi0")
 # findPhaseMag_simple(-0.05, 0.05, 100, 0, 0.3, 100, h110, 26, 2, flux, "phase_110_pi0")

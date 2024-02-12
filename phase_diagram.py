@@ -70,7 +70,7 @@ def graphMagPhase(JP, h, phases, filename):
 
 #region Phase for Magnetic Field
 
-def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
+def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -112,7 +112,7 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         # print(currJH[i])
         py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
         pyps = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
-        pyp0 = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        pyp0 = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()
@@ -188,6 +188,119 @@ def findPhaseMag(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+
+
+def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
+    le = nK*nH
+    nb = le/size
+
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+
+    currJH = JH[leftK:rightK]
+
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros((currsizeK,3), dtype=np.float64)
+
+
+    rectemp = None
+    rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+    rectemp5 = None
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+        rectemp3 = np.zeros(le, dtype=np.float64)
+        rectemp4 = np.zeros(le, dtype=np.float64)
+        rectemp5 = np.zeros((le, 3), dtype=np.float64)
+
+    for i in range(currsizeK):
+        # start = time.time()
+        # print(currJH[i])
+        py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        pyps = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+
+        py0s.solvemeanfield()
+        pyps.solvemeanfield()
+
+        GS = np.array([py0s.MFE(), pyps.MFE()])
+        a = np.argmin(GS)
+        # print(GS, a)
+        if a == 0:
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = GS[a]
+            sendtemp3[i] = py0s.lams[0]
+            sendtemp4[i] = py0s.magnetization()
+            sendtemp5[i] = py0s.qmin
+        else:
+            sendtemp[i] = pyps.condensed + 5
+            sendtemp2[i] = GS[a]
+            sendtemp3[i] = pyps.lams[0]
+            sendtemp4[i] = pyps.magnetization()
+            sendtemp5[i] = pyps.qmin
+        # end = time.time()
+        # print("This iteration costs " + str(end - start))
+#
+
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        rectemp3 = rectemp3.reshape((nK, nH))
+        rectemp4 = rectemp4.reshape((nK, nH))
+        rectemp5 = rectemp5.reshape((nK, nH, 3))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
+        np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
+        np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
+
+        ncfilename = 'Files/' + filename + '_q_condensed.nc'
+        with nc.Dataset(ncfilename, "w") as dataset:
+            # Create dimensions
+            dataset.createDimension("Jpm", nK)
+            dataset.createDimension("h", nH)
+            dataset.createDimension("xyz", 3)
+            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
+            # Assign data to variables
+            temp_var[:, :, :] = rectemp5
+            # Add attributes
+            temp_var.long_name = "Condensed Wave Vectors"
+
+
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
+        graphMagPhase(JP, h, rectemp, 'Files/' + filename)
+        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+
 
 def findPhaseMag_alt(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     comm = MPI.COMM_WORLD
