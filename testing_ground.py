@@ -330,10 +330,16 @@ def algHamSungbin():
 #
 #
 
-def f(k, a, b, c):
-    x,y,z=k
-    return a*x**2+b*y**2+c*z**2
+# def f(k, a, b, c):
+#     x,y,z=k
+#     return a*x**2+b*y**2+c*z**2
+#
+# n = 10
+#
+# print(adaptive_gauss_quadrature_3d(f, -1, 1, -1, 1, -1, 1, 1e-16,1,1,1))
 
-n = 10
-
-print(adaptive_gauss_quadrature_3d(f, -1, 1, -1, 1, -1, 1, 1e-16,1,1,1))
+# A = np.array([1,1,1])
+# B = np.arange(48).reshape((3,2,2,4))
+# C = np.einsum('ijkl->jkil', B)
+# print(np.dot(A,C))
+# print(np.einsum('i, ijkl->jkl', A, B))

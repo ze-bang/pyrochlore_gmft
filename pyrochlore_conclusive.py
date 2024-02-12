@@ -336,35 +336,49 @@ def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, ch
     return lams
 
 #region Mean field calculation
-def chiCal(lams, M, K, Jzz):
+
+def chi_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    k = contract('ij,jk->ik', k, BasisBZA)
+
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2 * Jzz * E)
     green = green_pi(E, V, Jzz)
-    ffact = contract('ik,jlk->ijl', K, NNminus)
+    ffact = contract('ik,jlk->ijl', k, NNminus)
     ffactB = np.exp(1j * ffact)
-    A = contract('iab, ijl,jka, lkb->ikjl', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
-    M1 = np.mean(A, axis=0)
+    A = contract('iab, ijl,jka, lkb->kjil', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
+
+    return A
+
+def chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    M1 = gauss_quadrature_3d(chi_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
     chi = chi * np.sign(chi)
     chi0 = chi0 * np.sign(chi0)
     return chi, chi0
 
-def xiCal(lams, M, K, Jzz, ns):
+def xi_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    k = contract('ij,jk->ik', k, BasisBZA)
+
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     E, V = E_pi_fixed(lams, M)
     E = np.sqrt(2 * Jzz * E)
     green = green_pi(E, V, Jzz)
-    ffact = contract('ik,jk->ij', K, NN)
+    ffact = contract('ik,jk->ij', k, NN)
     ffactA = np.exp(1j * ffact)
 
-    M1 = np.mean(contract('ika, ij,jka->ikj', green[:, 0:4, 4:8], ffactA, piunitcell), axis=0)
+    A = contract('ika, ij,jka->kij', green[:, 0:4, 4:8], ffactA, piunitcell)
 
-    M1 = M1[0, 0]
+    return A
+def xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    M = gauss_quadrature_3d(xi_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    M1 = M[0, 0]
     return np.real(np.abs(M1))
 
-def calmeanfield(lams, M, K, Jzz, ns):
-    chi, chi0 = chiCal(lams, M, K, Jzz)
-    return chi, chi0, xiCal(lams, M, K, Jzz, ns)
+def calmeanfield(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    chi, chi0 = chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    return chi, chi0, xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 # endregion
 
@@ -597,19 +611,19 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
 
-    EQ = np.mean(E,axis=1)
+    EQ = np.real(np.trace(contract('ijk, ilk, ik->ijl', V, np.conj(V), E ),axis1=1,axis2=2))/8
 
     green = green_pi(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
-    E1 = 2*np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
+    E1 = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
                  piunitcell, piunitcell))
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
 
-    Emag = 2*np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
+    Emag = np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell))
 
     ffact = contract('ik, jk->ij', k, NN)
@@ -626,7 +640,7 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     M2b = contract('jl, kjl, il, kj, ixk, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
                  green[:, 0:4, 4:8], piunitcell)
 
-    EAB = 2 * np.real(M1a + M1b + M2a + M2b)
+    EAB = np.real(M1a + M1b + M2a + M2b)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
@@ -638,7 +652,7 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
                           green[:, 0:4, 8:12], piunitcell, piunitcell)
 
-    EAA = 2 * np.real(M1+M2)
+    EAA = np.real(M1+M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
@@ -649,19 +663,15 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
 
     M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
                           green[:, 4:8, 12:16], piunitcell, piunitcell)
-    EBB = 2 * np.real(M1+ M2)
+    EBB = np.real(M1+ M2)
     Etot = EQ + Emag + E1 + EAB + EAA + EBB
-
     return Etot
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
-
-
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
     Eall = gauss_quadrature_3d(Encompassing_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-
-    E = Eall - lams[0]
+    E = Eall
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
-    return E
+    return E/4
 
 def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
@@ -815,31 +825,33 @@ class piFluxSolver:
     def rho(self,lam):
         return rho_true(self.BZres, lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-    def calmeanfield(self, lams, MF, K):
+    def calmeanfield(self, lams):
         if self.condensed:
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
-            chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
+            chi, chi0, xi = calmeanfield(self.BZres, lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
+                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
             return chi + chic, chi0 + chi0c, xi + xic
         else:
-            chi, chi0, xi = calmeanfield(lams, MF, K, self.Jzz, self.ns)
-        return np.array([chi, chi0, xi])
+            chi, chi0, xi = calmeanfield(self.BZres, lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
+                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+            return np.array([chi, chi0, xi])
 
     def solvemeanfield(self, tol=1e-15):
         mfs = np.array([self.chi, self.chi0, self.xi])
         self.condensation_check(mfs)
-        # mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
-        # do = not (self.Jpmpm == 0)
-        # counter = 0
-        # while do:
-        #     mfslast = np.copy(mfs)
-        #     self.condensation_check(mfs)
-        #     mfs = self.calmeanfield(self.lams, self.MF, self.bigB)
-        #     print(mfs, self.lams, self.minLams)
-        #     if (abs(mfs-mfslast) < tol).all() or counter >= 30:
-        #         break
-        #     counter = counter + 1
-        # if do:
-        #     self.condensation_check(mfs)
+        mfs = self.calmeanfield(self.lams)
+        do = not (self.Jpmpm == 0)
+        counter = 0
+        while do:
+            mfslast = np.copy(mfs)
+            self.condensation_check(mfs)
+            mfs = self.calmeanfield(self.lams)
+            print(mfs, self.lams, self.minLams)
+            if (abs(mfs-mfslast) < tol).all() or counter >= 30:
+                break
+            counter = counter + 1
+        if do:
+            self.condensation_check(mfs)
         self.chi, self.chi0, self.xi = mfs
         return 0
 
@@ -899,20 +911,20 @@ class piFluxSolver:
 
 
     def GS(self):
-        return gauss_quadrature_3d(self.E_pi, 0, 1, 0, 1, 0, 1, self.BZres) - self.lams[0]
+        return gauss_quadrature_3d(self.E_pi, 0, 1, 0, 1, 0, 1, self.BZres) - self.kappa*self.lams[0]
 
 
     def MFE(self):
         if self.condensed:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
+                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
 
             Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                                self.xi, self.qmin, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
             return Ep + Eq
         else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-            self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
+            self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
         return Ep
 
     def graph(self, show):

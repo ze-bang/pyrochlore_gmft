@@ -3,7 +3,7 @@ import numpy as np
 
 from misc_helper import *
 from flux_stuff import *
-import pyrochlore_conclusive as pygen
+import pyrochlore_conclusive as pycon
 
 # n = h111
 ringv = np.array([[1 ,1 ,-1] ,[-1 ,-1 ,-1] ,[-1 ,1 ,1] ,[1 ,-1 ,1]] ) /np.sqrt(3)
@@ -20,10 +20,10 @@ ringv = np.array([[1 ,1 ,-1] ,[-1 ,-1 ,-1] ,[-1 ,1 ,1] ,[1 ,-1 ,1]] ) /np.sqrt(3
 
 def gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux, p0M):
     tol = 1e-6
-    p1 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([1,0,0,0]))
-    p2 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,1,0,0]))
-    p3 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,0,1,0]))
-    p4 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,0,0,1]))
+    p1 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([1,0,0,0]))
+    p2 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,1,0,0]))
+    p3 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,0,1,0]))
+    p4 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux+tol*np.array([0,0,0,1]))
     p1.solvemeanfield()
     p2.solvemeanfield()
     p3.solvemeanfield()
@@ -32,32 +32,32 @@ def gradient_flux(Jxx, Jyy, Jzz, h, n, kappa, BZres, flux, p0M):
     return np.array([p1.MFE()-p0M, p2.MFE()-p0M, p3.MFE()-p0M, p4.MFE()-p0M])/tol
 
 def fluxMFE(flux, Jxx, Jyy, Jzz, h, n, kappa, BZres):
-    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+    p0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=flux)
     p0.solvemeanfield()
     return p0.MFE()
 
 def fluxMFE_110(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
-    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+    p0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux110(flux[0], flux[1], n1, n2))
     p0.solvemeanfield()
     return p0.MFE()
     
 def fluxMFE_110_alt(flux, n1, n2, Jxx, Jyy, Jzz, h, n, kappa, BZres):
-    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+    p0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux110(flux[0], flux[1], n1, n2))
     p0.solvemeanfield()
     return p0.GS()
 
 
 def fluxMFE_111(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
-    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+    p0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux111(flux[0], flux[1], n1))
     p0.solvemeanfield()
     return p0.MFE()
     
 def fluxMFE_111_alt(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
-    p0 = pygen.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
+    p0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, BZres=BZres, h=h, n=n,
                             flux=generateflux111(flux[0], flux[1], n1))
     p0.solvemeanfield()
     return p0.GS()
