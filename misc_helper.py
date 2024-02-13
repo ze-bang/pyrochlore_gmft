@@ -3,14 +3,9 @@ from itertools import permutations
 import math
 import numba as nb
 from opt_einsum import contract
-import time
 import math
-import sys
-from opt_einsum import contract
-from numba import jit
 from mpi4py import MPI
 from functools import reduce
-import time
 from scipy.optimize import minimize, root_scalar
 
 def factors(n, nK):

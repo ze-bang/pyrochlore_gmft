@@ -4,5 +4,5 @@ sympy
 matplotlib
 opt_einsum
 numba
-mpi4py
 netCDF4
+mpi4py
