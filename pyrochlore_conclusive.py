@@ -332,7 +332,7 @@ def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, ch
         except:
             lamMin = lams
             # print(lams, rhoguess)
-    # warnings.resetwarnings()
+    warnings.resetwarnings()
     return lams
 
 #region Mean field calculation

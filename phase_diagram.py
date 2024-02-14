@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
 from misc_helper import *
 import pyrochlore_conclusive as pycon
 import netCDF4 as nc
@@ -91,21 +93,21 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK,3), dtype=np.float64)
+    # sendtemp5 = np.zeros(currsizeK, dtype='U48')
 
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
-    rectemp5 = None
+    # rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
-        rectemp5 = np.zeros((le, 3), dtype=np.float64)
+        # rectemp5 = np.zeros(le, dtype='U48')
 
     for i in range(currsizeK):
         # start = time.time()
@@ -126,19 +128,20 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
-            sendtemp5[i] = py0s.qmin
+            # sendtemp5[i] = np.array2string(py0s.qmin)
         elif a == 1:
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyps.lams[0]
             sendtemp4[i] = pyps.magnetization()
-            sendtemp5[i] = pyps.qmin
+            # sendtemp5[i] = np.array2string(pyps.qmin)
         else:
             sendtemp[i] = pyp0.condensed + 10
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyp0.lams[0]
             sendtemp4[i] = pyp0.magnetization()
-            sendtemp5[i] = pyp0.qmin
+            # sendtemp5[i] = np.array2string(pyp0.qmin)
+        # print(sendtemp5[i], np.array2string(py0s.qmin),np.array2string(pyps.qmin),np.array2string(pyp0.qmin))
         # end = time.time()
         # print("This iteration costs " + str(end - start))
 #
@@ -148,13 +151,13 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+    # sendcounts5 = np.array(comm.gather(sendtemp5.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
-    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+    # comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
@@ -163,25 +166,11 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
-        rectemp5 = rectemp5.reshape((nK, nH, 3))
+        # rectemp5 = rectemp5.reshape((nK, nH))
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
-
-        ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            # Create dimensions
-            dataset.createDimension("Jpm", nK)
-            dataset.createDimension("h", nH)
-            dataset.createDimension("index", 8)
-            dataset.createDimension("xyz", 3)
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
-            # Assign data to variables
-            temp_var[:, :, :] = rectemp5
-            # Add attributes
-            temp_var.long_name = "Condensed Wave Vectors"
-
 
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
@@ -189,6 +178,8 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+        # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
+
 
 
 def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
@@ -212,21 +203,21 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK,3), dtype=np.float64)
+    # sendtemp5 = np.zeros(currsizeK, dtype='<U12')
 
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
-    rectemp5 = None
+    # rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
-        rectemp5 = np.zeros((le, 3), dtype=np.float64)
+        # rectemp5 = np.zeros(le, dtype='<U12')
 
     for i in range(currsizeK):
         # start = time.time()
@@ -245,13 +236,13 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = py0s.lams[0]
             sendtemp4[i] = py0s.magnetization()
-            sendtemp5[i] = py0s.qmin
+            # sendtemp5[i] = np.array2string(py0s.qmin)
         else:
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyps.lams[0]
             sendtemp4[i] = pyps.magnetization()
-            sendtemp5[i] = pyps.qmin
+            # sendtemp5[i] = np.array2string(pyps.qmin)
         # end = time.time()
         # print("This iteration costs " + str(end - start))
 #
@@ -261,13 +252,13 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+    # sendcounts5 = np.array(comm.gather(sendtemp5.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
-    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+    # comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
 
@@ -276,25 +267,11 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
-        rectemp5 = rectemp5.reshape((nK, nH, 3))
+        # rectemp5 = rectemp5.reshape((nK, nH))
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
         np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
-
-        ncfilename = 'Files/' + filename + '_q_condensed.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            # Create dimensions
-            dataset.createDimension("Jpm", nK)
-            dataset.createDimension("h", nH)
-            dataset.createDimension("index", 8)
-            dataset.createDimension("xyz", 3)
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
-            # Assign data to variables
-            temp_var[:, :, :] = rectemp5
-            # Add attributes
-            temp_var.long_name = "Condensed Wave Vectors"
-
 
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
@@ -302,7 +279,7 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
         graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
-
+        # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
 
 def findPhaseMag_alt(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     comm = MPI.COMM_WORLD

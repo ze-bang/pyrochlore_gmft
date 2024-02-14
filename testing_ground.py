@@ -343,3 +343,7 @@ def algHamSungbin():
 # C = np.einsum('ijkl->jkil', B)
 # print(np.dot(A,C))
 # print(np.einsum('i, ijkl->jkl', A, B))
+
+a = np.array([[0,0,0],[1,1,1]])
+
+print(np.array2string(a))

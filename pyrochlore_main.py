@@ -50,7 +50,7 @@ GSpp00 = np.zeros(n)
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
 MFEpp00 = np.zeros(n)
-warnings.filterwarnings("error")
+# warnings.filterwarnings("error")
 
 for i in range(n):
     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
