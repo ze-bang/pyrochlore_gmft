@@ -174,8 +174,9 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             # Create dimensions
             dataset.createDimension("Jpm", nK)
             dataset.createDimension("h", nH)
+            dataset.createDimension("index", 8)
             dataset.createDimension("xyz", 3)
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
+            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             # Assign data to variables
             temp_var[:, :, :] = rectemp5
             # Add attributes
@@ -286,8 +287,9 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             # Create dimensions
             dataset.createDimension("Jpm", nK)
             dataset.createDimension("h", nH)
+            dataset.createDimension("index", 8)
             dataset.createDimension("xyz", 3)
-            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
+            temp_var = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             # Assign data to variables
             temp_var[:, :, :] = rectemp5
             # Add attributes
