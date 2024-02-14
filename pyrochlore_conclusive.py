@@ -181,11 +181,11 @@ def I3_integrand(a, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     return np.mean(Ep,axis=1)
 
 
-def rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    return gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, BZres,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights):
+    return integrate(I3_integrand, pts, weights,lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
-def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+# def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+#     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 def Emin(q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     k = contract('i, ik->k', q, BasisBZA).reshape((1,3))
@@ -307,7 +307,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     return -Enowm, Know
 
-def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
         lamMin = np.zeros(2)
@@ -320,7 +320,7 @@ def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, ch
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
-            rhoguess = rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+            rhoguess = rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights)
             error = rhoguess-kappa
             # print(lams, lamMin, lamMax, rhoguess,error)
             if error > 0:
@@ -350,8 +350,8 @@ def chi_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     return A
 
-def chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    M1 = gauss_quadrature_3d(chi_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights):
+    M1 = integrate(chi_integrand, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     chi = M1[0, 0, 3]
     chi0 = np.conj(M1[0, 0, 0])
     chi = chi * np.sign(chi)
@@ -371,14 +371,14 @@ def xi_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here
     A = contract('ika, ij,jka->kij', green[:, 0:4, 4:8], ffactA, piunitcell)
 
     return A
-def xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    M = gauss_quadrature_3d(xi_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights):
+    M = integrate(xi_integrand, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     M1 = M[0, 0]
     return np.real(np.abs(M1))
 
-def calmeanfield(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    chi, chi0 = chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    return chi, chi0, xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def calmeanfield(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights):
+    chi, chi0 = chiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,pts, weights)
+    return chi, chi0, xiCal(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,pts, weights)
 
 # endregion
 
@@ -667,8 +667,8 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     Etot = EQ + Emag + E1 + EAB + EAA + EBB
     return Etot
 
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
-    Eall = gauss_quadrature_3d(Encompassing_integrand, 0, 1, 0, 1, 0, 1, BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, pts, weights):
+    Eall = integrate(Encompassing_integrand, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     E = Eall
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return E/4
@@ -743,7 +743,8 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-8, flux=np.zeros(4)):
+                 ns=1, tol=1e-8, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
+        self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
         self.Jpmpm = (Jxx - Jyy) / 4
@@ -765,6 +766,7 @@ class piFluxSolver:
         elif (n == h001).all():
             self.A_pi_here = constructA_pi_001(flux)
 
+        self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
 
@@ -810,7 +812,7 @@ class piFluxSolver:
 
 
     def findLambda(self):
-        return findlambda_pi(self.kappa,self.tol, self.BZres,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+        return findlambda_pi(self.kappa,self.tol, self.BZres,self.minLams,self.Jzz,self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.pts, self.weights)
 
     def findminLam(self, chi, chi0, xi):
         n = 30
@@ -824,16 +826,16 @@ class piFluxSolver:
 
     def rho(self,lam):
         return rho_true(self.BZres, lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here,self.pts, self.weights)
     def calmeanfield(self, lams):
         if self.condensed:
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
             chi, chi0, xi = calmeanfield(self.BZres, lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
-                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here,self.pts, self.weights)
             return chi + chic, chi0 + chi0c, xi + xic
         else:
             chi, chi0, xi = calmeanfield(self.BZres, lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
-                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here,self.pts, self.weights)
             return np.array([chi, chi0, xi])
 
     def solvemeanfield(self, tol=1e-15):
@@ -869,7 +871,7 @@ class piFluxSolver:
         return self.bigB[cond], E[cond][0]
 
     def set_condensed(self):
-        self.condensed = self.rho(self.minLams+1e-15) < self.kappa
+        self.condensed = self.rho(self.minLams+5e-15) < self.kappa
 
     def set_delta(self):
         warnings.filterwarnings('error')
@@ -911,7 +913,7 @@ class piFluxSolver:
 
 
     def GS(self):
-        return gauss_quadrature_3d(self.E_pi, 0, 1, 0, 1, 0, 1, self.BZres) - self.kappa*self.lams[0]
+        return integrate(self.E_pi, self.pts, self.weights) - self.kappa*self.lams[0]
 
 
     def MFE(self):
@@ -997,7 +999,7 @@ class piFluxSolver:
 
 
     def magnetization(self):
-        mag = gauss_quadrature_3d(self.mag_integrand, 0, 1, 0, 1, 0, 1, self.BZres)
+        mag = integrate(self.mag_integrand, self.pts, self.weights)
         con = 0
         if self.condensed:
             ffact = contract('ik, jk->ij', self.qmin, NN)

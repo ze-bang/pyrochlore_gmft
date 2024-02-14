@@ -608,32 +608,87 @@ def adaptive_simpsons_3D(f, x0, x1, y0, y1, z0, z1, tol, *args):
     return integral_approx
 
 
-def gauss_quadrature_3d(f, a, b, c, d, e, g, n, *args):
-    """
-    3D Gaussian quadrature for integrating a function over a 3D region.
-
-    Parameters:
-    - f: Function to integrate.
-    - a, b, c, d, e, g: Integration limits in the x, y, and z directions.
-    - n: Number of nodes (and weights).
-
-    Returns:
-    - Integral approximation.
-    """
-    # Define the nodes and weights for Gaussian quadrature
+def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     nodes, weights = np.polynomial.legendre.leggauss(n)
 
     amp = np.array([(b-a)/2,(d-c)/2,(g-e)/2])
     # Map nodes from the interval [-1, 1] to the interval [a, b]
     gauss_pts = contract('k, ik->ik',amp,np.array(np.meshgrid(nodes, nodes, nodes)).reshape(3, -1).T) + np.array([(a+b)/2,(c+d)/2,(e+g)/2])
     weights = contract('i,j,k->ijk', weights, weights, weights).ravel()
-
+    weights *= 0.125 * (b - a) * (d - c) * (g - e)
+    return gauss_pts, weights
+def integrate(f, gauss_pts, weights, *args):
     integral_approximation = np.dot(weights, f(gauss_pts, *args))
-
-    # Scale by the interval widths
-    integral_approximation *= 0.125 * (b - a) * (d - c) * (g - e)
-
     return integral_approximation
+
+def riemann_sum_3d_pts(a, b, c, d, p, q, n):
+    dx = (b - a) / n
+    dy = (d - c) / n
+    dz = (q - p) / n
+    xi = np.linspace(a,b,n)
+    yj = np.linspace(c,d,n)
+    zk = np.linspace(p,q,n)
+    pts = np.array(np.meshgrid(xi, yj, zk)).reshape(3, -1).T
+    return pts, np.ones(n**3)*dx*dy*dz
+
+def monte_carlo_integration_3d_pts(a, b, c, d, p, q, n):
+    volume = (b - a) * (d - c) * (q - p)
+
+    x = np.random.uniform(a, b, n)
+    y = np.random.uniform(c, d, n)
+    z = np.random.uniform(p, q, n)
+
+    pts = np.array(np.meshgrid(x, y, z)).reshape(3, -1).T
+    return pts, np.ones(n**3)/(n**3)*volume
+
+def simpsons_rule_3d_pts(a, b, c, d, p, q, n):
+    dx = (b - a) / (2 * n)
+    dy = (d - c) / (2 * n)
+    dz = (q - p) / (2 * n)
+
+    xi = np.linspace(a, b, 2 * n + 1)
+    yj = np.linspace(c, d, 2 * n + 1)
+    zk = np.linspace(p, q, 2 * n + 1)
+
+    # Compute weights for each dimension
+    weight_x = np.full_like(xi, 4)
+    weight_x[::2] = 2
+    weight_x[0] = weight_x[-1] = 1
+
+    weight_y = np.full_like(yj, 4)
+    weight_y[::2] = 2
+    weight_y[0] = weight_y[-1] = 1
+
+    weight_z = np.full_like(zk, 4)
+    weight_z[::2] = 2
+    weight_z[0] = weight_z[-1] = 1
+
+    pts = np.array(np.meshgrid(xi, yj, zk)).reshape(3, -1).T
+    weights = contract('i,j,k->ijk', weight_x, weight_y, weight_z).ravel()*dx*dy*dz/27
+
+    return pts, weights
+
+def trapezoidal_rule_3d_pts(a, b, c, d, p, q, n):
+    xi = np.linspace(a, b, n + 1)
+    yj = np.linspace(c, d, n + 1)
+    zk = np.linspace(p, q, n + 1)
+
+    dx = (b - a) / n
+    dy = (d - c) / n
+    dz = (q - p) / n
+
+    weight_x = np.full_like(xi, 1)
+    weight_x[0] = weight_x[-1] = 1/2
+
+    weight_y = np.full_like(yj, 1)
+    weight_y[0] = weight_y[-1] = 1/2
+
+    weight_z = np.full_like(zk, 1)
+    weight_z[0] = weight_z[-1] = 1/2
+
+    pts = np.array(np.meshgrid(xi, yj, zk)).reshape(3, -1).T
+    weights = contract('i,j,k->ijk', weight_x, weight_y, weight_z).ravel()*dx*dy*dz
+    return pts, weights
 
 def adaptive_gauss_quadrature_3d(f, a, b, c, d, e, g, tol, *args, max_depth=10, n=3):
     """
