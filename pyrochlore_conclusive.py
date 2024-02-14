@@ -332,7 +332,7 @@ def findlambda_pi(kappa, tol, BZres, lamM, Jzz, Jpm, Jpmpm, h, n, theta, chi, ch
         except:
             lamMin = lams
             # print(lams, rhoguess)
-    warnings.resetwarnings()
+    # warnings.resetwarnings()
     return lams
 
 #region Mean field calculation
@@ -869,7 +869,7 @@ class piFluxSolver:
         return self.bigB[cond], E[cond][0]
 
     def set_condensed(self):
-        self.condensed = self.rho(self.minLams) < self.kappa
+        self.condensed = self.rho(self.minLams+1e-15) < self.kappa
 
     def set_delta(self):
         warnings.filterwarnings('error')

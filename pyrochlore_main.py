@@ -1,6 +1,7 @@
 import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 
+import warnings
 import pyrochlore_conclusive as pycon
 from variation_flux import *
 
@@ -39,18 +40,17 @@ print(constructA_pi_110(pp00f))
 
 n = 20
 h = 0.2
-BZres = 20
-JP = np.linspace(-0.01,0.01, n)
+BZres = 35
+JP = np.linspace(-0.05,0.05, n)
 
 GS0 = np.zeros(n)
 GSpi = np.zeros(n)
-GSppp0 = np.zeros(n)
 GSpp00 = np.zeros(n)
 
 MFE0 = np.zeros(n)
 MFEpi = np.zeros(n)
-MFEppp0 = np.zeros(n)
 MFEpp00 = np.zeros(n)
+warnings.filterwarnings("error")
 
 for i in range(n):
     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
