@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from itertools import permutations
 import math
@@ -177,8 +179,7 @@ def genBZ(d, m=1):
     dj = d*1j
     b = np.mgrid[0:m:dj, 0:m:dj, 0:m:dj].reshape(3,-1).T
     b = np.concatenate((b,genALLSymPointsBare()))
-    temp = np.array(contract('ij, jk->ik', b, BasisBZA), order='C')
-    return temp, b
+    return b
 
 
 # def genBZfolded(d):
@@ -619,6 +620,10 @@ def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     return gauss_pts, weights
 def integrate(f, gauss_pts, weights, *args):
     integral_approximation = np.dot(weights, f(gauss_pts, *args))
+    return integral_approximation
+
+def integrate_fixed(f, weights, *args):
+    integral_approximation = np.dot(weights, f(*args))
     return integral_approximation
 
 def riemann_sum_3d_pts(a, b, c, d, p, q, n):
