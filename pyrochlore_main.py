@@ -115,17 +115,20 @@ MFEpp00 = np.zeros(n)
 
 for i in range(n):
     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-    D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-    C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+    # D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+    # C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
 
     A.solvemeanfield()
-    D.solvemeanfield()
-    C.solvemeanfield()
+    # D.solvemeanfield()
+    # C.solvemeanfield()
 
 
     GS0[i] = A.GS()
-    GSpp00[i] = D.GS()
-    GSpi[i] = C.GS()
+    print(GS0[i])
+    GS0[i] = A.MFE()
+    print(GS0[i])
+    # GSpp00[i] = D.GS()
+    # GSpi[i] = C.GS()
 
 
     print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)

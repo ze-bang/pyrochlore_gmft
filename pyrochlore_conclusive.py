@@ -333,7 +333,6 @@ def findlambda_pi(kappa, tol, E, V, lamM, Jzz, pts, weights):
             # print(lams, rhoguess)
         count += 1
     warnings.resetwarnings()
-    print("Find Lambda total iterations", count)
     return lams
 
 #region Mean field calculation
@@ -741,7 +740,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=simpsons_rule_3d_pts):
+                 ns=1, tol=1e-12, flux=np.zeros(4), intmethod=simpsons_rule_3d_pts):
         self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
@@ -892,8 +891,8 @@ class piFluxSolver:
 
     def E_pi(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
-                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
-                            self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0]),axis=1)
+                               (self.lams[0]+E_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
+                            self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])),axis=1)
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
