@@ -743,7 +743,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-8, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
+                 ns=1, tol=1e-12, flux=np.zeros(4), intmethod=simpsons_rule_3d_pts):
         self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
