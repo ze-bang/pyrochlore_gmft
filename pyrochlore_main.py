@@ -39,97 +39,96 @@ from variation_flux import *
 # plt.plot(lams)
 
 
-n = 31
-h = 0.3
-JP = -0.01
-
-BZgrid = np.linspace(10,9+n-1, n-1, dtype=int)
-
-GSA = np.zeros(n)
-GSB = np.zeros(n)
-GSC = np.zeros(n)
-GSD = np.zeros(n)
-GSE = np.zeros(n)
-
-# mathematicapi = 0.220122539071829
-mathematica0 = 0.2201538131708155
-
-#mathematica0_h_0.3_jp_0.005=0.221507896850163
-#mathematicapi_h_0.3_jp_0.005=0.221502970982931
-#mathematicapp00_h_0.3_jp_0.005=0.221515468258903
-
-fluxtotest = np.ones(4)*np.pi
-
-for i in range(n):
-    A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=gauss_quadrature_3D_pts)
-    # B = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=riemann_sum_3d_pts)
-    C = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=trapezoidal_rule_3d_pts)
-    # D = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=monte_carlo_integration_3d_pts)
-    E = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=simpsons_rule_3d_pts)
-
-    # C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-
-    A.solvemeanfield()
-    # B.solvemeanfield()
-    C.solvemeanfield()
-    # D.solvemeanfield()
-    E.solvemeanfield()
-
-    GSA[i] = A.GS()
-    # GSB[i] = B.GS()
-    GSC[i] = C.GS()
-    # GSD[i] = D.GS()
-    GSE[i] = E.GS()
-
-    print(i+10, GSA[i], A.lams[0], GSB[i], GSC[i], C.lams[0], GSD[i], GSE[i], E.lams[0])
-
-# A = np.loadtxt("temp.txt", unpack=True)
+# n = 31
+# h = 0.3
+# JP = -0.01
 #
-# GSA = A[1]
-# GSC = A[4]
-# GSE = A[7]
-plt.plot(BZgrid,np.log(np.abs(np.diff(GSA))), label='Gauss Quadrature')
-# plt.plot(BZgrid,GSB-mathematicapi, label='Riemann')
-plt.plot(BZgrid,np.log(np.abs(np.diff(GSC))), label='Trapezoidal')
-# plt.plot(BZgrid,GSD-mathematicapi, label='Monte Carlo')
-plt.plot(BZgrid,np.log(np.abs(np.diff(GSE))), label='Simpsons Rule')
-
-
-# plt.plot(JP, MFE0old, label='0 old')
-# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-plt.legend()
-plt.show()
-
-# n = 40
-# h = 0.2
-# BZres = 40
-# JP = np.linspace(-0.03,0.01, n)
+# BZgrid = np.linspace(10,9+n-1, n-1, dtype=int)
 #
-# GS0 = np.zeros(n)
-# GSpi = np.zeros(n)
-# GSpp00 = np.zeros(n)
+# GSA = np.zeros(n)
+# GSB = np.zeros(n)
+# GSC = np.zeros(n)
+# GSD = np.zeros(n)
+# GSE = np.zeros(n)
 #
-# MFE0 = np.zeros(n)
-# MFEpi = np.zeros(n)
-# MFEpp00 = np.zeros(n)
-# # warnings.filterwarnings("error")
+# # mathematicapi = 0.220122539071829
+# mathematica0 = 0.2201538131708155
+#
+# #mathematica0_h_0.3_jp_0.005=0.221507896850163
+# #mathematicapi_h_0.3_jp_0.005=0.221502970982931
+# #mathematicapp00_h_0.3_jp_0.005=0.221515468258903
+#
+# fluxtotest = np.ones(4)*np.pi
 #
 # for i in range(n):
-#     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-#     D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=pp00f)
-#     C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+#     A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=gauss_quadrature_3D_pts)
+#     # B = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=riemann_sum_3d_pts)
+#     C = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=trapezoidal_rule_3d_pts)
+#     # D = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=monte_carlo_integration_3d_pts)
+#     E = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=i+10, h=h, n=h110, flux=fluxtotest, intmethod=simpsons_rule_3d_pts)
+#
+#     # C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
 #
 #     A.solvemeanfield()
-#     D.solvemeanfield()
+#     # B.solvemeanfield()
 #     C.solvemeanfield()
+#     # D.solvemeanfield()
+#     E.solvemeanfield()
+#
+#     GSA[i] = A.GS()
+#     # GSB[i] = B.GS()
+#     GSC[i] = C.GS()
+#     # GSD[i] = D.GS()
+#     GSE[i] = E.GS()
+#
+#     print(i+10, GSA[i], A.lams[0], GSB[i], GSC[i], C.lams[0], GSD[i], GSE[i], E.lams[0])
+#
+# # A = np.loadtxt("temp.txt", unpack=True)
+# #
+# # GSA = A[1]
+# # GSC = A[4]
+# # GSE = A[7]
+# plt.plot(BZgrid,np.log(np.abs(np.diff(GSA))), label='Gauss Quadrature')
+# # plt.plot(BZgrid,GSB-mathematicapi, label='Riemann')
+# plt.plot(BZgrid,np.log(np.abs(np.diff(GSC))), label='Trapezoidal')
+# # plt.plot(BZgrid,GSD-mathematicapi, label='Monte Carlo')
+# plt.plot(BZgrid,np.log(np.abs(np.diff(GSE))), label='Simpsons Rule')
 #
 #
-#     GS0[i] = A.GS()
-#     GSpp00[i] = D.GS()
-#     GSpi[i] = C.GS()
-#
-#
-#     print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
+# # plt.plot(JP, MFE0old, label='0 old')
+# # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+# plt.legend()
+# plt.show()
+
+n = 40
+h = 0.3
+BZres = 30
+JP = np.linspace(-0.02,0.01, n)
+
+GS0 = np.zeros(n)
+GSpi = np.zeros(n)
+GSpp00 = np.zeros(n)
+
+MFE0 = np.zeros(n)
+MFEpi = np.zeros(n)
+MFEpp00 = np.zeros(n)
+
+for i in range(n):
+    A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
+    D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+    C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+
+    A.solvemeanfield()
+    D.solvemeanfield()
+    C.solvemeanfield()
+
+
+    GS0[i] = A.GS()
+    GSpp00[i] = D.GS()
+    GSpi[i] = C.GS()
+
+
+    print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
 
 # plt.plot(JP, MFE0, label='0')
 # plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
@@ -139,13 +138,13 @@ plt.show()
 # plt.legend()
 # plt.show()
 
-# plt.plot(JP, GS0, label='0')
-# plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
-# plt.plot(JP, GSpi, label=r'$\pi$')
-# # plt.plot(JP, MFE0old, label='0 old')
-# # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-# plt.legend()
-# plt.show()
+plt.plot(JP, GS0, label='0')
+plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
+plt.plot(JP, GSpi, label=r'$\pi$')
+# plt.plot(JP, MFE0old, label='0 old')
+# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+plt.legend()
+plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
