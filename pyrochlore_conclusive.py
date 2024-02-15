@@ -174,8 +174,7 @@ def E_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_he
 
 def I3_integrand(E, V, lams, Jzz):
     E = np.sqrt(2*Jzz*(E+lams[0]))
-    Vt = np.real(contract('ijk,ijk->ijk', V, np.conj(V)))
-    Ep = contract('ijk, ik->ij', Vt, Jzz / E)
+    Ep = Jzz / E
     return np.mean(Ep,axis=1)
 
 
@@ -301,7 +300,6 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     Know = np.unique(np.mod(Know[dex], 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    Know = np.array(contract('ij,jk->ik', Know, BasisBZA), order='C')
 
     return -Enowm, Know
 
@@ -808,7 +806,7 @@ class piFluxSolver:
                         self.A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] + self.A_pi_here[j, l]))
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        self.E, self.V =  np.linalg.eigh(self.MF)
+        self.E, self.V = np.linalg.eigh(self.MF)
     def findLambda(self):
         return findlambda_pi(self.kappa,self.tol, self.E, self.V, self.minLams, self.Jzz, self.pts, self.weights)
 
@@ -879,7 +877,10 @@ class piFluxSolver:
 
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
-        self.findminLam(chi, chi0, xi)
+        if self.Jpm == 0 and self.Jpmpm == 0:
+            self.minLams, self.qmin = 0.5*np.ones(2), np.zeros((1,3))
+        else:
+            self.findminLam(chi, chi0, xi)
         self.set_condensed()
         if self.condensed:
             self.set_delta()
@@ -905,7 +906,7 @@ class piFluxSolver:
 
 
     def GS(self):
-        return integrate(self.E_pi, self.pts, self.weights) - self.kappa*self.lams[0]
+        return np.dot(np.sqrt(2*self.Jzz*(np.mean(self.E, axis=1)+self.lams[0])), self.weights) - self.kappa*self.lams[0]
 
 
     def MFE(self):
