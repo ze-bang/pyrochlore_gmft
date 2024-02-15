@@ -120,7 +120,7 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         pyps.solvemeanfield()
         pyp0.solvemeanfield()
 
-        GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE()])
+        GS = np.array([py0s.GS(), pyps.GS(), pyp0.GS()])
         a = np.argmin(GS)
         # print(GS, a)
         if a == 0:
@@ -227,7 +227,7 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         py0s.solvemeanfield()
         pyps.solvemeanfield()
 
-        GS = np.array([py0s.MFE(), pyps.MFE()])
+        GS = np.array([py0s.GS(), pyps.GS()])
         a = np.argmin(GS)
         # print(GS, a)
         if a == 0:
