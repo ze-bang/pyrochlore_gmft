@@ -878,7 +878,7 @@ class piFluxSolver:
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         if self.Jpm == 0 and self.Jpmpm == 0:
-            self.minLams, self.qmin = 0.5*np.ones(2), np.zeros((1,3))
+            self.minLams, self.qmin = 0.25*np.ones(2), np.zeros((1,3))
         else:
             self.findminLam(chi, chi0, xi)
         self.set_condensed()
