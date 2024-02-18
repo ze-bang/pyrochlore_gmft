@@ -172,14 +172,14 @@ def E_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_he
     E, V = np.linalg.eigh(M)
     return E, V
 
-def I3_integrand(E, V, lams, Jzz):
+def I3_integrand(E, lams, Jzz):
     E = np.sqrt(2*Jzz*(E+lams[0]))
     Ep = Jzz / E
     return np.mean(Ep,axis=1)
 
 
-def rho_true(E, V, lams, Jzz, weights):
-    return integrate_fixed(I3_integrand, weights,E, V, lams, Jzz)
+def rho_true(E, lams, Jzz, weights):
+    return integrate_fixed(I3_integrand, weights,E, lams, Jzz)
 
 # def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
 #     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
@@ -271,7 +271,7 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
 
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return -1/2, np.array([0,0,0]).reshape((1,3))
+        return 1/8, np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
     E = np.around(E[:,0], decimals=16)
@@ -317,7 +317,7 @@ def findlambda_pi(kappa, tol, E, V, lamM, Jzz, pts, weights):
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
-            rhoguess = rho_true(E, V, lams, Jzz, weights)
+            rhoguess = rho_true(E, lams, Jzz, weights)
             error = rhoguess-kappa
             # print(lams, lamMin, lamMax, rhoguess,error)
             if error > 0:
@@ -606,7 +606,7 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
 
-    EQ = np.real(np.trace(contract('ijk, ilk, ik->ijl', V, np.conj(V), E ),axis1=1,axis2=2))/8
+    EQ = 2*np.real(np.mean(E,axis=1))
 
     green = green_pi(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k, NNminus)
@@ -664,9 +664,8 @@ def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
 
 def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, pts, weights):
     Eall = integrate(Encompassing_integrand, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    E = Eall
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
-    return E/4
+    return Eall/4
 
 def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
@@ -738,7 +737,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-12, flux=np.zeros(4), intmethod=simpsons_rule_3d_pts):
+                 ns=1, tol=1e-12, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
         self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
@@ -818,7 +817,7 @@ class piFluxSolver:
         return minLams
 
     def rho(self,lam):
-        return rho_true(self.E, self.V, lam, self.Jzz, self.weights)
+        return rho_true(self.E, lam, self.Jzz, self.weights)
     def calmeanfield(self, lams):
         if self.condensed:
             chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
@@ -877,10 +876,7 @@ class piFluxSolver:
 
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
-        if self.Jpm == 0 and self.Jpmpm == 0:
-            self.minLams, self.qmin = 0.25*np.ones(2), np.zeros((1,3))
-        else:
-            self.findminLam(chi, chi0, xi)
+        self.findminLam(chi, chi0, xi)
         self.set_condensed()
         if self.condensed:
             self.set_delta()
