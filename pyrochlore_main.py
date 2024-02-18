@@ -100,7 +100,7 @@ from variation_flux import *
 # plt.legend()
 # plt.show()
 
-n = 40
+n = 5
 h = 0
 BZres = 25
 JP = np.linspace(0,0.05, n)

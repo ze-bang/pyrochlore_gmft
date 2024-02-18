@@ -181,6 +181,8 @@ def I3_integrand(E, lams, Jzz):
 def rho_true(E, lams, Jzz, weights):
     return integrate_fixed(I3_integrand, weights,E, lams, Jzz)
 
+
+
 # def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
 #     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
@@ -303,7 +305,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     return -Enowm, Know
 
-def findlambda_pi(kappa, tol, E, V, lamM, Jzz, pts, weights):
+def findlambda_pi(kappa, tol, E, lamM, Jzz, weights):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
         lamMin = np.zeros(2)
@@ -806,13 +808,13 @@ class piFluxSolver:
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                        self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         self.E, self.V = np.linalg.eigh(self.MF)
+
     def findLambda(self):
-        return findlambda_pi(self.kappa,self.tol, self.E, self.V, self.minLams, self.Jzz, self.pts, self.weights)
+        return findlambda_pi(self.kappa,self.tol, self.E, self.minLams, self.Jzz, self.weights)
 
     def findminLam(self, chi, chi0, xi):
-        n = 30
         minLams, self.qmin = findminLam_scipy(self.MF, self.pts, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, n)
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
         self.minLams = np.ones(2) * minLams
         return minLams
 
@@ -886,6 +888,11 @@ class piFluxSolver:
     def M_true(self, k):
         return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
+    def E_compute(self,k):
+        M = self.M_true(k) + np.diag(np.repeat(np.repeat(self.lams, 4), 2))
+        E, V = np.linalg.eigh(M)
+        return np.mean(np.sqrt(2 * self.Jzz * E),axis=1)
+
     def E_pi(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
                                (self.lams[0]+E_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
@@ -902,6 +909,7 @@ class piFluxSolver:
 
 
     def GS(self):
+        # return np.dot(self.E_compute(self.pts), self.weights) - self.kappa*self.lams[0]
         return np.dot(np.sqrt(2*self.Jzz*(np.mean(self.E, axis=1)+self.lams[0])), self.weights) - self.kappa*self.lams[0]
 
 
