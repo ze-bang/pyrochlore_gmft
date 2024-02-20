@@ -100,7 +100,7 @@ from phase_diagram import *
 # plt.legend()
 # plt.show()
 
-findPhaseMag100(0,0.05,1,0,0.05,1,h100,25,2,'test')
+# findPhaseMag100(0,0.05,1,0,0.05,1,h100,25,2,'test')
 
 n = 10
 h = 0.3
@@ -121,7 +121,7 @@ for i in range(n):
     C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
 
     A.solvemeanfield()
-    # D.solvemeanfield()
+    D.solvemeanfield()
     C.solvemeanfield()
 
 
@@ -130,7 +130,7 @@ for i in range(n):
     GS0[i] = A.MFE()
     # print(GS0[i])
     # print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
-    # GSpp00[i] = D.GS()
+    GSpp00[i] = D.GS()
     GSpi[i] = C.MFE()
 
     #
