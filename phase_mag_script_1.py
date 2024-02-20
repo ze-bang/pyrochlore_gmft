@@ -8,7 +8,7 @@ from flux_stuff import *
 # findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h110, 26, 2, flux, "FF_phase_110_kappa=2")
 # findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h001, 26, 2, flux, "FF_phase_001_kappa=2")
 # findPhaseMag(-0.5, 0.1, 100, 0, 1, 100, h111, 40, 2, flux, "FF_phase_111_kappa=2")
-findPhaseMag111(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, "FF_phase_111_kappa=2")
+findPhaseMag111(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, "phase_111_kappa=2")
 # findPhaseMag(-0.5, 0.1, 100, 0, 4, 100, h1b10, 26, 2, flux, "FF_phase_1b10_kappa=2")
 
 

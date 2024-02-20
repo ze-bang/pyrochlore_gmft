@@ -13,7 +13,7 @@ from numpy.testing import assert_almost_equal, assert_allclose
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                  np.exp(1j*A_pi_here), piunitcell)
     return M
@@ -629,7 +629,7 @@ def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
 
     Emag = np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell))
@@ -700,7 +700,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     Emag = contract('ku, u, ru, r, x, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j * A_pi_here), rhos[0:4], rhos[4:8], piunitcell)
 
