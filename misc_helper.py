@@ -535,7 +535,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin=100
+deltamin=1
 def adaptive_simpsons_3D(f, x0, x1, y0, y1, z0, z1, tol, *args):
     def simpsons_core(f, x0, x1, y0, y1, z0, z1, *args):
         hx = (x1 - x0) / 2

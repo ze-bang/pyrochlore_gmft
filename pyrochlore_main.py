@@ -101,9 +101,9 @@ from variation_flux import *
 # plt.show()
 
 n = 5
-h = 0
-BZres = 25
-JP = np.linspace(0.05,0.051, n)
+h = 0.3
+BZres = 30
+JP = np.linspace(0.048,0.051, n)
 
 GS0 = np.zeros(n)
 GSpi = np.zeros(n)

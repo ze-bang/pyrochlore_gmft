@@ -618,7 +618,7 @@ def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
 
-    EQ = np.real(np.trace(contract('ijk, ilk, ik->ijl', V, np.conj(V), E ),axis1=1,axis2=2))/8
+    EQ = np.real(np.mean(E,axis=1))*2
 
     k = contract('ij,jk->ik', q, BasisBZA)
     green = green_pi(E, V, Jzz)
@@ -778,6 +778,7 @@ class piFluxSolver:
         self.BZres = BZres
         self.graphres = graphres
 
+        self.toignore = np.array([],dtype=int)
         self.q = np.nan
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
@@ -869,9 +870,9 @@ class piFluxSolver:
         return 0
 
     def ifcondense(self, tol=0):
-        c = np.array([])
-        if self.condensed:
-            c = np.where((self.E[0]+self.minLams[0])<=tol)[0]
+        # c = np.array([])
+        # if self.condensed:
+        c = np.where((self.E[0]+self.minLams[0])<=tol)[0]
         self.toignore = np.array(c, dtype=int)
 
     def low(self):
@@ -880,8 +881,8 @@ class piFluxSolver:
         return self.bigB[cond], E[cond][0]
 
     def set_condensed(self):
-        A = self.lams - self.minLams
-        self.condensed = A[0] < (deltamin/ self.BZres**3) ** 2
+        A = self.rho(self.minLams+1e-15)
+        self.condensed = A < self.kappa
 
     def set_delta(self):
         warnings.filterwarnings('error')
@@ -925,16 +926,17 @@ class piFluxSolver:
 
 
     def MFE(self):
-        if self.condensed:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
-            Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                               self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-            return Ep + Eq
-        else:
-            Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-            self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
-        return Ep
+        # if self.condensed:
+        # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+        #          self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
+        Ep = self.GS()
+        Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                           self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        return Ep + Eq
+        # else:
+        # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
+        # self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
+        # return Ep
 
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
