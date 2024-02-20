@@ -100,10 +100,10 @@ from variation_flux import *
 # plt.legend()
 # plt.show()
 
-n = 5
+n = 10
 h = 0.3
 BZres = 30
-JP = np.linspace(0.048,0.051, n)
+JP = np.linspace(-0.01,0.01, n)
 
 GS0 = np.zeros(n)
 GSpi = np.zeros(n)
@@ -120,19 +120,19 @@ for i in range(n):
 
     A.solvemeanfield()
     # D.solvemeanfield()
-    # C.solvemeanfield()
+    C.solvemeanfield()
 
 
-    GS0[i] = A.GS()
-    print(GS0[i])
+    # GS0[i] = A.GS()
+    # print(GS0[i])
     GS0[i] = A.MFE()
-    print(GS0[i])
-    print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
+    # print(GS0[i])
+    # print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
     # GSpp00[i] = D.GS()
-    # GSpi[i] = C.GS()
+    GSpi[i] = C.MFE()
 
     #
-    # print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
+    print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
 
 # plt.plot(JP, MFE0, label='0')
 # plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
