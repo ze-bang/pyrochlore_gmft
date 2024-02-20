@@ -7,7 +7,7 @@ os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 import warnings
 import pyrochlore_conclusive as pycon
 from variation_flux import *
-
+from phase_diagram import *
 
 # getminflux110("Niagara_data_3/h110_flux_plane_zero_0.2")
 # getminflux110("Niagara_data_3/h110_flux_plane_pi_0.2")
@@ -99,6 +99,8 @@ from variation_flux import *
 # # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
 # plt.legend()
 # plt.show()
+
+findPhaseMag100(0,0.05,1,0,0.05,1,h100,25,2,'test')
 
 n = 10
 h = 0.3

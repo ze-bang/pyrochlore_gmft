@@ -629,7 +629,7 @@ def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j * ffact)
+    ffact = np.exp(1j * ffact)
 
     Emag = np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell))
@@ -768,7 +768,7 @@ class piFluxSolver:
             self.A_pi_here = constructA_pi_110(flux)
         elif (n == h111).all():
             self.A_pi_here = constructA_pi_111(flux)
-        elif (n == h001).all():
+        elif (n == h100).all():
             self.A_pi_here = constructA_pi_001(flux)
 
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
