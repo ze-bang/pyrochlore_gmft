@@ -179,7 +179,8 @@ def genBZ(d, m=1):
     dj = d*1j
     b = np.mgrid[0:m:dj, 0:m:dj, 0:m:dj].reshape(3,-1).T
     b = np.concatenate((b,genALLSymPointsBare()))
-    return b
+    big = contract('ij,jk->ik', b, BasisBZA)
+    return big, b
 
 
 # def genBZfolded(d):

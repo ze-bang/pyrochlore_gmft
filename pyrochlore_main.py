@@ -120,19 +120,19 @@ for i in range(n):
 
     A.solvemeanfield()
     # D.solvemeanfield()
-    C.solvemeanfield()
+    # C.solvemeanfield()
 
 
+    GS0[i] = A.GS()
+    print(GS0[i])
     GS0[i] = A.MFE()
-    # print(GS0[i])
-    # GS0[i] = A.MFE()
-    # print(GS0[i])
-    # print(A.minLams, A.lams)
+    print(GS0[i])
+    print(A.minLams, A.lams)
     # GSpp00[i] = D.GS()
-    GSpi[i] = C.MFE()
+    # GSpi[i] = C.GS()
 
     #
-    print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
+    # print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
 
 # plt.plot(JP, MFE0, label='0')
 # plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')

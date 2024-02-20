@@ -101,6 +101,10 @@ def E_pi(lams, k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
     E, V = np.linalg.eigh(M)
     return [E, V]
 
+def E_pi_sin_lams(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi):
+    M = M_pi(k, eta, Jpm, Jpmpm, h, n, theta, chi, chi0, xi)
+    E, V = np.linalg.eigh(M)
+    return [E, V]
 
 def rho_true(Jzz, M, lams):
     temp = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
