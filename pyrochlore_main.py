@@ -103,7 +103,7 @@ from variation_flux import *
 n = 5
 h = 0
 BZres = 25
-JP = np.linspace(0,0.05, n)
+JP = np.linspace(-0.05,0.05, n)
 
 GS0 = np.zeros(n)
 GSpi = np.zeros(n)
@@ -115,24 +115,24 @@ MFEpp00 = np.zeros(n)
 
 for i in range(n):
     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-    # D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-    # C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+    D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
+    C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
 
     A.solvemeanfield()
     # D.solvemeanfield()
-    # C.solvemeanfield()
+    C.solvemeanfield()
 
 
-    GS0[i] = A.GS()
-    print(GS0[i])
     GS0[i] = A.MFE()
-    print(GS0[i])
-    print(A.minLams, A.lams)
+    # print(GS0[i])
+    # GS0[i] = A.MFE()
+    # print(GS0[i])
+    # print(A.minLams, A.lams)
     # GSpp00[i] = D.GS()
-    # GSpi[i] = C.GS()
+    GSpi[i] = C.MFE()
 
     #
-    # print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
+    print(JP[i], GS0[i], A.qmin, GSpp00[i], D.qmin, GSpi[i], C.qmin)
 
 # plt.plot(JP, MFE0, label='0')
 # plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
@@ -143,7 +143,7 @@ for i in range(n):
 # plt.show()
 
 plt.plot(JP, GS0, label='0')
-plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
+# plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
 plt.plot(JP, GSpi, label=r'$\pi$')
 # plt.plot(JP, MFE0old, label='0 old')
 # plt.plot(JP, MFEpiold, label=r'$\pi$ old')

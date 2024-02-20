@@ -57,6 +57,7 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here):
 
 def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     k = contract('ij,jk->ik', k, BasisBZA)
+
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
@@ -182,6 +183,20 @@ def rho_true(E, lams, Jzz, weights):
     return integrate_fixed(I3_integrand, weights,E, lams, Jzz)
 
 
+def I3_integrand_old(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here,
+             A_pi_rs_traced_pp_here):
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here,
+             A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    E, V = np.linalg.eig(M)
+    Vt = np.real(contract('ijk,ijk->ijk', V, np.conj(V)))
+    Ep = contract('ijk, ik->ij', Vt, Jzz / np.sqrt(2 * Jzz * E))
+    return np.mean(Ep,axis=1)
+
+def rho_true_old(pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here,
+             A_pi_rs_traced_pp_here):
+    return integrate(I3_integrand_old, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here,
+             A_pi_rs_traced_pp_here)
+
 
 # def rho_true_adaptive(tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
 #     return adaptive_gauss_quadrature_3d(I3_integrand, 0, 1, 0, 1, 0, 1, tol, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
@@ -300,6 +315,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     dex = np.where(Enow==Enowm)
     # print(Know, Enow)
     Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    Know = contract('ij,jk->ik', Know, BasisBZA)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
@@ -320,6 +336,7 @@ def findlambda_pi(kappa, tol, E, lamM, Jzz, weights):
         lams = (lamMax+lamMin)/2
         try:
             rhoguess = rho_true(E, lams, Jzz, weights)
+            # rhoguess = rho_true_old(k, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0,xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
             error = rhoguess-kappa
             # print(lams, lamMin, lamMax, rhoguess,error)
             if error > 0:
@@ -331,7 +348,6 @@ def findlambda_pi(kappa, tol, E, lamM, Jzz, weights):
         except:
             lamMin = lams
             # print(lams, rhoguess)
-        count += 1
     warnings.resetwarnings()
     return lams
 
@@ -599,18 +615,19 @@ def green_pi_branch(E, V, Jzz):
 
 
 
-def Encompassing_integrand(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
-    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
     E, V = np.linalg.eigh(M)
     E = np.sqrt(2 * Jzz * E)
 
     EQ = 2*np.real(np.mean(E,axis=1))
-
     green = green_pi(E, V, Jzz)
+
+    k = contract('ij,jk->ik', q, BasisBZA)
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
     E1 = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
@@ -888,10 +905,10 @@ class piFluxSolver:
     def M_true(self, k):
         return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
-    def E_compute(self,k):
+    def E_compute(self, k):
         M = self.M_true(k) + np.diag(np.repeat(np.repeat(self.lams, 4), 2))
         E, V = np.linalg.eigh(M)
-        return np.mean(np.sqrt(2 * self.Jzz * E),axis=1)
+        return np.mean(np.sqrt(2 * self.Jzz * E), axis=1)
 
     def E_pi(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
@@ -906,8 +923,6 @@ class piFluxSolver:
         if np.any(lam == 0):
             lam = self.lams
         return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-
-
     def GS(self):
         # return np.dot(self.E_compute(self.pts), self.weights) - self.kappa*self.lams[0]
         return np.dot(np.sqrt(2*self.Jzz*(np.mean(self.E, axis=1)+self.lams[0])), self.weights) - self.kappa*self.lams[0]
