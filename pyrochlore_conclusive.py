@@ -283,12 +283,12 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
     # Know = np.where(Know>np.pi, Know-2*np.pi, Know)
     return -Enow[a], Know
 
-def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
+def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return -1/2, np.array([0,0,0]).reshape((1,3))
+        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=16)
+    E = np.around(E[:,0], decimals=15)
     Em = E.min()
     dex = np.where(E==Em)
     Know = np.unique(np.mod(K[dex],1), axis=0)
@@ -312,7 +312,6 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     dex = np.where(Enow==Enowm)
     # print(Know, Enow)
     Know = np.unique(np.mod(Know[dex], 1),axis=0)
-    Know = contract('ij,jk->ik', Know, BasisBZA)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
@@ -686,8 +685,6 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
-
-
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
@@ -751,7 +748,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=trapezoidal_rule_3d_pts):
+                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
         self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
@@ -784,6 +781,7 @@ class piFluxSolver:
         self.q = np.nan
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
+        self.qminB = np.copy(self.qmin)
         self.condensed = False
         self.delta = np.zeros(2)
         self.rhos = np.zeros(8)
@@ -825,18 +823,24 @@ class piFluxSolver:
         return findlambda_pi(self.kappa,self.tol,self.minLams, self.Jzz, self.weights, self.E)
 
     def findminLam(self, chi, chi0, xi):
-        minLams, self.qmin = findminLam_scipy(self.MF, self.pts, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres)
+        B = genBZ(30)
+        M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+        minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
+        self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
 
     def rho(self,lam):
         # return rho_true(self.BZres, lam, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
         #                 self.xi, self.A_pi_here, self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here,self.pts, self.weights)
-        return rho_true(self.weights, self.E, lam,self.Jzz)
+        A = np.delete(self.weights, self.toignore)
+        B = np.delete(self.E, self.toignore, axis=0)
+
+        return rho_true(A, B, lam,self.Jzz)
     def calmeanfield(self, lams):
         if self.condensed:
-            chic, chi0c, xic = calmeanfieldC(self.rhos, self.qmin)
+            chic, chi0c, xic = calmeanfieldC(self.rhos, self.qminB)
             chi, chi0, xi = calmeanfield(self.BZres, lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
                                          self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here,self.pts, self.weights)
             return chi + chic, chi0 + chi0c, xi + xic
@@ -864,12 +868,10 @@ class piFluxSolver:
         self.chi, self.chi0, self.xi = mfs
         return 0
 
-    def ifcondense(self, q, lam, tol=0):
+    def ifcondense(self, tol=0):
         c = np.array([])
         if self.condensed:
-            E, V = self.LV_zero(q, lam)
-            E = E[:,0]
-            c = np.where(E<=tol)[0]
+            c = np.where((self.E[0]+self.minLams[0])<=tol)[0]
         self.toignore = np.array(c, dtype=int)
 
     def low(self):
@@ -878,7 +880,8 @@ class piFluxSolver:
         return self.bigB[cond], E[cond][0]
 
     def set_condensed(self):
-        self.condensed = self.rho(self.minLams+5e-15) < self.kappa
+        A = self.lams - self.minLams
+        self.condensed = A[0] < (deltamin/ self.BZres**3) ** 2
 
     def set_delta(self):
         warnings.filterwarnings('error')
@@ -893,12 +896,11 @@ class piFluxSolver:
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
         self.findminLam(chi, chi0, xi)
+        self.lams = self.findLambda()
         self.set_condensed()
-        if self.condensed:
-            self.set_delta()
-            self.lams=self.minLams
-        else:
-            self.lams = self.findLambda()
+        self.ifcondense()
+        self.set_delta()
+
 
     def M_true(self, k):
         return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
@@ -925,10 +927,9 @@ class piFluxSolver:
     def MFE(self):
         if self.condensed:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
-
+                     self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
             Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                               self.xi, self.qmin, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                               self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
             return Ep + Eq
         else:
             Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
@@ -1007,7 +1008,7 @@ class piFluxSolver:
         mag = integrate(self.mag_integrand, self.pts, self.weights)
         con = 0
         if self.condensed:
-            ffact = contract('ik, jk->ij', self.qmin, NN)
+            ffact = contract('ik, jk->ij', self.qminB, NN)
             ffactp = np.exp(-1j * ffact)
             ffactm = np.exp(1j * ffact)
 

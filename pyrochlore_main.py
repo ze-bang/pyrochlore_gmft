@@ -103,7 +103,7 @@ from variation_flux import *
 n = 5
 h = 0
 BZres = 25
-JP = np.linspace(-0.05,0.05, n)
+JP = np.linspace(0.05,0.051, n)
 
 GS0 = np.zeros(n)
 GSpi = np.zeros(n)
@@ -127,7 +127,7 @@ for i in range(n):
     print(GS0[i])
     GS0[i] = A.MFE()
     print(GS0[i])
-    print(A.minLams, A.lams)
+    print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
     # GSpp00[i] = D.GS()
     # GSpi[i] = C.GS()
 
