@@ -171,10 +171,10 @@ from phase_diagram import *
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
-# flux = np.ones(4)*np.pi
-flux=np.zeros(4)
-JP = 0.05
-h= 0.4
+flux = np.ones(4)*np.pi
+# flux=np.zeros(4)
+JP = -0.3
+h= 0.8
 BZres = 30
 A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=flux)
 A.solvemeanfield()

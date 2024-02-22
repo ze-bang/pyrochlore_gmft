@@ -931,10 +931,10 @@ class piFluxSolver:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         #          self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
         Ep = self.GS()
-        Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-                           self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        print(Ep, Eq)
-        return Ep + Eq
+        # Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+        #                    self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        # print(Ep, Eq)
+        return Ep
         # else:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         # self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
