@@ -828,6 +828,7 @@ class piFluxSolver:
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
         minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
+        self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
@@ -932,6 +933,7 @@ class piFluxSolver:
         Ep = self.GS()
         Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                            self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        print(Ep, Eq)
         return Ep + Eq
         # else:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,

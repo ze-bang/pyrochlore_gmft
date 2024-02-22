@@ -101,66 +101,91 @@ from phase_diagram import *
 # plt.show()
 
 # findPhaseMag100(0,0.05,1,0,0.05,1,h100,25,2,'test')
-
-n = 20
-h = 0.3
-BZres = 30
-JP = np.linspace(-0.05,0.05, n)
-
-GS0 = np.zeros(n)
-GSpi = np.zeros(n)
-GSpp00 = np.zeros(n)
-GSzzpp = np.zeros(n)
-
-MFE0 = np.zeros(n)
-MFEpi = np.zeros(n)
-MFEzzpp = np.zeros(n)
-MFEpp00 = np.zeros(n)
-
-for i in range(n):
-    A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-    B = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-    D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([0, 0, np.pi, np.pi]))
-    C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-
-    A.solvemeanfield()
-    B.solvemeanfield()
-    D.solvemeanfield()
-    C.solvemeanfield()
+# JPsmol = np.linspace(-0.2, 1, 100)
+# hsmol = np.linspace(0, 1, 100)
+#
+# phases = np.loadtxt('Nia_Phase_Diagrams/phase_111_kappa=2.txt')
+# phases = np.flip(np.where((phases==1)|(phases==6)|(phases==10)|(phases==11)|(phases==15)|(phases==16), 16, phases), axis=0)
+#
+# phases = np.where(phases==15, 8, phases)
+#
+#
+# graphMagPhase(JPsmol, hsmol, phases, 'test.pdf')
 
 
-    # GS0[i] = A.GS()
-    # print(GS0[i])
-    GS0[i] = A.MFE()
-    # print(GS0[i])
-    # print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
-    GSpp00[i] = B.MFE()
-    GSzzpp[i] = D.MFE()
-    GSpi[i] = C.MFE()
-
-    #
-    print(JP[i], GS0[i], A.qmin, GSpp00[i], B.qmin, GSzzpp[i], D.qmin, GSpi[i], C.qmin)
-
-# plt.plot(JP, MFE0, label='0')
-# plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
-# plt.plot(JP, MFEpi, label=r'$\pi$')
+# n = 20
+# h = 0.3
+# BZres = 35
+# JP = np.linspace(-0.05,0.04, n)
+#
+# GS0 = np.zeros(n)
+# GSpi = np.zeros(n)
+# GSpp00 = np.zeros(n)
+# GSzzpp = np.zeros(n)
+#
+# MFE0 = np.zeros(n)
+# MFEpi = np.zeros(n)
+# MFEzzpp = np.zeros(n)
+# MFEpp00 = np.zeros(n)
+#
+# for i in range(n):
+#     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h111, flux=np.zeros(4))
+#     B = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h111, flux=np.array([np.pi, np.pi, 0, 0]))
+#     D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h111, flux=np.array([0, 0, np.pi, np.pi]))
+#     C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h111, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+#
+#     A.solvemeanfield()
+#     # B.solvemeanfield()
+#     # D.solvemeanfield()
+#     C.solvemeanfield()
+#     # print(D.MFE(),D.GS())
+#
+#     # GS0[i] = A.GS()
+#     # print(GS0[i])
+#     GS0[i] = A.MFE()
+#     # print(GS0[i])
+#     # print(JP[i], A.minLams, A.lams, A.condensed, A.rhos)
+#     # GSpp00[i] = B.MFE()
+#     # GSzzpp[i] = D.MFE()
+#     GSpi[i] = C.MFE()
+#
+#     #
+#     print(JP[i], GS0[i], A.qmin, GSpp00[i], B.qmin, GSzzpp[i], D.qmin, GSpi[i], C.qmin)
+#
+# # plt.plot(JP, MFE0, label='0')
+# # plt.plot(JP, MFEpp00, label=r'$\pi\pi 0 0$')
+# # plt.plot(JP, MFEpi, label=r'$\pi$')
+# # # plt.plot(JP, MFE0old, label='0 old')
+# # # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
+# # plt.legend()
+# # plt.show()
+#
+# plt.plot(JP, GS0, label='0')
+# # plt.plot(JP, GSpp00, label=r'$ \pi\pi 00$')
+# # plt.plot(JP, GSzzpp, label=r'$0 0\pi \pi $')
+# plt.plot(JP, GSpi, label=r'$\pi$')
 # # plt.plot(JP, MFE0old, label='0 old')
 # # plt.plot(JP, MFEpiold, label=r'$\pi$ old')
 # plt.legend()
 # plt.show()
-
-plt.plot(JP, GS0, label='0')
-plt.plot(JP, GSpp00, label=r'$\pi\pi 0 0$')
-plt.plot(JP, GSzzpp, label=r'$0 0\pi\pi $')
-plt.plot(JP, GSpi, label=r'$\pi$')
-# plt.plot(JP, MFE0old, label='0 old')
-# plt.plot(JP, MFEpiold, label=r'$\pi$ old')
-plt.legend()
-plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
 
+# flux = np.ones(4)*np.pi
+flux=np.zeros(4)
+JP = 0.05
+h= 0.4
+BZres = 30
+A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=flux)
+A.solvemeanfield()
+A.MFE()
+M = A.M_true(A.qmin)
+E, V = np.linalg.eigh(M)
+print(E, A.lams, E[0]+A.lams[0])
+B = np.where(A.qmin>0.5, A.qmin-1, A.qmin)
+print(A.qmin, contract('ij,jk->ik', A.qmin, BasisBZA), B, contract('ij,jk->ik', B, BasisBZA))
 
+A.graph(True)
 # k = genBZ(25)
 # zmag = contract('k,ik->i', h111, z)
 # ffact = contract('ik, jk->ij', k, NN)

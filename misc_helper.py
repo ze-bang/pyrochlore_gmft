@@ -55,13 +55,20 @@ b1 = np.pi * np.array([-1, 1, 1])
 b2 = np.pi * np.array([1, -1, 1])
 b3 = np.pi * np.array([1, 1, -1])
 
-Gamma = np.array([0, 0, 0])
+# Gamma = np.array([0, 0, 0])
+# L = np.pi * np.array([1, 1, 1])
+# X = 2 * np.pi * np.array([1, 0, 0])
+# W = 2 * np.pi * np.array([1, 0, 1 / 2])
+# K = 2 * np.pi * np.array([3/4, 0, 3 / 4])
+# U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
 
-L = np.pi * np.array([1, 1, 1])
-X = 2 * np.pi * np.array([1, 0, 0])
-W = 2 * np.pi * np.array([1, 0, 1 / 2])
-K = 2 * np.pi * np.array([3/4, 0, 3 / 4])
-U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
+
+Gamma = np.array([0, 0, 0])
+L = np.array([1, 1, 1])/2
+X = np.array([0, 0.5, 0.5])
+W = np.array([0.25, 0.75, 0.5])
+K = np.array([0.375, 0.75, 0.375])
+U = np.array([0.25, 0.625, 0.625])
 
 stepN = magnitude(np.abs(U-W))/graphres
 
@@ -611,12 +618,14 @@ def adaptive_simpsons_3D(f, x0, x1, y0, y1, z0, z1, tol, *args):
 
 
 def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
-    nodes, weights = np.polynomial.legendre.leggauss(n)
+    nodes1, weights1 = np.polynomial.legendre.leggauss(n)
+    nodes2, weights2 = np.polynomial.legendre.leggauss(n)
+    nodes3, weights3 = np.polynomial.legendre.leggauss(n)
 
     amp = np.array([(b-a)/2,(d-c)/2,(g-e)/2])
     # Map nodes from the interval [-1, 1] to the interval [a, b]
-    gauss_pts = contract('k, ik->ik',amp,np.array(np.meshgrid(nodes, nodes, nodes)).reshape(3, -1).T) + np.array([(a+b)/2,(c+d)/2,(e+g)/2])
-    weights = contract('i,j,k->ijk', weights, weights, weights).ravel()
+    gauss_pts = contract('k, ik->ik',amp,np.array(np.meshgrid(nodes1, nodes2, nodes3)).reshape(3, -1).T) + np.array([(a+b)/2,(c+d)/2,(e+g)/2])
+    weights = contract('i,j,k->ijk', weights1, weights2, weights3).ravel()
     weights *= 0.125 * (b - a) * (d - c) * (g - e)
     return gauss_pts, weights
 def integrate(f, gauss_pts, weights, *args):
