@@ -550,46 +550,41 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK,3), dtype=np.float64)
+    sendtemp5 = np.zeros((currsizeK,8, 3), dtype=np.float64)
 
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
-    rectemp4 = None
     rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
-        rectemp4 = np.zeros(le, dtype=np.float64)
-        rectemp5 = np.zeros((le, 3), dtype=np.float64)
+        rectemp5 = np.zeros((le, 8, 3), dtype=np.float64)
 
     for i in range(currsizeK):
         # start = time.time()
         # print(currJH[i])
-        py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
 
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
-        sendtemp4[i] = py0s.GS()
-        sendtemp5[i] = py0s.qmin
+        temp = py0s.qmin
+        sendtemp5[i,:len(temp)] = py0s.qmin
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
-    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1]*8, 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
-    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
 
@@ -597,26 +592,23 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
-        rectemp4 = rectemp4.reshape((nK, nH))
-        rectemp5 = rectemp5.reshape((nK, nH, 3))
+        rectemp5 = rectemp5.reshape((nK, nH, 8, 3))
 
         ncfilename = 'Files/' + filename + '_full_info.nc'
         with nc.Dataset(ncfilename, "w") as dataset:
             dataset.createDimension("Jpm", nK)
             dataset.createDimension("h", nH)
+            dataset.createDimension("index", 8)
             dataset.createDimension("xyz", 3)
-            temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "xyz"))
+            temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             temp_var1[:, :, :] = rectemp5
             temp_var1.long_name = "Condensed Wave Vectors"
             temp_var2 = dataset.createVariable("lams", "f4", ("Jpm", "h"))
             temp_var2[:, :] = rectemp3
             temp_var2.long_name = "lambda"
-            temp_var = dataset.createVariable("MFE", "f4", ("Jpm", "h"))
-            temp_var[:, :] = rectemp2
-            temp_var.long_name = "Mean Field Energy"
-            temp_var = dataset.createVariable("GS", "f4", ("Jpm", "h"))
-            temp_var[:, :] = rectemp4
-            temp_var.long_name = "Variational Energy"
+            temp_var3 = dataset.createVariable("MFE", "f4", ("Jpm", "h"))
+            temp_var3[:, :] = rectemp2
+            temp_var3.long_name = "Variational Energy"
             temp_var = dataset.createVariable("condensed", "f4", ("Jpm", "h"))
             temp_var[:, :] = rectemp
             temp_var.long_name = "isCondensed"
