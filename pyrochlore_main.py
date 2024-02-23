@@ -1,5 +1,6 @@
 import os
 
+import netCDF4
 import numpy as np
 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
@@ -170,26 +171,30 @@ from phase_diagram import *
 # plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
+completeSpan(0, 1, 1, 0, 1, 1, h110, 30,2,np.zeros(4),'test')
 
-flux = np.ones(4)*np.pi
-# flux=np.zeros(4)
-JP = -0.3
-h= 0.8
-BZres = 30
-A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=flux)
-A.solvemeanfield()
-A.MFE()
-M = A.M_true(A.qmin)
-E, V = np.linalg.eigh(M)
-print(E, A.lams, E[0]+A.lams[0])
-B = np.where(A.qmin>0.5, A.qmin-1, A.qmin)
-print(A.qmin, contract('ij,jk->ik', A.qmin, BasisBZA), B, contract('ij,jk->ik', B, BasisBZA))
+# flux = np.ones(4)*np.pi
+# # flux=np.zeros(4)
+# # flux = np.array([np.pi, np.pi, 0, 0])
+# JP = -0.04
+# h= 0
+# BZres = 30
+# A = pycon.piFluxSolver(JP, JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=flux)
+# A.solvemeanfield()
+# A.MFE()
+# M = A.M_true(A.qmin)
+# E, V = np.linalg.eigh(M)
+# print(E, A.lams, E[0]+A.lams[0])
+# B = np.where(A.qmin>0.5, A.qmin-1, A.qmin)
+# print(A.qmin, contract('ij,jk->ik', A.qmin, BasisBZA), B, contract('ij,jk->ik', B, BasisBZA))
 
-A.graph(True)
+# A.graph(True)
 # k = genBZ(25)
 # zmag = contract('k,ik->i', h111, z)
 # ffact = contract('ik, jk->ij', k, NN)
 # ffact = np.exp(1j * ffact)
+
+
 
 # flux = np.array([np.pi, np.pi, 0, 0])
 # # flux = generateflux110(0, 0, 1, 1)
