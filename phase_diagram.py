@@ -443,7 +443,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
         temp = py0s.qmin
-        sendtemp5[i,:len(temp)] = py0s.qmin
+        sendtemp5[i,0:len(temp),:] = py0s.qmin
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
