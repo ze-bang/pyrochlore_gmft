@@ -10,13 +10,16 @@ import pyrochlore_conclusive as pycon
 from variation_flux import *
 from phase_diagram import *
 
-# getminflux110("Niagara_data_3/h110_flux_plane_zero_0.2")
-# getminflux110("Niagara_data_3/h110_flux_plane_pi_0.2")
-# getminflux110("Niagara_data_3/h110_flux_plane_mid_0.2")
-#
-# getminflux111("Niagara_data_3/h111_flux_plane_zero_0.2")
-# getminflux111("Niagara_data_3/h111_flux_plane_pi_0.2")
-# getminflux111("Niagara_data_3/h111_flux_plane_mid_0.2")
+
+# A = netCDF4.Dataset('Nia_Full_Scan/HanYan_100_Jpm_-0.1_0.1_h_0_0.3_0_flux_full_info.nc')
+A = netCDF4.Dataset('Files/test_full_info.nc')
+
+B = A.variables['q_condensed']
+
+E = np.array(B[:], dtype=np.float64)
+
+print(E)
+
 
 # JP = 0.02
 # h = 0.3
@@ -171,7 +174,7 @@ from phase_diagram import *
 # plt.show()
 # flux = np.array([np.pi, np.pi, 0, 0])
 # findPhaseMag(-0.5, 0.1, 25, 0, 0.3, 25, h110, 2, 2, flux, 'test')
-completeSpan(0, 1, 1, 0, 1, 1, h110, 30,2,np.zeros(4),'test')
+# completeSpan(0, 1, 1, 0, 1, 1, h110, 30,2,np.zeros(4),'test')
 
 # flux = np.ones(4)*np.pi
 # # flux=np.zeros(4)

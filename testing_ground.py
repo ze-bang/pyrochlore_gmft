@@ -344,8 +344,7 @@ def algHamSungbin():
 # print(np.dot(A,C))
 # print(np.einsum('i, ijkl->jkl', A, B))
 
-a = np.ones(11)
-a[::2] = 0
-a[1::2] = 3
+a = np.empty((2,3))
+a[:] = np.NaN
 
 print(a)

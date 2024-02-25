@@ -69,6 +69,11 @@ def graphMagPhase(JP, h, phases, filename):
     # plt.clf()
 
 
+#region NETCDF4 file parsing
+
+
+#endregion
+
 
 #region Phase for Magnetic Field
 
@@ -419,7 +424,8 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK,8, 3), dtype=np.float64)
+    sendtemp5 = np.zeros((currsizeK, 8, 3), dtype=np.float64)
+    sendtemp5[:] =np.NaN
 
 
     rectemp = None
@@ -432,6 +438,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp5 = np.zeros((le, 8, 3), dtype=np.float64)
+        sendtemp5[:] = np.NaN
 
     for i in range(currsizeK):
         # start = time.time()
