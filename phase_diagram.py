@@ -465,6 +465,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
     if rank == 0:
+        JH = JH.reshape((nK,nH,2))
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
@@ -476,6 +477,11 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             dataset.createDimension("h", nH)
             dataset.createDimension("index", 8)
             dataset.createDimension("xyz", 3)
+            dataset.createDimension("c", 2)
+
+            temp_var_JH = dataset.createVariable("Jpm_h", "f4", ("Jpm", "h", "c"))
+            temp_var_JH = JH
+            temp_var_JH.long_name = "Jpm and h of this point"
             temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             temp_var1[:, :, :] = rectemp5
             temp_var1.long_name = "Condensed Wave Vectors"
