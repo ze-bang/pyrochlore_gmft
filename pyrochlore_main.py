@@ -1,5 +1,6 @@
 import os
 
+import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
 
@@ -10,40 +11,20 @@ import pyrochlore_conclusive as pycon
 from variation_flux import *
 from phase_diagram import *
 
+# plotLinefromnetCDF(h100, h=0.18, diff=True)
+# plt.show()
 
-# A = netCDF4.Dataset('Nia_Full_Scan/HanYan_100_Jpm_-0.1_0.1_h_0_0.3_0_flux_full_info.nc')
-A = netCDF4.Dataset('Files/test_full_info.nc')
+Jpm = -0.3
+h = 0.3
+flux = np.ones(4)*np.pi
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h110, flux=flux)
+py0s.solvemeanfield()
+print(py0s.condensed,py0s.qmin, py0s.MFE())
 
-B = A.variables['q_condensed']
-
-E = np.array(B[:], dtype=np.float64)
-
-print(E)
-
-
-# JP = 0.02
-# h = 0.3
-# BZres = 20
-#
-# z0 = pycon.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-# z0.solvemeanfield()
-# print(z0.condensed, z0.lams, z0.minLams, z0.qmin, z0.GS(), z0.MFE(), z0.rhos, z0.delta, z0.chi, z0.chi0, z0.xi, z0.magnetization())
-# z0.graph(False)
 # #
-#
-# N = 20
-# lams = np.zeros(N)
-# offset=60
-# for i in range(offset,offset+N):
-#     z0 = pygen.piFluxSolver(-2 * JP, -2 * JP, 1, kappa=2, graphres=graphres, BZres=i+1, h=h, n=h110, flux=np.zeros(4))
-#     z0.solvemeanfield()
-#     lams[i-offset] = z0.lams[0]
-#     print(i+1,lams[i-offset])
-#
-# plt.plot(lams)
-
-
-# n = 31
+# generaldispersion(Jpm, Jpm, 1, h, h100,2,20,25,np.array([np.pi,0,0,np.pi]))
+# plt.show()
+# # n = 31
 # h = 0.3
 # JP = -0.01
 #

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import netCDF4
 import numpy as np
 
 from misc_helper import *
@@ -9,7 +10,6 @@ import netCDF4 as nc
 def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    print(py0s.lams, py0s.minLams, py0s.delta, py0s.qmin, py0s.condensed, py0s.MFE(),  py0s.GS(), py0s.gap(), py0s.magnetization(), py0s.chi, py0s.chi0, py0s.xi)
     py0s.graph(False)
     return 0
 
@@ -70,7 +70,145 @@ def graphMagPhase(JP, h, phases, filename):
 
 
 #region NETCDF4 file parsing
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+def plotLinefromnetCDF(field_direction, directory="Nia_Full_Scan/", Jpm=None, h=None, diff=False):
+    if Jpm == None and h == None:
+        return -1
+    if (field_direction == h110).all():
+        plotLine110(directory,Jpm, h, diff)
+    elif (field_direction == h111).all():
+        plotLine111(directory,Jpm, h, diff)
+    else:
+        plotLine100(directory,Jpm, h, diff)
 
+def readLineMFEJP(filename, dex):
+    A = netCDF4.Dataset(filename)
+    return A.variables['MFE'][dex,:]
+
+def readLineMFEh(filename, dex):
+    A = netCDF4.Dataset(filename)
+    return A.variables['MFE'][:,dex]
+def plotLine110(directory,Jpm=None, h=None,diff=False):
+    if Jpm == None and h == None:
+        return -1
+    directString = "110_"
+    filename = directory + "HanYan_"+directString+"Jpm_-0.1_0.1_h_0_0.3_"
+    ftoread = [filename+"0_flux_full_info.nc", filename+"pi_flux_full_info.nc",
+               filename+"pipi00_full_info.nc", filename+"00pipi_full_info.nc"]
+    JPf = np.linspace(-0.1,0.1,100)
+    hf = np.linspace(0,0.3,100)
+    if h == None:
+        dex = find_nearest(JPf, Jpm)
+        if diff:
+            MFEs = np.zeros((3, 100))
+            zero = readLineMFEJP(ftoread[0], dex)
+            plt.plot(hf, np.zeros(100))
+            for i in range(3):
+                MFEs[i] = readLineMFEJP(ftoread[i+1], dex)
+                plt.plot(hf, MFEs[i]-zero)
+            plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
+        else:
+            MFEs = np.zeros((4, 100))
+            for i in range(4):
+                MFEs[i] = readLineMFEJP(ftoread[i], dex)
+                plt.plot(hf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
+    else:
+        dex = find_nearest(hf, h)
+        if diff:
+            MFEs = np.zeros((3, 100))
+            zero = readLineMFEh(ftoread[0], dex)
+            plt.plot(JPf, np.zeros(100))
+            for i in range(3):
+                MFEs[i] = readLineMFEh(ftoread[i+1], dex)
+                plt.plot(JPf, MFEs[i]-zero)
+            plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
+        else:
+            MFEs = np.zeros((4, 100))
+            for i in range(4):
+                MFEs[i] = readLineMFEh(ftoread[i], dex)
+                plt.plot(JPf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
+def plotLine111(directory,Jpm=None, h=None,diff=False):
+    if Jpm == None and h == None:
+        return -1
+    directString = "111_"
+    filename = directory+"HanYan_"+directString+"Jpm_-0.1_0.1_h_0_0.3_"
+    ftoread = [filename+"0_flux_full_info.nc", filename+"pi_flux_full_info.nc"]
+    JPf = np.linspace(-0.1,0.1,100)
+    hf = np.linspace(0,0.3,100)
+    if h == None:
+        dex = find_nearest(JPf, Jpm)
+        if diff:
+            zero = readLineMFEJP(ftoread[0], dex)
+            plt.plot(hf, np.zeros(100))
+            pi = readLineMFEJP(ftoread[1], dex)
+            plt.plot(hf, pi-zero)
+            plt.legend(["0 flux", r"$\pi$ flux"])
+        else:
+            MFEs = np.zeros((2, 100))
+            for i in range(2):
+                MFEs[i] = readLineMFEJP(ftoread[i], dex)
+                plt.plot(hf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux"])
+    else:
+        dex = find_nearest(hf, h)
+        if diff:
+            zero = readLineMFEh(ftoread[0], dex)
+            plt.plot(hf, np.zeros(100))
+            pi = readLineMFEh(ftoread[1], dex)
+            plt.plot(hf, pi-zero)
+            plt.legend(["0 flux", r"$\pi$ flux"])
+        else:
+            MFEs = np.zeros((2, 100))
+            for i in range(2):
+                MFEs[i] = readLineMFEh(ftoread[i], dex)
+                plt.plot(JPf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux"])
+def plotLine100(directory,Jpm=None, h=None,diff=False):
+    if Jpm == None and h == None:
+        return -1
+    directString = "100_"
+    filename = directory+"HanYan_"+directString+"Jpm_-0.1_0.1_h_0_0.3_"
+    ftoread = [filename+"0_flux_full_info.nc", filename+"pi_flux_full_info.nc",
+               filename+"0pipi0_full_info.nc", filename+"pi00pi_full_info.nc"]
+    JPf = np.linspace(-0.1,0.1,100)
+    hf = np.linspace(0,0.3,100)
+    if h == None:
+        dex = find_nearest(JPf, Jpm)
+        if diff:
+            MFEs = np.zeros((3, 100))
+            zero = readLineMFEJP(ftoread[0], dex)
+            plt.plot(hf, np.zeros(100))
+            for i in range(3):
+                MFEs[i] = readLineMFEJP(ftoread[i+1], dex)
+                plt.plot(hf, MFEs[i]-zero)
+            plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
+        else:
+            MFEs = np.zeros((4, 100))
+            for i in range(4):
+                MFEs[i] = readLineMFEJP(ftoread[i], dex)
+                plt.plot(hf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
+    else:
+        dex = find_nearest(hf, h)
+        if diff:
+            MFEs = np.zeros((3, 100))
+            zero = readLineMFEh(ftoread[0], dex)
+            plt.plot(JPf, np.zeros(100))
+            for i in range(3):
+                MFEs[i] = readLineMFEh(ftoread[i+1], dex)
+                plt.plot(JPf, MFEs[i]-zero)
+            plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
+        else:
+            MFEs = np.zeros((4, 100))
+            for i in range(4):
+                MFEs[i] = readLineMFEh(ftoread[i], dex)
+                plt.plot(JPf, MFEs[i])
+            plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
 
 #endregion
 
@@ -424,8 +562,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK, 8, 3), dtype=np.float64)
-    sendtemp5[:] =np.NaN
+    sendtemp5 = np.zeros((currsizeK,8, 3), dtype=np.float64)
 
 
     rectemp = None
@@ -438,7 +575,6 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp5 = np.zeros((le, 8, 3), dtype=np.float64)
-        sendtemp5[:] = np.NaN
 
     for i in range(currsizeK):
         # start = time.time()
@@ -456,7 +592,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
-    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1]*sendtemp5.shape[2], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0]*sendtemp5.shape[1]**sendtemp5.shape[2], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
@@ -465,7 +601,6 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
 
 
     if rank == 0:
-        JH = JH.reshape((nK,nH,2))
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
@@ -477,11 +612,6 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             dataset.createDimension("h", nH)
             dataset.createDimension("index", 8)
             dataset.createDimension("xyz", 3)
-            dataset.createDimension("c", 2)
-
-            temp_var_JH = dataset.createVariable("Jpm_h", "f4", ("Jpm", "h", "c"))
-            temp_var_JH = JH
-            temp_var_JH.long_name = "Jpm and h of this point"
             temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             temp_var1[:, :, :] = rectemp5
             temp_var1.long_name = "Condensed Wave Vectors"

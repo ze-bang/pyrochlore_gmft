@@ -238,9 +238,9 @@ def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_
            + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
 
-def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres):
+def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return 0, np.array([0,0,0]).reshape((1,3))
+        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
     E = np.around(E[:,0], decimals=16)
@@ -274,14 +274,18 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
             Elast = np.copy(Enow[i])
             Enow[i] = Emin(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
             init = False
-            if abs(Elast-Enow[i])<1e-12:
+            if abs(Elast-Enow[i])<1e-14:
                 stuff = False
     warnings.resetwarnings()
 
-    a = np.argmin(Enow)
-    Know = np.mod(Know[a], 2*np.pi).reshape((1,3))
-    # Know = np.where(Know>np.pi, Know-2*np.pi, Know)
-    return -Enow[a], Know
+    Enowm = Enow.min()
+    dex = np.where(Enow==Enowm)
+    # print(Know, Enow)
+    Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
+
+    return -Enowm, Know
 
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
@@ -624,9 +628,12 @@ def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
     green = green_pi(E, V, Jzz)
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
-    E1 = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
+    ffactB = np.exp(1j*ffact)
+    E1A = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
                  piunitcell, piunitcell))
-
+    E1B = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,4:8,4:8], ffactB,
+                 piunitcell, piunitcell))
+    E1 = (E1A+E1B)/2
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
@@ -680,23 +687,29 @@ def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_tr
     # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
     return Eall/4
 
-def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+def MFE_condensed(q, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     chi = chi * np.array([chi_A, chi_A])
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
+    M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    E, V = np.linalg.eigh(M)
+    E = np.sqrt(2 * Jzz * E)
+
+    # EQ = np.real(np.mean(E,axis=1))*2
+
+    k = contract('ij,jk->ik', q, BasisBZA)
+
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffactA = np.exp(-1j * ffact)
     ffactB = np.exp(1j * ffact)
-
 
     E1A = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[0:4], rhos[0:4], ffactA,
                  piunitcell, piunitcell)
     E1B = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[4:8], rhos[4:8], ffactB,
                  piunitcell, piunitcell)
 
-    # print(E1A)
-    E1 = np.real(np.mean(E1A + E1B))
+    E1 = (E1A+E1B)/2
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
@@ -704,7 +717,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
     Emag = contract('ku, u, ru, r, x, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                             np.exp(1j * A_pi_here), rhos[0:4], rhos[4:8], piunitcell)
 
-    Emag = 2 * np.real(np.mean(Emag))
+    Emag = np.real(np.mean(Emag))
 
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
@@ -714,7 +727,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
     M1b = contract('jl, kjl, il, kj, k, x, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell)
     M2a = contract('jl, kjl, ij, kl, x, k, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
     M2b = contract('jl, kjl, il, kj, x, k, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
-    EAB = 2 * np.real(np.mean(M1a + M1b + M2a + M2b))
+    EAB = np.real(np.mean(M1a + M1b + M2a + M2b))
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
@@ -726,7 +739,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
     M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[0:4], rhos[0:4], piunitcell,
                           piunitcell))
 
-    EAA = 2 * np.real(M1 + M2)
+    EAA = np.real(M1 + M2)
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(1j * ffact)
@@ -738,7 +751,7 @@ def MFE_condensed(Jpm, Jpmpm, h, n, theta, chi, chi0, xi, k, rhos, A_pi_here, A_
     M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[4:8], rhos[4:8], piunitcell,
                           piunitcell))
 
-    EBB = 2 * np.real(M1 + M2)
+    EBB = np.real(M1 + M2)
 
     E = Emag + E1 + EAB + EAA + EBB
     # print(E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
@@ -826,7 +839,7 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         B = genBZ(30)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin = findminLam(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
         self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
@@ -931,10 +944,10 @@ class piFluxSolver:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         #          self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
         Ep = self.GS()
-        # Eq = MFE_condensed(self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-        #                    self.xi, self.qminB, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        # print(Ep, Eq)
-        return Ep
+        Eq = MFE_condensed(self.qminB, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
+                           self.xi, self.lams, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        print(Ep, Eq)
+        return Ep+Eq
         # else:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         # self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
