@@ -279,15 +279,14 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
     warnings.resetwarnings()
 
     Enowm = Enow.min()
-    dex = np.where(Enow==Enowm)
     # print(Know, Enow)
-    Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    Know = np.unique(np.mod(Know, 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
     return -Enowm, Know
 
-def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
+def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, equi_class):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
 
@@ -296,13 +295,15 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     Em = E.min()
     dex = np.where(E==Em)
     Know = np.unique(np.mod(K[dex],1), axis=0)
-
+    Know = symmetry_equivalence(Know, equi_class)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) > 8:
-        Know = Know[0:8]
+    print(Know, Em)
+
+    if len(Know) > 16:
+        Know = Know[0:16]
 
     Enow = np.zeros(len(Know))
 
@@ -313,9 +314,8 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
     Enowm = Enow.min()
-    dex = np.where(Enow==Enowm)
-    # print(Know, Enow)
-    Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    # dex = np.where(Enow==Enowm)
+    Know = np.unique(np.mod(Know, 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
@@ -633,7 +633,7 @@ def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi,
                  piunitcell, piunitcell))
     E1B = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,4:8,4:8], ffactB,
                  piunitcell, piunitcell))
-    E1 = (E1A+E1B)/2
+    E1 = np.real(E1A+E1B)/2
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
@@ -692,9 +692,9 @@ def MFE_condensed(q, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, rhos, A_
     chi0 = chi0 * np.ones((2, 4))
     xi = xi * np.array([xipicell[0], xipicell[0]])
 
-    M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
-    E, V = np.linalg.eigh(M)
-    E = np.sqrt(2 * Jzz * E)
+    # M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    # E, V = np.linalg.eigh(M)
+    # E = np.sqrt(2 * Jzz * E)
 
     # EQ = np.real(np.mean(E,axis=1))*2
 
@@ -709,7 +709,7 @@ def MFE_condensed(q, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, rhos, A_
     E1B = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[4:8], rhos[4:8], ffactB,
                  piunitcell, piunitcell)
 
-    E1 = np.real(E1A+E1B)/2
+    E1 = np.real(np.mean(E1A+E1B))/2
 
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
@@ -779,10 +779,14 @@ class piFluxSolver:
 
         if (n == h110).all():
             self.A_pi_here = constructA_pi_110(flux)
+            self.equi_class = equi_class_110
         elif (n == h111).all():
             self.A_pi_here = constructA_pi_111(flux)
+            self.equi_class = equi_class_111
         elif (n == h100).all():
             self.A_pi_here = constructA_pi_001(flux)
+            self.equi_class = equi_class_100
+
 
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
@@ -839,8 +843,8 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         B = genBZ(30)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin = findminLam(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa)
+        minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+                                        self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa,self.equi_class)
         self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams

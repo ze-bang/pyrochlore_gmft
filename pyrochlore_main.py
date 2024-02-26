@@ -15,9 +15,12 @@ from phase_diagram import *
 # plt.show()
 
 Jpm = -0.3
-h = 0.3
+h = 0.5
 flux = np.ones(4)*np.pi
-py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h110, flux=flux)
+# flux = np.zeros(4)
+# flux = np.array([0,np.pi,np.pi,0])
+# flux = np.array([np.pi,np.pi,0,0])
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 py0s.solvemeanfield()
 print(py0s.condensed,py0s.qmin, py0s.MFE())
 
