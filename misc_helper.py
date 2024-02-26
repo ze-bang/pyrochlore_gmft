@@ -1,15 +1,11 @@
 import time
 
 import numpy as np
-from itertools import permutations
-import math
 import numba as nb
 from opt_einsum import contract
 import math
-from mpi4py import MPI
-from functools import reduce
-from scipy.optimize import minimize, root_scalar
-
+from variation_flux import constructA_pi_001, constructA_pi_110, constructA_pi_111
+from scipy.optimize import minimize
 def factors(n, nK):
     for i in range(1, int(n**0.5) + 1):
         if n % i == 0 and n / i <= nK:
@@ -444,8 +440,44 @@ def equi_class_110(K1, K2):
         return False
 
 def equi_class_100(K1, K2):
+    if (K1 == K2).all() or (K1 == np.array([K2[1], K2[0], K2[2]])).all() \
+            or (K1 == np.mod(np.array([K2[0], K2[1], -K2[0]-K2[1]-K2[2]]),1)).all()\
+            or (K1 == np.mod(np.array([K2[1], K2[0], -K2[0]-K2[1]-K2[2]]),1)).all():
+        return True
+    else:
+        return False
+
+def equi_class_0_flux(K1, K2):
+    if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all() \
+            or (K1 == np.mod(K2 + np.array([0, 0.5, 0]),1)).all() or (K1==K2+np.mod(np.array([0,0.5,0.5]),1)).all():
+        return True
+    else:
+        return False
+def equi_class_pi_flux(K1, K2):
     return False
 
+def equi_class_pp00_flux(K1, K2):
+    if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all():
+        return True
+    else:
+        return False
+def equi_class_00pp_flux(K1, K2):
+    if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
+        return True
+    else:
+        return False
+
+def equi_class_0pp0_flux(K1, K2):
+    if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
+        return True
+    else:
+        return False
+
+def equi_class_p00p_flux(K1, K2):
+    if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0.5]),1)).all():
+        return True
+    else:
+        return False
 
 def symmetry_equivalence(K, equi_class):
     L = len(K)
@@ -459,6 +491,38 @@ def symmetry_equivalence(K, equi_class):
     K = np.delete(K, dind, 0)
     return np.array(K)
 
+
+def determineEquivalence(n, flux):
+    if (n == h110).all():
+        A_pi_here = constructA_pi_110(flux)
+        equi_class_field = equi_class_110
+        if (flux == np.zeros(4)).all():
+            equi_class_flux = equi_class_0_flux
+        elif (flux == np.pi*np.ones(4)).all():
+            equi_class_flux = equi_class_pi_flux
+        elif (flux == np.array([np.pi,np.pi,0,0])).all():
+            equi_class_flux = equi_class_pp00_flux
+        else:
+            equi_class_flux = equi_class_00pp_flux
+    elif (n == h111).all():
+        A_pi_here = constructA_pi_111(flux)
+        equi_class_field = equi_class_111
+        if (flux == np.zeros(4)).all():
+            equi_class_flux = equi_class_0_flux
+        else:
+            equi_class_flux = equi_class_pi_flux
+    elif (n == h100).all():
+        A_pi_here = constructA_pi_001(flux)
+        equi_class_field = equi_class_100
+        if (flux == np.zeros(4)).all():
+            equi_class_flux = equi_class_0_flux
+        elif (flux == np.pi*np.ones(4)).all():
+            equi_class_flux = equi_class_pi_flux
+        elif (flux == np.array([np.pi,0,0,np.pi])).all():
+            equi_class_flux = equi_class_p00p_flux
+        else:
+            equi_class_flux = equi_class_0pp0_flux
+    return A_pi_here, equi_class_field, equi_class_flux
 
 def genALLSymPoints():
     d = 9 * 1j
