@@ -14,19 +14,22 @@ from phase_diagram import *
 # plotLinefromnetCDF(h100, h=0.18, diff=True)
 # plt.show()
 
-Jpm = -0.3
-h = 0.2
+Jpm = 0.1
+h = 0
+
+
 # flux = np.ones(4)*np.pi
 
-# flux = np.zeros(4)
+flux = np.zeros(4)
 # flux = np.array([np.pi,0,0,np.pi])
 # flux = np.array([0,np.pi,np.pi,0])
-flux = np.array([np.pi,np.pi,0,0])
+# flux = np.array([np.pi,np.pi,0,0])
 # flux = np.array([0,0,np.pi,np.pi])
 
 py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h110, flux=flux)
 py0s.solvemeanfield()
 print(py0s.condensed,py0s.qmin, py0s.MFE())
+
 
 # #
 # generaldispersion(Jpm, Jpm, 1, h, h100,2,20,25,np.array([np.pi,0,0,np.pi]))

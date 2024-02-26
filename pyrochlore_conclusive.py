@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import warnings
 from misc_helper import *
 from flux_stuff import *
-from numpy.testing import assert_almost_equal, assert_allclose
 
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
@@ -835,7 +834,7 @@ class piFluxSolver:
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
         minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa,self.equi_class_field, self.equi_class_flux)
-        self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
+        # self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
@@ -940,7 +939,7 @@ class piFluxSolver:
         Ep = self.GS()
         Eq = MFE_condensed(self.qminB, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                            self.xi, self.lams, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        # print(Ep, Eq)
+        print(Ep, Eq)
         return Ep+Eq
         # else:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
