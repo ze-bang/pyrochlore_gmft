@@ -172,13 +172,21 @@ def setdiff3d(a1, a2):
     a2_rows = a2.view([('', a2.dtype)] * a2.shape[1])
     return np.setdiff1d(a1_rows, a2_rows).view(a1.dtype).reshape(-1, a1.shape[1])
 
-
 def indextoignore(a1, a2):
-    a1_temp = np.copy(a1)
-    a2_temp = np.copy(a2)
+    a1_temp = np.copy(a1, order='C')
+    a2_temp = np.copy(a2, order='C')
     a1_rows = a1_temp.view([('', np.float64)] * a1_temp.shape[1])
     a2_rows = a2_temp.view([('', np.float64)] * a2_temp.shape[1])
     return np.array(np.where(np.in1d(a1_rows, a2_rows)==True)[0], dtype=int)
+
+def indextoignore_tol(a1, a2, tol):
+    dex = np.array([],dtype =int)
+    for i in a2:
+        temp = np.linalg.norm(a1 - i, axis=1)
+        tempdex = np.array(np.where(temp <= tol)[0], dtype=int)
+        dex = np.concatenate((dex, tempdex))
+    return dex
+
 
 # @nb.njit
 def genBZ(d, m=1):
@@ -687,7 +695,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin=1
+deltamin=50
 
 def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     nodes1, weights1 = np.polynomial.legendre.leggauss(n)

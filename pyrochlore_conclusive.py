@@ -323,6 +323,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     # Esmin = min(Es)
     # dex = np.where(abs(Es-Esmin)<=1e-15)
     KnowF = np.unique(np.mod(KnowF, 1),axis=0)
+    Know = np.unique(np.mod(Know, 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     # return -Esmin, Know
@@ -893,11 +894,15 @@ class piFluxSolver:
         self.chi, self.chi0, self.xi = mfs
         return 0
 
-    def ifcondense(self, tol=0):
+    def ifcondense(self):
         # c = np.array([])
         # if self.condensed:
-        c = np.where((self.E[0]+self.minLams[0])<=tol)[0]
-        self.toignore = np.array(c, dtype=int)
+        # c = np.where((self.E[0]+self.minLams[0])<=1e-6)[0]
+        # self.toignore = np.array(c, dtype=int)
+        # print(self.toignore)
+        if self.condensed:
+            self.toignore = indextoignore_tol(self.pts, self.qmin, 1e-10)
+        # print(self.toignore)
 
     def low(self):
         E, V = np.linalg.eigh(self.MF)
@@ -905,8 +910,10 @@ class piFluxSolver:
         return self.bigB[cond], E[cond][0]
 
     def set_condensed(self):
-        A = self.rho(self.minLams+1e-15)
-        self.condensed = A < self.kappa
+        # A = self.rho(self.minLams+1e-14)
+        # self.condensed = A < self.kappa
+        A = -self.minLams[0] + self.lams[0]
+        self.condensed = A < (deltamin /(self.BZres**3)) ** 2
 
     def set_delta(self):
         warnings.filterwarnings('error')

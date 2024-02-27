@@ -21,12 +21,12 @@ from phase_diagram import *
 
 
 Jpm = -0.3
-h = 0.5
+h = 0.6
 
 
-# flux = np.ones(4)*np.pi
+flux = np.ones(4)*np.pi
 #
-flux = np.zeros(4)
+# flux = np.zeros(4)
 # # flux = np.array([np.pi,0,0,np.pi])
 # # flux = np.array([0,np.pi,np.pi,0])
 # # flux = np.array([np.pi,np.pi,0,0])
@@ -36,11 +36,30 @@ py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=2
 py0s.solvemeanfield()
 # M = py0s.M_true(py0s.qmin)
 # E, V = np.linalg.eigh(M)
-print(py0s.condensed,py0s.qminT, py0s.qmin, py0s.MFE())
-ffact = contract('ik, jlk->i', py0s.qmin, NNminus)
-ffactA = np.exp(-1j * ffact)
-ffactB = np.exp(1j * ffact)
-print(ffactA, ffactB)
+print(py0s.condensed,py0s.qminT, py0s.MFE())
+
+Jpm = -0.3
+h = 0.1
+
+flux = np.ones(4)*np.pi
+#
+# flux = np.zeros(4)
+# # flux = np.array([np.pi,0,0,np.pi])
+# # flux = np.array([0,np.pi,np.pi,0])
+# # flux = np.array([np.pi,np.pi,0,0])
+# # flux = np.array([0,0,np.pi,np.pi])
+#
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+py0s.solvemeanfield()
+# M = py0s.M_true(py0s.qmin)
+# E, V = np.linalg.eigh(M)
+print(py0s.condensed,py0s.qminT, py0s.MFE())
+# k = contract('ij,jk->ik', py0s.qmin, BasisBZA)
+# print(k)
+# ffact = contract('ik, jlk->ijl', k, NNminus)
+# ffactA = np.exp(-1j * ffact)
+# ffactB = np.exp(1j * ffact)
+# print(ffactA, ffactB)
 # #
 # generaldispersion(Jpm, Jpm, 1, h, h100,2,20,25,np.array([np.pi,0,0,np.pi]))
 # plt.show()
