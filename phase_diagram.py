@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 import netCDF4
-import numpy as np
 
 from misc_helper import *
 import pyrochlore_conclusive as pycon
 import netCDF4 as nc
-
+from mpi4py import MPI
 
 def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)

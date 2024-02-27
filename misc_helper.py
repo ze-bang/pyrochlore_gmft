@@ -4,7 +4,7 @@ import numpy as np
 import numba as nb
 from opt_einsum import contract
 import math
-from variation_flux import constructA_pi_001, constructA_pi_110, constructA_pi_111
+from flux_stuff import *
 from scipy.optimize import minimize
 def factors(n, nK):
     for i in range(1, int(n**0.5) + 1):

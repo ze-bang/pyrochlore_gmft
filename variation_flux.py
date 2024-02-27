@@ -61,7 +61,6 @@ def fluxMFE_111_alt(flux, n1, Jxx, Jyy, Jzz, h, n, kappa, BZres):
                             flux=generateflux111(flux[0], flux[1], n1))
     p0.solvemeanfield()
     return p0.GS()
-
 def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres, fluxstart):
     step = 1
     flux = fluxstart
@@ -94,7 +93,6 @@ def findflux(Jxx, Jyy, Jzz, h, n, kappa, BZres, fluxstart):
             # flux = np.where(flux > np.pi, flux - 2 * np.pi, flux)
             init = False
     return flux, pm
-
 def flux_converge(h, hat, n):
     fluxs = np.zeros((n,4))
     mfes = np.zeros(n)
@@ -103,7 +101,6 @@ def flux_converge(h, hat, n):
     print(fluxs)
     a = np.argmin(mfes)
     return fluxs[a]
-
 def flux_converge_scipy(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n):
     fluxs = np.zeros((n,4))
     mfes = np.zeros(n)
@@ -335,8 +332,6 @@ def plot_MFE_flux_111_alt(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
         plt.savefig('Files/' + filename +'.png')
         plt.clf()
 
-
-
 def plot_MFE_flux_111_restrained(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -367,10 +362,6 @@ def plot_MFE_flux_111_restrained(n1, Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, fil
         plt.plot(fluxplane, rectemp)
         plt.savefig('Files/' + filename +'.png')
         plt.clf()
-
-
-
-
 def plot_MFE_flux(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename):
     if (hat == h111).all():
         return plot_MFE_flux_111(Jxx, Jyy, Jzz, h, hat, kappa, BZres, n, filename)
