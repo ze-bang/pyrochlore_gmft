@@ -67,6 +67,17 @@ def graphMagPhase(JP, h, phases, filename):
     # plt.savefig(filename+'_split.png')
     # plt.clf()
 
+def graphColorMesh(JP, h, phases, filename):
+
+    X,Y = np.meshgrid(JP, h)
+
+    plt.pcolormesh(X, Y, phases.T)
+    plt.colorbar()
+    plt.xlabel(r'$J_\pm/J_{y}$')
+    plt.ylabel(r'$h/J_{y}$')
+    plt.savefig(filename +'.png')
+    plt.clf()
+
 
 #region NETCDF4 file parsing
 def find_nearest(array, value):
@@ -323,9 +334,9 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
-        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
-        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
 
 def findPhaseMag100(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
@@ -437,9 +448,9 @@ def findPhaseMag100(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
-        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
-        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
 
 def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
@@ -536,9 +547,9 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
-        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
-        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
 
 def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
@@ -730,9 +741,9 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
         JP = np.linspace(JPm, JPmax, nK)
         h = np.linspace(hm, hmax, nH)
         graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphMagPhase(JP, h, rectemp2,'Files/' + filename + '_MFE')
-        graphMagPhase(JP, h, rectemp3,'Files/' + filename + '_lam')
-        graphMagPhase(JP, h, rectemp4,'Files/' + filename + '_mag')
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
 
 
 
