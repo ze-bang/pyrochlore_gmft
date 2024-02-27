@@ -20,19 +20,19 @@ from phase_diagram import *
 # print()
 
 
-Jpm = 0.1
+Jpm = -0.1
 h = 0.3
 
 
-# flux = np.ones(4)*np.pi
-#
-flux = np.zeros(4)
+flux = np.ones(4)*np.pi
+
+# flux = np.zeros(4)
 # # flux = np.array([np.pi,0,0,np.pi])
 # # flux = np.array([0,np.pi,np.pi,0])
 # # flux = np.array([np.pi,np.pi,0,0])
 # # flux = np.array([0,0,np.pi,np.pi])
 #
-py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h110, flux=flux)
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 py0s.solvemeanfield()
 M = py0s.M_true(py0s.qmin)
 E, V = np.linalg.eigh(M)

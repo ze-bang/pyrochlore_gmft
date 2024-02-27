@@ -207,6 +207,10 @@ def Emin(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_tra
     k = k.reshape((1,3))
     return E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0][0,0]
 
+def Emins(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    return E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0][:,0]
+
+
 
 def gradient(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     kx, ky, kz = k
@@ -296,9 +300,9 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=15)
+    E = E[:,0]
     Em = E.min()
-    dex = np.where(E==Em)
+    dex = np.where(np.abs(E-Em)<1e-15)
     Know = np.unique(np.mod(K[dex],1), axis=0)
     Know = symmetry_equivalence(Know, equi_class_flux)
     Know = symmetry_equivalence(Know, equi_class_field)
@@ -312,13 +316,15 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
                        method='Nelder-Mead', bounds=((Know[i,0]-1/BZres, Know[i,0]+1/BZres), (Know[i,1]-1/BZres,Know[i,1]+1/BZres), (Know[i,2]-1/BZres,Know[i,2]+1/BZres)))
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
-    Enowm = Enow.min()
-    Know = np.unique(np.mod(Know, 1),axis=0)
     Know = gen_equi_class_field(Know)
     Know = gen_equi_class_flux(Know)
+    Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    Esmin = min(Es)
+    dex = np.where(abs(Es-Esmin)<=1e-15)
+    Know = np.unique(np.mod(Know[dex], 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    return -Enowm, Know
+    return -Esmin, Know
 
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")

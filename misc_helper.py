@@ -461,9 +461,13 @@ def equi_class_100(K1, K2):
         return False
 
 def gen_equi_class_100(K1):
+    temp1 = np.zeros(K1.shape)
+    temp2 = np.zeros(K1.shape)
+    temp1[:,0] = K1[:,0]
+    temp2[:,1] = K1[:,1]
     A1 = K1[:, [1, 0, 2]]
-    A2 = np.mod(K1 - K1[:,0] - K1[:,1],1)
-    A3 = np.mod(K1[:, [1, 0, 2]] - K1[:,0] - K1[:,1],1)
+    A2 = np.mod(K1 - temp1 - temp2,1)
+    A3 = np.mod(K1[:, [1, 0, 2]] - temp1 - temp2,1)
     return np.unique(np.concatenate((K1,A1,A2,A3)),axis=0)
 
 
