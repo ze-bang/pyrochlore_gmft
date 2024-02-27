@@ -307,6 +307,8 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     Know = symmetry_equivalence(Know, equi_class_field)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
+    if len(Know) >= 16:
+        Know = Know[0:16]
     Enow = np.zeros(len(Know))
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
@@ -847,6 +849,7 @@ class piFluxSolver:
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres,
                                         self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
         # self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
+        # self.qminT = np.where(self.qminT > 0.5, self.qminT - 1, self.qminT)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
