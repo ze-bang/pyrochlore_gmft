@@ -308,7 +308,6 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     Enow = np.zeros(len(Know))
-
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
                                                A_pi_rs_traced_here, A_pi_rs_traced_pp_here),
@@ -317,8 +316,9 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Enow[i] = res.fun
     Enowm = Enow.min()
     dex = np.where(abs(Enow-Enowm)<1e-15)
-    Know = gen_equi_class_field(Know[dex])
-    Know = gen_equi_class_flux(Know)
+    Know = Know[dex]
+    KnowF = gen_equi_class_field(Know)
+    KnowF = gen_equi_class_flux(KnowF)
     # Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     # Esmin = min(Es)
     # dex = np.where(abs(Es-Esmin)<=1e-15)
@@ -326,7 +326,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     # return -Esmin, Know
-    return -Enowm, Know
+    return -Enowm, KnowF, Know
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     if lamM[0] == 0:
@@ -798,6 +798,7 @@ class piFluxSolver:
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
         self.qminB = np.copy(self.qmin)
+        self.qminT = np.copy(self.qmin)
         self.condensed = False
         self.delta = np.zeros(16)
         self.rhos = np.zeros(16)
@@ -841,7 +842,7 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         B = genBZ(30)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin, self.qminT = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres,
                                         self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
         # self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)

@@ -584,8 +584,9 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
-        temp = py0s.qmin
-        sendtemp5[i,0:len(temp),:] = py0s.qmin
+        temp = py0s.qminT
+        leng = min(len(temp), 24)
+        sendtemp5[i,0:leng] = py0s.qminT[0:leng]
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))

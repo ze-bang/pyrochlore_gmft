@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import sympy as sp
 from sympy import re, im, I, E, symbols
 from sympy.printing.mathml import mathml
-from misc_helper import adaptive_simpsons_3D, adaptive_gauss_quadrature_3d
 sp.init_printing(use_unicode=True) # allow LaTeX printing
 
 # from misc_helper import *
@@ -344,7 +343,4 @@ def algHamSungbin():
 # print(np.dot(A,C))
 # print(np.einsum('i, ijkl->jkl', A, B))
 
-a = np.empty((2,3))
-a[:] = np.NaN
-
-print(a)
+print(min(1,2))
