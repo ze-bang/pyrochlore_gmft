@@ -14,20 +14,28 @@ from phase_diagram import *
 # plotLinefromnetCDF(h100, h=0.18, diff=True)
 # plt.show()
 
+# A = netCDF4.Dataset("Nia_Full_Scan/HanYan_100_Jpm_-0.1_0.1_h_0_0.3_0_flux_full_info.nc")
+#
+# E = np.array(A.variables['q_condensed'][:])
+# print()
+
+
 Jpm = 0.1
-h = 0
+h = 0.3
 
 
 # flux = np.ones(4)*np.pi
-
+#
 flux = np.zeros(4)
-# flux = np.array([np.pi,0,0,np.pi])
-# flux = np.array([0,np.pi,np.pi,0])
-# flux = np.array([np.pi,np.pi,0,0])
-# flux = np.array([0,0,np.pi,np.pi])
-
+# # flux = np.array([np.pi,0,0,np.pi])
+# # flux = np.array([0,np.pi,np.pi,0])
+# # flux = np.array([np.pi,np.pi,0,0])
+# # flux = np.array([0,0,np.pi,np.pi])
+#
 py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h110, flux=flux)
 py0s.solvemeanfield()
+M = py0s.M_true(py0s.qmin)
+E, V = np.linalg.eigh(M)
 print(py0s.condensed,py0s.qmin, py0s.MFE())
 
 
