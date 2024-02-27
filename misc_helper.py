@@ -433,11 +433,24 @@ def equi_class_111(K1, K2):
     else:
         return False
 
+def gen_equi_class_111(K1):
+    A1 = K1[:, [2, 0, 1]]
+    A2 = K1[:, [1, 2, 0]]
+    A3 = K1[:, [1, 0, 2]]
+    A4 = K1[:, [0, 2, 1]]
+    A5 = K1[:, [2, 1, 0]]
+    return np.unique(np.concatenate((K1,A1,A2,A3,A4,A5)),axis=0)
+
 def equi_class_110(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[1], K2[0], K2[2]])).all():
         return True
     else:
         return False
+
+def gen_equi_class_110(K1):
+    A1 = K1[:, [1, 0, 2]]
+    return np.unique(np.concatenate((K1,A1)),axis=0)
+
 
 def equi_class_100(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[1], K2[0], K2[2]])).all() \
@@ -447,25 +460,52 @@ def equi_class_100(K1, K2):
     else:
         return False
 
+def gen_equi_class_100(K1):
+    A1 = K1[:, [1, 0, 2]]
+    A2 = np.mod(K1 - K1[:,0] - K1[:,1],1)
+    A3 = np.mod(K1[:, [1, 0, 2]] - K1[:,0] - K1[:,1],1)
+    return np.unique(np.concatenate((K1,A1,A2,A3)),axis=0)
+
+
 def equi_class_0_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all() \
             or (K1 == np.mod(K2 + np.array([0, 0.5, 0]),1)).all() or (K1==K2+np.mod(np.array([0,0.5,0.5]),1)).all():
         return True
     else:
         return False
+
+def gen_equi_class_0_flux(K1):
+    A1 = K1 + np.array([0,0,0.5])
+    A2 = K1 + np.array([0,0.5,0])
+    A3 = K1 + np.array([0,0.5,0.5])
+    return np.unique(np.concatenate((K1,A1,A2,A3)),axis=0)
+
 def equi_class_pi_flux(K1, K2):
     return False
+
+def gen_equi_class_pi_flux(K1):
+    return K1
+
 
 def equi_class_pp00_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all():
         return True
     else:
         return False
+
+def gen_equi_class_pp00_flux(K1):
+    A1 = K1 + np.array([0,0,0.5])
+    return np.unique(np.concatenate((K1,A1)),axis=0)
+
 def equi_class_00pp_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
         return True
     else:
         return False
+
+def gen_equi_class_00pp_flux(K1):
+    A1 = K1 + np.array([0,0.5,0])
+    return np.unique(np.concatenate((K1,A1)),axis=0)
 
 def equi_class_0pp0_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
@@ -473,11 +513,20 @@ def equi_class_0pp0_flux(K1, K2):
     else:
         return False
 
+def gen_equi_class_0pp0_flux(K1):
+    A1 = K1 + np.array([0,0.5,0])
+    return np.unique(np.concatenate((K1,A1)),axis=0)
+
 def equi_class_p00p_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0.5]),1)).all():
         return True
     else:
         return False
+
+def gen_equi_class_p00p_flux(K1):
+    A1 = K1 + np.array([0,0.5,0.5])
+    return np.unique(np.concatenate((K1,A1)),axis=0)
+
 
 def symmetry_equivalence(K, equi_class):
     L = len(K)
@@ -496,33 +545,46 @@ def determineEquivalence(n, flux):
     if (n == h110).all():
         A_pi_here = constructA_pi_110(flux)
         equi_class_field = equi_class_110
+        gen_equi_class_field = gen_equi_class_110
         if (flux == np.zeros(4)).all():
             equi_class_flux = equi_class_0_flux
+            gen_equi_class_flux = gen_equi_class_0_flux
         elif (flux == np.pi*np.ones(4)).all():
             equi_class_flux = equi_class_pi_flux
+            gen_equi_class_flux = gen_equi_class_pi_flux
         elif (flux == np.array([np.pi,np.pi,0,0])).all():
             equi_class_flux = equi_class_pp00_flux
+            gen_equi_class_flux = gen_equi_class_pp00_flux
         else:
             equi_class_flux = equi_class_00pp_flux
+            gen_equi_class_flux = gen_equi_class_00pp_flux
     elif (n == h111).all():
         A_pi_here = constructA_pi_111(flux)
         equi_class_field = equi_class_111
+        gen_equi_class_field = gen_equi_class_111
         if (flux == np.zeros(4)).all():
             equi_class_flux = equi_class_0_flux
+            gen_equi_class_flux = gen_equi_class_0_flux
         else:
             equi_class_flux = equi_class_pi_flux
+            gen_equi_class_flux = gen_equi_class_pi_flux
     elif (n == h100).all():
         A_pi_here = constructA_pi_001(flux)
         equi_class_field = equi_class_100
+        gen_equi_class_field = gen_equi_class_100
         if (flux == np.zeros(4)).all():
             equi_class_flux = equi_class_0_flux
+            gen_equi_class_flux = gen_equi_class_0_flux
         elif (flux == np.pi*np.ones(4)).all():
             equi_class_flux = equi_class_pi_flux
+            gen_equi_class_flux = gen_equi_class_pi_flux
         elif (flux == np.array([np.pi,0,0,np.pi])).all():
             equi_class_flux = equi_class_p00p_flux
+            gen_equi_class_flux = gen_equi_class_p00p_flux
         else:
             equi_class_flux = equi_class_0pp0_flux
-    return A_pi_here, equi_class_field, equi_class_flux
+            gen_equi_class_flux = gen_equi_class_0pp0_flux
+    return A_pi_here, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux
 
 def genALLSymPoints():
     d = 9 * 1j
