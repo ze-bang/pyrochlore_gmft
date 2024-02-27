@@ -303,8 +303,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     E = E[:,0]
     Em = E.min()
     dex = np.where(np.abs(E-Em)<1e-15)
-    Know = np.unique(np.mod(K[dex],1), axis=0)
-    Know = symmetry_equivalence(Know, equi_class_flux)
+    Know = symmetry_equivalence(K[dex], equi_class_flux)
     Know = symmetry_equivalence(Know, equi_class_field)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
@@ -316,16 +315,18 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
                        method='Nelder-Mead', bounds=((Know[i,0]-1/BZres, Know[i,0]+1/BZres), (Know[i,1]-1/BZres,Know[i,1]+1/BZres), (Know[i,2]-1/BZres,Know[i,2]+1/BZres)))
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
-    Know = gen_equi_class_field(Know)
+    Enowm = Enow.min()
+    dex = np.where(abs(Enow-Enowm)<1e-15)
+    Know = gen_equi_class_field(Know[dex])
     Know = gen_equi_class_flux(Know)
-    Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    Esmin = min(Es)
-    dex = np.where(abs(Es-Esmin)<=1e-15)
-    Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    # Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+    # Esmin = min(Es)
+    # dex = np.where(abs(Es-Esmin)<=1e-15)
+    # Know = np.unique(np.mod(Know[dex], 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    return -Esmin, Know
-
+    # return -Esmin, Know
+    return -Enowm, Know
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     if lamM[0] == 0:

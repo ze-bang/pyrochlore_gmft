@@ -572,7 +572,7 @@ def determineEquivalence(n, flux):
         else:
             equi_class_flux = equi_class_pi_flux
             gen_equi_class_flux = gen_equi_class_pi_flux
-    elif (n == h100).all():
+    elif (n == h001).all():
         A_pi_here = constructA_pi_001(flux)
         equi_class_field = equi_class_100
         gen_equi_class_field = gen_equi_class_100
