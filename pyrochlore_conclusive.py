@@ -322,7 +322,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     # Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
     # Esmin = min(Es)
     # dex = np.where(abs(Es-Esmin)<=1e-15)
-    Know = np.unique(np.mod(Know[dex], 1),axis=0)
+    KnowF = np.unique(np.mod(KnowF[dex], 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     # return -Esmin, Know
