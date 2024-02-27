@@ -954,7 +954,7 @@ class piFluxSolver:
         Ep = self.GS()
         Eq = MFE_condensed(self.qminB, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
                            self.xi, self.lams, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        print(Ep, Eq)
+        # print(Ep, Eq)
         return Ep+Eq
         # else:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
