@@ -572,7 +572,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros((currsizeK,24, 3), dtype=np.float64)
+    sendtemp5 = np.zeros((currsizeK,16, 3), dtype=np.float64)
 
 
     rectemp = None
@@ -584,7 +584,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
-        rectemp5 = np.zeros((le, 24, 3), dtype=np.float64)
+        rectemp5 = np.zeros((le, 16, 3), dtype=np.float64)
 
     for i in range(currsizeK):
         # start = time.time()
@@ -596,7 +596,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
         temp = py0s.qminT
-        leng = min(len(temp), 24)
+        leng = min(len(temp), 16)
         sendtemp5[i,0:leng] = py0s.qminT[0:leng]
 
 
@@ -615,13 +615,13 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
-        rectemp5 = rectemp5.reshape((nK, nH, 24, 3))
+        rectemp5 = rectemp5.reshape((nK, nH, 16, 3))
 
         ncfilename = 'Files/' + filename + '_full_info.nc'
         with nc.Dataset(ncfilename, "w") as dataset:
             dataset.createDimension("Jpm", nK)
             dataset.createDimension("h", nH)
-            dataset.createDimension("index", 24)
+            dataset.createDimension("index", 16)
             dataset.createDimension("xyz", 3)
             temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             temp_var1[:, :, :] = rectemp5
