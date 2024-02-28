@@ -193,7 +193,6 @@ def genBZ(d, m=1):
     dj = d*1j
     b = np.mgrid[0:m:dj, 0:m:dj, 0:m:dj].reshape(3,-1).T
     b = np.concatenate((b,genALLSymPointsBare()))
-    # big = contract('ij,jk->ik', b, BasisBZA)
     return b
 
 
@@ -433,14 +432,13 @@ def genALLSymPointsBare():
     d = 9 * 1j
     b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3, -1).T
     return b
-
+@nb.njit
 def equi_class_111(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[2], K2[0], K2[1]])).all() or (K1 == np.array([K2[1], K2[2], K2[0]])).all()\
             or (K1 == np.array([K2[1], K2[0], K2[2]])).all() or (K1 == np.array([K2[0], K2[2], K2[1]])).all() or (K1 == np.array([K2[2], K2[1], K2[0]])).all():
         return True
     else:
         return False
-
 def gen_equi_class_111(K1):
     A1 = K1[:, [2, 0, 1]]
     A2 = K1[:, [1, 2, 0]]
@@ -448,18 +446,17 @@ def gen_equi_class_111(K1):
     A4 = K1[:, [0, 2, 1]]
     A5 = K1[:, [2, 1, 0]]
     return np.unique(np.concatenate((K1,A1,A2,A3,A4,A5)),axis=0)
-
+@nb.njit
 def equi_class_110(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[1], K2[0], K2[2]])).all():
         return True
     else:
         return False
-
 def gen_equi_class_110(K1):
     A1 = K1[:, [1, 0, 2]]
     return np.unique(np.concatenate((K1,A1)),axis=0)
 
-
+@nb.njit
 def equi_class_100(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[1], K2[0], K2[2]])).all() \
             or (K1 == np.mod(np.array([K2[0], K2[1], -K2[0]-K2[1]-K2[2]]),1)).all()\
@@ -467,7 +464,6 @@ def equi_class_100(K1, K2):
         return True
     else:
         return False
-
 def gen_equi_class_100(K1):
     temp1 = np.zeros(K1.shape)
     temp2 = np.zeros(K1.shape)
@@ -478,79 +474,102 @@ def gen_equi_class_100(K1):
     A3 = np.mod(K1[:, [1, 0, 2]] - temp1 - temp2,1)
     return np.unique(np.concatenate((K1,A1,A2,A3)),axis=0)
 
-
+@nb.njit
 def equi_class_0_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all() \
             or (K1 == np.mod(K2 + np.array([0, 0.5, 0]),1)).all() or (K1==K2+np.mod(np.array([0,0.5,0.5]),1)).all():
         return True
     else:
         return False
-
 def gen_equi_class_0_flux(K1):
     A1 = K1 + np.array([0,0,0.5])
     A2 = K1 + np.array([0,0.5,0])
     A3 = K1 + np.array([0,0.5,0.5])
     return np.unique(np.concatenate((K1,A1,A2,A3)),axis=0)
-
+@nb.njit
 def equi_class_pi_flux(K1, K2):
     return False
-
 def gen_equi_class_pi_flux(K1):
     return K1
 
-
+@nb.njit
 def equi_class_pp00_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0,0.5]),1)).all():
         return True
     else:
         return False
-
 def gen_equi_class_pp00_flux(K1):
     A1 = K1 + np.array([0,0,0.5])
     return np.unique(np.concatenate((K1,A1)),axis=0)
-
+@nb.njit
 def equi_class_00pp_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
         return True
     else:
         return False
-
 def gen_equi_class_00pp_flux(K1):
     A1 = K1 + np.array([0,0.5,0])
     return np.unique(np.concatenate((K1,A1)),axis=0)
-
+@nb.njit
 def equi_class_0pp0_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0]),1)).all():
         return True
     else:
         return False
-
 def gen_equi_class_0pp0_flux(K1):
     A1 = K1 + np.array([0,0.5,0])
     return np.unique(np.concatenate((K1,A1)),axis=0)
-
+@nb.njit
 def equi_class_p00p_flux(K1, K2):
     if (K1 == K2).all() or (K1==np.mod(K2+np.array([0,0.5,0.5]),1)).all():
         return True
     else:
         return False
-
 def gen_equi_class_p00p_flux(K1):
     A1 = K1 + np.array([0,0.5,0.5])
     return np.unique(np.concatenate((K1,A1)),axis=0)
 
 
-def symmetry_equivalence(K, equi_class):
-    L = len(K)
-    dind = []
-    keep = []
-    for i in range(L):
-        for j in range(L):
-            if (not i == j) and equi_class(K[i], K[j]) and (not j in keep):
-                keep += [i]
-                dind += [j]
-    K = np.delete(K, dind, 0)
-    return np.array(K)
+@nb.njit('uint32(int32)')
+def hash_32bit_4k(value):
+    return (np.uint32(value) * np.uint32(27_644_437)) & np.uint32(0x0FFF)
+
+@nb.njit(['int32[:](int32[:], int32[:])', 'int32[:](int32[::1], int32[::1])'])
+def setdiff1d_nb_faster(arr1, arr2):
+    out = np.empty_like(arr1)
+    bloomFilter = np.zeros(4096, dtype=np.uint8)
+    for j in range(arr2.size):
+        bloomFilter[hash_32bit_4k(arr2[j])] = True
+    cur = 0
+    for i in range(arr1.size):
+        # If the bloom-filter value is true, we know arr1[i] is not in arr2.
+        # Otherwise, there is maybe a false positive (conflict) and we need to check to be sure.
+        if bloomFilter[hash_32bit_4k(arr1[i])] and arr1[i] in arr2:
+            continue
+        out[cur] = arr1[i]
+        cur += 1
+    return out[:cur]
+@nb.njit
+def symmetry_equivalence(K, equi_relation):
+    equiv_classes = []
+
+    # Step 2: Find equivalence classes
+    for i in range(K.shape[0]):
+        x = K[i]
+        added = False
+        for equiv_class in equiv_classes:
+            if equi_relation(x, equiv_class[0]):
+                equiv_class.append(x)
+                added = True
+                break
+        if not added:
+            equiv_classes.append([x])
+    representatives = np.zeros((len(equiv_classes),3),dtype=np.float64)
+    for i in range(len(equiv_classes)):
+        for j in range(3):
+            representatives[i,j]=equiv_classes[i][0][j]
+
+    return representatives
 
 
 def determineEquivalence(n, flux):

@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import sympy as sp
 from sympy import re, im, I, E, symbols
+from misc_helper import *
 from sympy.printing.mathml import mathml
 sp.init_printing(use_unicode=True) # allow LaTeX printing
 
@@ -342,5 +343,45 @@ def algHamSungbin():
 # C = np.einsum('ijkl->jkil', B)
 # print(np.dot(A,C))
 # print(np.einsum('i, ijkl->jkl', A, B))
+import numpy as np
+import numba as nb
 
-print(min(1,2))
+
+@nb.njit
+def equivalence_relation(x, y):
+    # Define your equivalence relation here
+    # For example, let's say two elements are equivalent if their sum is the same
+    return np.sum(x) == np.sum(y)
+
+
+@nb.njit(parallel=True)
+def find_quotient_group(arr, equiv_relation):
+    # Step 1: Initialize an empty list to store equivalence classes
+    equiv_classes = []
+
+    # Step 2: Find equivalence classes
+    for i in range(arr.shape[0]):
+        x = arr[i]
+        added = False
+        for equiv_class in equiv_classes:
+            if equiv_relation(x, equiv_class[0]):
+                equiv_class.append(x)
+                added = True
+                break
+        if not added:
+            equiv_classes.append([x])
+    representatives = np.zeros((len(equiv_classes),3),dtype=np.float64)
+    for i in range(len(equiv_classes)):
+        for j in range(3):
+            representatives[i,j]=equiv_classes[i][0][j]
+    return representatives
+
+
+# Example usage
+arr = np.array([[0,1,1],[0,0,1],[1,0,1]])
+quotient_group = find_quotient_group(arr, equi_class_110)
+print("Quotient Group:")
+print(quotient_group)
+# test= np.array(quotient_group, dtype=object)
+# print(test.shape)
+# print(test[0])
