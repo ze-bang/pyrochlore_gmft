@@ -847,7 +847,7 @@ class piFluxSolver:
         return findlambda_pi(self.kappa,self.tol,self.minLams, self.Jzz, self.weights, self.E)
 
     def findminLam(self, chi, chi0, xi):
-        searchGrid=40
+        searchGrid=34
         B = genBZ(searchGrid)
         # B = symmetry_equivalence(B, self.equi_class_flux)
         # B = symmetry_equivalence(B, self.equi_class_field)
