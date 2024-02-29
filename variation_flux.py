@@ -3,7 +3,7 @@ import numpy as np
 
 from misc_helper import *
 from flux_stuff import *
-import pyrochlore_conclusive as pycon
+import pyrochlore_gmft as pycon
 
 # n = h111
 ringv = np.array([[1 ,1 ,-1] ,[-1 ,-1 ,-1] ,[-1 ,1 ,1] ,[1 ,-1 ,1]] ) /np.sqrt(3)

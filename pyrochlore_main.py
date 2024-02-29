@@ -7,10 +7,10 @@ import numpy as np
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 
 import warnings
-import pyrochlore_conclusive as pycon
+import pyrochlore_gmft as pycon
 from variation_flux import *
 from phase_diagram import *
-
+import pyrochlore_exclusive_boson as pyeb
 # plotLinefromnetCDF(h100, h=0.18, diff=True)
 # plt.show()
 
@@ -18,38 +18,33 @@ from phase_diagram import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
+h=0
+Jpm = 0.04
+flux = np.zeros(4)
+# flux = np.ones(4)*np.pi
+py0s = pyeb.piFluxSolver(Jpm, Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+print(py0s.occu_num())
 
+# h=0
+# Jpm = np.linspace(-0.5,0.1,60)
+# ns = np.zeros(60)
+#
+# for i in range(60):
+#     try:
+#         if Jpm[i] < 0:
+#             flux = np.ones(4)*np.pi
+#             py0s = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+#             ns[i] = py0s.occu_num()
+#         else:
+#             flux = np.zeros(4)
+#             py0s = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+#             ns[i] = py0s.occu_num()
+#     except:
+#         ns[i] = np.NaN
+#
+# plt.plot(Jpm, ns)
+# plt.show()
 
-# Jpm = -0.2
-h = 0.6
-Jxx = 0.6
-Jyy = 0.6
-
-flux = np.ones(4)*np.pi
-#
-# flux = np.zeros(4)
-# # flux = np.array([np.pi,0,0,np.pi])
-# # flux = np.array([0,np.pi,np.pi,0])
-# # flux = np.array([np.pi,np.pi,0,0])
-# # flux = np.array([0,0,np.pi,np.pi])
-#
-py0s = pycon.piFluxSolver(Jxx, Jyy, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-py0s.solvemeanfield()
-# # M = py0s.M_true(py0s.qmin)
-# # E, V = np.linalg.eigh(M)
-print(py0s.condensed,py0s.qminT, py0s.MFE(), py0s.chi, py0s.chi0,py0s.xi)
-#
-# # Jpm = -0.3
-# # h = 0.1
-#
-# # flux = np.ones(4)*np.pi
-#
-# flux = np.zeros(4)
-# # # flux = np.array([np.pi,0,0,np.pi])
-# # # flux = np.array([0,np.pi,np.pi,0])
-# # # flux = np.array([np.pi,np.pi,0,0])
-# # # flux = np.array([0,0,np.pi,np.pi])
-# #
 # py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 # py0s.solvemeanfield()
 # # M = py0s.M_true(py0s.qmin)

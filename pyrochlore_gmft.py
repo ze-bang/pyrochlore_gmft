@@ -1,5 +1,3 @@
-import time
-
 import matplotlib.pyplot as plt
 import warnings
 from misc_helper import *

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import netCDF4
 
 from misc_helper import *
-import pyrochlore_conclusive as pycon
+import pyrochlore_gmft as pycon
 import netCDF4 as nc
 from mpi4py import MPI
 
