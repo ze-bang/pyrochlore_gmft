@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
 import netCDF4
+import numpy as np
 
 from misc_helper import *
 import pyrochlore_gmft as pycon
+import pyrochlore_exclusive_boson as pyex
 import netCDF4 as nc
 from mpi4py import MPI
 
@@ -339,7 +341,7 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
 
-def findPhaseMag100(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+def findPhaseMag001(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -870,5 +872,237 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         plt.ylabel(r'$h/J_{y}$')
         plt.savefig('Files/' + filename+'_chi0.png')
         plt.clf()
+
+#endregion
+
+#region Phase for Magnetic Field - Exclusive Boson
+def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
+    le = nK*nH
+    nb = le/size
+
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+
+    currJH = JH[leftK:rightK]
+
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp1 = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        try:
+            py0s = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+            pyps = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+            pyp0 = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
+            pyzp = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
+
+            GS = np.array([py0s.GS(), pyps.GS(), pyp0.GS(),pyzp.GS()])
+            a = np.argmin(GS)
+            sendtemp2[i] = a
+            if a == 0:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = py0s.occu_num()
+            elif a == 1:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyps.occu_num()
+
+            elif a == 2:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyp0.occu_num()
+            else:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyzp.occu_num()
+        except:
+            sendtemp[i] = np.NaN
+            sendtemp1[i] = np.NaN
+
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp1 = rectemp1.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        np.savetxt('Files/' + filename+'_GS.txt', rectemp)
+        np.savetxt('Files/' + filename + '_N.txt', rectemp1)
+        np.savetxt('Files/' + filename + '.txt', rectemp2)
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
+        graphColorMesh(JP, h, rectemp,'Files/' + filename + '_GS')
+        graphColorMesh(JP, h, rectemp1,'Files/' + filename + '_N')
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename)
+
+
+def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j * nK, hm:hmax:1j * nH].reshape(2, -1).T
+    le = nK * nH
+    nb = le / size
+
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
+    currsizeK = rightK - leftK
+
+    currJH = JH[leftK:rightK]
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp1 = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        try:
+            py0s = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.zeros(4))
+            pyps = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.ones(4) * np.pi)
+            pyp0 = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.array([0 ,np.pi, np.pi, 0]))
+            pyzp = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.array([np.pi, 0, 0, np.pi]))
+
+            GS = np.array([py0s.GS(), pyps.GS(), pyp0.GS(), pyzp.GS()])
+            a = np.argmin(GS)
+            sendtemp2[i] = a
+            if a == 0:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = py0s.occu_num()
+            elif a == 1:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyps.occu_num()
+            elif a == 2:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyp0.occu_num()
+            else:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyzp.occu_num()
+        except:
+            sendtemp[i] = np.NaN
+            sendtemp1[i] = np.NaN
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp1 = rectemp1.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        np.savetxt('Files/' + filename + '_GS.txt', rectemp)
+        np.savetxt('Files/' + filename + '_N.txt', rectemp1)
+        np.savetxt('Files/' + filename + '.txt', rectemp2)
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
+        graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
+        graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
+        graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
+
+
+def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j * nK, hm:hmax:1j * nH].reshape(2, -1).T
+    le = nK * nH
+    nb = le / size
+
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
+    currsizeK = rightK - leftK
+
+    currJH = JH[leftK:rightK]
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp1 = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        try:
+            py0s = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.zeros(4))
+            pyps = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
+                                     BZres=BZres, flux=np.ones(4) * np.pi)
+
+            GS = np.array([py0s.GS(), pyps.GS()])
+            a = np.argmin(GS)
+            sendtemp2[i] = a
+            if a == 0:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = py0s.occu_num()
+            else:
+                sendtemp[i] = GS[a]
+                sendtemp1[i] = pyps.occu_num()
+        except:
+            sendtemp[i] = np.NaN
+            sendtemp1[i] = np.NaN
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp1 = rectemp1.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        np.savetxt('Files/' + filename + '_GS.txt', rectemp)
+        np.savetxt('Files/' + filename + '_N.txt', rectemp1)
+        np.savetxt('Files/' + filename + '.txt', rectemp2)
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
+        graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
+        graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
+        graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
 
 #endregion

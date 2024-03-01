@@ -4,23 +4,7 @@ from phase_diagram import *
 from misc_helper import *
 from flux_stuff import *
 
-# findXYZPhase(-1, 1, 20, 26, 2, "XYZ_0_field_more")
-# n1=-1
-# C = np.pi/4
-# B = (3*C-n1*np.pi)/2
-# flux = generateflux111(B, C, n1)
-# findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h110, 26, 2, flux, "FF_phase_110_kappa=2_zoomed_in_more")
-# findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h001, 26, 2, flux, "FF_phase_001_kappa=2_zoomed_in_more")
-# findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h111, 40, 2, flux, "FF_phase_111_kappa=2_zoomed_in_more")
-# findPhaseMag(-0.05, 0.05, 100, 0, 0.3, 100, h1b10, 26, 2, flux, "FF_phase_1b10_kappa=2_zoomed_in_more")
 
-findPhaseMag111(-0.05, 0.05, 100, 0, 0.3, 100, h111, 30, 2, "phase_111_kappa=2_zoomed_in_more")
+# findPhaseMag111(-0.05, 0.05, 100, 0, 0.3, 100, h111, 30, 2, "phase_111_kappa=2_zoomed_in_more")
+findPhaseMag111_ex(-0.05, 0.05, 100, 0, 0.3, 100, h111, 30, 2, "phase_111_kappa=2_zoomed_in_more_ex")
 
-
-# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h111, 25, 2, "phase_111_kappa=2_complete")
-# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 1, 150, h001, 25, 2, "phase_001_kappa=2_complete")
-# findPhaseMag_pi_zero(-0.5, 0, 300, 0, 4, 150, h110, 25, 2, "phase_110_kappa=2_complete")
-
-# SSSF(100, 0.8, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.8")
-# SSSF(100, 0.3, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.3")
-# SSSF(100, 0.4, h001,hb110, -0.1, 35, "SSSF_pi_-0.1_h001=0.4")

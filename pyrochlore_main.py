@@ -18,32 +18,40 @@ import pyrochlore_exclusive_boson as pyeb
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0
-Jpm = 0.04
-flux = np.zeros(4)
-# flux = np.ones(4)*np.pi
-py0s = pyeb.piFluxSolver(Jpm, Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-print(py0s.occu_num())
-
 # h=0
-# Jpm = np.linspace(-0.5,0.1,60)
-# ns = np.zeros(60)
-#
-# for i in range(60):
-#     try:
-#         if Jpm[i] < 0:
-#             flux = np.ones(4)*np.pi
-#             py0s = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-#             ns[i] = py0s.occu_num()
-#         else:
-#             flux = np.zeros(4)
-#             py0s = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-#             ns[i] = py0s.occu_num()
-#     except:
-#         ns[i] = np.NaN
-#
-# plt.plot(Jpm, ns)
-# plt.show()
+# Jpm = 0.08
+# flux = np.zeros(4)
+# # flux = np.ones(4)*np.pi
+# py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+# print(py0s.occu_num())
+# py0s.graph(True)
+
+h= np.linspace(0,0.3,60)
+Jpm = np.linspace(0,0.1,60)
+ns = np.zeros(60)
+
+GS0 = np.zeros(60)
+GSpi = np.zeros(60)
+
+for i in range(60):
+    try:
+        py0s = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=25, h=h[i], n=h111, flux=np.zeros(4))
+        pypis = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=25, h=h[i], n=h111, flux=np.ones(4)*np.pi)
+        GS0[i] = py0s.GS()
+        GSpi[i] = pypis.GS()
+        if GS0[i] < GSpi[i]:
+            ns[i] = py0s.occu_num()
+        else:
+            ns[i] = pypis.occu_num()
+        print(h[i], ns[i])
+    except:
+        ns[i] = np.NaN
+
+plt.plot(h, GS0, h, GSpi)
+plt.legend(['0', r'$\pi$'])
+plt.show()
+plt.plot(h, ns)
+plt.show()
 
 # py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 # py0s.solvemeanfield()

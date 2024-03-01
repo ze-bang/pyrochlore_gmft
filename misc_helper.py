@@ -659,11 +659,11 @@ def phaseMag(lams, minLams, pi):
 
 def BZbasis(mu):
     if mu == 0:
-        return 2*np.pi*np.array([1,0,0])
+        return np.pi*np.array([1,0,0])
     elif mu == 1:
-        return 2*np.pi*np.array([0,1,0])
+        return np.pi*np.array([0,1,0])
     elif mu == 2:
-        return 2*np.pi*np.array([0,0,1])
+        return np.pi*np.array([0,0,1])
 
 
 

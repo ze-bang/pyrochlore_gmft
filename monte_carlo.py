@@ -100,7 +100,7 @@ def energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz):
 
 @njit(cache=True)
 def energy_single_site(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
-    mag = dot(z[u], h*n) * (gx * con[i,j,k,u,0] + gz * con[i,j,k,u,2]) + gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) *con[i,j,k,u,1]
+    mag = dot(x[u], h*n) * gx * con[i,j,k,u,0] + dot(z[u], h*n) *gz * con[i,j,k,u,2] + dot(y[u], h*n) *gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) *con[i,j,k,u,1]
     energy = energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz)
     return energy - mag
 
@@ -197,51 +197,57 @@ NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])
 def magnetization(con):
     mag = contract('ijkus->s', con)
     return mag/(con.shape[0]**3*4)
-
-@njit(cache=True)
-def Sab(k1, k2):
-    a, b, c = k1
-    d, e, f = k2
-    return np.array([[a*d, a*e, a*f],[b*d, b*e, b*f],[c*d, c*e, c*f]])
-
-@njit(cache=True)
-def SSSF_q(con, q):
+@njit
+def realcoords(con):
     d = con.shape[0]
-    # print(d)
-    S = np.zeros((3,3), dtype=np.complex128)
+    rcoord = np.zeros(con.shape)
     for a in range(d):
         for b in range(d):
             for c in range(d):
                 for x in range(4):
-                    for e in range(d):
-                        for f in range(d):
-                            for g in range(d):
-                                for h in range(4):
-                                    temp = Sab(con[a,b,c,x], con[e,f,g,h])
-                                    temp = np.exp(1j*np.dot(q,(a*r[0]+b*r[1]+c*r[2]+NN[x] - e*r[0]+f*r[1]+g*r[2]+NN[h])))*temp
-                                    # if (temp == np.nan).any() or (temp > 1e5).any():
-                                    S += temp
-    S = S / (d ** 3 * 4)
-    # print(S.shape)
-    # print('------------------------------------')
+                    rcoord[a,b,c,x] = a*r[0]+b*r[1]+c*r[2]+NN[x]
+    return rcoord
+# @njit(cache=True)
+def spin_q(con, rcoord, q):
+    d = con.shape[0]
+    ffact = np.exp(1j*contract('ijk, xyzuk->ijxyzu',q,rcoord))
+    S = contract('ijxyzu, xyzus->ijs',ffact,con)
+    S = S / np.sqrt(d ** 3 * 4)
+    return S
+
+@njit(cache=True)
+def spin_q(con, rcoord, q):
+    d = con.shape[0]
+    ql = len(q)
+    S = np.zeros((ql,ql,3,3))
+    for a in range(d):
+        for b in range(d):
+            for c in range(d):
+                for x in range(4):
+                    S[:,:] = a*r[0]+b*r[1]+c*r[2]+NN[x]
+
     return S
 
 
-def SSSF(con, nK, filename):
+# @njit(cache=True)
+def SSSF_q(con, rcoord, q):
+    A = spin_q(con, rcoord, q)
+    B = spin_q(con, rcoord, -q)
+    return np.real(contract('ija, jib->ijab',A,B))
+
+
+def SSSF(con, rcoord, nK, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
     K = hkltoK(A, B)
-    S = np.zeros((K.shape[0],K.shape[1],3,3))
-    for i in range(K.shape[0]):
-        for j in range(K.shape[1]):
-            S[i,j] = SSSF_q(con, K[i,j])
-    f1 = "Files/" + filename + "Sxx_local"
-    f2 = "Files/" + filename + "Syy_local"
-    f3 = "Files/" + filename + "Szz_local"
-    f4 = "Files/" + filename + "Sxy_local"
-    f5 = "Files/" + filename + "Sxz_local"
-    f6 = "Files/" + filename + "Syz_local"
+    S = SSSF_q(con, rcoord, K)
+    f1 = filename + "Sxx_local"
+    f2 = filename + "Syy_local"
+    f3 = filename + "Szz_local"
+    f4 = filename + "Sxy_local"
+    f5 = filename + "Sxz_local"
+    f6 = filename + "Syz_local"
 
     np.savetxt(f1 + '.txt', S[:,:,0,0])
     np.savetxt(f2 + '.txt', S[:,:,1,1])
@@ -249,9 +255,6 @@ def SSSF(con, nK, filename):
     np.savetxt(f4 + '.txt', S[:,:,0,1])
     np.savetxt(f5 + '.txt', S[:,:,0,2])
     np.savetxt(f6 + '.txt', S[:,:,1,2])
-    # d1 = np.loadtxt(f1+'.txt')
-    # d2 = np.loadtxt(f2 + '.txt')
-    # d3 = np.loadtxt(f3 + '.txt')
     SSSFGraph(A, B, S[:,:,0,0], f1)
     SSSFGraph(A, B, S[:,:,1,1], f2)
     SSSFGraph(A, B, S[:,:,2,2], f3)
@@ -260,12 +263,10 @@ def SSSF(con, nK, filename):
     SSSFGraph(A, B, S[:, :, 1, 2], f6)
 
 # @njit(cache=True)
-def ordering_q(con):
+def ordering_q(con, rcoord):
     K = genBZ(100)
-    S = np.zeros((K.shape[0], 3, 3))
     q = np.zeros((3, 3, 3))
-    for i in range(K.shape[0]):
-        S[i] = SSSF_q(con, K[i])
+    S = SSSF_q(con, rcoord, K)
 
     ind = np.argmax(S, axis=0)
 
@@ -276,9 +277,23 @@ def ordering_q(con):
     return q
 
 
+def plottetrahedron(x,y,z, ax):
+    center = x*r[0]+y*r[1]+z*r[2]
+    coords = center + NN
+    start = np.zeros((6,3))
+    start[0] = start[1] = start[2] = coords[0]
+    start[3] = start[4] = coords[1]
+    start[5] = coords[2]
+    end = np.zeros((6,3))
+    end[0] = coords[1]
+    end[1] = end[3] = coords[2]
+    end[2] = end[4] = end[5] = coords[3]
+
+    for i in range(6):
+        ax.plot([start[i,0], end[i,0]], [start[i,1], end[i,1]], zs=[start[i,2], end[i,2]], color='blue')
+
 def graphconfig(con):
     d = con.shape[0]
-    fig = plt.figure()
     ax = plt.axes(projection='3d')
     coord = np.zeros((4*d*d*d,3))
     spin = np.zeros((4*d*d*d,3))
@@ -286,6 +301,7 @@ def graphconfig(con):
     for i in range(d):
         for j in range(d):
             for k in range(d):
+                plottetrahedron(i,j,k,ax)
                 for u in range(4):
                     coord[i*d*d*4+j*d*4+k*4+u] = i*r[0]+j*r[1]+k*r[2]+NN[u]
                     spin[i * d * d * 4 + j * d * 4 + k * 4 + u] = con[i,j,k,u,0]*x[u]+con[i,j,k,u,1]*y[u]+con[i,j,k,u,2]*z[u]
@@ -293,7 +309,7 @@ def graphconfig(con):
     spin = spin*0.5
 
     ax.scatter(coord[:,0], coord[:,1], coord[:,2])
-    ax.quiver(coord[:,0], coord[:,1], coord[:,2],spin[:,0], spin[:,1], spin[:,2])
+    ax.quiver(coord[:,0], coord[:,1], coord[:,2],spin[:,0], spin[:,1], spin[:,2], color='red', length=0.3)
     plt.savefig("test_monte_carlo.png")
     plt.show()
 
@@ -340,28 +356,32 @@ def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
 
     if rank == 0:
-        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt(filename+'.txt', rectemp)
         plt.contourf(Jx, Jz, rectemp.T)
         plt.xlabel(r'$J_x$')
         plt.ylabel(r'$J_z$')
-        plt.savefig('Files/' + filename+ '.png')
+        plt.savefig(filename+ '.png')
         plt.clf()
     return 0
 
+h111= np.array([1,1,1])/np.sqrt(3)
+h110 = np.array([1,1,0])/np.sqrt(2)
+h001 = np.array([0,0,1])
 
+#gx = 0.01, gy = 4e-4, gz=1
 
-# phase = phase_diagram(25, 1, int(1e2), int(1e4), 0, np.array([0,0,1]), 'phase_monte_carlo')
-
-con = np.copy(anneal(8, -10, 1, 100, 10000, 0, 0, 1, 0.01, 4e-4, 1, 2, np.array([0,0,1])))
-print(con)
-q = ordering_q(con)
-print(q)
-
-# np.savetxt('phase_monte_carlo.txt', phase)
-# plt.contourf(phase)
-# plt.savefig('phase_monte_carlo.png')
-# plt.show()
-
+def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
+    con = np.copy(anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, n))
+    # graphconfig(con)
+    rcoord = realcoords(con)
+    SSSF(con, rcoord, 50, filename)
+Jpm=0.1
+monte_SSSF('monte_carlo_files/test', -2*Jpm, 1, -2*Jpm, 0, h110, 0, 0, 1, 1, -9, 1, 100, 1000)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', -0.3, 1, 1, h110, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
+# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', 0.3, 1, 1, h111, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', -0.3, 1, 1, h111, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
+# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', 0.3, 1, 1, h001, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', -0.3, 1, 1, h001, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
 
 
 
