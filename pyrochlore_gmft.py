@@ -301,11 +301,11 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     E = E[:,0]
     Em = E.min()
     dex = np.where(np.abs(E-Em)<5e-16)
-    # Know = K[dex]
-    # Know = symmetry_equivalence(Know, equi_class_flux)
-    # Know = symmetry_equivalence(Know, equi_class_field)
-    # dex = np.argmin(E)
     Know = K[dex]
+    Know = symmetry_equivalence(Know, equi_class_flux)
+    Know = symmetry_equivalence(Know, equi_class_field)
+    # dex = np.argmin(E)
+    # Know = K[dex]
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     if len(Know) >= 16:
@@ -318,20 +318,17 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
     Enowm = Enow.min()
-    dex = np.where(abs(Enow-Enowm)<1e-15)
+    dex = np.where(abs(Enow-Enowm)<5e-16)
     Know = Know[dex]
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     KnowF = gen_equi_class_field(Know)
     KnowF = gen_equi_class_flux(KnowF)
-    # Es = Emins(Know, np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    # Esmin = min(Es)
-    # dex = np.where(abs(Es-Esmin)<=1e-15)
+
     KnowF = np.unique(np.mod(KnowF, 1),axis=0)
     Know = np.unique(np.mod(Know, 1),axis=0)
     if KnowF.shape == (3,):
         KnowF = KnowF.reshape(1,3)
-    # return -Esmin, Know
     return -Enowm, KnowF, Know
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
@@ -847,15 +844,10 @@ class piFluxSolver:
     def findminLam(self, chi, chi0, xi):
         searchGrid=34
         B = genBZ(searchGrid)
-        # B = symmetry_equivalence(B, self.equi_class_flux)
-        # B = symmetry_equivalence(B, self.equi_class_field)
-        # print(B.shape)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
         minLams, self.qmin, self.qminT = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, searchGrid,
                                         self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
-        # self.qmin = np.where(self.qmin > 0.5, self.qmin - 1, self.qmin)
-        # self.qminT = np.where(self.qminT > 0.5, self.qminT - 1, self.qminT)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
@@ -959,7 +951,6 @@ class piFluxSolver:
         if np.any(lam == 0):
             lam = self.lams
         return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-
 
     def GS(self):
         return integrate(self.E_pi, self.pts, self.weights) - self.kappa*self.lams[0]
