@@ -591,7 +591,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     for i in range(currsizeK):
         # start = time.time()
         # print(currJH[i])
-        py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
 
         sendtemp[i] = py0s.condensed
