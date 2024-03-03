@@ -304,8 +304,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     Know = K[dex]
     Know = symmetry_equivalence(Know, equi_class_flux)
     Know = symmetry_equivalence(Know, equi_class_field)
-    # dex = np.argmin(E)
-    # Know = K[dex]
+
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     if len(Know) >= 16:

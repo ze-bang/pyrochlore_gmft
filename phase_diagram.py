@@ -589,8 +589,6 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         rectemp5 = np.zeros((le, 16, 3), dtype=np.float64)
 
     for i in range(currsizeK):
-        # start = time.time()
-        # print(currJH[i])
         py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
 
@@ -1104,5 +1102,63 @@ def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
+
+def completeSpan_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
+    le = nK*nH
+    nb = le/size
+
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+
+    currJH = JH[leftK:rightK]
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp1 = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp1 = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        py0s = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s.solvemeanfield()
+
+        sendtemp[i] = py0s.GS()
+        sendtemp1[i] = py0s.occu_num()
+
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp1 = rectemp1.reshape((nK, nH))
+
+        ncfilename = 'Files/' + filename + '_full_info.nc'
+        with nc.Dataset(ncfilename, "w") as dataset:
+            dataset.createDimension("Jpm", nK)
+            dataset.createDimension("h", nH)
+
+            temp_var3 = dataset.createVariable("MFE", "f4", ("Jpm", "h"))
+            temp_var3[:, :] = rectemp
+            temp_var3.long_name = "Variational Energy"
+            temp_var = dataset.createVariable("n", "f4", ("Jpm", "h"))
+            temp_var[:, :] = rectemp1
+            temp_var.long_name = "occupation number"
+
 
 #endregion

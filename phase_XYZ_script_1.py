@@ -10,4 +10,4 @@ import time
 # end = time.time()
 # print(end-start)
 # findPhaseMag001(-0.5, 0.1, 100, 0, 1, 100, h001, 30, 2, "phase_100_kappa=2")
-findPhaseMag001_ex(-0.5, 0.1, 100, 0, 1, 100, h001, 30, 2, "phase_100_kappa=2_ex")
+findPhaseMag001_ex(-0.5, 0.1, 100, 0, 1, 100, h001, 25, 2, "phase_100_kappa=2_ex")
