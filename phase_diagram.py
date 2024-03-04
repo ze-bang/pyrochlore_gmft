@@ -930,6 +930,7 @@ def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         except:
             sendtemp[i] = np.NaN
             sendtemp1[i] = np.NaN
+            sendtemp2[i] = np.NaN
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
@@ -1011,6 +1012,7 @@ def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         except:
             sendtemp[i] = np.NaN
             sendtemp1[i] = np.NaN
+            sendtemp2[i] = np.NaN
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
@@ -1081,6 +1083,7 @@ def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         except:
             sendtemp[i] = np.NaN
             sendtemp1[i] = np.NaN
+            sendtemp2[i] = np.NaN
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0], 0))
