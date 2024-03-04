@@ -4,6 +4,9 @@ import warnings
 import numpy as np
 from misc_helper import *
 from flux_stuff import *
+import scipy as sp
+
+
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
     zmag = contract('k,ik->i', n, z)
@@ -32,31 +35,11 @@ def M_pi(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
     MBk = M_pi_sub_intrahopping_dd(k, 1, Jpm, A_pi_rs_traced_here)
     MAnk = M_pi_sub_intrahopping_dd(-k, 0, Jpm, A_pi_rs_traced_here)
     MBnk = M_pi_sub_intrahopping_dd(-k, 1, Jpm, A_pi_rs_traced_here)
-    # dumz = np.zeros((len(k),4,4))
 
     MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
     MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here)
     MagBnkAnk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
-
-    # MAA = np.block([[MAk, dumz, dumz, MAk],
-    #                [dumz, MAnk, MAnk, dumz],
-    #                [dumz, MAnk, MAnk, dumz],
-    #                [MAk, dumz, dumz, MAk]])
-    # MAB = np.block([[MagAkBk, dumz, dumz, MagAkBk],
-    #                [dumz, MagAnkBnk, MagAnkBnk, dumz],
-    #                [dumz, MagAnkBnk, MagAnkBnk, dumz],
-    #                [MagAkBk, dumz, dumz, MagAkBk]])
-    # MBA = np.block([[MagBkAk, dumz, dumz, MagBkAk],
-    #                [dumz, MagBnkAnk, MagBnkAnk, dumz],
-    #                [dumz, MagBnkAnk, MagBnkAnk, dumz],
-    #                [MagBkAk, dumz, dumz, MagBkAk]])
-    # MBB = np.block([[MBk, dumz, dumz, MBk],
-    #                [dumz, MBnk, MBnk, dumz],
-    #                [dumz, MBnk, MBnk, dumz],
-    #                [MBk, dumz, dumz, MBk]])
-    # FM = np.block([[MAA, MAB],
-    #                [MBA, MBB]])
 
     KK = np.block([[MAk, MagAkBk],
                    [MagBkAk, MBk]])
@@ -69,14 +52,13 @@ def M_pi(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
                    [dumz, nKnK, nKnK, dumz],
                    [dumz, nKnK, nKnK, dumz],
                    [KK, dumz, dumz, KK]])
-
     FM = FM + np.diag(np.ones(32)*Jzz/2)
     return FM
 
-
 def bogoliubov(M):
-    # J = np.diag(np.array([1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1]))
-    J = np.diag(np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]))
+    dim = int(M.shape[1]/2)
+    J = np.concatenate((np.ones(dim),-np.ones(dim)))
+    J = np.diag(J)
     Lower = np.linalg.cholesky(M)
     Upper = np.transpose(np.conj(Lower),(0,2,1))
     ToD = contract('iab,bc,icd->iad',Upper,J,Lower)
@@ -91,6 +73,50 @@ def bogoliubov(M):
     # test1 = contract('iab, ibc, icd -> iad', np.transpose(np.conj(P),(0,2,1)), M, P)
     # test2 = contract('iab, bc, icd -> iad', np.transpose(np.conj(P),(0,2,1)), J, P)
     return E, P
+
+
+#region initialize tensor matrix to multiply through
+
+# A = np.array([[1,0,0,1],
+#               [0,1,1,0],
+#               [0,1,1,0],
+#               [1,0,0,1]])
+# A = A + 1/2*np.identity(4)
+# #
+# Ep, Vp = ldl_single(A)
+# print(Ep, Vp)
+#endregion
+
+
+
+def M_pi_smol(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    chi = chi * np.array([chi_A, chi_A])
+    chi0 = chi0 * np.ones((2, 4))
+    xi = xi * np.array([xipicell[0], xipicell[0]])
+    k = contract('ij,jk->ik', k, BasisBZA)
+
+    MAk = M_pi_sub_intrahopping_dd(k, 0, Jpm, A_pi_rs_traced_here)
+    MBk = M_pi_sub_intrahopping_dd(k, 1, Jpm, A_pi_rs_traced_here)
+
+    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here)
+    MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
+
+    KK = np.block([[MAk, MagAkBk],
+                   [MagBkAk, MBk]])
+    return KK
+
+
+def bogo_faster(M):
+    dum = np.identity(M.shape[1])
+    E, V = np.linalg.eigh(M)
+    E = contract('ij, jk->ijk', E, dum)
+    totM = np.kron(A, E)
+    Ep, Vp = bogoliubov(totM+np.identity(M.shape[1]*4))
+    V = np.kron(Vp, V)
+    return Ep, V
+
+
+
 
 def E_pi(k, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
     M = M_pi(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
@@ -139,7 +165,7 @@ def bose_einstein(omega,T):
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, T=1):
+                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=trapezoidal_rule_3d_pts, T=1):
         self.intmethod = intmethod
         self.Jzz = Jzz
         self.Jpm = -(Jxx + Jyy) / 4
@@ -235,4 +261,4 @@ class piFluxSolver:
             plt.show()
 
     def GS(self):
-        return contract('i,i->',np.mean(self.E,axis=1),self.weights) - 0.5
+        return 2*(contract('i,i->',np.mean(self.E,axis=1),self.weights) - 0.5)

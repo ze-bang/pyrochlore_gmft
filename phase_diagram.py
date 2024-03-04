@@ -598,6 +598,7 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
         temp = py0s.qminT
         leng = len(temp)
         sendtemp5[i,0:leng] = py0s.qminT
+        print(py0s.minLams, py0s.qminT)
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
