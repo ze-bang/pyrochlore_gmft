@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import warnings
 from misc_helper import *
 from flux_stuff import *
+import time
 
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
@@ -245,23 +246,23 @@ def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_
            + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)) / step**2
     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
 
-def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
+def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
     warnings.filterwarnings("error")
     E, V = np.linalg.eigh(M)
-    E = np.around(E[:,0], decimals=16)
+    E = E[:,0]
     Em = E.min()
-    dex = np.where(E==Em)
-    Know = np.unique(np.around(K[dex], decimals=15), axis=0)
-    # Know = Know + (np.random.rand(Know.shape[0], Know.shape[1])-1/2) / (2*BZres)
+    dex = np.where(np.abs(E-Em)<5e-16)
+    Know = K[dex]
+    Know = symmetry_equivalence(Know, equi_class_flux)
+    Know = symmetry_equivalence(Know, equi_class_field)
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= number:
-        Know = Know[0:number]
-
+    if len(Know) >= 16:
+        Know = Know[0:16]
     step = 1
     Enow = Em*np.ones(len(Know))
     for i in range(len(Know)):
@@ -286,12 +287,18 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
     warnings.resetwarnings()
 
     Enowm = Enow.min()
-    # print(Know, Enow)
-    Know = np.unique(np.mod(Know, 1),axis=0)
+    dex = np.where(abs(Enow-Enowm)<5e-16)
+    Know = Know[dex]
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
+    KnowF = gen_equi_class_field(Know)
+    KnowF = gen_equi_class_flux(KnowF)
 
-    return -Enowm, Know
+    KnowF = np.unique(np.mod(KnowF, 1),axis=0)
+    Know = np.unique(np.mod(Know, 1),axis=0)
+    if KnowF.shape == (3,):
+        KnowF = KnowF.reshape(1,3)
+    return -Enowm, KnowF, Know
 
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
     if Jpm==0 and Jpmpm == 0 and h == 0:
@@ -844,7 +851,7 @@ class piFluxSolver:
         searchGrid=34
         B = genBZ(searchGrid)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin, self.qminT = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin, self.qminT = findminLam(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, searchGrid,
                                         self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
@@ -927,8 +934,14 @@ class piFluxSolver:
 
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
+        start = time.time()
         self.findminLam(chi, chi0, xi)
+        end = time.time()
+        print('Find minimum lambda costs '+ str(end-start))
+        start = time.time()
         self.lams = self.findLambda()
+        end = time.time()
+        print('Find lambda costs '+ str(end-start))
         self.set_condensed()
         self.ifcondense()
         self.set_delta()

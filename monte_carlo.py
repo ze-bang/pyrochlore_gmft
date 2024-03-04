@@ -215,18 +215,17 @@ def spin_q(con, rcoord, q):
     S = S / np.sqrt(d ** 3 * 4)
     return S
 
-@njit(cache=True)
-def spin_q(con, rcoord, q):
-    d = con.shape[0]
-    ql = len(q)
-    S = np.zeros((ql,ql,3,3))
-    for a in range(d):
-        for b in range(d):
-            for c in range(d):
-                for x in range(4):
-                    S[:,:] = a*r[0]+b*r[1]+c*r[2]+NN[x]
-
-    return S
+# @njit(cache=True)
+# def spin_q(con, q):
+#     d = con.shape[0]
+#     ql = len(q)
+#     S = np.zeros((ql,ql,3))
+#     for a in range(d):
+#         for b in range(d):
+#             for c in range(d):
+#                 for x in range(4):
+#                     S[:,:] += np.exp(1j*np.dot(a*r[0]+b*r[1]+c*r[2]+NN[x],q))*con[a,b,c,x]
+#     return S
 
 
 # @njit(cache=True)
@@ -375,7 +374,8 @@ def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntem
     # graphconfig(con)
     rcoord = realcoords(con)
     SSSF(con, rcoord, 50, filename)
-Jpm=0.1
+
+Jpm=0.2
 monte_SSSF('monte_carlo_files/test', -2*Jpm, 1, -2*Jpm, 0, h110, 0, 0, 1, 1, -9, 1, 100, 1000)
 # monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', -0.3, 1, 1, h110, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
 # monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', 0.3, 1, 1, h111, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
