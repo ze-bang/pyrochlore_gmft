@@ -261,8 +261,8 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
 
-    if len(Know) >= 16:
-        Know = Know[0:16]
+    if len(Know) >= 8:
+        Know = Know[0:8]
     step = 1
     Enow = Em*np.ones(len(Know))
     for i in range(len(Know)):
