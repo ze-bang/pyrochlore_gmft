@@ -207,7 +207,22 @@ def realcoords(con):
                 for x in range(4):
                     rcoord[a,b,c,x] = a*r[0]+b*r[1]+c*r[2]+NN[x]
     return rcoord
+
+
+def spin_q_e(con, rcoord, q):
+    d = con.shape[0]
+    ffact = np.exp(1j*contract('ik, xyzuk->ixyzu',q,rcoord))
+    S = contract('ixyzu, xyzus->is',ffact,con)
+    S = S / np.sqrt(d ** 3 * 4)
+    return S
+
 # @njit(cache=True)
+def SSSF_q_e(con, rcoord, q):
+    A = spin_q_e(con, rcoord, q)
+    B = spin_q_e(con, rcoord, -q)
+    return np.real(contract('ia, ib->iab',A,B))
+
+
 def spin_q(con, rcoord, q):
     d = con.shape[0]
     ffact = np.exp(1j*contract('ijk, xyzuk->ijxyzu',q,rcoord))
@@ -216,23 +231,10 @@ def spin_q(con, rcoord, q):
     return S
 
 # @njit(cache=True)
-# def spin_q(con, q):
-#     d = con.shape[0]
-#     ql = len(q)
-#     S = np.zeros((ql,ql,3))
-#     for a in range(d):
-#         for b in range(d):
-#             for c in range(d):
-#                 for x in range(4):
-#                     S[:,:] += np.exp(1j*np.dot(a*r[0]+b*r[1]+c*r[2]+NN[x],q))*con[a,b,c,x]
-#     return S
-
-
-# @njit(cache=True)
 def SSSF_q(con, rcoord, q):
     A = spin_q(con, rcoord, q)
     B = spin_q(con, rcoord, -q)
-    return np.real(contract('ija, jib->ijab',A,B))
+    return np.real(contract('ija, ijb->ijab',A,B))
 
 
 def SSSF(con, rcoord, nK, filename):
@@ -261,18 +263,24 @@ def SSSF(con, rcoord, nK, filename):
     SSSFGraph(A, B, S[:, :, 0, 2], f5)
     SSSFGraph(A, B, S[:, :, 1, 2], f6)
 
+BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
+
 # @njit(cache=True)
 def ordering_q(con, rcoord):
     K = genBZ(100)
-    q = np.zeros((3, 3, 3))
-    S = SSSF_q(con, rcoord, K)
+    S = np.abs(SSSF_q_e(con, rcoord, K))
 
-    ind = np.argmax(S, axis=0)
-
+    max = np.max(S)
+    ind = np.array([])
     for i in range(3):
         for j in range(3):
-            q[i,j] = K[ind[i,j],:]
-
+            tempind = np.where(S[:,i,j]==max)[0]
+            ind = np.concatenate((ind, tempind))
+    ind = np.array(ind.flatten(),dtype=int)
+    q = np.unique(np.mod(K[ind],1),axis=0)
+    if q.shape == (3,):
+        q = q.reshape(1,3)
+    contract('ij,jk->ik', q, BasisBZA)
     return q
 
 
@@ -371,17 +379,18 @@ h001 = np.array([0,0,1])
 
 def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
     con = np.copy(anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, n))
-    # graphconfig(con)
     rcoord = realcoords(con)
+    print(filename, ordering_q(con, rcoord))
     SSSF(con, rcoord, 50, filename)
 
-Jpm=0.2
-monte_SSSF('monte_carlo_files/test', -2*Jpm, 1, -2*Jpm, 0, h110, 0, 0, 1, 1, -9, 1, 100, 1000)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', -0.3, 1, 1, h110, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
-# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', 0.3, 1, 1, h111, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', -0.3, 1, 1, h111, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
-# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', 0.3, 1, 1, h001, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', -0.3, 1, 1, h001, 0, 0, 1, 8, -9, 1, 1e3, 1e5)
+
+monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_110', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', 0.6, 1, 0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', -0.6, 1, -0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', 0.6, 1, 0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', -0.6, 1, -0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', 0.6, 1, 0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
+
 
 
 
