@@ -11,7 +11,7 @@ import scipy as sp
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
+    ffact = np.exp(-1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                  np.exp(1j*A_pi_here), piunitcell)
     return M
@@ -19,7 +19,7 @@ def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
 
 def M_pi_sub_intrahopping_dd(k, alpha, Jpm, A_pi_rs_traced_here):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j * neta(alpha) * ffact)
+    ffact = np.exp(-1j * neta(alpha) * ffact)
     M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell,
                  piunitcell)
     return M
@@ -33,24 +33,24 @@ def M_pi(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_trac
 
     MAk = M_pi_sub_intrahopping_dd(k, 0, Jpm, A_pi_rs_traced_here)
     MBk = M_pi_sub_intrahopping_dd(k, 1, Jpm, A_pi_rs_traced_here)
-    MAnk = M_pi_sub_intrahopping_dd(-k, 0, Jpm, A_pi_rs_traced_here)
-    MBnk = M_pi_sub_intrahopping_dd(-k, 1, Jpm, A_pi_rs_traced_here)
+    # MAnk = M_pi_sub_intrahopping_dd(-k, 0, Jpm, A_pi_rs_traced_here)
+    # MBnk = M_pi_sub_intrahopping_dd(-k, 1, Jpm, A_pi_rs_traced_here)
 
     MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
-    MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here)
-    MagBnkAnk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
+    # MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here)
+    # MagBnkAnk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
 
     KK = np.block([[MAk, MagAkBk],
                    [MagBkAk, MBk]])
 
-    nKnK = np.block([[MAnk, MagAnkBnk],
-                   [MagBnkAnk, MBnk]])
+    # nKnK = np.block([[MAnk, MagAnkBnk],
+    #                [MagBnkAnk, MBnk]])
     dumz = np.zeros((len(k),8,8))
 
     FM = np.block([[KK, dumz, dumz, KK],
-                   [dumz, nKnK, nKnK, dumz],
-                   [dumz, nKnK, nKnK, dumz],
+                   [dumz, KK, KK, dumz],
+                   [dumz, KK, KK, dumz],
                    [KK, dumz, dumz, KK]])
     FM = FM + np.diag(np.ones(32)*Jzz/2)
     return FM

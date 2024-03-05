@@ -267,21 +267,32 @@ BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.
 
 # @njit(cache=True)
 def ordering_q(con, rcoord):
-    K = genBZ(100)
+    K = genBZ(101)
     S = np.abs(SSSF_q_e(con, rcoord, K))
+    Szz = S[:,2,2]
+    max = np.max(Szz)
+    indzz = np.array([])
+    tempindzz = np.where(Szz==max)[0]
+    indzz = np.concatenate((indzz, tempindzz))
+    indzz = np.array(indzz.flatten(),dtype=int)
+    qzz = np.unique(np.mod(K[indzz],1),axis=0)
+    if qzz.shape == (3,):
+        qzz = qzz.reshape(1,3)
+    qzz = contract('ij,jk->ik', qzz, BasisBZA)
 
-    max = np.max(S)
+
+    Sxx = S[:,0,0]
+    max = np.max(Sxx)
     ind = np.array([])
-    for i in range(3):
-        for j in range(3):
-            tempind = np.where(S[:,i,j]==max)[0]
-            ind = np.concatenate((ind, tempind))
+    tempind = np.where(Sxx==max)[0]
+    ind = np.concatenate((ind, tempind))
     ind = np.array(ind.flatten(),dtype=int)
     q = np.unique(np.mod(K[ind],1),axis=0)
     if q.shape == (3,):
         q = q.reshape(1,3)
-    contract('ij,jk->ik', q, BasisBZA)
-    return q
+    qxx = contract('ij,jk->ik', q, BasisBZA)
+    return qxx, qzz
+
 
 
 def plottetrahedron(x,y,z, ax):
