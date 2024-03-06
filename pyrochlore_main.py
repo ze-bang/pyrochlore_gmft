@@ -18,41 +18,44 @@ import pyrochlore_exclusive_boson as pyeb
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-# h=0
-# Jpm = 0.08
+h=0.1
+Jpm = -0.1
 # flux = np.zeros(4)
-# # flux = np.ones(4)*np.pi
-# py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-# print(py0s.occu_num())
-# py0s.graph(True)
+flux = np.ones(4)*np.pi
+py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+print(py0s.occu_num())
+py0s.graph(True)
+
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+py0s.solvemeanfield()
+py0s.graph(True)
+# h= np.linspace(0,0.51,60)
+# Jpm = np.linspace(0.04,0.1,60)
+# BZres = np.linspace(1,30,31,dtype=int)
+# ns = np.zeros(60)
 #
-h= np.linspace(0,0.51,60)
-Jpm = np.linspace(0.04,0.1,60)
-BZres = np.linspace(1,30,31,dtype=int)
-ns = np.zeros(60)
-
-GS0 = np.zeros(31)
-GSpi = np.zeros(31)
-GS0[:] = np.NaN
-GSpi[:] = np.NaN
-for i in range(31):
-    try:
-        py0s = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=BZres[i], h=h[0], n=h111, flux=np.zeros(4))
-        pypis = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=BZres[i], h=h[0], n=h111, flux=np.ones(4)*np.pi)
-        GS0[i] = py0s.GS()
-        GSpi[i] = pypis.GS()
-        if GS0[i] < GSpi[i]:
-            ns[i] = py0s.occu_num()
-        else:
-            ns[i] = pypis.occu_num()
-    except:
-        ns[i] = np.NaN
-    print(BZres[i], ns[i], GS0[i], GSpi[i])
-
-
-plt.plot(np.linspace(1,29,30), np.log(np.diff(GS0)), np.linspace(1,29,30), np.log(np.diff(GSpi)))
-plt.legend(['0', r'$\pi$'])
-plt.show()
+# GS0 = np.zeros(31)
+# GSpi = np.zeros(31)
+# GS0[:] = np.NaN
+# GSpi[:] = np.NaN
+# for i in range(31):
+#     try:
+#         py0s = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=BZres[i], h=h[0], n=h111, flux=np.zeros(4))
+#         pypis = pyeb.piFluxSolver(-2*Jpm[0], -2*Jpm[0], 1, kappa=2, graphres=graphres, BZres=BZres[i], h=h[0], n=h111, flux=np.ones(4)*np.pi)
+#         GS0[i] = py0s.GS()
+#         GSpi[i] = pypis.GS()
+#         if GS0[i] < GSpi[i]:
+#             ns[i] = py0s.occu_num()
+#         else:
+#             ns[i] = pypis.occu_num()
+#     except:
+#         ns[i] = np.NaN
+#     print(BZres[i], ns[i], GS0[i], GSpi[i])
+#
+#
+# plt.plot(np.linspace(1,29,30), np.log(np.diff(GS0)), np.linspace(1,29,30), np.log(np.diff(GSpi)))
+# plt.legend(['0', r'$\pi$'])
+# plt.show()
 # plt.plot(h, GSpi-GS0)
 # plt.show()
 # plt.plot(h, ns)

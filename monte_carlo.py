@@ -281,17 +281,17 @@ def ordering_q(con, rcoord):
     qzz = contract('ij,jk->ik', qzz, BasisBZA)
 
 
-    Sxx = S[:,0,0]
-    max = np.max(Sxx)
-    ind = np.array([])
-    tempind = np.where(Sxx==max)[0]
-    ind = np.concatenate((ind, tempind))
-    ind = np.array(ind.flatten(),dtype=int)
-    q = np.unique(np.mod(K[ind],1),axis=0)
-    if q.shape == (3,):
-        q = q.reshape(1,3)
-    qxx = contract('ij,jk->ik', q, BasisBZA)
-    return qxx, qzz
+    # Sxx = S[:,0,0]
+    # max = np.max(Sxx)
+    # ind = np.array([])
+    # tempind = np.where(Sxx==max)[0]
+    # ind = np.concatenate((ind, tempind))
+    # ind = np.array(ind.flatten(),dtype=int)
+    # q = np.unique(np.mod(K[ind],1),axis=0)
+    # if q.shape == (3,):
+    #     q = q.reshape(1,3)
+    # qxx = contract('ij,jk->ik', q, BasisBZA)
+    return qzz
 
 
 
@@ -391,8 +391,9 @@ h001 = np.array([0,0,1])
 def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
     con = np.copy(anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, n))
     rcoord = realcoords(con)
-    print(filename, ordering_q(con, rcoord))
-    SSSF(con, rcoord, 50, filename)
+    A = ordering_q(con, rcoord)
+    np.savetxt(filename+"_ordering_q.txt", A)
+    SSSF(con, rcoord, 100, filename)
 
 
 monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_110', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)

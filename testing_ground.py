@@ -378,10 +378,15 @@ def find_quotient_group(arr, equiv_relation):
 
 
 # Example usage
-arr = np.array([[0,1,1],[0,0,1],[1,0,1]])
-quotient_group = find_quotient_group(arr, equi_class_110)
-print("Quotient Group:")
-print(quotient_group)
+# arr = np.array([[0,1,1],[0,0,1],[1,0,1]])
+# quotient_group = find_quotient_group(arr, equi_class_110)
+# print("Quotient Group:")
+# print(quotient_group)
 # test= np.array(quotient_group, dtype=object)
 # print(test.shape)
 # print(test[0])
+
+x=np.linspace(0,1,3)
+b = np.array(np.meshgrid(x,x,x)).reshape((3,-1))
+
+print(b)
