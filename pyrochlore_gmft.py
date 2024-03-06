@@ -314,8 +314,8 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    if len(Know) >= 16:
-        Know = Know[0:16]
+    if len(Know) >= 8:
+        Know = Know[0:8]
     Enow = np.zeros(len(Know))
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
@@ -851,7 +851,7 @@ class piFluxSolver:
         searchGrid=34
         B = genBZ(searchGrid)
         M = M_pi(B, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin, self.qminT = findminLam(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+        minLams, self.qmin, self.qminT = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, chi0, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, searchGrid,
                                         self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)

@@ -18,13 +18,13 @@ import pyrochlore_exclusive_boson as pyeb
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0.1
-Jpm = -0.1
+h=1
+Jpm = -0.3
 # flux = np.zeros(4)
 flux = np.ones(4)*np.pi
-py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-print(py0s.occu_num())
-py0s.graph(True)
+# py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+# print(py0s.occu_num())
+# py0s.graph(True)
 
 py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 py0s.solvemeanfield()
