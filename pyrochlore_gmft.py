@@ -934,6 +934,7 @@ class piFluxSolver:
 
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
+        print(self.Jpm, self.h)
         start = time.time()
         self.findminLam(chi, chi0, xi)
         end = time.time()
