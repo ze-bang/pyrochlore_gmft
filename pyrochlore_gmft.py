@@ -314,8 +314,8 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
 
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    if len(Know) >= 16:
-        Know = Know[0:16]
+    if len(Know) >= minLamK:
+        Know = Know[0:minLamK]
     Enow = np.zeros(len(Know))
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,

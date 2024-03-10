@@ -714,7 +714,8 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin=10
+deltamin=5
+minLamK = 16
 
 def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     nodes1, weights1 = np.polynomial.legendre.leggauss(n)
