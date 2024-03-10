@@ -26,9 +26,9 @@ flux = np.ones(4)*np.pi
 # print(py0s.occu_num())
 # py0s.graph(True)
 
-py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-py0s.solvemeanfield()
-py0s.graph(True)
+# py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+# py0s.solvemeanfield()
+# py0s.graph(True)
 # h= np.linspace(0,0.51,60)
 # Jpm = np.linspace(0.04,0.1,60)
 # BZres = np.linspace(1,30,31,dtype=int)
@@ -164,16 +164,22 @@ py0s.graph(True)
 # MFEzzpp = np.zeros(n)
 # MFEpp00 = np.zeros(n)
 #
+JP = - 0.04
+h = 0.25
+n = h001
 # for i in range(n):
-#     A = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.zeros(4))
-#     B = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, 0, 0]))
-#     D = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([0, 0, np.pi, np.pi]))
-#     C = pycon.piFluxSolver(-2*JP[i], -2*JP[i], 1, kappa=2, graphres=graphres, BZres=BZres, h=h, n=h110, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-#
-#     A.solvemeanfield()
-#     B.solvemeanfield()
-#     D.solvemeanfield()
-#     C.solvemeanfield()
+A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.zeros(4))
+B = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, 0, 0, np.pi]))
+D = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([0, np.pi, np.pi, 0]))
+C = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+
+A.solvemeanfield()
+B.solvemeanfield()
+D.solvemeanfield()
+C.solvemeanfield()
+
+print(A.MFE(), A.condensed, A.qminT, A.qmin, B.MFE(), B.condensed, D.MFE(), D.condensed, C.MFE(), C.condensed)
+
 #     # print(D.MFE(),D.GS())
 #
 #     # GS0[i] = A.GS()
