@@ -11,17 +11,21 @@ import pyrochlore_gmft as pycon
 from variation_flux import *
 from phase_diagram import *
 import pyrochlore_exclusive_boson as pyeb
-# plotLinefromnetCDF(h100, h=0.18, diff=True)
-# plt.show()
+from observables import *
 
 # A = netCDF4.Dataset("Nia_Full_Scan/HanYan_100_Jpm_-0.1_0.1_h_0_0.3_0_flux_full_info.nc")
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=1
-Jpm = -0.3
-# flux = np.zeros(4)
-flux = np.ones(4)*np.pi
+h=0
+v = np.array([1,1,0])
+n=np.array([1,1,1])/np.sqrt(3)
+Jpm = 0.04
+flux = np.zeros(4)
+# flux = np.ones(4)*np.pi
+
+SSSF(50, -2*Jpm, 1, -2*Jpm, h, n, v, flux, 25, "test")
+
 # py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 # print(py0s.occu_num())
 # py0s.graph(True)

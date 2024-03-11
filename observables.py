@@ -43,8 +43,8 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     return Spm, Spp
 
 
-def DSSF(q, omega, pyp0, tol):
-    Ks = pyp0.bigB
+def DSSF_core(q, omega, pyp0, tol):
+    Ks = pyp0.pts
     Qs = Ks - q
 
     Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0)
@@ -87,7 +87,7 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 
     for i in range(currsize):
         for j in range(len(K)):
-            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF(K[j], currE[i], pyp0, tol)
+            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(K[j], currE[i], pyp0, tol)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
@@ -126,8 +126,8 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     return Spm, Spp
 
 
-def SSSF(q, v, pyp0):
-    Ks = pyp0.bigB
+def SSSF_core(q, v, pyp0):
+    Ks = pyp0.pts
     Qs = Ks - q
     v = v / magnitude(v)
 
@@ -179,7 +179,7 @@ def graph_SSSF(pyp0, K, V, rank, size):
         rectemp5 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF(currK[i], V, pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF_core(currK[i], V, pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp), 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
@@ -255,7 +255,6 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, filename, BZres):
         DSSFgraph(X, Y, d2, py0s, f2)
         DSSFgraph(X, Y, d3, py0s, f3)
         DSSFgraph(X, Y, d4, py0s, f4)
-        # plt.show()
 
 
 def samplegraph(nK, filenames):
@@ -283,11 +282,10 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
 
     py0s.solvemeanfield()
-
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape(2, -1).T
+    K = hkltoK(A, B).reshape((nK*nK,3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -297,7 +295,6 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
     rank = comm.Get_rank()
 
     d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
-
     if rank == 0:
         f1 = "Files/" + filename + "Szz_local"
         f2 = "Files/" + filename + "Szz_global"
@@ -305,6 +302,12 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
         f4 = "Files/" + filename + "Sxx_local"
         f5 = "Files/" + filename + "Sxx_global"
         f6 = "Files/" + filename + "Sxx_NSF"
+        d1 = d1.reshape((nK, nK))
+        d2 = d2.reshape((nK, nK))
+        d3 = d3.reshape((nK, nK))
+        d4 = d4.reshape((nK, nK))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)

@@ -777,9 +777,13 @@ class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
                  ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
         self.intmethod = intmethod
-        self.Jzz = Jzz
-        self.Jpm = -(Jxx + Jyy) / 4
-        self.Jpmpm = (Jxx - Jyy) / 4
+        J = np.array([Jxx, Jyy, Jzz])
+        a = np.argmax(J)
+        xx = np.mod(a+1,3)
+        yy = np.mod(a+2,3)
+        self.Jzz = J[a]
+        self.Jpm = -(J[xx] + J[yy]) / 4
+        self.Jpmpm = (J[xx] - J[yy]) / 4
         self.theta = theta
         self.kappa = kappa
         self.tol = tol
@@ -934,15 +938,8 @@ class piFluxSolver:
 
     def condensation_check(self, mfs):
         chi, chi0, xi = mfs
-        print(self.Jpm, self.h)
-        start = time.time()
         self.findminLam(chi, chi0, xi)
-        end = time.time()
-        print('Find minimum lambda costs '+ str(end-start))
-        start = time.time()
         self.lams = self.findLambda()
-        end = time.time()
-        print('Find lambda costs '+ str(end-start))
         self.set_condensed()
         self.ifcondense()
         self.set_delta()
