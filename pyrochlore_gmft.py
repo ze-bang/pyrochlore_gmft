@@ -622,9 +622,8 @@ def green_pi(E, V, Jzz):
     return green
 
 def green_pi_branch(E, V, Jzz):
-    Vt = contract('ijk, ilk->iklj', V, np.conj(V))
     green = Jzz / E
-    green = contract('ikjl, ik->ikjl', Vt, green)
+    green = contract('ilk, ijk, ik->ikjl', V, np.conj(V), green)
     return green
 
 

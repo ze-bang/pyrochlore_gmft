@@ -234,7 +234,7 @@ def spin_q(con, rcoord, q):
 def SSSF_q(con, rcoord, q):
     A = spin_q(con, rcoord, q)
     B = spin_q(con, rcoord, -q)
-    return np.real(contract('ija, ijb->ijab',A,B))
+    return np.real(contract('ija, ijb->abij',A,B))
 
 
 def SSSF(con, rcoord, nK, filename):
@@ -242,26 +242,28 @@ def SSSF(con, rcoord, nK, filename):
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
     K = hkltoK(A, B)
-    S = SSSF_q(con, rcoord, K)
+    K = K.reshape((nK*nK,3))
+    S = SSSF_q_e(con, rcoord, K)
     f1 = filename + "Sxx_local"
     f2 = filename + "Syy_local"
     f3 = filename + "Szz_local"
     f4 = filename + "Sxy_local"
     f5 = filename + "Sxz_local"
     f6 = filename + "Syz_local"
+    S = contract('ijab->abij',S.reshape((nK, nK,3,3)))
 
-    np.savetxt(f1 + '.txt', S[:,:,0,0])
-    np.savetxt(f2 + '.txt', S[:,:,1,1])
-    np.savetxt(f3 + '.txt', S[:,:,2,2])
-    np.savetxt(f4 + '.txt', S[:,:,0,1])
-    np.savetxt(f5 + '.txt', S[:,:,0,2])
-    np.savetxt(f6 + '.txt', S[:,:,1,2])
-    SSSFGraph(A, B, S[:,:,0,0], f1)
-    SSSFGraph(A, B, S[:,:,1,1], f2)
-    SSSFGraph(A, B, S[:,:,2,2], f3)
-    SSSFGraph(A, B, S[:, :, 0, 1], f4)
-    SSSFGraph(A, B, S[:, :, 0, 2], f5)
-    SSSFGraph(A, B, S[:, :, 1, 2], f6)
+    np.savetxt(f1 + '.txt', S[0,0])
+    np.savetxt(f2 + '.txt', S[1,1])
+    np.savetxt(f3 + '.txt', S[2,2])
+    np.savetxt(f4 + '.txt', S[0,1])
+    np.savetxt(f5 + '.txt', S[0,2])
+    np.savetxt(f6 + '.txt', S[1,2])
+    SSSFGraph(A, B, S[0,0], f1)
+    SSSFGraph(A, B, S[1,1], f2)
+    SSSFGraph(A, B, S[2,2], f3)
+    SSSFGraph(A, B, S[0, 1], f4)
+    SSSFGraph(A, B, S[0, 2], f5)
+    SSSFGraph(A, B, S[1, 2], f6)
 
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
@@ -396,13 +398,15 @@ def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntem
     SSSF(con, rcoord, 100, filename)
 
 
-monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_110', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
-monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', 0.6, 1, 0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
-monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', -0.6, 1, -0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
-monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', 0.6, 1, 0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
-monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', -0.6, 1, -0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
-monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', 0.6, 1, 0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
+monte_SSSF('test', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 1, -9, 1, 1000, 10000)
 
+# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_110', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', 0.6, 1, 0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
+# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', -0.6, 1, -0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', 0.6, 1, 0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
+# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', -0.6, 1, -0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
+# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', 0.6, 1, 0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
+#
 
 
 
