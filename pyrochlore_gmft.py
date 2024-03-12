@@ -307,16 +307,18 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     E, V = np.linalg.eigh(M)
     E = E[:,0]
     Em = E.min()
-    dex = np.where(np.abs(E-Em)<1e-13)
+    dex = np.where(np.abs(E-Em)<5e-16)
     Know = K[dex]
     Know = np.unique(np.mod(Know, 1), axis=1)
+    if Know.shape == (3,):
+        Know = Know.reshape(1,3)
     Know = symmetry_equivalence(Know, equi_class_flux)
     Know = symmetry_equivalence(Know, equi_class_field)
 
-    if Know.shape == (3,):
-        Know = Know.reshape(1,3)
+
     if len(Know) >= minLamK:
         Know = Know[0:minLamK]
+
     Enow = np.zeros(len(Know))
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here,
@@ -325,15 +327,13 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
     Enowm = Enow.min()
-    dex = np.where(abs(Enow-Enowm)<1e-13)
+    dex = np.where(abs(Enow-Enowm)<5e-16)
     Know = Know[dex]
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     KnowF = gen_equi_class_field(Know)
     KnowF = gen_equi_class_flux(KnowF)
-
     KnowF = np.unique(np.mod(KnowF, 1),axis=0)
-    Know = np.unique(np.mod(Know, 1),axis=0)
     if KnowF.shape == (3,):
         KnowF = KnowF.reshape(1,3)
     return -Enowm, KnowF, Know

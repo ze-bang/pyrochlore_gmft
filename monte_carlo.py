@@ -281,18 +281,6 @@ def ordering_q(con, rcoord):
     if qzz.shape == (3,):
         qzz = qzz.reshape(1,3)
     qzz = contract('ij,jk->ik', qzz, BasisBZA)
-
-
-    # Sxx = S[:,0,0]
-    # max = np.max(Sxx)
-    # ind = np.array([])
-    # tempind = np.where(Sxx==max)[0]
-    # ind = np.concatenate((ind, tempind))
-    # ind = np.array(ind.flatten(),dtype=int)
-    # q = np.unique(np.mod(K[ind],1),axis=0)
-    # if q.shape == (3,):
-    #     q = q.reshape(1,3)
-    # qxx = contract('ij,jk->ik', q, BasisBZA)
     return qzz
 
 
