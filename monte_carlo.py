@@ -5,6 +5,8 @@ from numba import njit
 from mpi4py import MPI
 from misc_helper import hkltoK, genBZ
 from archive.spinon_con import SSSFGraph
+import h5py
+import os
 
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
@@ -176,16 +178,12 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     # comm = MPI.COMM_WORLD
     # rank = comm.Get_rank()
 
-    x = Tinit*np.logspace(1, Target, ntemp)
+    x = Tinit*np.logspace(0, Target, ntemp)
 
     for i in x:
-        if i > 1e-8:
-            single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
-        else:
-            deterministic_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
-        # con = temp
-        # print(con)
-        # print("------------------------------------------------")
+        print(i)
+        single_sweep(con, nsweep, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, i)
+    deterministic_sweep(con, 1000000, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
     return con
 
 r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])*2
@@ -196,7 +194,7 @@ NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])
 
 def magnetization(con):
     mag = contract('ijkus->s', con)
-    return mag/(con.shape[0]**3*4)
+    return mag/(con.shape[0]**3*4)/2
 @njit
 def realcoords(con):
     d = con.shape[0]
@@ -268,21 +266,27 @@ def SSSF(con, rcoord, nK, filename):
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
 # @njit(cache=True)
-def ordering_q(con, rcoord):
+def ordering_q_slice(con, rcoord, ind):
     K = genBZ(101)
     S = np.abs(SSSF_q_e(con, rcoord, K))
-    Szz = S[:,2,2]
+    Szz = S[:,ind,ind]
     max = np.max(Szz)
-    indzz = np.array([])
-    tempindzz = np.where(Szz==max)[0]
-    indzz = np.concatenate((indzz, tempindzz))
-    indzz = np.array(indzz.flatten(),dtype=int)
-    qzz = np.unique(np.mod(K[indzz],1),axis=0)
+    if max < 1e-13:
+        qzz = np.array([np.NaN, np.NaN, np.NaN])
+    else:
+        indzz = np.array([])
+        tempindzz = np.where(Szz==max)[0]
+        indzz = np.concatenate((indzz, tempindzz))
+        indzz = np.array(indzz.flatten(),dtype=int)
+        qzz = np.unique(np.mod(K[indzz],1),axis=0)
     if qzz.shape == (3,):
         qzz = qzz.reshape(1,3)
     qzz = contract('ij,jk->ik', qzz, BasisBZA)
     return qzz
 
+def ordering_q(con, rcoord):
+    temp = np.concatenate((ordering_q_slice(con, rcoord, 0),ordering_q_slice(con, rcoord, 1),ordering_q_slice(con, rcoord, 2)))
+    return temp
 
 
 def plottetrahedron(x,y,z, ax):
@@ -381,21 +385,42 @@ h001 = np.array([0,0,1])
 def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
     con = np.copy(anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, n))
     rcoord = realcoords(con)
+    f = h5py.File(filename+".h5", 'w')
+    f.create_dataset("spins", data=con)
+    f.create_dataset("positions", data=rcoord)
+    f.close()
     A = ordering_q(con, rcoord)
-    np.savetxt(filename+"_ordering_q.txt", A)
+    np.savetxt(filename+"ordering_q.txt", A)
+    M = magnetization(con)
+    np.savetxt(filename+"magnetization.txt",M)
     SSSF(con, rcoord, 100, filename)
 
+def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
+    hs = np.linspace(hmin, hmax,nScan)
+    if not os.path.isdir(dirname):
+        os.mkdir(dirname)
+    dirString = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+    else:
+        dirString = "111"
 
-monte_SSSF('test', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 1, -9, 1, 1000, 10000)
+    for i in hs:
+        filename = dirname+"h_"+dirString+"="+str(i)
+        print(filename)
+        monte_SSSF(filename, Jxx, Jyy, Jzz, i, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep)
 
-# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_110', -0.6, 1, -0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_110', 0.6, 1, 0.6, 1, h110, 0, 0, 1, 2, -9, 1, 1000, 10000)
-# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_111', -0.6, 1, -0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_111', 0.6, 1, 0.6, 1, h111, 0, 0, 1, 2, -9, 1, 1000, 10000)
-# monte_SSSF('monte_carlo_files/Jpm_0.3_h=1_001', -0.6, 1, -0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
-# monte_SSSF('monte_carlo_files/Jpm_-0.3_h=1_001', 0.6, 1, 0.6, 1, h001, 0, 0, 1, 2, -9, 1, 1000, 10000)
-#
+def scan_all(n):
+    scan_line('monte_carlo_files/Jpm_0.3/', -0.6, 1, -0.6, 0, 1, 20, n, 0, 0, 1, 2, -7, 1, 200, 100000)
+    scan_line('monte_carlo_files/Jpm_-0.3/', 0.6, 1, 0.6, 0, 1, 20, n, 0, 0, 1, 2, -7, 1, 200, 100000)
+    scan_line('monte_carlo_files/Jpm_0.1/', -0.2, 1, -0.2, 0, 1, 20, n, 0, 0, 1, 2, -7, 1, 200, 100000)
+    scan_line('monte_carlo_files/Jpm_-0.1/', 0.2, 1, 0.2, 0, 1, 20, n, 0, 0, 1, 2, -7, 1, 200, 100000)
 
+scan_all(h111)
+scan_all(h110)
+scan_all(h001)
 
 
 
