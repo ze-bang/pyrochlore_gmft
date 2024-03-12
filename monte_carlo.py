@@ -409,7 +409,6 @@ def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Targe
 
     for i in hs:
         filename = dirname+"h_"+dirString+"="+str(i)
-        print(filename)
         monte_SSSF(filename, Jxx, Jyy, Jzz, i, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep)
 
 def scan_all(n, L):
