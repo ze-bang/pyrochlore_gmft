@@ -307,9 +307,9 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
     E, V = np.linalg.eigh(M)
     E = E[:,0]
     Em = E.min()
-    dex = np.where(np.abs(E-Em)<5e-16)
+    dex = np.where(np.abs(E-Em)<3e-16)
     Know = K[dex]
-    Know = np.unique(np.mod(Know, 1), axis=1)
+    Know = np.unique(np.mod(Know, 1), axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     Know = symmetry_equivalence(Know, equi_class_flux)
@@ -327,7 +327,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
     Enowm = Enow.min()
-    dex = np.where(abs(Enow-Enowm)<5e-16)
+    dex = np.where(abs(Enow-Enowm)<3e-16)
     Know = Know[dex]
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
