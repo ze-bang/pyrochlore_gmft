@@ -667,10 +667,10 @@ def BZbasis(mu):
 
 
 
-def hkltoK(H, L):
+def hhltoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([np.pi,np.pi,0])) + np.einsum('ij,k->ijk',L, np.array([0,0,np.pi]))
-def hkltoK(H, L):
-    return np.einsum('ij,k->ijk',H, np.array([np.pi,np.pi,0])) + np.einsum('ij,k->ijk',L, np.array([0,0,np.pi]))
+def hkztoK(H, L):
+    return np.einsum('ij,k->ijk',H, np.array([np.pi,0,0])) + np.einsum('ij,k->ijk',L, np.array([0,np.pi,0]))
 
 def gangchen(mu):
     if mu == 0:

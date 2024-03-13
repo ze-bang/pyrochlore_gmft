@@ -3,7 +3,7 @@ import numpy as np
 from opt_einsum import contract
 from numba import njit
 from mpi4py import MPI
-from misc_helper import hkltoK, genBZ
+from misc_helper import hhltoK, hkztoK, genBZ
 from archive.spinon_con import SSSFGraph
 import h5py
 import os
@@ -186,9 +186,9 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     deterministic_sweep(con, 1000000, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec)
     return con
 
-r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])*2
+r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])
 
-NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])
+NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])/4
 
 
 
@@ -235,11 +235,14 @@ def SSSF_q(con, rcoord, q):
     return np.real(contract('ija, ijb->abij',A,B))
 
 
-def SSSF(con, rcoord, nK, filename):
+def SSSF(con, rcoord, nK, filename, n):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B)
+    if (n == np.array([0,0,1])).all():
+        K = hkztoK(A, B)
+    else:
+        K = hhltoK(A, B)
     K = K.reshape((nK*nK,3))
     S = SSSF_q_e(con, rcoord, K)
     f1 = filename + "Sxx_local"
@@ -393,7 +396,7 @@ def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntem
     np.savetxt(filename+"ordering_q.txt", A)
     M = magnetization(con)
     np.savetxt(filename+"magnetization.txt",M)
-    SSSF(con, rcoord, 100, filename)
+    SSSF(con, rcoord, 100, filename, n)
 
 def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
     hs = np.linspace(hmin, hmax,nScan)

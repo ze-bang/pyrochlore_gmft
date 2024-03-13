@@ -534,7 +534,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, BZres, filename, pi, flux=np.zeros(4)):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape(2,-1).T
+    K = hhltoK(A, B).reshape(2, -1).T
 
     
     if not MPI.Is_initialized():
@@ -587,7 +587,7 @@ def TWOSPINCON(nK, h, n, Jxx, Jyy, Jzz, BZres, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape(3,-1).T
+    K = hhltoK(A, B).reshape(3, -1).T
 
     n = len(K)/size
     left = int(rank*n)
@@ -638,7 +638,7 @@ def TWOSPINCON_0(nK, h, n, Jxx, Jyy, Jzz, BZres, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape(3, -1).T
+    K = hhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)
@@ -687,7 +687,7 @@ def TWOSPINCON_general(nK, h, n, Jxx, Jyy, Jzz, BZres, flux, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hkltoK(A, B).reshape(3, -1).T
+    K = hhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)
