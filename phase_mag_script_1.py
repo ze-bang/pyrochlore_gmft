@@ -9,12 +9,9 @@ from observables import *
 
 # findPhaseMag111_ex(-0.5, 0.1, 100, 0, 1, 100, h111, 17, 2, "phase_111_kappa=2_ex")
 # findPhaseMag111(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, "phase_111_kappa=2")
+Jpm = 0.02
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
 
-Jpm = -0.05
-nH = 40
-h = np.linspace(0, 0.5, 40)
-
-for i in range(nH):
-    SSSF(100, -2*Jpm, -2*Jpm, 1, h[i], h110, np.array([1,1,0]),np.array([0,0,np.pi,np.pi]),30,"SSSF_00pp_Jpm=-0.03_h110="+str(h[i]))
-    SSSF(100, -2*Jpm, -2*Jpm, 1, h[i], h110, np.array([1,1,0]),np.array([0,0,0,0]),30,"SSSF_0_Jpm=-0.03_h110=0.5"+str(h[i]))
-    SSSF(100, -2*Jpm, -2*Jpm, 1, h[i], h110, np.array([1,1,0]),np.array([np.pi,np.pi,np.pi,np.pi]),30,"SSSF_pi_Jpm=-0.03_h110=0.5"+str(h[i]))
+DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.zeros(4),30, "Files/DSSF/Jpm=0.02_0")
+DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")

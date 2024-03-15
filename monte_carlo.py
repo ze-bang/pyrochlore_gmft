@@ -423,7 +423,7 @@ def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Targe
 
 
     for i in range(currsizeK):
-        filename = dirname+"h_"+dirString+"="+str(currH[i])+"/"
+        filename = dirname+"h_"+dirString+"/h="+str(currH[i])+"/"
         if not os.path.isdir(filename):
             os.mkdir(filename)
         monte_SSSF(filename, Jxx, Jyy, Jzz, currH[i], n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep)
@@ -434,7 +434,7 @@ def scan_all(n, L):
     scan_line('./monte_carlo_files/Jpm_0.1/', -0.2, 1, -0.2, 0, 1, 20, n, 0, 0, 1, L, -9, 1, 250, 100000)
     scan_line('./monte_carlo_files/Jpm_-0.1/', 0.2, 1, 0.2, 0, 1, 20, n, 0, 0, 1, L, -9, 1, 250, 100000)
 
-
+#Compute Modern Tex
 
 
 

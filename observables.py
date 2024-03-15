@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import pyrochlore_gmft as pycon
 from mpi4py import MPI
-
+import os
 def delta(Ek, Eq, omega, tol):
     beta = 0
     size = Ek.shape[1]
@@ -224,7 +224,53 @@ def SSSFGraph(A, B, d1, filename):
 
 # region SSSF DSSF Admin
 
-def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, filename, BZres):
+
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, L)
+    if (n==np.array([0,0,1])).all():
+        K = hkztoK(A, B).reshape((nK * nK, 3))
+    else:
+        K = hhltoK(A, B).reshape((nK * nK, 3))
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    if rank == 0:
+        f1 = filename + "Szz_local"
+        f2 = filename + "Szz_global"
+        f3 = filename + "Szz_NSF"
+        f4 = filename + "Sxx_local"
+        f5 = filename + "Sxx_global"
+        f6 = filename + "Sxx_NSF"
+        d1 = d1.reshape((nK, nK))
+        d2 = d2.reshape((nK, nK))
+        d3 = d3.reshape((nK, nK))
+        d4 = d4.reshape((nK, nK))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        np.savetxt(f4 + '.txt', d4)
+        np.savetxt(f5 + '.txt', d5)
+        np.savetxt(f6 + '.txt', d6)
+        SSSFGraph(A, B, d1, f1)
+        SSSFGraph(A, B, d2, f2)
+        SSSFGraph(A, B, d3, f3)
+        SSSFGraph(A, B, d4, f4)
+        SSSFGraph(A, B, d5, f5)
+        SSSFGraph(A, B, d6, f6)
+
+def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
@@ -256,7 +302,6 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, filename, BZres):
         DSSFgraph(X, Y, d3, py0s, f3)
         DSSFgraph(X, Y, d4, py0s, f4)
 
-
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))
 
@@ -277,50 +322,34 @@ def samplegraph(nK, filenames):
             axs[j, i].set_xlabel(r'$(H,H,0)$')
     plt.show()
 
-
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
-
-    py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    L = np.linspace(-2.5, 2.5, nK)
-    A, B = np.meshgrid(H, L)
-    K = hhltoK(A, B).reshape((nK * nK, 3))
-
-    if not MPI.Is_initialized():
-        MPI.Init()
-
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-
-    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
-    if rank == 0:
-        f1 = "Files/" + filename + "Szz_local"
-        f2 = "Files/" + filename + "Szz_global"
-        f3 = "Files/" + filename + "Szz_NSF"
-        f4 = "Files/" + filename + "Sxx_local"
-        f5 = "Files/" + filename + "Sxx_global"
-        f6 = "Files/" + filename + "Sxx_NSF"
-        d1 = d1.reshape((nK, nK))
-        d2 = d2.reshape((nK, nK))
-        d3 = d3.reshape((nK, nK))
-        d4 = d4.reshape((nK, nK))
-        d5 = d5.reshape((nK, nK))
-        d6 = d6.reshape((nK, nK))
-        np.savetxt(f1 + '.txt', d1)
-        np.savetxt(f2 + '.txt', d2)
-        np.savetxt(f3 + '.txt', d3)
-        np.savetxt(f4 + '.txt', d4)
-        np.savetxt(f5 + '.txt', d5)
-        np.savetxt(f6 + '.txt', d6)
-        SSSFGraph(A, B, d1, f1)
-        SSSFGraph(A, B, d2, f2)
-        SSSFGraph(A, B, d3, f3)
-        SSSFGraph(A, B, d4, f4)
-        SSSFGraph(A, B, d5, f5)
-        SSSFGraph(A, B, d6, f6)
-
+def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, v, flux, BZres, dirname):
+    hs = np.linspace(hmin, hmax, nH)
+    dirString = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+    else:
+        dirString = "111"
+    for i in range(nH):
+        filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
+        if not os.path.isdir(filename):
+            os.mkdir(filename)
+        SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, v, flux, BZres, filename)
+def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
+    hs = np.linspace(hmin, hmax, nH)
+    dirString = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+    else:
+        dirString = "111"
+    for i in range(nH):
+        filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
+        if not os.path.isdir(filename):
+            os.mkdir(filename)
+        DSSF(nE, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
 
 # endregion
 
