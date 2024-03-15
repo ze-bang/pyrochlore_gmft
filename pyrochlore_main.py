@@ -17,21 +17,22 @@ from observables import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0
+h=0.3
 v = np.array([1,1,0])
 n=np.array([1,1,1])/np.sqrt(3)
-Jpm = 0.04
+Jpm = 0.02
 flux = np.zeros(4)
 # flux = np.ones(4)*np.pi
 
-SSSF(50, -2*Jpm, 1, -2*Jpm, h, n, v, flux, 25, "test")
+# SSSF(50, -2*Jpm, 1, -2*Jpm, h, n, v, flux, 25, "test")
 
 # py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 # print(py0s.occu_num())
 # py0s.graph(True)
 
-# py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-# py0s.solvemeanfield()
+py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+py0s.solvemeanfield()
+print(py0s.magnetization())
 # py0s.graph(True)
 # h= np.linspace(0,0.51,60)
 # Jpm = np.linspace(0.04,0.1,60)
