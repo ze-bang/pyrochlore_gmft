@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import os 
+os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 import numpy as np
 from opt_einsum import contract
 from numba import njit
@@ -23,11 +25,11 @@ coord = np.array([x,y,z])
 
 
 
-@njit(cache=True)
+@njit 
 def initialize_con(d):
     return get_random_spin((d,d,d,4))
 
-@njit(cache=True)
+@njit 
 def get_random_spin(shape):
     phi = np.random.uniform(0, 2*np.pi, shape)
     theta = np.arccos(np.random.uniform(-1, 1, shape))
@@ -37,7 +39,7 @@ def get_random_spin(shape):
     temp[..., 2] = np.cos(theta)
     return temp
 
-@njit(cache=True)
+@njit 
 def get_random_spin_single():
     phi = np.random.uniform(0, 2*np.pi)
     theta = np.arccos(np.random.uniform(-1, 1))
@@ -59,7 +61,7 @@ def get_random_spin_single():
 #   (i, j, k+1), u = 0; (i-1, j, k+1), u = 1; (i, j-1, k+1), u = 2
 
 # nearest neighbour based on
-@njit(cache=True)
+@njit 
 def indices(i,j,k,u,d):
     if u == 0:
         return np.array([[np.mod(i-1, d), j, k, 1], [i, np.mod(j-1, d), k, 2], [i, j, np.mod(k-1, d), 3]])
@@ -70,7 +72,7 @@ def indices(i,j,k,u,d):
     if u == 3:
         return np.array([[i, j, np.mod(k+1, d), 0], [np.mod(i-1, d), j, np.mod(k+1, d), 1], [i, np.mod(j-1, d), np.mod(k+1, d), 2]])
 
-@njit(cache=True)
+@njit 
 def project(s, u):
     temp = np.zeros(3)
     temp[0] = np.dot(s, x[u])
@@ -78,12 +80,12 @@ def project(s, u):
     temp[2] = np.dot(s, z[u])
     return temp
 
-@njit(cache=True)
+@njit 
 def localdot(k1, k2, Jxx, Jyy, Jzz):
     a, b, c = k1
     d, e, f = k2
     return Jxx*a*d+ Jyy*b*e + Jzz*c*f
-@njit(cache=True)
+@njit 
 def dot(k1, k2):
     a, b, c = k1
     d, e, f = k2
@@ -100,13 +102,13 @@ def energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz):
         sum += localdot(con[i,j,k,u], con[g[0], g[1], g[2],g[3]], Jxx, Jyy, Jzz)
     return sum/2
 
-@njit(cache=True)
+@njit 
 def energy_single_site(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     mag = dot(x[u], h*n) * gx * con[i,j,k,u,0] + dot(z[u], h*n) *gz * con[i,j,k,u,2] + dot(y[u], h*n) *gy * h**3 * (n[1]**3-3*n[0]**2*n[1]) *con[i,j,k,u,1]
     energy = energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz)
     return energy - mag
 
-@njit(cache=True)
+@njit 
 def NN_field(con, i, j, k, u, Jxx, Jyy, Jzz):
     sum = np.zeros(3)
     for v in range(4):
@@ -126,7 +128,7 @@ def NN_field(con, i, j, k, u, Jxx, Jyy, Jzz):
         sum += temp
     return sum/2
 
-@njit(cache=True)
+@njit 
 def get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     temp = NN_field(con, i, j, k, u, Jxx, Jyy, Jzz)
     # print(temp)
@@ -167,12 +169,12 @@ def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
 
     return 0
 
-@njit(cache=True)
+@njit 
 def annealing_schedule(x):
     return np.exp(-x)
 
 
-@njit(cache=True)
+@njit 
 def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     con = initialize_con(d)
     # comm = MPI.COMM_WORLD
@@ -214,7 +216,7 @@ def spin_q_e(con, rcoord, q):
     S = S / np.sqrt(d ** 3 * 4)
     return S
 
-# @njit(cache=True)
+# @njit 
 def SSSF_q_e(con, rcoord, q):
     A = spin_q_e(con, rcoord, q)
     B = spin_q_e(con, rcoord, -q)
@@ -228,7 +230,7 @@ def spin_q(con, rcoord, q):
     S = S / np.sqrt(d ** 3 * 4)
     return S
 
-# @njit(cache=True)
+# @njit 
 def SSSF_q(con, rcoord, q):
     A = spin_q(con, rcoord, q)
     B = spin_q(con, rcoord, -q)
@@ -268,7 +270,7 @@ def SSSF(con, rcoord, nK, filename, n):
 
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
-# @njit(cache=True)
+# @njit 
 def ordering_q_slice(con, rcoord, ind):
     K = genBZ(101)
     S = np.abs(SSSF_q_e(con, rcoord, K))
