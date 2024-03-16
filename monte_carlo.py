@@ -91,7 +91,7 @@ def dot(k1, k2):
     d, e, f = k2
     return  (a*d+b*e) +c*f
 
-@njit(fastmath=True, cache=True)
+@njit
 def energy_single_site_NN(con, i, j, k, u, Jxx, Jyy, Jzz):
     sum = 0.0
     for v in range(4):
@@ -139,7 +139,7 @@ def get_deterministic_angle(con, Jxx, Jyy, Jzz, gx, gy, gz, h, n, i, j, k, u):
     else:
         return temp
 
-@njit(cache=True, fastmath=True)
+@njit
 def single_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, T):
     enconold = 0.0
     for i in range(n):
@@ -158,7 +158,7 @@ def single_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec, T):
                             con[j,k,l,s] = temp
     return 0
 
-@njit(fastmath=True, cache=True)
+@njit
 def deterministic_sweep(con, n, d, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
     for i in range(n):
         for j in range(d):
@@ -330,7 +330,6 @@ def graphconfig(con):
     plt.savefig("test_monte_carlo.png")
     plt.show()
 
-# @njit(cache=True, fastmath=True)
 def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     Jx = np.linspace(-1, 1, nK)
     Jz = np.linspace(-1, 1, nK)
