@@ -6,6 +6,7 @@ from matplotlib import cm
 import pyrochlore_gmft as pycon
 from mpi4py import MPI
 import os
+import pathlib
 def delta(Ek, Eq, omega, tol):
     beta = 0
     size = Ek.shape[1]
@@ -333,8 +334,7 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, v, flux, BZres, dirname):
         dirString = "111"
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
-        if not os.path.isdir(filename):
-            os.mkdir(filename)
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, v, flux, BZres, filename)
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
@@ -347,8 +347,7 @@ def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         dirString = "111"
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
-        if not os.path.isdir(filename):
-            os.mkdir(filename)
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         DSSF(nE, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
 
 # endregion

@@ -8,7 +8,7 @@ from mpi4py import MPI
 from misc_helper import hhltoK, hkztoK, genBZ
 from archive.spinon_con import SSSFGraph
 import h5py
-import os
+import pathlib
 
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
@@ -402,8 +402,7 @@ def monte_SSSF(filename, Jxx, Jyy, Jzz, h, n, gx, gy, gz, d, Target, Tinit, ntem
 
 def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep):
     hs = np.linspace(hmin, hmax,nScan)
-    if not os.path.isdir(dirname):
-        os.mkdir(dirname)
+    pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
     dirString = ""
     if (n==np.array([0,0,1])).all():
         dirString = "001"
@@ -426,8 +425,7 @@ def scan_line(dirname, Jxx, Jyy, Jzz, hmin, hmax, nScan, n, gx, gy, gz, d, Targe
 
     for i in range(currsizeK):
         filename = dirname+"h_"+dirString+"/h="+str(currH[i])+"/"
-        if not os.path.isdir(filename):
-            os.mkdir(filename)
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         monte_SSSF(filename, Jxx, Jyy, Jzz, currH[i], n, gx, gy, gz, d, Target, Tinit, ntemp, nsweep)
 
 def scan_all(n, L):
