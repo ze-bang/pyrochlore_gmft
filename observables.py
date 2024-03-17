@@ -233,9 +233,9 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
     if (n==np.array([0,0,1])).all():
-        K = hkztoK(A, B).reshape((nK * nK, 3))
+        K = hkztoK(A, B).reshape((3, -1)).T
     else:
-        K = hhltoK(A, B).reshape((nK * nK, 3))
+        K = hhltoK(A, B).reshape((3, -1)).T
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -336,6 +336,7 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, v, flux, BZres, dirname):
         filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, v, flux, BZres, filename)
+
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
