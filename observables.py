@@ -233,9 +233,9 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
     if (n==np.array([0,0,1])).all():
-        K = hkztoK(A, B).reshape((3, -1)).T
+        K = hkztoK(A, B).reshape((nK*nK,3))
     else:
-        K = hhltoK(A, B).reshape((3, -1)).T
+        K = hhltoK(A, B).reshape((nK*nK,3))
 
     if not MPI.Is_initialized():
         MPI.Init()
