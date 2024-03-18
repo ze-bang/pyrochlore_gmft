@@ -9,9 +9,9 @@ from observables import *
 
 # findPhaseMag111_ex(-0.5, 0.1, 100, 0, 1, 100, h111, 17, 2, "phase_111_kappa=2_ex")
 # findPhaseMag111(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, "phase_111_kappa=2")
-Jpm = 0.02
+Jpm = -0.04
 
-SSSF(100, -2*Jpm, -2*Jpm, 1, 0, h111, h110, np.zeros(4),30, "test")
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0, h111, h110, np.ones(4)*np.pi, 30, "test")
 
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
