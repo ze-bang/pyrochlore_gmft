@@ -585,35 +585,35 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
-
-def green_pi_phid_phi(E, V, Jzz):
-    Vt1 = contract('ijk, ilk->iklj', V[:, :, 0:8], np.conj(V)[:, :, 0:8])
-    Vt2 = contract('ijk, ilk->iklj', V[:, :, 8:16], np.conj(V)[:, :, 8:16])
-    green = Jzz / E
-    green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
-    green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
-
-    return green1 + green2
-
-
-def green_pi_phid_phid(E, V, Jzz):
-    V = np.conj(np.transpose(V, (0, 2, 1)))
-    Vt1 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
-    Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 8:16], V[:, 0:8, 0:8])
-    green = Jzz / E
-    green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
-    green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
-    return green1 + green2
-
-
-def green_pi_wrong(E, V, Jzz):
-    green_phid_phid = green_pi_phid_phid(E, V, Jzz)
-    green_phi_phi = np.transpose(np.conj(green_phid_phid), (0, 2, 1))
-    green_phid_phi = green_pi_phid_phi(E, V, Jzz)
-    green = np.block([[green_phid_phi[:, 0:8, 0:8], green_phid_phid],
-                      [green_phi_phi, green_phid_phi[:, 8:16, 8:16]]])
-
-    return green
+#
+# def green_pi_phid_phi(E, V, Jzz):
+#     Vt1 = contract('ijk, ilk->iklj', V[:, :, 0:8], np.conj(V)[:, :, 0:8])
+#     Vt2 = contract('ijk, ilk->iklj', V[:, :, 8:16], np.conj(V)[:, :, 8:16])
+#     green = Jzz / E
+#     green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
+#     green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
+#
+#     return green1 + green2
+#
+#
+# def green_pi_phid_phid(E, V, Jzz):
+#     V = np.conj(np.transpose(V, (0, 2, 1)))
+#     Vt1 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
+#     Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 8:16], V[:, 0:8, 0:8])
+#     green = Jzz / E
+#     green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
+#     green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
+#     return green1 + green2
+#
+#
+# def green_pi_wrong(E, V, Jzz):
+#     green_phid_phid = green_pi_phid_phid(E, V, Jzz)
+#     green_phi_phi = np.transpose(np.conj(green_phid_phid), (0, 2, 1))
+#     green_phid_phi = green_pi_phid_phi(E, V, Jzz)
+#     green = np.block([[green_phid_phi[:, 0:8, 0:8], green_phid_phid],
+#                       [green_phi_phi, green_phid_phi[:, 8:16, 8:16]]])
+#
+#     return green
 
 
 def green_pi(E, V, Jzz):

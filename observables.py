@@ -53,11 +53,11 @@ def DSSF_core(q, omega, pyp0, tol):
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
-    Sglobalzz = np.mean(contract('ijk,jk->i', Szz, g(q)))
-    Szz = np.mean(contract('ijk->i', Szz))
+    Sglobalzz = contract('ijk,jk, i->', Szz, g(q), pyp0.weights)
+    Szz = contract('ijk, i->', Szz, pyp0.weights)
 
-    Sglobalxx = np.mean(contract('ijk,jk->i', Sxx, g(q)))
-    Sxx = np.mean(contract('ijk->i', Sxx))
+    Sglobalxx = contract('ijk,jk, i->', Sxx, g(q), pyp0.weights)
+    Sxx = contract('ijk, i->', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
@@ -110,20 +110,17 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpK = pyp0.green_pi(K, lam)
     greenpQ = pyp0.green_pi(Q, lam)
-
-    ffact = contract('ik, jlk->ijl', K - q / 2, NNminus)
-    ffactpm = np.exp(1j * ffact)
-
-    ffact = contract('ik, jlk->ijl', K - q / 2, NNplus)
-    ffactpp = np.exp(1j * ffact)
+    Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
+    ffactpm = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNminus))
+    ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
-                   ffactpm) / 4
+                   ffactpm) / 64
 
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
-                   ffactpp) / 4
+                   ffactpp) / 64
     return Spm, Spp
 
 
@@ -136,12 +133,13 @@ def SSSF_core(q, v, pyp0):
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
-    Sglobalzz = np.mean(contract('ijk,jk->i', Szz, g(q)))
-    SNSFzz = np.mean(contract('ijk,jk->i', Szz, gNSF(v)))
-    Szz = np.mean(contract('ijk->i', Szz))
-    Sglobalxx = np.mean(contract('ijk,jk->i', Sxx, g(q)))
-    SNSFxx = np.mean(contract('ijk,jk->i', Sxx, gNSF(v)))
-    Sxx = np.mean(contract('ijk->i', Sxx))
+    qreal = contract('j,jk->k',q, BasisBZA)
+    Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
+    SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
+    Szz = contract('ijk,i->', Szz, pyp0.weights)
+    Sglobalxx = contract('ijk,jk,i->', Sxx, g(qreal), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
+    Sxx = contract('ijk,i->', Sxx, pyp0.weights)
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 
