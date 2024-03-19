@@ -904,7 +904,10 @@ def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             pyps = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
             pyp0 = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
             pyzp = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
-
+            py0s.solvemeanfield()
+            pyps.solvemeanfield()
+            pyp0.solvemeanfield()
+            pyzp.solvemeanfield()
             GS = np.array([py0s.GS(), pyps.GS(), pyp0.GS(),pyzp.GS()])
             a = np.argmin(GS)
             sendtemp2[i] = a
@@ -985,7 +988,10 @@ def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                                      BZres=BZres, flux=np.array([0 ,np.pi, np.pi, 0]))
             pyzp = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
                                      BZres=BZres, flux=np.array([np.pi, 0, 0, np.pi]))
-
+            py0s.solvemeanfield()
+            pyps.solvemeanfield()
+            pyp0.solvemeanfield()
+            pyzp.solvemeanfield()
             GS = np.array([py0s.GS(), pyps.GS(), pyp0.GS(), pyzp.GS()])
             a = np.argmin(GS)
             sendtemp2[i] = a
@@ -1060,7 +1066,8 @@ def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
                                      BZres=BZres, flux=np.zeros(4))
             pyps = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
                                      BZres=BZres, flux=np.ones(4) * np.pi)
-
+            py0s.solvemeanfield()
+            pyps.solvemeanfield()
             GS = np.array([py0s.GS(), pyps.GS()])
             a = np.argmin(GS)
             sendtemp2[i] = a

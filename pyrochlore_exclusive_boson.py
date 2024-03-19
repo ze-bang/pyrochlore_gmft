@@ -172,7 +172,7 @@ class piFluxSolver:
         self.xi = 0.5
         self.chi0 = 0.18
 
-
+        self.flux = flux
         self.A_pi_here, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
 
 
@@ -225,13 +225,22 @@ class piFluxSolver:
 
         self.MF = M_pi(self.pts, self.Jzz, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
         self.E, self.V = bogoliubov(self.MF)
-        self.Green = bose_einstein(self.E, T)
+        # self.Green = bose_einstein(self.E, T)
 
     def M_pi(self, k):
         return M_pi(k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n,
                      self.theta, self.chi, self.chi0, self.xi, self.A_pi_here
                      , self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
+    def solvemeanfield(self, tol=1e-16):
+        num_last = 0
+        num_now = self.occu_num()
+        while np.abs(num_last-num_now)>tol:
+            # print(num_now, num_last, np.abs(num_last-num_now))
+            self.MF = M_pi(self.pts, self.Jzz, self.Jpm/(1+num_now),self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
+            self.E, self.V = bogoliubov(self.MF)
+            num_last = num_now
+            num_now = self.occu_num()
 
     def occu_num(self):
         P11 = self.V[:,0:16,0:16]
@@ -243,7 +252,7 @@ class piFluxSolver:
         ND = np.mean(ndd,axis=1)
         NB = np.mean(nbb,axis=1)
         N = np.dot(NB+ND,self.weights)
-        return N - 2
+        return np.real(N - 2)
 
     def graph(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
@@ -253,3 +262,6 @@ class piFluxSolver:
 
     def GS(self):
         return (contract('i,i->',np.mean(self.E,axis=1),self.weights) - 0.5)
+
+    def GS_gauge_correction(self):
+        return self.GS()+HanYan_GS(self.Jpm,self.Jzz,self.h,self.n,self.flux)

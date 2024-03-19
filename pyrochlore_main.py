@@ -17,9 +17,15 @@ from observables import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0.1
+h=0
 # v = np.array([1,1,0])
 n = h110
+Jpm = 0.07
+py0 = pyeb.piFluxSolver(-2 * Jpm, -2 * Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
+# print(py0.GS())
+py0.solvemeanfield()
+print(py0.GS())
+
 
 Jpm = np.linspace(-0.05, 0.05, 30)
 
@@ -39,6 +45,11 @@ for i in range(30):
     pypi = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.ones(4)*np.pi)
     pypp00 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([np.pi,np.pi,0,0]))
     py00pp = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([0,0,np.pi,np.pi]))
+
+    py0.solvemeanfield()
+    pypi.solvemeanfield()
+    pypp00.solvemeanfield()
+    py00pp.solvemeanfield()
 
     GS0[i] = py0.GS()
     GSpi[i] = pypi.GS()
