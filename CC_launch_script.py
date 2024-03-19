@@ -8,8 +8,8 @@ Jpm = -0.03
 SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, hb110, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0")
 SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, hb110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi")
 
-# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
-# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
+# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h001, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
+# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
 
 
 # completeSpan(-0.1,0.1,100,0,0.3,100,h110,30,2,np.zeros(4),'HanYan_110_Jpm_-0.1_0.1_h_0_0.3_0_flux')

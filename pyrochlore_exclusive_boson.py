@@ -106,15 +106,6 @@ def M_pi_smol(k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs
     return KK
 
 
-def bogo_faster(M):
-    dum = np.identity(M.shape[1])
-    E, V = np.linalg.eigh(M)
-    E = contract('ij, jk->ijk', E, dum)
-    totM = np.kron(A, E)
-    Ep, Vp = bogoliubov(totM+np.identity(M.shape[1]*4))
-    V = np.kron(Vp, V)
-    return Ep, V
-
 
 
 
@@ -261,4 +252,4 @@ class piFluxSolver:
             plt.show()
 
     def GS(self):
-        return 2*(contract('i,i->',np.mean(self.E,axis=1),self.weights) - 0.5)
+        return (contract('i,i->',np.mean(self.E,axis=1),self.weights) - 0.5)

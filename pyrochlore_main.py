@@ -17,22 +17,53 @@ from observables import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0.3
-v = np.array([1,1,0])
-n=np.array([1,1,1])/np.sqrt(3)
-Jpm = 0.02
-flux = np.zeros(4)
-# flux = np.ones(4)*np.pi
+h=0.1
+# v = np.array([1,1,0])
+n = h110
 
-# SSSF(50, -2*Jpm, 1, -2*Jpm, h, n, v, flux, 25, "test")
+Jpm = np.linspace(-0.05, 0.05, 30)
 
-# py0s = pyeb.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-# print(py0s.occu_num())
-# py0s.graph(True)
+GS0 = np.zeros(30)
+GSpi = np.zeros(30)
+GSpp00 = np.zeros(30)
+GS00pp = np.zeros(30)
 
-py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
-py0s.solvemeanfield()
-print(py0s.magnetization())
+GS0h = np.zeros(30)
+GSpih = np.zeros(30)
+GSpp00h = np.zeros(30)
+GS00pph = np.zeros(30)
+
+
+for i in range(30):
+    py0 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
+    pypi = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.ones(4)*np.pi)
+    pypp00 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([np.pi,np.pi,0,0]))
+    py00pp = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([0,0,np.pi,np.pi]))
+
+    GS0[i] = py0.GS()
+    GSpi[i] = pypi.GS()
+    GSpp00[i] = pypp00.GS()
+    GS00pp[i] = py00pp.GS()
+
+    GS0h[i] = HanYan_GS(Jpm[i], 1, h, n, np.zeros(4))
+    GSpih[i] = HanYan_GS(Jpm[i], 1, h, n, np.ones(4)*np.pi)
+    GSpp00h[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([np.pi,np.pi,0,0]))
+    GS00pph[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([0,0,np.pi,np.pi]))
+
+    print(Jpm[i], GS0[i], GSpi[i], GSpp00[i], GS00pp[i])
+    print(Jpm[i], GS0h[i], GSpih[i], GSpp00h[i], GS00pph[i])
+
+
+plt.plot(Jpm, GS0-GS0, Jpm, GSpi-GS0, Jpm, GSpp00-GS0, Jpm, GS00pp-GS0)
+plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
+plt.show()
+
+plt.plot(Jpm, GS0h-GS0h, Jpm, GSpih-GS0h, Jpm, GSpp00h-GS0h, Jpm, GS00pph-GS0h)
+plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
+plt.show()
+# py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
+# py0s.solvemeanfield()
+# print(py0s.GS())
 # py0s.graph(True)
 # h= np.linspace(0,0.51,60)
 # Jpm = np.linspace(0.04,0.1,60)
@@ -169,21 +200,21 @@ print(py0s.magnetization())
 # MFEzzpp = np.zeros(n)
 # MFEpp00 = np.zeros(n)
 #
-JP = - 0.04
-h = 0.25
-n = h001
-# for i in range(n):
-A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.zeros(4))
-B = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, 0, 0, np.pi]))
-D = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([0, np.pi, np.pi, 0]))
-C = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
-
-A.solvemeanfield()
-B.solvemeanfield()
-D.solvemeanfield()
-C.solvemeanfield()
-
-print(A.MFE(), A.condensed, A.qminT, A.qmin, B.MFE(), B.condensed, D.MFE(), D.condensed, C.MFE(), C.condensed)
+# JP = - 0.04
+# h = 0.25
+# n = h001
+# # for i in range(n):
+# A = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.zeros(4))
+# B = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, 0, 0, np.pi]))
+# D = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([0, np.pi, np.pi, 0]))
+# C = pycon.piFluxSolver(-2*JP, -2*JP, 1, kappa=2, graphres=graphres, BZres=30, h=h, n=n, flux=np.array([np.pi, np.pi, np.pi, np.pi]))
+#
+# A.solvemeanfield()
+# B.solvemeanfield()
+# D.solvemeanfield()
+# C.solvemeanfield()
+#
+# print(A.MFE(), A.condensed, A.qminT, A.qmin, B.MFE(), B.condensed, D.MFE(), D.condensed, C.MFE(), C.condensed)
 
 #     # print(D.MFE(),D.GS())
 #

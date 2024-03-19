@@ -302,11 +302,6 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
             sendtemp2[i] = GS[a]
             sendtemp3[i] = pyzp.lams[0]
             sendtemp4[i] = pyzp.magnetization()
-            # sendtemp5[i] = np.array2string(pyp0.qmin)
-        # print(sendtemp5[i], np.array2string(py0s.qmin),np.array2string(pyps.qmin),np.array2string(pyp0.qmin))
-        # end = time.time()
-        # print("This iteration costs " + str(end - start))
-#
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
@@ -746,8 +741,6 @@ def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename)
         graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
 
-
-
 def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     # totaltask = nK*nH
     # increment = totaltask/50
@@ -954,8 +947,6 @@ def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp,'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1,'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2,'Files/' + filename)
-
-
 def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -1035,8 +1026,6 @@ def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
-
-
 def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -1106,7 +1095,6 @@ def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
-
 def completeSpan_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()

@@ -806,3 +806,67 @@ def trapezoidal_rule_3d_pts(a, b, c, d, p, q, n):
     weights = contract('i,j,k->ijk', weight_x, weight_y, weight_z).ravel()*dx*dy*dz
     return pts, weights
 
+def HanYan_GS(Jpm, Jzz, h ,n ,flux):
+    Jpm = -2*Jpm
+    fluxN = np.array([z[3],z[0],z[1],z[2]])
+    g = 3*Jpm**3/(2*Jzz**2) + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2 + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2
+    return np.dot(g, np.cos(flux))/4
+
+def HanYan_g(Jpm, Jzz, h ,n):
+    # Jpm = -2*Jpm
+    fluxN = np.array([z[3],z[0],z[1],z[2]])
+    g = 3*Jpm**3/(2*Jzz**2) + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2 + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2
+    return g
+
+# def HanYan_g(Jpm, Jzz, h, n):
+#     # Jpm = -2*Jpm
+#     if (n==np.array([0,0,1])).all():
+#         E = - (7*h**6+23*h**4*Jpm**2+147*h**2*Jpm*4)/(48*Jzz**5) \
+#             + (35*h**4*Jpm-108*h**2*Jpm**3-351*Jpm**5)/(72*Jzz**4) \
+#             - 5*h**2*Jpm**2/(12*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E = E * np.ones(4)
+#         return E
+#     elif (n==np.array([1,1,1])/np.sqrt(3)).all():
+#         E = np.zeros(4)
+#         E[1] = - (7*h**6+1293*h**4*Jpm**2+13095*h**2*Jpm*4)/(1296*Jzz**5) \
+#             - (35*h**4*Jpm+468*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(4*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E[0] = E[2] = E[3] = - (21*h**6+31*h**4*Jpm**2+309*h**2*Jpm*4)/(432*Jzz**5) \
+#             - (35*h**4*Jpm+276*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(36*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         return E
+#     else:
+#         E = np.zeros(4)
+#         E[0] = E[1] = - (25*h**6+237*h**4*Jpm**2)/(36*Jzz**5) \
+#             - (44*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(6*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E[2] = E[3] = -(11*h**2*Jpm*4)/(24*Jzz**5) \
+#             - (28*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
+#             - 3*Jpm**3/(2*Jzz**2)
+#         return E
+# def HanYan_GS(Jpm, Jzz, h, n, flux):
+#     # Jpm = -2*Jpm
+#     if (n==np.array([0,0,1])).all():
+#         E = - (7*h**6+23*h**4*Jpm**2+147*h**2*Jpm*4)/(48*Jzz**5) \
+#             + (35*h**4*Jpm-108*h**2*Jpm**3-351*Jpm**5)/(72*Jzz**4) \
+#             - 5*h**2*Jpm**2/(12*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E = E * np.ones(4)
+#         return -np.dot(E, np.cos(flux))/4
+#     elif (n==np.array([1,1,1])/np.sqrt(3)).all():
+#         E = np.zeros(4)
+#         E[1] = - (7*h**6+1293*h**4*Jpm**2+13095*h**2*Jpm*4)/(1296*Jzz**5) \
+#             - (35*h**4*Jpm+468*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(4*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E[0] = E[2] = E[3] = - (21*h**6+31*h**4*Jpm**2+309*h**2*Jpm*4)/(432*Jzz**5) \
+#             - (35*h**4*Jpm+276*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(36*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         return -np.dot(E, np.cos(flux))/4
+#     else:
+#         E = np.zeros(4)
+#         E[0] = E[1] = - (25*h**6+237*h**4*Jpm**2)/(36*Jzz**5) \
+#             - (44*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
+#             - 5*h**2*Jpm**2/(6*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
+#         E[2] = E[3] = (11*h**2*Jpm*4)/(24*Jzz**5) \
+#             - (28*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
+#             - 3*Jpm**3/(2*Jzz**2)
+#         return -np.dot(E, np.cos(flux))/4
