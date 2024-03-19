@@ -232,7 +232,7 @@ class piFluxSolver:
                      self.theta, self.chi, self.chi0, self.xi, self.A_pi_here
                      , self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
-    def solvemeanfield(self, tol=1e-16):
+    def solvemeanfield(self, tol=1e-13):
         num_last = 0
         num_now = self.occu_num()
         while np.abs(num_last-num_now)>tol:

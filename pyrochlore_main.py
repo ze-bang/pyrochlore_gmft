@@ -17,14 +17,14 @@ from observables import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0
+h=0.2
 # v = np.array([1,1,0])
 n = h110
-Jpm = 0.07
-py0 = pyeb.piFluxSolver(-2 * Jpm, -2 * Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
+# Jpm = 0.07
+# py0 = pyeb.piFluxSolver(-2 * Jpm, -2 * Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
+# # print(py0.GS())
+# py0.solvemeanfield()
 # print(py0.GS())
-py0.solvemeanfield()
-print(py0.GS())
 
 
 Jpm = np.linspace(-0.05, 0.05, 30)
