@@ -17,9 +17,7 @@ from observables import *
 #
 # E = np.array(A.variables['q_condensed'][:])
 # print()
-h=0.2
 # v = np.array([1,1,0])
-n = h110
 # Jpm = 0.07
 # py0 = pyeb.piFluxSolver(-2 * Jpm, -2 * Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
 # # print(py0.GS())
@@ -27,51 +25,63 @@ n = h110
 # print(py0.GS())
 
 
-Jpm = np.linspace(-0.05, 0.05, 30)
+def ex_vs_gauge_gs(h, n, filename):
+    Jpm = np.linspace(-0.05, 0.05, 30)
 
-GS0 = np.zeros(30)
-GSpi = np.zeros(30)
-GSpp00 = np.zeros(30)
-GS00pp = np.zeros(30)
+    GS0 = np.zeros(30)
+    GSpi = np.zeros(30)
+    GSpp00 = np.zeros(30)
+    GS00pp = np.zeros(30)
 
-GS0h = np.zeros(30)
-GSpih = np.zeros(30)
-GSpp00h = np.zeros(30)
-GS00pph = np.zeros(30)
-
-
-for i in range(30):
-    py0 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
-    pypi = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.ones(4)*np.pi)
-    pypp00 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([np.pi,np.pi,0,0]))
-    py00pp = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([0,0,np.pi,np.pi]))
-
-    py0.solvemeanfield()
-    pypi.solvemeanfield()
-    pypp00.solvemeanfield()
-    py00pp.solvemeanfield()
-
-    GS0[i] = py0.GS()
-    GSpi[i] = pypi.GS()
-    GSpp00[i] = pypp00.GS()
-    GS00pp[i] = py00pp.GS()
-
-    GS0h[i] = HanYan_GS(Jpm[i], 1, h, n, np.zeros(4))
-    GSpih[i] = HanYan_GS(Jpm[i], 1, h, n, np.ones(4)*np.pi)
-    GSpp00h[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([np.pi,np.pi,0,0]))
-    GS00pph[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([0,0,np.pi,np.pi]))
-
-    print(Jpm[i], GS0[i], GSpi[i], GSpp00[i], GS00pp[i])
-    print(Jpm[i], GS0h[i], GSpih[i], GSpp00h[i], GS00pph[i])
+    GS0h = np.zeros(30)
+    GSpih = np.zeros(30)
+    GSpp00h = np.zeros(30)
+    GS00pph = np.zeros(30)
 
 
-plt.plot(Jpm, GS0-GS0, Jpm, GSpi-GS0, Jpm, GSpp00-GS0, Jpm, GS00pp-GS0)
-plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
-plt.show()
+    for i in range(30):
+        py0 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.zeros(4))
+        pypi = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.ones(4)*np.pi)
+        pypp00 = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([np.pi,np.pi,0,0]))
+        py00pp = pyeb.piFluxSolver(-2*Jpm[i], -2*Jpm[i], 1, kappa=2, graphres=graphres, BZres=25, h=h, n=n, flux=np.array([0,0,np.pi,np.pi]))
 
-plt.plot(Jpm, GS0h-GS0h, Jpm, GSpih-GS0h, Jpm, GSpp00h-GS0h, Jpm, GS00pph-GS0h)
-plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
-plt.show()
+        py0.solvemeanfield()
+        pypi.solvemeanfield()
+        pypp00.solvemeanfield()
+        py00pp.solvemeanfield()
+
+        GS0[i] = py0.GS()
+        GSpi[i] = pypi.GS()
+        GSpp00[i] = pypp00.GS()
+        GS00pp[i] = py00pp.GS()
+
+        GS0h[i] = HanYan_GS(Jpm[i], 1, h, n, np.zeros(4))
+        GSpih[i] = HanYan_GS(Jpm[i], 1, h, n, np.ones(4)*np.pi)
+        GSpp00h[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([np.pi,np.pi,0,0]))
+        GS00pph[i] = HanYan_GS(Jpm[i], 1, h, n, np.array([0,0,np.pi,np.pi]))
+
+        print(Jpm[i], GS0[i], GSpi[i], GSpp00[i], GS00pp[i])
+        print(Jpm[i], GS0h[i], GSpih[i], GSpp00h[i], GS00pph[i])
+
+
+    plt.plot(Jpm, GS0-GS0, Jpm, GSpi-GS0, Jpm, GSpp00-GS0, Jpm, GS00pp-GS0)
+    plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
+    plt.savefig(filename+"_ex.pdf")
+    plt.clf()
+    plt.plot(Jpm, GS0h-GS0h, Jpm, GSpih-GS0h, Jpm, GSpp00h-GS0h, Jpm, GS00pph-GS0h)
+    plt.legend([r'$0$', r'$\pi$', r'$\pi\pi 00$', r'$00\pi\pi$'])
+    plt.savefig(filename+"_gauge.pdf")
+    plt.clf()
+
+ex_vs_gauge_gs(0.2, h110, "h110=0.2")
+ex_vs_gauge_gs(0.1, h110, "h110=0.2")
+ex_vs_gauge_gs(0.2, h110, "h110=0.2")
+ex_vs_gauge_gs(0.3, h110, "h110=0.2")
+ex_vs_gauge_gs(0.1, h110, "h110=0.2")
+ex_vs_gauge_gs(0.2, h110, "h110=0.2")
+ex_vs_gauge_gs(0.3, h110, "h110=0.2")
+
+
 # py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, kappa=2, graphres=graphres, BZres=25, h=h, n=h111, flux=flux)
 # py0s.solvemeanfield()
 # print(py0s.GS())
