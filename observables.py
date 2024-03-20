@@ -112,28 +112,18 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpK = pyp0.green_pi(K, lam)
     greenpQ = pyp0.green_pi(Q, lam)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
+
     ffactpm = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNminus))
-    ffactmp = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
     ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
-    ffactmm = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:, 0:4, 0:4], greenpK[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
-                   piunitcell, piunitcell,
-                   ffactmp) / 64
-
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp) / 64
-
-    Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
-                   piunitcell, piunitcell,
-                   ffactmm) / 64
-
-    return Spm, Smp, Spp, Smm
+    return Spm, Spp
 
 
 def SSSF_core(q, v, pyp0):
@@ -141,9 +131,10 @@ def SSSF_core(q, v, pyp0):
     Qs = Ks - q
     v = v / magnitude(v)
 
-    Spm, Smp, Spp, Smm= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
-    Szz = (np.real(Spm + Smp) + np.real(Spp+Smm)) / 4
-    Sxx = (np.real(Spm + Smp) - np.real(Spp+Smm)) / 4
+    Spm, Spp= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Szz = (np.real(Spm) + np.real(Spp)) / 2
+    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+
 
     qreal = contract('j,jk->k',q, BasisBZA)
     Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
@@ -222,7 +213,11 @@ def DSSFgraph(A, B, D, py0s, filename):
 
 def plot_line(A, B, color):
     temp = np.array([A,B]).T
-    plt.plot(temp[0], temp[1], color=color)
+    plt.plot(temp[0], temp[1], color)
+
+def plot_text(A, text):
+    temp = A + 0.05*np.array([1,-1])
+    plt.text(temp[0,0],temp[0,1],text)
 
 def plot_BZ_hhl(offset, boundary, color):
     B = boundary+offset
@@ -240,7 +235,31 @@ def plot_BZ_hkz(offset, boundary, color):
     plot_line(B[2],B[3],color)
     plot_line(B[3],B[0],color)
 
+def SSSFGraphHKK(A, B, d1, filename):
+    plt.pcolormesh(A, B, d1)
+    plt.colorbar()
+    Gamms = np.array([[0,0],[-1,0],[1,0],[2,0],[-2,0],[0,2],[0,-2],[1,2],[-1,2],[1,-2],[-1,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
 
+    Ls = np.array([[0.5,0]])
+    Ws = np.array([[0.5,0.5]])
+    plot_text(Ls,r'$L$')
+    plot_text(Ws,r'$W$')
+
+    Boundary = np.array([[0.5, 1],[-0.5,1],[-0.5,-1],[0.5,-1]])
+    # plt.scatter(Gamms[:,0], Gamms[:,1])
+    plt.scatter(Ls[:,0], Ls[:,1])
+    plt.scatter(Ws[:, 0], Ws[:, 1])
+
+    for i in Gamms:
+        plot_BZ_hkz(i, Boundary, 'b-.')
+
+    plt.ylabel(r'$(K,-K,0)$')
+    plt.xlabel(r'$(H,H,H)$')
+    plt.xlim([-2.5,2.5])
+    plt.ylim([-2.5,2.5])
+    # plt.show()
+    plt.savefig(filename + ".pdf")
+    plt.clf()
 def SSSFGraphHHL(A, B, d1, filename):
     plt.pcolormesh(A, B, d1)
     plt.colorbar()
@@ -249,17 +268,21 @@ def SSSFGraphHHL(A, B, d1, filename):
     Xs = np.array([[1, 0]])
     Us = np.array([[0.25,1]])
     Ks = np.array([[0.75,0]])
+    plot_text(Ls,r'$L$')
+    plot_text(Xs,r'$X$')
+    plot_text(Us,r'$U$')
+    plot_text(Ks,r'$K$')
 
     Boundary = np.array([[0.25, 1],[-0.25,1],[-0.75,0],[-0.25,-1],[0.25,-1],[0.75,0]])
 
-    plt.scatter(Gamms[:,0], Gamms[:,1])
+    # plt.scatter(Gamms[:,0], Gamms[:,1])
     plt.scatter(Ls[:,0], Ls[:,1])
     plt.scatter(Xs[:, 0], Xs[:, 1])
     plt.scatter(Ks[:, 0], Ks[:, 1])
     plt.scatter(Us[:, 0], Us[:, 1])
 
     for i in Gamms:
-        plot_BZ_hhl(i, Boundary, 'b')
+        plot_BZ_hhl(i, Boundary, 'b:')
 
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
@@ -273,16 +296,17 @@ def SSSFGraphHK0(A, B, d1, filename):
     plt.colorbar()
 
     Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
-    Xs = np.array([[1, 1], [-1, -1]])
+    Xs = np.array([[1, 1]])
 
+    plot_text(Xs,r'$X$')
 
     Boundary = np.array([[1, 1], [1, -1], [-1, -1], [1, -1]])
 
-    plt.scatter(Gamms[:,0], Gamms[:,1])
+    # plt.scatter(Gamms[:,0], Gamms[:,1])
     plt.scatter(Xs[:, 0], Xs[:, 1])
 
     for i in Gamms:
-        plot_BZ_hkz(i, Boundary, 'b')
+        plot_BZ_hkz(i, Boundary, 'b:')
 
     plt.ylabel(r'$(0,K,0)$')
     plt.xlabel(r'$(H,0,0)$')
@@ -291,14 +315,13 @@ def SSSFGraphHK0(A, B, d1, filename):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
-
 # endregion
 
 
 # region SSSF DSSF Admin
 
 
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-2.5, 2.5, nK)
@@ -306,8 +329,13 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
     A, B = np.meshgrid(H, L)
     if (n==np.array([0,0,1])).all():
         K = hkztoK(A, B).reshape((nK*nK,3))
-    else:
+        v = np.array([-1,0,0])
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
         K = hhltoK(A, B).reshape((nK*nK,3))
+        v = np.array([-1,1,0])
+    else:
+        K = hkktoK(A, B).reshape((nK*nK,3))
+        v = np.array([-1,1,-1])
 
     if not MPI.Is_initialized():
         MPI.Init()

@@ -671,6 +671,9 @@ def hhltoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0]))
 def hkztoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) + np.einsum('ij,k->ijk',L, np.array([0.5,0,0.5]))
+def hkktoK(H, L):
+    return np.einsum('ij,k->ijk',H, np.array([1,1,1])) + np.einsum('ij,k->ijk',L, np.array([-0.5,0.5,0]))
+
 
 def gangchen(mu):
     if mu == 0:
