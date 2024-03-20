@@ -113,16 +113,27 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpQ = pyp0.green_pi(Q, lam)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
     ffactpm = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNminus))
+    ffactmp = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
     ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
+    ffactmm = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
                    ffactpm) / 64
 
+    Smp = contract('iba, ixy, abjk, jax, kby, ijk->ijk', greenpQ[:, 0:4, 0:4], greenpK[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
+                   piunitcell, piunitcell,
+                   ffactmp) / 64
+
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp) / 64
-    return Spm, Spp
+
+    Smm = contract('iya, ixb, abjk, jax, kby, ijk->ijk', greenpQ[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
+                   piunitcell, piunitcell,
+                   ffactmm) / 64
+
+    return Spm, Smp, Spp, Smm
 
 
 def SSSF_core(q, v, pyp0):
@@ -130,9 +141,9 @@ def SSSF_core(q, v, pyp0):
     Qs = Ks - q
     v = v / magnitude(v)
 
-    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
-    Szz = (np.real(Spm) + np.real(Spp)) / 2
-    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+    Spm, Smp, Spp, Smm= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Szz = (np.real(Spm + Smp) + np.real(Spp+Smm)) / 4
+    Sxx = (np.real(Spm + Smp) - np.real(Spp+Smm)) / 4
 
     qreal = contract('j,jk->k',q, BasisBZA)
     Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
