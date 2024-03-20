@@ -8,9 +8,9 @@ from observables import *
 # findPhaseMag001_ex(-0.05, 0.05, 100, 0, 0.3, 100, h001, 17, 2, "phase_100_kappa=2_zoomed_in_more_ex")
 
 Jpm = -0.2
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h110, hb110, np.zeros(4),30, "Files/SSSF/Jpm=-0.2_0")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h110, hb110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.2_pi")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h110, hb110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.2_00pp")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h110, hb110, np.zeros(4),30, "Files/SSSF/Jpm=-0.2_0")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h110, hb110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.2_pi")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h110, hb110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.2_00pp")
 
 # DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h110, np.zeros(4),30, "Files/DSSF/Jpm=-0.2_0")
 # DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_pi")
