@@ -7,6 +7,7 @@ import pyrochlore_gmft as pycon
 from mpi4py import MPI
 import os
 import pathlib
+
 def delta(Ek, Eq, omega, tol):
     beta = 0
     size = Ek.shape[1]
@@ -208,13 +209,75 @@ def DSSFgraph(A, B, D, py0s, filename):
     plt.savefig(filename + ".png")
     plt.clf()
 
+def plot_line(A, B, color):
+    temp = np.array([A,B]).T
+    plt.plot(temp[0], temp[1], color=color)
 
-def SSSFGraph(A, B, d1, filename):
+def plot_BZ_hhl(offset, boundary, color):
+    B = boundary+offset
+    plot_line(B[0],B[1],color)
+    plot_line(B[1],B[2],color)
+    plot_line(B[2],B[3],color)
+    plot_line(B[3],B[4],color)
+    plot_line(B[4],B[5],color)
+    plot_line(B[5],B[0],color)
+
+def plot_BZ_hkz(offset, boundary, color):
+    B = boundary+offset
+    plot_line(B[0],B[1],color)
+    plot_line(B[1],B[2],color)
+    plot_line(B[2],B[3],color)
+    plot_line(B[3],B[0],color)
+
+
+def SSSFGraphHHL(A, B, d1, filename):
     plt.pcolormesh(A, B, d1)
     plt.colorbar()
+    Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
+    Ls = np.array([[0.5,0.5]])
+    Xs = np.array([[1, 0]])
+    Us = np.array([[0.25,1]])
+    Ks = np.array([[0.75,0]])
+
+    Boundary = np.array([[0.25, 1],[-0.25,1],[-0.75,0],[-0.25,-1],[0.25,-1],[0.75,0]])
+
+    plt.scatter(Gamms[:,0], Gamms[:,1])
+    plt.scatter(Ls[:,0], Ls[:,1])
+    plt.scatter(Xs[:, 0], Xs[:, 1])
+    plt.scatter(Ks[:, 0], Ks[:, 1])
+    plt.scatter(Us[:, 0], Us[:, 1])
+
+    for i in Gamms:
+        plot_BZ_hhl(i, Boundary, 'b')
+
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.savefig(filename + ".png")
+    plt.xlim([-2.5,2.5])
+    plt.ylim([-2.5,2.5])
+    # plt.show()
+    plt.savefig(filename + ".pdf")
+    plt.clf()
+def SSSFGraphHK0(A, B, d1, filename):
+    plt.pcolormesh(A, B, d1)
+    plt.colorbar()
+
+    Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
+    Xs = np.array([[1, 1], [-1, -1]])
+
+
+    Boundary = np.array([[1, 1], [1, -1], [-1, -1], [1, -1]])
+
+    plt.scatter(Gamms[:,0], Gamms[:,1])
+    plt.scatter(Xs[:, 0], Xs[:, 1])
+
+    for i in Gamms:
+        plot_BZ_hkz(i, Boundary, 'b')
+
+    plt.ylabel(r'$(0,K,0)$')
+    plt.xlabel(r'$(H,0,0)$')
+    plt.xlim([-2.5,2.5])
+    plt.ylim([-2.5,2.5])
+    plt.savefig(filename + ".pdf")
     plt.clf()
 
 
@@ -262,12 +325,20 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, v, flux, BZres, filename):
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraph(A, B, d1, f1)
-        SSSFGraph(A, B, d2, f2)
-        SSSFGraph(A, B, d3, f3)
-        SSSFGraph(A, B, d4, f4)
-        SSSFGraph(A, B, d5, f5)
-        SSSFGraph(A, B, d6, f6)
+        if (n==h001).all():
+            SSSFGraphHK0(A, B, d1, f1)
+            SSSFGraphHK0(A, B, d2, f2)
+            SSSFGraphHK0(A, B, d3, f3)
+            SSSFGraphHK0(A, B, d4, f4)
+            SSSFGraphHK0(A, B, d5, f5)
+            SSSFGraphHK0(A, B, d6, f6)
+        else:
+            SSSFGraphHHL(A, B, d1, f1)
+            SSSFGraphHHL(A, B, d2, f2)
+            SSSFGraphHHL(A, B, d3, f3)
+            SSSFGraphHHL(A, B, d4, f4)
+            SSSFGraphHHL(A, B, d5, f5)
+            SSSFGraphHHL(A, B, d6, f6)
 
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)

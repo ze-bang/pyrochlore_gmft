@@ -85,8 +85,9 @@ def graphColorMesh(JP, h, phases, filename):
 def find_nearest(array, value):
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
+    print(array[idx])
     return idx
-def plotLinefromnetCDF(field_direction, directory="Nia_Full_Scan/", Jpm=None, h=None, diff=False):
+def plotLinefromnetCDF(field_direction, outfile, directory="Nia_Full_Scan/", Jpm=None, h=None, diff=False):
     if Jpm == None and h == None:
         return -1
     if (field_direction == h110).all():
@@ -95,6 +96,8 @@ def plotLinefromnetCDF(field_direction, directory="Nia_Full_Scan/", Jpm=None, h=
         plotLine111(directory,Jpm, h, diff)
     else:
         plotLine100(directory,Jpm, h, diff)
+    plt.savefig(outfile)
+    plt.clf()
 
 def readLineMFEJP(filename, dex):
     A = netCDF4.Dataset(filename)
@@ -133,16 +136,16 @@ def plotLine110(directory,Jpm=None, h=None,diff=False):
         if diff:
             MFEs = np.zeros((3, 100))
             zero = readLineMFEh(ftoread[0], dex)
-            plt.plot(JPf, np.zeros(100))
+            plt.plot(-JPf/2, np.zeros(100))
             for i in range(3):
                 MFEs[i] = readLineMFEh(ftoread[i+1], dex)
-                plt.plot(JPf, MFEs[i]-zero)
+                plt.plot(-JPf/2, MFEs[i]-zero)
             plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
         else:
             MFEs = np.zeros((4, 100))
             for i in range(4):
                 MFEs[i] = readLineMFEh(ftoread[i], dex)
-                plt.plot(JPf, MFEs[i])
+                plt.plot(-JPf/2, MFEs[i])
             plt.legend(["0 flux", r"$\pi$ flux", r"$\pi\pi 0 0$", r"$ 00\pi\pi $"])
 def plotLine111(directory,Jpm=None, h=None,diff=False):
     if Jpm == None and h == None:
@@ -170,15 +173,15 @@ def plotLine111(directory,Jpm=None, h=None,diff=False):
         dex = find_nearest(hf, h)
         if diff:
             zero = readLineMFEh(ftoread[0], dex)
-            plt.plot(hf, np.zeros(100))
+            plt.plot(-JPf/2, np.zeros(100))
             pi = readLineMFEh(ftoread[1], dex)
-            plt.plot(hf, pi-zero)
+            plt.plot(-JPf/2, pi-zero)
             plt.legend(["0 flux", r"$\pi$ flux"])
         else:
             MFEs = np.zeros((2, 100))
             for i in range(2):
                 MFEs[i] = readLineMFEh(ftoread[i], dex)
-                plt.plot(JPf, MFEs[i])
+                plt.plot(-JPf/2, MFEs[i])
             plt.legend(["0 flux", r"$\pi$ flux"])
 def plotLine100(directory,Jpm=None, h=None,diff=False):
     if Jpm == None and h == None:
@@ -210,16 +213,16 @@ def plotLine100(directory,Jpm=None, h=None,diff=False):
         if diff:
             MFEs = np.zeros((3, 100))
             zero = readLineMFEh(ftoread[0], dex)
-            plt.plot(JPf, np.zeros(100))
+            plt.plot(-JPf/2, np.zeros(100))
             for i in range(3):
                 MFEs[i] = readLineMFEh(ftoread[i+1], dex)
-                plt.plot(JPf, MFEs[i]-zero)
+                plt.plot(-JPf/2, MFEs[i]-zero)
             plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
         else:
             MFEs = np.zeros((4, 100))
             for i in range(4):
                 MFEs[i] = readLineMFEh(ftoread[i], dex)
-                plt.plot(JPf, MFEs[i])
+                plt.plot(-JPf/2, MFEs[i])
             plt.legend(["0 flux", r"$\pi$ flux", r"$ 0\pi\pi 0$", r"$ \pi 00\pi $"])
 
 #endregion
