@@ -130,7 +130,7 @@ def SSSF_core(q, v, pyp0):
     Qs = Ks - q
 
     if (v==0).all():
-        v = np.array([1,1,0])/np.sqrt(2)
+        v = np.array([-1,1,0])/np.sqrt(2)
     else:
         v = v/np.linalg.norm(v)
 
