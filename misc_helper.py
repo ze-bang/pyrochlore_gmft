@@ -135,7 +135,7 @@ def gNSF(v):
     M = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
-            M[i,j] = np.dot(z[i], v) * np.dot(z[j], v)
+            M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
     return M
 
 NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
@@ -671,6 +671,16 @@ def hhltoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0]))
 def hkztoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) + np.einsum('ij,k->ijk',L, np.array([0.5,0,0.5]))
+def hkktoK(H, L):
+    return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) + np.einsum('ij,k->ijk',L, np.array([-0.5,0.5,0]))
+
+def hhlscaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))
+def hk0scaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,0,0]))+ np.einsum('ij,k->ijk',L, np.array([0,1,0]))
+def hkkscaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))+ np.einsum('ij,k->ijk',L, np.array([1,-1,0]))
+
 
 def gangchen(mu):
     if mu == 0:
