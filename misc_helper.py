@@ -132,10 +132,10 @@ def g(q):
     return M
 
 def gNSF(v):
-    M = np.zeros((len(v),4,4))
+    M = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
-            M[:,i,j] = contract('a,ia, b, ib->i',z[i], v, z[j], v)
+            M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
     return M
 
 NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
