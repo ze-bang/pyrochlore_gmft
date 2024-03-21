@@ -129,7 +129,7 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
-    v = v / magnitude(v)
+    v = contract('ik,i->ik',v, 1/np.linalg.norm(v,axis=1))
 
     Spm, Spp= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
     Szz = (np.real(Spm) + np.real(Spp)) / 2
@@ -347,7 +347,6 @@ def SSSFGraphHK0(A, B, d1, filename):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
-SSSFGraphHK0(np.zeros((50,50)),np.zeros((50,50)),np.zeros((50,50)),'test')
 
 # endregion
 
@@ -361,15 +360,23 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
+
     if (n==np.array([0,0,1])).all():
         K = hkztoK(A, B).reshape((nK*nK,3))
-        v = np.array([-1,0,0])
+        scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
     elif (n==np.array([1,1,0])/np.sqrt(2)).all():
         K = hhltoK(A, B).reshape((nK*nK,3))
-        v = np.array([-1,1,0])
+        scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
     else:
         K = hkktoK(A, B).reshape((nK*nK,3))
-        v = np.array([-1,1,0])
+        scatterPlane = hkkscaplane(A, B).reshape((nK*nK,3))
+
+    v = np.zeros(scatterPlane.shape)
+    v[:,0] = -scatterPlane[:,1]
+    v[:,1] = scatterPlane[:,0]
+
+    A = contract('ia,ia->i',scatterPlane,v)
+
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -419,6 +426,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
             SSSFGraphHKK(A, B, d4, f4)
             SSSFGraphHKK(A, B, d5, f5)
             SSSFGraphHKK(A, B, d6, f6)
+
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()

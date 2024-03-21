@@ -28,7 +28,7 @@ Jpm = -0.03
 # print(SSSF_core(np.array([0,0,0]), hb110, py0s))
 # print(SSSF_core(np.array([1,1,-1]), hb110, py0s))
 #
-SSSF(20, -2*Jpm, -2*Jpm, 1, 0.3, h111, np.ones(4)*np.pi,30, "test")
+SSSF(20, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi,30, "test")
 #
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, hb110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, hb110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")

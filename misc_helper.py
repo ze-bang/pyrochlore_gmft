@@ -674,6 +674,14 @@ def hkztoK(H, L):
 def hkktoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) + np.einsum('ij,k->ijk',L, np.array([-0.5,0.5,0]))
 
+def hhlscaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))
+def hk0scaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,0,0]))+ np.einsum('ij,k->ijk',L, np.array([0,1,0]))
+def hkkscaplane(H,L):
+    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))+ np.einsum('ij,k->ijk',L, np.array([1,-1,0]))
+
+
 def gangchen(mu):
     if mu == 0:
         return 2*np.pi*np.array([-1,1,1])
