@@ -125,7 +125,6 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
                    ffactpp) / 64
     return Spm, Spp
 
-
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
@@ -147,7 +146,6 @@ def SSSF_core(q, v, pyp0):
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
-
 
 def graph_SSSF(pyp0, K, V, rank, size):
     comm = MPI.COMM_WORLD
@@ -377,9 +375,6 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     v[:,0] = -scatterPlane[:,1]
     v[:,1] = scatterPlane[:,0]
 
-    A = contract('ia,ia->i',scatterPlane,v)
-
-
     if not MPI.Is_initialized():
         MPI.Init()
 
@@ -481,7 +476,7 @@ def samplegraph(nK, filenames):
             axs[j, i].set_xlabel(r'$(H,H,0)$')
     plt.show()
 
-def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, v, flux, BZres, dirname):
+def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
     if (n==np.array([0,0,1])).all():
@@ -493,7 +488,7 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, v, flux, BZres, dirname):
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-        SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, v, flux, BZres, filename)
+        SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
 
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
