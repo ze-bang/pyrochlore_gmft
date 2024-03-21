@@ -129,6 +129,8 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
+    if v.shape == (3,):
+        v = v.reshape((1,3))
     v = contract('ik,i->ik',v, 1/np.linalg.norm(v,axis=1))
 
     Spm, Spp= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
@@ -138,10 +140,10 @@ def SSSF_core(q, v, pyp0):
 
     qreal = contract('j,jk->k',q, BasisBZA)
     Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
-    SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
+    SNSFzz = contract('ijk,ijk,i->', Szz, gNSF(v), pyp0.weights)
     Szz = contract('ijk,i->', Szz, pyp0.weights)
     Sglobalxx = contract('ijk,jk,i->', Sxx, g(qreal), pyp0.weights)
-    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
+    SNSFxx = contract('ijk,ijk,i->', Sxx, gNSF(v), pyp0.weights)
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
