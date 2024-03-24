@@ -10,8 +10,8 @@ from observables import *
 
 Jpm = -0.03
 
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi")
 
-# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h111, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
-# DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
+DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h111, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
+DSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 20, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
