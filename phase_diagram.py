@@ -82,11 +82,7 @@ def graphColorMesh(JP, h, phases, filename):
 
 
 #region NETCDF4 file parsing
-def find_nearest(array, value):
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    print(array[idx])
-    return idx
+
 def plotLinefromnetCDF(field_direction, outfile, directory="Nia_Full_Scan/", Jpm=None, h=None, diff=False):
     if Jpm == None and h == None:
         return -1

@@ -36,15 +36,13 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
 
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
                    deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
-                   ffactpm) / 4
+                   ffactpm) / 64
 
     Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
                    deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
-                   ffactpp) / 4
+                   ffactpp) / 64
 
     return Spm, Spp
-
-
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
@@ -124,7 +122,6 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
                    piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
-
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
@@ -148,7 +145,6 @@ def SSSF_core(q, v, pyp0):
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
 
     return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
-
 def graph_SSSF(pyp0, K, V, rank, size):
     comm = MPI.COMM_WORLD
     nK = len(K)
@@ -327,9 +323,7 @@ def SSSFGraphHK0(A, B, d1, filename):
     Ks = np.array([[1,1]])*0.375/0.5
     Ws = np.array([[1,0.5]])
 
-
     Boundary = np.array([[1, 0.5], [0.5,1], [-0.5,1], [-1,0.5],[-1,-0.5],[-0.5,-1],[0.5,-1],[1,-0.5]])
-
 
     plt.scatter(Gamms[0,0], Gamms[0,1],zorder=1)
     plt.scatter(Xs[:, 0], Xs[:, 1], zorder=1)
@@ -491,6 +485,24 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
+
+def DSSF_found(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, readdir):
+    Jpm = -(Jxx + Jyy) / 4
+    dirString = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+    else:
+        dirString = "111"
+
+    rfile = readdir + "HanYan_"+dirString+"Jpm_-0.1_0.1_h_0_0.3_"
+    ftoread = [rfile+"0_flux_full_info.nc", rfile+"pi_flux_full_info.nc",
+               rfile+"pipi00_full_info.nc", rfile+"00pipi_full_info.nc"]
+    JPf = np.linspace(-0.1,0.1,100)
+    hf = np.linspace(0,0.3,100)
+    dexJP = find_nearest(JPf, Jpm)
+    dexH = find_nearest(hf, h)
 
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)

@@ -828,6 +828,13 @@ def HanYan_g(Jpm, Jzz, h ,n):
     g = 3*Jpm**3/(2*Jzz**2) + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2 + 5*Jpm**2/(4*Jzz**2)*(contract('k,ik->i', h*n, fluxN))**2
     return g
 
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    print(array[idx])
+    return idx
+
+
 # def HanYan_g(Jpm, Jzz, h, n):
 #     # Jpm = -2*Jpm
 #     if (n==np.array([0,0,1])).all():
