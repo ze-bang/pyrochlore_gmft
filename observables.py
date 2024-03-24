@@ -356,17 +356,17 @@ def SSSFGraphHK0(A, B, d1, filename):
 # region SSSF DSSF Admin
 
 
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
 
-    if (n==np.array([0,0,1])).all():
+    if hkl == 0:
         K = hkztoK(A, B).reshape((nK*nK,3))
         scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
-    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+    elif hkl==1:
         K = hhltoK(A, B).reshape((nK*nK,3))
         scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
     else:
@@ -404,14 +404,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        if (n==h001).all():
+        if hkl==0:
             SSSFGraphHK0(A, B, d1, f1)
             SSSFGraphHK0(A, B, d2, f2)
             SSSFGraphHK0(A, B, d3, f3)
             SSSFGraphHK0(A, B, d4, f4)
             SSSFGraphHK0(A, B, d5, f5)
             SSSFGraphHK0(A, B, d6, f6)
-        elif(n==h110).all():
+        elif hkl==1:
             SSSFGraphHHL(A, B, d1, f1)
             SSSFGraphHHL(A, B, d2, f2)
             SSSFGraphHHL(A, B, d3, f3)
