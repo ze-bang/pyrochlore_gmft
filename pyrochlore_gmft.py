@@ -791,9 +791,9 @@ class piFluxSolver:
         self.ns = ns
         self.h = h
         self.n = n
-        self.chi = 0.18
-        self.xi = 0.5
-        self.chi0 = 0.18
+        self.chi = 0.18 * np.ones(4)
+        self.xi = 0.5 * np.ones(4)
+        self.chi0 = 0.18 * np.ones(4)
 
         self.A_pi_here, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
 
