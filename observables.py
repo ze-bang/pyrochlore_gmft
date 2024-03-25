@@ -514,7 +514,7 @@ def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     else:
         dirString = "111"
     for i in range(nH):
-        filename = dirname+"/h_" + dirString + "=" + str(hs[i]) + "/"
+        filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         DSSF(nE, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
 
