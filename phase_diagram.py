@@ -548,7 +548,7 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
 
-def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
+def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename, observables=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -570,7 +570,6 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp5 = np.zeros((currsizeK,minLamK, 3), dtype=np.float64)
 
-
     rectemp = None
     rectemp2 = None
     rectemp3 = None
@@ -585,14 +584,12 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
     for i in range(currsizeK):
         py0s = pycon.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
         py0s.solvemeanfield()
-
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
         temp = py0s.qminT
         leng = len(temp)
         sendtemp5[i,0:leng] = py0s.qminT
-        print(py0s.minLams, py0s.qminT)
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
@@ -618,6 +615,11 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             dataset.createDimension("h", nH)
             dataset.createDimension("index", minLamK)
             dataset.createDimension("xyz", 3)
+            dataset.createDimension("dummy", 2)
+
+            temp_var = dataset.createVariable("Jpm_H", "f4", ("Jpm", "h", "dummy"))
+            temp_var[:, :, :] = JH.reshape((nK,nH,2))
+            temp_var.long_name = "Jpm and H"
             temp_var1 = dataset.createVariable("q_condensed", "f4", ("Jpm", "h", "index", "xyz"))
             temp_var1[:, :, :] = rectemp5
             temp_var1.long_name = "Condensed Wave Vectors"
@@ -627,9 +629,9 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename):
             temp_var3 = dataset.createVariable("MFE", "f4", ("Jpm", "h"))
             temp_var3[:, :] = rectemp2
             temp_var3.long_name = "Variational Energy"
-            temp_var = dataset.createVariable("condensed", "f4", ("Jpm", "h"))
-            temp_var[:, :] = rectemp
-            temp_var.long_name = "isCondensed"
+            temp_var4 = dataset.createVariable("condensed", "f4", ("Jpm", "h"))
+            temp_var4[:, :] = rectemp
+            temp_var4.long_name = "isCondensed"
 
 def findPhaseMag_simple(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
     comm = MPI.COMM_WORLD

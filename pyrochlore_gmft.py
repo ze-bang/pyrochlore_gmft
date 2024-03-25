@@ -302,7 +302,7 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_p
 
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
+        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3)), np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
     E = E[:,0]
@@ -314,8 +314,6 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_her
         Know = Know.reshape(1,3)
     Know = symmetry_equivalence(Know, equi_class_flux)
     Know = symmetry_equivalence(Know, equi_class_field)
-
-
     if len(Know) >= minLamK:
         Know = Know[0:minLamK]
 

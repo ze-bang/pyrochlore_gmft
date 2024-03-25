@@ -349,6 +349,37 @@ def SSSFGraphHK0(A, B, d1, filename):
 
 # region SSSF DSSF Admin
 
+def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+
+    scatterPlane = q_scaplane(K)
+    v = np.zeros(scatterPlane.shape)
+    v[:, 0] = -scatterPlane[:, 1]
+    v[:, 1] = scatterPlane[:, 0]
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    if rank == 0:
+        f1 = filename + "Szz_local"
+        f2 = filename + "Szz_global"
+        f3 = filename + "Szz_NSF"
+        f4 = filename + "Sxx_local"
+        f5 = filename + "Sxx_global"
+        f6 = filename + "Sxx_NSF"
+        print(d1,d2,d3,d4,d5,d6)
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        np.savetxt(f4 + '.txt', d4)
+        np.savetxt(f5 + '.txt', d5)
+        np.savetxt(f6 + '.txt', d6)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
