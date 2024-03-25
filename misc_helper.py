@@ -6,6 +6,8 @@ from opt_einsum import contract
 import math
 from flux_stuff import *
 from scipy.optimize import minimize
+# import pyrochlore_exclusive_boson as pyeb
+# import matplotlib.pyplot as plt
 def factors(n, nK):
     for i in range(1, int(n**0.5) + 1):
         if n % i == 0 and n / i <= nK:
@@ -680,6 +682,11 @@ def hk0scaplane(H,L):
     return np.einsum('ij,k->ijk',H, np.array([1,0,0]))+ np.einsum('ij,k->ijk',L, np.array([0,1,0]))
 def hkkscaplane(H,L):
     return np.einsum('ij,k->ijk',H, np.array([1,1,0]))+ np.einsum('ij,k->ijk',L, np.array([1,-1,0]))
+
+def q_scaplane(K):
+    tempB = np.array([np.array([-1,1,1]),np.array([1,-1,1]),np.array([1,1,-1])])
+    temp = np.einsum('ij,jk->ik', K, tempB)
+    return temp
 
 
 def gangchen(mu):
