@@ -1031,7 +1031,6 @@ class piFluxSolver:
         maxdex = np.argmax(q[:,-1])
         kmin = k[mindex].reshape((1,3))
         kmax = k[maxdex].reshape((1,3))
-        print(kmin, kmax)
         A = DSSF_E_DOMAIN(self.lams, kmin, kmax, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta,
                          self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         return A

@@ -502,6 +502,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
     e = np.arange(max(emin - 0.02, 0), emax + 0.02, nE)
+    print(e.shape)
     tol = nE / 2
     if not MPI.Is_initialized():
         MPI.Init()
