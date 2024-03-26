@@ -362,6 +362,14 @@ gL = gGamma2 + magnitude(np.abs(Gamma-L))
 gU = gL + magnitude(np.abs(L-U))
 gW2 = gU + magnitude(np.abs(U-W))
 
+graphGammaX = np.linspace(gGamma1, gX, len(GammaX))
+graphXW = np.linspace(gX, gW1, len(XW))
+graphWK = np.linspace(gW1, gK, len(WK))
+graphKGamma = np.linspace(gK, gGamma2, len(KGamma))
+graphGammaL = np.linspace(gGamma2, gL, len(GammaL))
+graphLU = np.linspace(gL, gU, len(LU))
+graphUW = np.linspace(gU, gW2, len(UW))
+
 def msp(items):
   '''Yield the permutations of `items` where items is either a list
   of integers representing the actual items or a list of hashable items.
