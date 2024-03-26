@@ -1010,13 +1010,13 @@ class piFluxSolver:
         return np.min(A[:,0]), np.max(A[:,1])
 
     def graph_loweredge(self, show):
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
 
     def graph_upperedge(self, show):
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.bigB, self.theta, self.chi,
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi,
                   self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         if show:
             plt.show()
