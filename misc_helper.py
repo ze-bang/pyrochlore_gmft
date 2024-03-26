@@ -688,7 +688,7 @@ def hkktoK(H, K):
 def hknkL(H,K,L):
     hk = hkktoK(H, K).reshape((len(H)*len(K), 3))
     return np.einsum('ik,l->ilk', hk, np.ones(len(L))) \
-        + np.einsum('i,l,k->lk',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
+        + np.einsum('i,l,k->ilk',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
 
 def hhlscaplane(H,L):
