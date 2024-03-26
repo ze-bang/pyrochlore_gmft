@@ -15,6 +15,6 @@ from observables import *
 
 Jpm = -0.03
 
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Jpm=-0.03_h=0.1_HHKnK_0_flux")
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Jpm=-0.03_h=0.2_HHKnK_0_flux")
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Jpm=-0.03_h=0.3_HHKnK_0_flux")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Files/Jpm=-0.03_h=0.1_HHKnK_0_flux")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Files/Jpm=-0.03_h=0.2_HHKnK_0_flux")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 1.25, 1.75, 10, 30, "Files/Jpm=-0.03_h=0.3_HHKnK_0_flux")
