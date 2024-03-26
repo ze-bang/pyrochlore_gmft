@@ -690,6 +690,12 @@ def hknkL(H,K,L):
     return np.einsum('ik,l->ilk', hk, np.ones(len(L))) \
         + np.einsum('i,l,k->ilk',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
+def hk0L(H,K,L):
+    hk = hkztoK(H, K).reshape((len(H)*len(K), 3))
+    return np.einsum('ik,l->ilk', hk, np.ones(len(L))) \
+        + np.einsum('i,l,k->ilk',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
+
+
 
 def hhlscaplane(H,L):
     return np.einsum('ij,k->ijk',H, np.array([1,1,0]))
@@ -749,6 +755,13 @@ def non_h_unique(A):
 
 deltamin= 10
 minLamK = 2
+
+def gauss_quadrature_1D_pts(a, b, n):
+    nodes, weights = np.polynomial.legendre.leggauss(n)
+    gauss_pts = (b - a) / 2 * nodes + (b + a) / 2
+    weights *= (b - a) / 2
+    return gauss_pts, weights
+
 
 def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     nodes1, weights1 = np.polynomial.legendre.leggauss(n)
