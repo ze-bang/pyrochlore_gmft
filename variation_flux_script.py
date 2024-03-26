@@ -21,8 +21,8 @@ from observables import *
 # completeSpan(-0.1,0.1,100,0,0.3,100,h111,30,2,np.ones(4)*np.pi,'HanYan_111_Jpm_-0.1_0.1_h_0_0.3_pi_flux')
 
 Jpm = 0.02
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.zeros(4),30, "Files/SSSF/Jpm=2e-3_0")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=2e-3_pi")
 #
-DSSF_line(0.02, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=0.02_0")
-DSSF_line(0.02, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
+DSSF_line(2e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=2e-3_0")
+DSSF_line(2e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=2e-3_pi")

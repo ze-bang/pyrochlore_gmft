@@ -507,10 +507,18 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here
         # print(temp[i],i)
     return temp
 
-def DSSF_E_DOMAIN(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    Eq = np.sqrt(2 * Jzz * E_pi(q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
-    Ek = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
-    return min(Eq[:,0])+min(Ek[:,0]), max(Eq[:,-1])+max(Ek[:,-1])
+def DSSF_E_Low(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    Eq = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    Ek = np.sqrt(2 * Jzz * E_pi(K-q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    return min(Eq[:,0]+Ek[:,0])
+
+def DSSF_E_High(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    Eq = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    Ek = np.sqrt(2 * Jzz * E_pi(K-q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    return max(Eq[:,-1]+Ek[:,-1])
+def DSSF_E_DOMAIN(lams, qmin, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    return DSSF_E_Low(lams, qmin, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)\
+        , DSSF_E_High(lams, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
 
 
 def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -952,10 +960,16 @@ class piFluxSolver:
     def M_true(self, k):
         return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
-    def E_pi(self, k):
+    def E_pi_mean(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                             self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0]),axis=1)
+
+    def E_pi(self, k):
+        return np.sqrt(2 * self.Jzz *
+                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
+                            self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
+
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta,
@@ -967,7 +981,7 @@ class piFluxSolver:
         return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def GS(self):
-        return integrate(self.E_pi, self.pts, self.weights) - self.kappa*self.lams[0]
+        return integrate(self.E_pi_mean, self.pts, self.weights) - self.kappa*self.lams[0]
 
 
     def MFE(self):
@@ -1012,7 +1026,13 @@ class piFluxSolver:
         return np.max(self.maxCal(k))
 
     def TWOSPINON_DOMAIN(self, k):
-        A = DSSF_E_DOMAIN(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta,
+        q = self.E_pi(k)
+        mindex = np.argmin(q[:,0])
+        maxdex = np.argmax(q[:,-1])
+        kmin = k[mindex].reshape((1,3))
+        kmax = k[maxdex].reshape((1,3))
+        print(kmin, kmax)
+        A = DSSF_E_DOMAIN(self.lams, kmin, kmax, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta,
                          self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         return A
 
