@@ -469,10 +469,10 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     d1, d2, d3, d4 = graph_DSSF(py0s, e, kk, tol, rank, size)
 
     if rank == 0:
-        f1 = "Files/" + filename + "_Szz_local"
-        f2 = "Files/" + filename + "_Szz_global"
-        f3 = "Files/" + filename + "_Sxx_local"
-        f4 = "Files/" + filename + "_Sxx_global"
+        f1 = filename + "_Szz_local"
+        f2 = filename + "_Szz_global"
+        f3 = filename + "_Sxx_local"
+        f4 = filename + "_Sxx_global"
         np.savetxt(f1 + ".txt", d1)
         np.savetxt(f2 + ".txt", d2)
         np.savetxt(f3 + ".txt", d3)
