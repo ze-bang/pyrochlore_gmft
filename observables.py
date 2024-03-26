@@ -60,19 +60,19 @@ def DSSF_core(q, omega, pyp0, tol):
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
-    n = len(E) / size
+    n = len(K) / size
 
     left = int(rank * n)
     right = int((rank + 1) * n)
 
     currsize = right - left
 
-    sendtemp = np.zeros((currsize, len(K)), dtype=np.float64)
-    sendtemp1 = np.zeros((currsize, len(K)), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, len(K)), dtype=np.float64)
-    sendtemp3 = np.zeros((currsize, len(K)), dtype=np.float64)
+    sendtemp = np.zeros((len(E), currsize), dtype=np.float64)
+    sendtemp1 = np.zeros((len(E), currsize), dtype=np.float64)
+    sendtemp2 = np.zeros((len(E), currsize), dtype=np.float64)
+    sendtemp3 = np.zeros((len(E), currsize), dtype=np.float64)
 
-    currE = E[left:right]
+    currK = K[left:right]
 
     rectemp = None
     rectemp1 = None
@@ -85,9 +85,9 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
         rectemp2 = np.zeros((len(E), len(K)), dtype=np.float64)
         rectemp3 = np.zeros((len(E), len(K)), dtype=np.float64)
 
-    for i in range(currsize):
-        for j in range(len(K)):
-            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(K[j], currE[i], pyp0, tol)
+    for i in range(len(E)):
+        for j in range(currsize):
+            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(currK[j], E[i], pyp0, tol)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
@@ -451,14 +451,58 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl):
             SSSFGraphHKK(A, B, d5, f5)
             SSSFGraphHKK(A, B, d6, f6)
 
+def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, BZres, filename):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+    H = np.linspace(-2.5, 2.5, nK)
+    K = np.linspace(-2.5, 2.5, nK)
+    A, B = np.meshgrid(H, K)
+
+    Q = hkktoK(A, B).reshape((nK * nK, 3))
+
+
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    if rank == 0:
+        f1 = filename + "Szz_local"
+        f2 = filename + "Szz_global"
+        f3 = filename + "Szz_NSF"
+        f4 = filename + "Sxx_local"
+        f5 = filename + "Sxx_global"
+        f6 = filename + "Sxx_NSF"
+        d1 = d1.reshape((nK, nK))
+        d2 = d2.reshape((nK, nK))
+        d3 = d3.reshape((nK, nK))
+        d4 = d4.reshape((nK, nK))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        np.savetxt(f4 + '.txt', d4)
+        np.savetxt(f5 + '.txt', d5)
+        np.savetxt(f6 + '.txt', d6)
+        SSSFGraphHKK(A, B, d1, f1)
+        SSSFGraphHKK(A, B, d2, f2)
+        SSSFGraphHKK(A, B, d3, f3)
+        SSSFGraphHKK(A, B, d4, f4)
+        SSSFGraphHKK(A, B, d5, f5)
+        SSSFGraphHKK(A, B, d6, f6)
+
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
-    e = np.arange(max(emin - 0.1, 0), emax + 0.1, nE)
+    e = np.arange(max(emin - 0.02, 0), emax + 0.02, nE)
     tol = nE / 2
-
     if not MPI.Is_initialized():
         MPI.Init()
 
@@ -517,24 +561,6 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename)
-
-def DSSF_found(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, readdir):
-    Jpm = -(Jxx + Jyy) / 4
-    dirString = ""
-    if (n==np.array([0,0,1])).all():
-        dirString = "001"
-    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
-        dirString = "110"
-    else:
-        dirString = "111"
-
-    rfile = readdir + "HanYan_"+dirString+"Jpm_-0.1_0.1_h_0_0.3_"
-    ftoread = [rfile+"0_flux_full_info.nc", rfile+"pi_flux_full_info.nc",
-               rfile+"pipi00_full_info.nc", rfile+"00pipi_full_info.nc"]
-    JPf = np.linspace(-0.1,0.1,100)
-    hf = np.linspace(0,0.3,100)
-    dexJP = find_nearest(JPf, Jpm)
-    dexH = find_nearest(hf, h)
 
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)

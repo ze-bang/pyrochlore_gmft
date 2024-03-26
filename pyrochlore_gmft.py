@@ -504,7 +504,13 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here
         tt = np.sqrt(2 * Jzz * E_pi(K - q[i], lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
         temp[i, 0] = np.min(tt[:, 0] + mins)
         temp[i, 1] = np.max(tt[:, -1] + maxs)
+        # print(temp[i],i)
     return temp
+
+def DSSF_E_DOMAIN(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+    Eq = np.sqrt(2 * Jzz * E_pi(q, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    Ek = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+    return min(Eq[:,0])+min(Ek[:,0]), max(Eq[:,-1])+max(Ek[:,-1])
 
 
 def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
@@ -1006,8 +1012,9 @@ class piFluxSolver:
         return np.max(self.maxCal(k))
 
     def TWOSPINON_DOMAIN(self, k):
-        A = self.minMaxCal(k)
-        return np.min(A[:,0]), np.max(A[:,1])
+        A = DSSF_E_DOMAIN(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta,
+                         self.chi, self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        return A
 
     def graph_loweredge(self, show):
         loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi,
