@@ -387,10 +387,10 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, L=0):
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
 
-    if hkl == 0:
+    if hkl == "hk0":
         K = hkztoK(A, B).reshape((nK*nK,3))
         scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
-    elif hkl==1:
+    elif hkl=="hhl":
         K = hhltoK(A, B).reshape((nK*nK,3))
         scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
     else:
