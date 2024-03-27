@@ -235,8 +235,10 @@ class piFluxSolver:
     def solvemeanfield(self, tol=1e-13):
         num_last = 0
         num_now = self.occu_num()
+        # count = 0
         while np.abs(num_last-num_now)>tol:
-            # print(num_now, num_last, np.abs(num_last-num_now))
+            # print(num_now, num_last, np.abs(num_last-num_now), count)
+            # count += 1
             self.MF = M_pi(self.pts, self.Jzz, self.Jpm/(1+num_now),self.Jpmpm,self.h/(1+num_now),self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
             self.E, self.V = bogoliubov(self.MF)
             num_last = num_now
