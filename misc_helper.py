@@ -679,11 +679,12 @@ def BZbasis(mu):
 
 def hhltoK(H, L):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0]))
-def hkztoK(H, L):
-    return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) + np.einsum('ij,k->ijk',L, np.array([0.5,0,0.5]))
-def hkktoK(H, K):
+def hkztoK(H, K, L=0):
+    return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) + np.einsum('ij,k->ijk',K, np.array([0.5,0,0.5])) + L*np.array([0.5,0.5,0])
+def hkktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
+        + L*np.array([0.5,0.5,0])
 
 def hknkL(H,K,L):
     hk = hkktoK(H, K).reshape((len(H)*len(K), 3))

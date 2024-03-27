@@ -380,7 +380,7 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
 
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl):
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, L=0):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-2.5, 2.5, nK)
@@ -504,7 +504,9 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
         SSSFGraphHKK(A, B, d4, f4)
         SSSFGraphHKK(A, B, d5, f5)
         SSSFGraphHKK(A, B, d6, f6)
+
 def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-2.5, 2.5, nK)
