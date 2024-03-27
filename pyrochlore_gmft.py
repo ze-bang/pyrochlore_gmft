@@ -629,13 +629,11 @@ def EMAX(M, lams):
 
 
 def green_pi(E, V, Jzz):
-    green = Jzz / E
-    green = contract('ilk, ijk, ik->ijl', V, np.conj(V), green)
+    green = contract('ilk, ijk, ik->ijl', V, np.conj(V), Jzz / E)
     return green
 
 def green_pi_branch(E, V, Jzz):
-    green = Jzz / E
-    green = contract('ilk, ijk, ik->ikjl', V, np.conj(V), green)
+    green = contract('ilk, ijk, ik->ikjl', V, np.conj(V), Jzz / E)
     return green
 
 

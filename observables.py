@@ -26,13 +26,13 @@ def delta(Ek, Eq, omega, tol):
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
     greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
-
+    Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     deltapm = delta(tempE, tempQ, omega, tol)
 
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNminus)
-    ffactpm = np.exp(1j * ffact)
-    ffact = contract('ik, jlk->ijl', Ks - q / 2, NNplus)
-    ffactpp = np.exp(1j * ffact)
+    ffact = contract('ik, jlk->ijl', Kreal, NNminus)
+    ffactpm = np.exp(-1j * ffact)
+    ffact = contract('ik, jlk->ijl', Kreal, NNplus)
+    ffactpp = np.exp(-1j * ffact)
 
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
                    deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
@@ -47,7 +47,7 @@ def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
 
-    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0)
+    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
@@ -566,7 +566,6 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
     e = np.arange(max(emin - 0.02, 0), emax + 0.02, nE)
-    print(e.shape)
     tol = nE / 2
     if not MPI.Is_initialized():
         MPI.Init()
