@@ -25,7 +25,7 @@ def delta(Ek, Eq, omega, tol):
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
-    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+    greenpQ, tempQ = pyp0.green_pi_bran ch(Qs, lam)
     Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     deltapm = delta(tempE, tempQ, omega, tol)
 
@@ -41,12 +41,10 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
                    deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
                    ffactpp) / 64
-
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
-
     Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
@@ -57,6 +55,7 @@ def DSSF_core(q, omega, pyp0, tol):
 
     Sglobalxx = contract('ijk,jk, i->', Sxx, g(q), pyp0.weights)
     Sxx = contract('ijk, i->', Sxx, pyp0.weights)
+    print(Szz, Sglobalzz, Sxx, Sglobalxx)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
