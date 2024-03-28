@@ -5,38 +5,37 @@ from flux_stuff import *
 import time
 
 #region Hamiltonian Construction
-def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
+def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell=piunitcell):
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(-1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                 np.exp(1j*A_pi_here), piunitcell)
+                 np.exp(1j*A_pi_here), unitcell)
     return M
 
-
-def M_pi_sub_intrahopping_AA(k, alpha, Jpm, A_pi_rs_traced_here):
+def M_pi_sub_intrahopping_AA(k, alpha, Jpm, A_pi_rs_traced_here, unitcell=piunitcell):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, piunitcell,
-                 piunitcell)
+    M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, unitcell,
+                 unitcell)
     return M
 
 
-def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi, A_pi_rs_traced_pp_here):
+def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * neta(alpha) * ffact)
     tempxa = xi[alpha]
     tempxb = xi[1 - alpha]
-    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell)
-    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, piunitcell)
+    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, unitcell)
+    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa, unitcell)
     M2a = contract('jl, kjl, ij, kl, jkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                   piunitcell)
+                   unitcell)
     M2b = contract('jl, kjl, il, kj, lkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                   piunitcell)
+                   unitcell)
     return M1a + M1b + M2a + M2b
 
 
-def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here):
+def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
     di = np.identity(4)
     ffact = contract('ik, jlk->ijl', k, NNminus)
@@ -46,29 +45,34 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here):
     tempchi0 = chi0[beta]
 
     M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, d, di)
-    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, piunitcell,
-                  piunitcell)
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
+                  unitcell)
     return M1 + M2
 
-def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    chi = chi * np.array([chi_A, chi_A])
-    chi0 = chi0 * np.ones((2, 4))
-    xi = xi * np.array([xipicell[0], xipicell[0]])
+def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell=piunitcell):
+    # chi = chi * np.array([chi_A, chi_A])
+    # chi0 = chi0 * np.ones((2, 4))
+    # xi = xi * np.array([xipicell[0], xipicell[0]])
     k = contract('ij,jk->ik', k, BasisBZA)
-    dummy = np.zeros((len(k), 4, 4), dtype=np.complex128)
+    size = len(A_pi_here)
+    dummy = np.zeros((len(k), size, size), dtype=np.complex128)
 
-    MAk = M_pi_sub_intrahopping_AA(k, 0, Jpm, A_pi_rs_traced_here)
-    MBk = M_pi_sub_intrahopping_AA(k, 1, Jpm, A_pi_rs_traced_here)
-    MAnk = M_pi_sub_intrahopping_AA(-k, 0, Jpm, A_pi_rs_traced_here)
-    MBnk = M_pi_sub_intrahopping_AA(-k, 1, Jpm, A_pi_rs_traced_here)
+    MAk = M_pi_sub_intrahopping_AA(k, 0, Jpm, A_pi_rs_traced_here, unitcell)
+    MBk = M_pi_sub_intrahopping_AA(k, 1, Jpm, A_pi_rs_traced_here, unitcell)
+    MAnk = M_pi_sub_intrahopping_AA(-k, 0, Jpm, A_pi_rs_traced_here, unitcell)
+    MBnk = M_pi_sub_intrahopping_AA(-k, 1, Jpm, A_pi_rs_traced_here, unitcell)
 
-    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
+    # MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
+    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
-    MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here)
+    # MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
+    MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell)
     MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
-    MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here)
-    MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here)
+    # MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here, unitcell)
+    # MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here, unitcell)
+    MAdkAdnk = np.zeros((len(k),size,size))
+    MBdkBdnk = np.zeros((len(k),size,size))
     MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
     MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
 
@@ -156,14 +160,14 @@ def M_pi_single(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_tr
 #endregion
 
 def E_pi_fixed(lams, M):
-    M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
 
-def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    M = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell=piunitcell):
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
@@ -438,19 +442,19 @@ def calmeanfieldC(rhos, K):
 
 # graphing BZ
 
-def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    temp = np.sqrt(2 * Jzz * E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell):
+    temp = np.sqrt(2 * Jzz * E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)[0])
     return temp
 
 
-def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    dGammaX = dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dXW = dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell=piunitcell):
+    dGammaX = dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dXW = dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
 
     for i in range(dGammaX.shape[1]):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:, i], 'b')
@@ -596,37 +600,6 @@ def EMAX(M, lams):
     E, V = np.linalg.eigh(temp)
     temp = np.amax(E)
     return temp
-
-#
-# def green_pi_phid_phi(E, V, Jzz):
-#     Vt1 = contract('ijk, ilk->iklj', V[:, :, 0:8], np.conj(V)[:, :, 0:8])
-#     Vt2 = contract('ijk, ilk->iklj', V[:, :, 8:16], np.conj(V)[:, :, 8:16])
-#     green = Jzz / E
-#     green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
-#     green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
-#
-#     return green1 + green2
-#
-#
-# def green_pi_phid_phid(E, V, Jzz):
-#     V = np.conj(np.transpose(V, (0, 2, 1)))
-#     Vt1 = contract('ijk, ilk->ikjl', V[:, 0:8, 0:8], V[:, 0:8, 8:16])
-#     Vt2 = contract('ijk, ilk->ikjl', V[:, 0:8, 8:16], V[:, 0:8, 0:8])
-#     green = Jzz / E
-#     green1 = contract('ikjl, ik->ijl', Vt1, green[:, 0:8])
-#     green2 = contract('iklj, ik->ijl', Vt2, green[:, 8:16])
-#     return green1 + green2
-#
-#
-# def green_pi_wrong(E, V, Jzz):
-#     green_phid_phid = green_pi_phid_phid(E, V, Jzz)
-#     green_phi_phi = np.transpose(np.conj(green_phid_phid), (0, 2, 1))
-#     green_phid_phi = green_pi_phid_phi(E, V, Jzz)
-#     green = np.block([[green_phid_phi[:, 0:8, 0:8], green_phid_phid],
-#                       [green_phi_phi, green_phid_phi[:, 8:16, 8:16]]])
-#
-#     return green
-
 
 def green_pi(E, V, Jzz):
     green = contract('ilk, ijk, ik->ijl', V, np.conj(V), Jzz / E)
@@ -784,7 +757,7 @@ def MFE_condensed(q, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, rhos, A_
 
 
 class piFluxSolver:
-    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
+    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
                  ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
@@ -804,10 +777,8 @@ class piFluxSolver:
         self.chi = 0.18 * np.ones(4)
         self.xi = 0.5 * np.ones(4)
         self.chi0 = 0.18 * np.ones(4)
-
+        self.flux = flux
         self.A_pi_here, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
-
-
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -825,36 +796,7 @@ class piFluxSolver:
         self.delta = np.zeros(16)
         self.rhos = np.zeros(16)
 
-        self.A_pi_rs_traced_here = np.zeros((4, 4, 4), dtype=np.complex128)
-
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    self.A_pi_rs_traced_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] - self.A_pi_here[i, k]))
-
-        self.A_pi_rs_traced_pp_here = np.zeros((4, 4, 4), dtype=np.complex128)
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    self.A_pi_rs_traced_pp_here[i, j, k] = np.exp(1j * (self.A_pi_here[i, j] + self.A_pi_here[i, k]))
-
-
-        self.A_pi_rs_rsp_here = np.zeros((4, 4, 4, 4), dtype=np.complex128)
-
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    for l in range(4):
-                        self.A_pi_rs_rsp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] - self.A_pi_here[j, l]))
-
-        self.A_pi_rs_rsp_pp_here = np.zeros((4, 4, 4, 4), dtype=np.complex128)
-
-        for i in range(4):
-            for j in range(4):
-                for k in range(4):
-                    for l in range(4):
-                        self.A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (self.A_pi_here[i, k] + self.A_pi_here[j, l]))
-
+        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         self.MF = M_pi(self.pts, self.Jpm,self.Jpmpm,self.h,self.n,self.theta,self.chi,self.chi0,self.xi,self.A_pi_here,self.A_pi_rs_traced_here,self.A_pi_rs_traced_pp_here)
         self.E, self.V = np.linalg.eigh(self.MF)
 
@@ -995,10 +937,72 @@ class piFluxSolver:
         # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
         # self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
         # return Ep
-
-    def graph(self, show):
+    def graph_raw(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                       self.chi0, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        if show:
+            plt.show()
+    def graph(self, show):
+        if (self.flux == np.zeros(4)).all():
+            unitCellgraph = np.array([[[1]],[[1]],[[1]],[[1]]])
+            A_pi_here = np.array([[0,0,0,0]])
+        elif (self.flux == np.pi*np.ones(4)).all():
+            unitCellgraph = piunitcell
+            A_pi_here = self.A_pi_here
+        elif (self.flux == np.array([np.pi,np.pi,0,0])).all():
+            unitCellgraph = np.array([[[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[0,1],
+                                       [1,0]],
+                                      [[1,0],
+                                       [0,1]]
+                                ])
+            A_pi_here = np.array([[0,0,0,0],
+                                  [0,np.pi,0,0]])
+        elif (self.flux == np.array([0, 0, np.pi, np.pi])).all():
+            unitCellgraph = np.array([[[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[0,1],
+                                       [1,0]]
+                                ])
+            A_pi_here = np.array([[0,0,0,0],
+                                  [0,np.pi,np.pi,0]])
+
+        elif (self.flux == np.array([np.pi,0,0, np.pi])).all():
+            unitCellgraph = np.array([[[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[0,1],
+                                       [1,0]],
+                                      [[0,1],
+                                       [1,0]]
+                                ])
+            A_pi_here = np.array([[0,0,0,0],
+                                  [0,np.pi,0,0]])
+
+        elif (self.flux == np.array([0, np.pi, np.pi, 0])).all():
+            unitCellgraph = np.array([[[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[1,0],
+                                       [0,1]],
+                                      [[0,1],
+                                       [1,0]]
+                                ])
+            A_pi_here = np.array([[0,0,0,0],
+                                  [0,0,np.pi,0]])
+
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
+                      self.chi0, self.xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
         if show:
             plt.show()
 

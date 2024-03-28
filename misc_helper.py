@@ -870,7 +870,31 @@ def find_nearest(array, value):
     print(array[idx])
     return idx
 
-
+def gen_gauge_configurations(A_pi_here):
+    size = A_pi_here.shape[0]
+    A_pi_rs_traced_here = np.zeros((size, 4, 4), dtype=np.complex128)
+    for i in range(size):
+        for j in range(4):
+            for k in range(4):
+                A_pi_rs_traced_here[i, j, k] = np.exp(1j * (A_pi_here[i, j] - A_pi_here[i, k]))
+    A_pi_rs_traced_pp_here = np.zeros((size, 4, 4), dtype=np.complex128)
+    for i in range(size):
+        for j in range(4):
+            for k in range(4):
+                A_pi_rs_traced_pp_here[i, j, k] = np.exp(1j * (A_pi_here[i, j] + A_pi_here[i, k]))
+    A_pi_rs_rsp_here = np.zeros((size, size, 4, 4), dtype=np.complex128)
+    for i in range(size):
+        for j in range(size):
+            for k in range(4):
+                for l in range(4):
+                    A_pi_rs_rsp_here[i, j, k, l] = np.exp(1j * (A_pi_here[i, k] - A_pi_here[j, l]))
+    A_pi_rs_rsp_pp_here = np.zeros((size, size, 4, 4), dtype=np.complex128)
+    for i in range(size):
+        for j in range(size):
+            for k in range(4):
+                for l in range(4):
+                    A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (A_pi_here[i, k] + A_pi_here[j, l]))
+    return A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here
 # def HanYan_g(Jpm, Jzz, h, n):
 #     # Jpm = -2*Jpm
 #     if (n==np.array([0,0,1])).all():
