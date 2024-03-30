@@ -25,7 +25,7 @@ def delta(Ek, Eq, omega, tol):
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
-    greenpQ, tempQ = pyp0.green_pi_bran ch(Qs, lam)
+    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
     Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     deltapm = delta(tempE, tempQ, omega, tol)
 
