@@ -13,7 +13,7 @@ def factors(n, nK):
         if n % i == 0 and n / i <= nK:
             return n / i, i
 
-graphres=15
+graphres=21
 
 chi_A = np.array([[[0,1,1,1],
                   [1,0,-1,-1],
