@@ -35,11 +35,11 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpp = np.exp(-1j * ffact)
 
     Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
-                   deltapm, A_pi_rs_rsp, piunitcell, piunitcell,
+                   deltapm, pyp0.A_pi_rs_rsp, piunitcell, piunitcell,
                    ffactpm) / 64
 
     Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
-                   deltapm, A_pi_rs_rsp_pp, piunitcell, piunitcell,
+                   deltapm, pyp0.A_pi_rs_rsp_pp, piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):

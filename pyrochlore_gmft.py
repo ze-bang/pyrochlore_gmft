@@ -484,7 +484,7 @@ def minCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A
     temp = np.zeros(len(q))
     mins = dispersion_pi(lams, K, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)[:,0]
     for i in range(len(q)):
-        temp[i] = np.max(dispersion_pi(lams, K-q[i], Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)[:,0]
+        temp[i] = np.min(dispersion_pi(lams, K-q[i], Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)[:,0]
      + mins)
     return temp
 
