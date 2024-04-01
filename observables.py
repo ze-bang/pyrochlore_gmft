@@ -55,7 +55,6 @@ def DSSF_core(q, omega, pyp0, tol):
 
     Sglobalxx = contract('ijk,jk, i->', Sxx, g(q), pyp0.weights)
     Sxx = contract('ijk, i->', Sxx, pyp0.weights)
-    print(Szz, Sglobalzz, Sxx, Sglobalxx)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
@@ -66,10 +65,10 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 
     currsize = right - left
 
-    sendtemp = np.zeros((len(E), currsize), dtype=np.float64)
-    sendtemp1 = np.zeros((len(E), currsize), dtype=np.float64)
-    sendtemp2 = np.zeros((len(E), currsize), dtype=np.float64)
-    sendtemp3 = np.zeros((len(E), currsize), dtype=np.float64)
+    sendtemp = np.zeros((currsize, len(E)), dtype=np.float64)
+    sendtemp1 = np.zeros((currsize, len(E)), dtype=np.float64)
+    sendtemp2 = np.zeros((currsize, len(E)), dtype=np.float64)
+    sendtemp3 = np.zeros((currsize, len(E)), dtype=np.float64)
 
     currK = K[left:right]
 
@@ -79,14 +78,14 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
     rectemp3 = None
 
     if rank == 0:
-        rectemp = np.zeros((len(E), len(K)), dtype=np.float64)
-        rectemp1 = np.zeros((len(E), len(K)), dtype=np.float64)
-        rectemp2 = np.zeros((len(E), len(K)), dtype=np.float64)
-        rectemp3 = np.zeros((len(E), len(K)), dtype=np.float64)
+        rectemp = np.zeros((len(K), len(E)), dtype=np.float64)
+        rectemp1 = np.zeros((len(K), len(E)), dtype=np.float64)
+        rectemp2 = np.zeros((len(K), len(E)), dtype=np.float64)
+        rectemp3 = np.zeros((len(K), len(E)), dtype=np.float64)
 
-    for i in range(len(E)):
-        for j in range(currsize):
-            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(currK[j], E[i], pyp0, tol)
+    for i in range(currsize):
+        for j in range(len(E)):
+            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(currK[i], E[j], pyp0, tol)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
@@ -586,10 +585,10 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f4 + ".txt", d4)
         kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
         X, Y = np.meshgrid(kline, e)
-        DSSFgraph(X, Y, d1, py0s, f1)
-        DSSFgraph(X, Y, d2, py0s, f2)
-        DSSFgraph(X, Y, d3, py0s, f3)
-        DSSFgraph(X, Y, d4, py0s, f4)
+        DSSFgraph(X, Y, d1.T, py0s, f1)
+        DSSFgraph(X, Y, d2.T, py0s, f2)
+        DSSFgraph(X, Y, d3.T, py0s, f3)
+        DSSFgraph(X, Y, d4.T, py0s, f4)
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))
