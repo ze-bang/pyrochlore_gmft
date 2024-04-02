@@ -94,7 +94,6 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 
     for i in range(currsize):
         sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core(currK[i], E, pyp0, tol)
-        print(sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i])
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))

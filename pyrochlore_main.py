@@ -209,4 +209,4 @@ Jpm = -0.02
 #
 # graphMagPhase(Jpm, h[:], A[:,:], 'phase_110_kappa=2')
 
-DSSF(0.1, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 25, 'test')
+DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 25, 'test')
