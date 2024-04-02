@@ -20,6 +20,15 @@ def delta(Ek, Eq, omega, tol):
     D = contract('ia, ib, iab->iab', bose(beta, Ek), bose(beta, Eq), cauchy(omega + Ekenlarged + Eqenlarged, tol))
     return A + B + C + D
 
+def deltas(Ek, Eq, omega, tol):
+    size = Ek.shape[1]
+    omsize = len(omega)
+    Ekenlarged = contract('ik,j,w->iwkj', Ek, np.ones(size),np.ones(omsize))
+    Eqenlarged = contract('ik,j,w->iwjk', Eq, np.ones(size),np.ones(omsize))
+    omegaenlarged = contract('i, w, j, k->iwjk', np.ones(len(Ek)), omega, np.ones(size), np.ones(size))
+    A = cauchy(omegaenlarged-Ekenlarged-Eqenlarged, tol)
+    return A
+
 
 # region DSSF
 
@@ -27,18 +36,18 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
     greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
     Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
-    deltapm = delta(tempE, tempQ, omega, tol)
+    deltapm = deltas(tempE, tempQ, omega, tol)
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
     ffactpm = np.exp(-1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(-1j * ffact)
 
-    Spm = contract('ioab, ipyx, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_here, piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Spp = contract('ioax, ipby, iop, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
+    Spp = contract('ioax, ipby, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
@@ -50,11 +59,11 @@ def DSSF_core(q, omega, pyp0, tol):
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
-    Sglobalzz = contract('ijk,jk, i->', Szz, g(q), pyp0.weights)
-    Szz = contract('ijk, i->', Szz, pyp0.weights)
+    Sglobalzz = contract('wijk,jk, i->w', Szz, g(q), pyp0.weights)
+    Szz = contract('wijk, i->w', Szz, pyp0.weights)
 
-    Sglobalxx = contract('ijk,jk, i->', Sxx, g(q), pyp0.weights)
-    Sxx = contract('ijk, i->', Sxx, pyp0.weights)
+    Sglobalxx = contract('wijk,jk, i->w', Sxx, g(q), pyp0.weights)
+    Sxx = contract('wijk, i->w', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
@@ -84,8 +93,8 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
         rectemp3 = np.zeros((len(K), len(E)), dtype=np.float64)
 
     for i in range(currsize):
-        for j in range(len(E)):
-            sendtemp[i, j], sendtemp1[i, j], sendtemp2[i, j], sendtemp3[i, j] = DSSF_core(currK[i], E[j], pyp0, tol)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core(currK[i], E, pyp0, tol)
+        print(sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i])
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1], 0))
