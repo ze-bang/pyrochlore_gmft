@@ -13,6 +13,6 @@ Jpm = -0.03
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.03_00pp")
 #
-DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_h111=0")
-DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0.2, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_h111=0.2")
-DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0.4, h111, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03_h111=0.4")
+DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_h111=0")
+DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_h111=0.2")
+DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h111, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03_h111=0.4")
