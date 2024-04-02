@@ -185,24 +185,26 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
     plt.savefig(filename+"_total.pdf")
     plt.clf()
 
-Jpm = 0.046
-h = 0
-p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,0,0]))
-p.solvemeanfield()
-print(p.condensed, p.lams, p.minLams, p.MFE())
-p.graph_loweredge(False)
-p.graph_upperedge(True)
-p.graph(True)
-
-
-Jpm = 0
-h = 2
-p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,np.pi,np.pi]))
-p.solvemeanfield()
-print(p.condensed, p.lams, p.minLams, p.MFE())
-p.graph(True)
-# Jpm = np.linspace(-0.5,0.1,100)
-# h = np.linspace(0, 1, 100)
-# A = np.loadtxt('phase_100_kappa=2.txt')
+# Jpm = 0.046
+# h = 0
+# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,0,0]))
+# p.solvemeanfield()
+# print(p.condensed, p.lams, p.minLams, p.MFE())
+# p.graph_loweredge(False)
+# p.graph_upperedge(True)
+# p.graph(True)
 #
-# graphMagPhase(Jpm, h[:60], A[:,:60], 'phase_001_kappa=2')
+#
+# Jpm = -0.02
+# h = 0.3
+# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,np.pi,np.pi]))
+# p.solvemeanfield()
+# print(p.condensed, p.lams, p.minLams, p.MFE())
+# p.graph_loweredge(False)
+# p.graph_upperedge(True)
+# p.graph(True)
+Jpm = np.linspace(-0.5,0.1,100)
+h = np.linspace(0, 2, 100)
+A = np.loadtxt('phase_110_kappa=2.txt')
+
+graphMagPhase(Jpm, h[:], A[:,:], 'phase_110_kappa=2')

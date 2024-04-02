@@ -21,5 +21,9 @@ Jpm = -0.2
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.zeros(4),30, "Files/SSSF/Jpm=-0.2_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.2_pi")
 #
-DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=-0.2_0")
-DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_pi")
+# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=-0.2_0")
+# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_pi")
+
+DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_h001=0")
+DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0.05, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_h001=0.05")
+DSSF(0.0025, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.2_h001=0.1")
