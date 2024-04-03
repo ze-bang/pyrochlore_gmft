@@ -135,7 +135,7 @@ def SSSF_core(q, v, pyp0):
     else:
         v = v/np.linalg.norm(v)
 
-    Spm = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
