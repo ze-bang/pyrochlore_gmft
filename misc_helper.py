@@ -701,7 +701,7 @@ def hk0L(H,K,L):
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
 def hhlK(H,K,L):
-    hk = hhltoK(H, L).reshape((len(H)*len(K), 3))
+    hk = hhltoK(H, L).reshape((len(H)*len(L), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(L))) \
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(L)), K, np.array([-0.5,0.5,0]))
 
