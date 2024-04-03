@@ -23,7 +23,7 @@ from observables import *
 # plotLinefromnetCDF(h001, "h001=0.2_largeN.pdf", h=0.2, diff=True)
 # plotLinefromnetCDF(h001, "h001=0.3_largeN.pdf", h=0.3, diff=True)
 
-Jpm = 0.02
+Jpm = -0.289
 # py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, BZres=25, h=0.3, n=h111, flux=np.ones(4)*np.pi)
 # py0s.solvemeanfield()
 # print(SSSF_core(np.array([0.5,1,0.5]), hb110, py0s))
@@ -36,9 +36,11 @@ Jpm = 0.02
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 40, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
 
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.15")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.4")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.15")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.4")
+
+SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 30, 25, 'Jpm=-0.289_h110=0.2_L_integrated')
 
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=0.02_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
