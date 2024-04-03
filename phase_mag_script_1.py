@@ -30,7 +30,7 @@ Jpm = 0.02
 # print(SSSF_core(np.array([1,1,1]), hb110, py0s))
 #
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi,30, "test")
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi,30, "test")
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi,30, "test", "hhl")
 
 #
 SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
@@ -40,7 +40,7 @@ SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.15")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.4")
 
-# SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 41, 25, 'Jpm=-0.289_h110=0.2_L_integrated')
+# SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 30, 25, 'Jpm=-0.289_h110=0.2_L_integrated')
 
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=0.02_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
