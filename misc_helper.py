@@ -839,6 +839,17 @@ def simpsons_rule_3d_pts(a, b, c, d, p, q, n):
 
     return pts, weights
 
+def trapezoidal_rule_1d_pts(a, b, n):
+    xi = np.linspace(a, b, n + 1)
+
+    dx = (b - a) / n
+
+    weight_x = np.full_like(xi, 1)
+    weight_x[0] = weight_x[-1] = 1/2
+
+    weights = weight_x*dx
+    return xi, weights
+
 def trapezoidal_rule_3d_pts(a, b, c, d, p, q, n):
     xi = np.linspace(a, b, n + 1)
     yj = np.linspace(c, d, n + 1)

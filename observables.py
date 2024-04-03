@@ -40,8 +40,6 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
     ffactpm = np.exp(-1j * ffact)
-    ffact = contract('ik, jlk->ijl', Kreal, NNplus)
-    ffactpp = np.exp(-1j * ffact)
 
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_here, piunitcell, piunitcell,
@@ -49,7 +47,7 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
 
     Spp = contract('ioax, ipby, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
-                   ffactpp) / 64
+                   ffactpm) / 64
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
@@ -118,7 +116,7 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
 
     ffactpm = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNminus))
-    ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
+    # ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
@@ -126,7 +124,7 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
 
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
-                   ffactpp) / 64
+                   ffactpm) / 64
     return Spm, Spp
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
@@ -137,7 +135,7 @@ def SSSF_core(q, v, pyp0):
     else:
         v = v/np.linalg.norm(v)
 
-    Spm, Spp= SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Spm = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
@@ -385,7 +383,7 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
 
-def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, L=0):
+def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-2.5, 2.5, nK)
@@ -393,13 +391,13 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, L=0):
     A, B = np.meshgrid(H, L)
 
     if hkl == "hk0":
-        K = hkztoK(A, B).reshape((nK*nK,3))
+        K = hkztoK(A, B, K).reshape((nK*nK,3))
         scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
     elif hkl=="hhl":
-        K = hhltoK(A, B).reshape((nK*nK,3))
+        K = hhltoK(A, B, K).reshape((nK*nK,3))
         scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
     else:
-        K = hkktoK(A, B).reshape((nK*nK,3))
+        K = hkktoK(A, B, K).reshape((nK*nK,3))
         scatterPlane = hkkscaplane(A, B).reshape((nK*nK,3))
 
     v = np.zeros(scatterPlane.shape)
