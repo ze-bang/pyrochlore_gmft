@@ -141,7 +141,6 @@ def SSSF_core(q, v, pyp0):
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
-    # print(v, gNSF(v))
     qreal = contract('j,jk->k',q, BasisBZA)
     Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
     SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
@@ -456,6 +455,62 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, L=0):
             SSSFGraphHKK(A, B, d5, f5)
             SSSFGraphHKK(A, B, d6, f6)
 
+
+def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+    H = np.linspace(-2.5, 2.5, nK)
+    L = np.linspace(-2.5, 2.5, nK)
+    K, Kweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
+
+    A, B = np.meshgrid(H, L)
+
+    Q = hhlK(A, K, B)
+
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+    d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((Ln, nK*nK))
+
+    for i in range(Ln):
+        d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
+
+    d1 = contract('il,l->i',d1,Kweight)
+    d2 = contract('il,l->i',d2,Kweight)
+    d3 = contract('il,l->i',d3,Kweight)
+    d4 = contract('il,l->i',d4,Kweight)
+    d5 = contract('il,l->i',d5,Kweight)
+    d6 = contract('il,l->i',d6,Kweight)
+    if rank == 0:
+        f1 = filename + "Szz_local"
+        f2 = filename + "Szz_global"
+        f3 = filename + "Szz_NSF"
+        f4 = filename + "Sxx_local"
+        f5 = filename + "Sxx_global"
+        f6 = filename + "Sxx_NSF"
+        d1 = d1.reshape((nK, nK))
+        d2 = d2.reshape((nK, nK))
+        d3 = d3.reshape((nK, nK))
+        d4 = d4.reshape((nK, nK))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
+        np.savetxt(f1 + '.txt', d1)
+        np.savetxt(f2 + '.txt', d2)
+        np.savetxt(f3 + '.txt', d3)
+        np.savetxt(f4 + '.txt', d4)
+        np.savetxt(f5 + '.txt', d5)
+        np.savetxt(f6 + '.txt', d6)
+        SSSFGraphHKK(A, B, d1, f1)
+        SSSFGraphHKK(A, B, d2, f2)
+        SSSFGraphHKK(A, B, d3, f3)
+        SSSFGraphHKK(A, B, d4, f4)
+        SSSFGraphHKK(A, B, d5, f5)
+        SSSFGraphHKK(A, B, d6, f6)
+
 def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
@@ -465,7 +520,7 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
 
     A, B = np.meshgrid(H, K)
 
-    Q = hknkL(A, B, L)
+    Q = hknkL(A, B, L) #K with L index
 
 
     if not MPI.Is_initialized():
@@ -477,7 +532,7 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
     d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((nK*nK, Ln))
 
     for i in range(Ln):
-        d1[:,i], d2[:,i], d3[:,i], d4[:,i], d5[:,i], d6[:,i] = graph_SSSF(py0s, Q[:,i,:], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
+        d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
 
     d1 = contract('il,l->i',d1,Lweight)
     d2 = contract('il,l->i',d2,Lweight)
@@ -533,7 +588,7 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
     d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((nK*nK, Ln))
 
     for i in range(Ln):
-        d1[:,i], d2[:,i], d3[:,i], d4[:,i], d5[:,i], d6[:,i] = graph_SSSF(py0s, Q[:,i,:], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
+        d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
 
     d1 = contract('il,l->i',d1,Lweight)
     d2 = contract('il,l->i',d2,Lweight)
