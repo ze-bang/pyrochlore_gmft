@@ -109,7 +109,6 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-
 def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpK = pyp0.green_pi(K, lam)
     greenpQ = pyp0.green_pi(Q, lam)

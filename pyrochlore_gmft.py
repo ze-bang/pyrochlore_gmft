@@ -55,31 +55,34 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_he
     # xi = xi * np.array([xipicell[0], xipicell[0]])
     k = contract('ij,jk->ik', k, BasisBZA)
     size = len(A_pi_here)
-    dummy = np.zeros((len(k), size, size), dtype=np.complex128)
+    # dummy = np.zeros((len(k), size, size), dtype=np.complex128)
 
     MAk = M_pi_sub_intrahopping_AA(k, 0, Jpm, A_pi_rs_traced_here, unitcell)
     MBk = M_pi_sub_intrahopping_AA(k, 1, Jpm, A_pi_rs_traced_here, unitcell)
-    MAnk = M_pi_sub_intrahopping_AA(-k, 0, Jpm, A_pi_rs_traced_here, unitcell)
-    MBnk = M_pi_sub_intrahopping_AA(-k, 1, Jpm, A_pi_rs_traced_here, unitcell)
+    # MAnk = M_pi_sub_intrahopping_AA(-k, 0, Jpm, A_pi_rs_traced_here, unitcell)
+    # MBnk = M_pi_sub_intrahopping_AA(-k, 1, Jpm, A_pi_rs_traced_here, unitcell)
 
     # MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
     MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
     # MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
-    MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell)
-    MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
+    # MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell)
+    # MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
     # MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here, unitcell)
     # MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, chi0, A_pi_rs_traced_pp_here, unitcell)
-    MAdkAdnk = np.zeros((len(k),size,size))
-    MBdkBdnk = np.zeros((len(k),size,size))
-    MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
-    MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
+    # MAdkAdnk = np.zeros((len(k),size,size))
+    # MBdkBdnk = np.zeros((len(k),size,size))
+    # MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
+    # MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
 
-    FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
-                   [MagBkAk, MBk, dummy, MBdkBdnk],
-                   [MAnkAk, dummy, MAnk, MagAnkBnk],
-                   [dummy, MBnkBk, MagBnkAnk, MBnk]])
+    # FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
+    #                [MagBkAk, MBk, dummy, MBdkBdnk],
+    #                [MAnkAk, dummy, MAnk, MagAnkBnk],
+    #                [dummy, MBnkBk, MagBnkAnk, MBnk]])
+
+    FM = np.block([[MAk, MagAkBk],
+                   [MagBkAk, MBk]])
     return FM
 
 #endregion
@@ -160,14 +163,16 @@ def M_pi_single(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_tr
 #endregion
 
 def E_pi_fixed(lams, M):
-    M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
+    # M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
+    M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
 
 def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
-    M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
+    # M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
+    M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
     return [E, V]
 
@@ -589,7 +594,8 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, chi0, xi, A_pi_here, A
 
 
 def gap(M, lams):
-    temp = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    # temp = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    temp = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(temp)
     # E = np.sqrt(E)
     temp = np.amin(E)
@@ -597,7 +603,8 @@ def gap(M, lams):
 
 
 def EMAX(M, lams):
-    temp = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    # temp = M + np.diag(np.repeat(np.repeat(lams, 4), 2))
+    temp = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(temp)
     temp = np.amax(E)
     return temp
@@ -762,7 +769,7 @@ def graphing_M_setup(flux):
         A_pi_here = np.array([[0,0,0,0]])
     elif (flux == np.pi*np.ones(4)).all():
         unitCellgraph = piunitcell
-        A_pi_here = A_pi_here
+        A_pi_here = A_pi
     elif (flux == np.array([np.pi,np.pi,0,0])).all():
         unitCellgraph = np.array([[[1,0],
                                     [0,1]],
@@ -834,9 +841,9 @@ class piFluxSolver:
         self.ns = ns
         self.h = h
         self.n = n
-        self.chi = 0.18 * np.ones(4)
-        self.xi = 0.5 * np.ones(4)
-        self.chi0 = 0.18 * np.ones(4)
+        self.chi = np.zeros(4)
+        self.xi = np.zeros(4)
+        self.chi0 = np.zeros(4)
         self.flux = flux
         self.A_pi_here, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
@@ -901,20 +908,20 @@ class piFluxSolver:
     def solvemeanfield(self, tol=1e-15):
         mfs = np.array([self.chi, self.chi0, self.xi])
         self.condensation_check(mfs)
-        mfs = self.calmeanfield(self.lams)
-        do = not (self.Jpmpm == 0)
-        counter = 0
-        while do:
-            mfslast = np.copy(mfs)
-            self.condensation_check(mfs)
-            mfs = self.calmeanfield(self.lams)
-            print(mfs, self.lams, self.minLams)
-            if (abs(mfs-mfslast) < tol).all() or counter >= 30:
-                break
-            counter = counter + 1
-        if do:
-            self.condensation_check(mfs)
-        self.chi, self.chi0, self.xi = mfs
+        # mfs = self.calmeanfield(self.lams)
+        # do = not (self.Jpmpm == 0)
+        # counter = 0
+        # while do:
+        #     mfslast = np.copy(mfs)
+        #     self.condensation_check(mfs)
+        #     mfs = self.calmeanfield(self.lams)
+        #     print(mfs, self.lams, self.minLams)
+        #     if (abs(mfs-mfslast) < tol).all() or counter >= 30:
+        #         break
+        #     counter = counter + 1
+        # if do:
+        #     self.condensation_check(mfs)
+        # self.chi, self.chi0, self.xi = mfs
         return 0
 
     def ifcondense(self):

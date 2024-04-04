@@ -195,7 +195,7 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
 # p.graph(True)
 #
 #
-Jpm = -0.02
+# Jpm = -0.289
 # h = 0.3
 # p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,np.pi,np.pi]))
 # p.solvemeanfield()
@@ -203,10 +203,21 @@ Jpm = -0.02
 # p.graph_loweredge(False)
 # p.graph_upperedge(True)
 # p.graph(True)
+#
+Jpm = -0.289
+# h = 0.3
+# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+# p.solvemeanfield()
+# print(p.condensed, p.lams, p.minLams, p.MFE())
+# p.graph_loweredge(False)
+# p.graph_upperedge(True)
+# p.graph(True)
+
 # Jpm = np.linspace(-0.5,0.1,100)
 # h = np.linspace(0, 2, 100)
 # A = np.loadtxt('phase_110_kappa=2.txt')
 #
 # graphMagPhase(Jpm, h[:], A[:,:], 'phase_110_kappa=2')
 
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 25, 'test')
+DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 25, 'test')
+
