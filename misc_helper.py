@@ -245,6 +245,8 @@ piunitcell = np.array([
      [0,1,0,0]]
 ])
 
+piunitcellCoord = np.array([[0,0,0],[0,1,0],[0,0,1],[0,1,1]])
+
 number = 8
 notrace = np.ones((4,4))-np.diag([1,1,1,1])
 
@@ -584,7 +586,7 @@ def symmetry_equivalence(K, equi_relation):
 
 def determineEquivalence(n, flux):
     if (n == h110).all():
-        A_pi_here = constructA_pi_110(flux)
+        A_pi_here, n1, n2 = constructA_pi_110(flux)
         equi_class_field = equi_class_110
         gen_equi_class_field = gen_equi_class_110
         if (flux == np.zeros(4)).all():
@@ -600,7 +602,7 @@ def determineEquivalence(n, flux):
             equi_class_flux = equi_class_00pp_flux
             gen_equi_class_flux = gen_equi_class_00pp_flux
     elif (n == h111).all():
-        A_pi_here = constructA_pi_111(flux)
+        A_pi_here, n1, n2 = constructA_pi_111(flux)
         equi_class_field = equi_class_111
         gen_equi_class_field = gen_equi_class_111
         if (flux == np.zeros(4)).all():
@@ -610,7 +612,7 @@ def determineEquivalence(n, flux):
             equi_class_flux = equi_class_pi_flux
             gen_equi_class_flux = gen_equi_class_pi_flux
     elif (n == h001).all():
-        A_pi_here = constructA_pi_001(flux)
+        A_pi_here, n1, n2 = constructA_pi_001(flux)
         equi_class_field = equi_class_100
         gen_equi_class_field = gen_equi_class_100
         if (flux == np.zeros(4)).all():
@@ -625,7 +627,7 @@ def determineEquivalence(n, flux):
         else:
             equi_class_flux = equi_class_0pp0_flux
             gen_equi_class_flux = gen_equi_class_0pp0_flux
-    return A_pi_here, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux
+    return A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux
 
 def genALLSymPoints():
     d = 9 * 1j
@@ -915,55 +917,87 @@ def gen_gauge_configurations(A_pi_here):
                 for l in range(4):
                     A_pi_rs_rsp_pp_here[i, j, k, l] = np.exp(1j * (A_pi_here[i, k] + A_pi_here[j, l]))
     return A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here
-# def HanYan_g(Jpm, Jzz, h, n):
-#     # Jpm = -2*Jpm
-#     if (n==np.array([0,0,1])).all():
-#         E = - (7*h**6+23*h**4*Jpm**2+147*h**2*Jpm*4)/(48*Jzz**5) \
-#             + (35*h**4*Jpm-108*h**2*Jpm**3-351*Jpm**5)/(72*Jzz**4) \
-#             - 5*h**2*Jpm**2/(12*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E = E * np.ones(4)
-#         return E
-#     elif (n==np.array([1,1,1])/np.sqrt(3)).all():
-#         E = np.zeros(4)
-#         E[1] = - (7*h**6+1293*h**4*Jpm**2+13095*h**2*Jpm*4)/(1296*Jzz**5) \
-#             - (35*h**4*Jpm+468*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(4*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E[0] = E[2] = E[3] = - (21*h**6+31*h**4*Jpm**2+309*h**2*Jpm*4)/(432*Jzz**5) \
-#             - (35*h**4*Jpm+276*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(36*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         return E
-#     else:
-#         E = np.zeros(4)
-#         E[0] = E[1] = - (25*h**6+237*h**4*Jpm**2)/(36*Jzz**5) \
-#             - (44*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(6*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E[2] = E[3] = -(11*h**2*Jpm*4)/(24*Jzz**5) \
-#             - (28*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
-#             - 3*Jpm**3/(2*Jzz**2)
-#         return E
-# def HanYan_GS(Jpm, Jzz, h, n, flux):
-#     # Jpm = -2*Jpm
-#     if (n==np.array([0,0,1])).all():
-#         E = - (7*h**6+23*h**4*Jpm**2+147*h**2*Jpm*4)/(48*Jzz**5) \
-#             + (35*h**4*Jpm-108*h**2*Jpm**3-351*Jpm**5)/(72*Jzz**4) \
-#             - 5*h**2*Jpm**2/(12*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E = E * np.ones(4)
-#         return -np.dot(E, np.cos(flux))/4
-#     elif (n==np.array([1,1,1])/np.sqrt(3)).all():
-#         E = np.zeros(4)
-#         E[1] = - (7*h**6+1293*h**4*Jpm**2+13095*h**2*Jpm*4)/(1296*Jzz**5) \
-#             - (35*h**4*Jpm+468*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(4*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E[0] = E[2] = E[3] = - (21*h**6+31*h**4*Jpm**2+309*h**2*Jpm*4)/(432*Jzz**5) \
-#             - (35*h**4*Jpm+276*h**2*Jpm**3+1053*Jpm**5)/(216*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(36*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         return -np.dot(E, np.cos(flux))/4
-#     else:
-#         E = np.zeros(4)
-#         E[0] = E[1] = - (25*h**6+237*h**4*Jpm**2)/(36*Jzz**5) \
-#             - (44*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
-#             - 5*h**2*Jpm**2/(6*Jzz**3) - 3*Jpm**3/(2*Jzz**2)
-#         E[2] = E[3] = (11*h**2*Jpm*4)/(24*Jzz**5) \
-#             - (28*h**2*Jpm**3+117*Jpm**5)/(24*Jzz**4) + \
-#             - 3*Jpm**3/(2*Jzz**2)
-#         return -np.dot(E, np.cos(flux))/4
+
+def xi_mean_field_110(xi, n1, n2, n4, unitcellCoord):
+    size = len(unitcellCoord)
+    xitemp = np.zeros((size, 4),dtype=complex)
+    for i in range(size):
+        xitemp[i] = np.array([xi[0,0], xi[0,1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,1]+n2*unitcellCoord[i,2]))\
+                                 , xi[0,1]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n4)), xi[0,3]])
+    return xitemp
+def xi_mean_field_111(xi, n1, n5, unitcellCoord):
+    size = len(unitcellCoord)
+    xitemp = np.zeros((size, 4),dtype=complex)
+    for i in range(size):
+        xitemp[i] = np.array([xi[0,0], xi[0,1]*np.exp(1j*np.pi*n1(unitcellCoord[i,1]*unitcellCoord[i,2]))\
+                                 , xi[0,1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,2]+n5)), xi[0,0]])
+    return xitemp
+def xi_mean_field_001(xi, n1, n2, n4, unitcellCoord):
+    size = len(unitcellCoord)
+    xitemp = np.zeros((size, 4),dtype=complex)
+    for i in range(size):
+        xitemp[i] = np.array([xi[0,0], xi[0,1]*np.exp(1j*np.pi*n1*(unitcellCoord[i,1]+unitcellCoord[i,2]))\
+                                 , xi[0,1]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n4)), xi[0,0]])
+    return xitemp
+def chi_mean_field_110(chi, n1, n2, n3, n4, unitcellCoord):
+    size = len(unitcellCoord)
+    chitemp = np.zeros((size, 4, 4),dtype=complex)
+    for i in range(size):
+        chi01 = chi[0,1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,1]+n2*unitcellCoord[i,2]))
+        chi02 = chi[0,1]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n4))
+        chi03 = chi[0,3]
+        chi12 = chi[1,2] * np.exp(1j*np.pi*n1*unitcellCoord[i,1])
+        chi13 = chi[1, 3]*np.exp(1j*np.pi*(n1*unitcellCoord[i,1]+n2*unitcellCoord[i,2]))
+        chi23 = chi[1, 3]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n3+n4))
+        A = np.array([[chi[0,0], chi01, chi02, chi03],
+                               [chi01, chi[0,0], chi12, chi13],
+                               [chi01, chi12, chi[0,0], chi23],
+                               [chi01, chi13, chi23,chi[0,0]]])
+        chitemp[i] = A
+    return chitemp
+def chi_mean_field_111(chi, n1, n5, unitcellCoord):
+    size = len(unitcellCoord)
+    chitemp = np.zeros((size, 4, 4),dtype=complex)
+    for i in range(size):
+        chi01 = chi[0,1]*np.exp(1j*np.pi*n1*(unitcellCoord[i,1]+unitcellCoord[i,2]))
+        chi02 = chi[0,1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,2]+n5))
+        chi03 = chi[0,1]*np.exp(1j*np.pi*n5)
+        chi12 = chi[1,2] * np.exp(1j*np.pi*n1*unitcellCoord[i,1])
+        chi13 = chi[1, 2]*np.exp(1j*np.pi*n1*(unitcellCoord[i,1]+unitcellCoord[i,2]))
+        chi23 = chi[1, 2]*np.exp(1j*np.pi*(n1*unitcellCoord[i,2]+n5))
+        chitemp[i] = np.array([[0, chi01, chi02, chi03],
+                               [chi01, 0, chi12, chi13],
+                               [chi01, chi12, 0, chi23],
+                               [chi01, chi13, chi23,0]])
+    return chitemp
+def chi_mean_field_001(chi, n1, n2, n4, n5, unitcellCoord):
+    size = len(unitcellCoord)
+    chitemp = np.zeros((size, 4, 4),dtype=complex)
+    for i in range(size):
+        chi01 = chi[0,1]*np.exp(1j*np.pi*n1*(unitcellCoord[i,1]+unitcellCoord[i,2]))
+        chi02 = chi[0,1]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n4))
+        chi03 = chi[0,3]
+        chi12 = chi[1,2] * np.exp(1j*np.pi*n1*unitcellCoord[i,1])
+        chi13 = chi[0, 1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,1]+n2*unitcellCoord[i,2]+n4+n5))
+        chi23 = chi[0, 1]*np.exp(1j*np.pi*(n2*unitcellCoord[i,2]+n4))
+        chitemp[i] = np.array([[0, chi01, chi02, chi03],
+                               [chi01, 0, chi12, chi13],
+                               [chi01, chi12, 0, chi23],
+                               [chi01, chi13, chi23,0]])
+    return chitemp
+def xi_mean_field(n, xi, n1, n2, n4, n5, unitcellCoord):
+    xi[0,0] = np.real(xi[0,0])
+    if (n==h110).all():
+        return xi_mean_field_110(xi, n1, n2, n4, unitcellCoord)
+    elif (n==h111).all():
+        return xi_mean_field_111(xi, n1, n5, unitcellCoord)
+    else:
+        return xi_mean_field_001(xi, n1, n2, n4, unitcellCoord)
+def chi_mean_field(n, chi, n1, n2, n3, n4, n5, unitcellCoord):
+    if (n==h110).all():
+        return chi_mean_field_110(chi, n1, n2, n3, n4, unitcellCoord)
+    elif (n==h111).all():
+        return chi_mean_field_111(chi, n1, n5, unitcellCoord)
+    else:
+        return chi_mean_field_001(chi, n1, n2, n4, n5, unitcellCoord)
+

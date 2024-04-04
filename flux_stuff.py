@@ -173,7 +173,7 @@ def constructA_pi_110(Fluxs):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-    return np.mod(M, 2*np.pi)
+    return np.mod(M, 2*np.pi), n1, n2
 
 def A_init110(Fluxs):
     A, B, C, D = Fluxs
@@ -213,7 +213,7 @@ def constructA_pi_001(Fluxs):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-    return np.mod(M, 2*np.pi)
+    return np.mod(M, 2*np.pi), n1, n2
 
 def A_init001(Fluxs):
     ## A=B, C=D
@@ -253,7 +253,7 @@ def constructA_pi_111(Fluxs):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-    return np.mod(M, 2*np.pi)
+    return np.mod(M, 2*np.pi), n1, 0
 
 def A_init111(Fluxs):
     ## C=D
