@@ -34,8 +34,16 @@ def deltas(Ek, Eq, omega, tol):
 # region DSSF
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
-    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
-    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+    # greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
+    # greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+    greenpK, tempE = pyp0.green_pi_branch_reduced(Ks)
+    greenpQ, tempQ = pyp0.green_pi_branch_reduced(Qs)
+
+    if pyp0.Jpmpm ==0:
+        size = int(tempE.shape[1]/2)
+    else:
+        size = int(tempE.shape[1]/4)
+
     Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     deltapm = deltas(tempE, tempQ, omega, tol)
 
@@ -44,11 +52,11 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(1j * ffact)
 
-    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, pyp0.A_pi_rs_rsp_here, piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, pyp0.A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
@@ -117,14 +125,19 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpQ = pyp0.green_pi(Q, lam)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
 
+    if pyp0.Jpmpm ==0:
+        size = int(greenpK.shape[1]/2)
+    else:
+        size = int(greenpK.shape[1]/4)
+
     ffactpm = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
     ffactpp = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNplus))
 
-    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
+    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 0:size], greenpQ[:, size:2*size, size:2*size], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
+    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
