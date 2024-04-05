@@ -929,7 +929,7 @@ def xi_mean_field_111(xi, n1, n5, unitcellCoord):
     size = len(unitcellCoord)
     xitemp = np.zeros((size, 4),dtype=complex)
     for i in range(size):
-        xitemp[i] = np.array([xi[0,0], xi[0,1]*np.exp(1j*np.pi*n1(unitcellCoord[i,1]*unitcellCoord[i,2]))\
+        xitemp[i] = np.array([xi[0,0], xi[0,1]*np.exp(1j*np.pi*n1*(unitcellCoord[i,1]*unitcellCoord[i,2]))\
                                  , xi[0,1]*np.exp(1j*np.pi*(n1*unitcellCoord[i,2]+n5)), xi[0,0]])
     return xitemp
 def xi_mean_field_001(xi, n1, n2, n4, unitcellCoord):
