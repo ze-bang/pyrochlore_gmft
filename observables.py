@@ -479,12 +479,12 @@ def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres,
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
 
-    d1 = contract('il,l->i',d1,Kweight)
-    d2 = contract('il,l->i',d2,Kweight)
-    d3 = contract('il,l->i',d3,Kweight)
-    d4 = contract('il,l->i',d4,Kweight)
-    d5 = contract('il,l->i',d5,Kweight)
-    d6 = contract('il,l->i',d6,Kweight)
+    d1 = contract('li,l->i',d1,Kweight)
+    d2 = contract('li,l->i',d2,Kweight)
+    d3 = contract('li,l->i',d3,Kweight)
+    d4 = contract('li,l->i',d4,Kweight)
+    d5 = contract('li,l->i',d5,Kweight)
+    d6 = contract('li,l->i',d6,Kweight)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
