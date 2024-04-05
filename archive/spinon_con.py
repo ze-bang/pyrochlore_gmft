@@ -595,7 +595,7 @@ def TWOSPINCON(nK, h, n, Jxx, Jyy, Jzz, BZres, filename):
 
     currK = K[left:right, :]
 
-    sendbuf1 = py0s.minMaxCal(currK)
+    sendbuf1 = py0s.minMaxCal(currK,,
 
     recvbuf1 = None
 
@@ -646,7 +646,7 @@ def TWOSPINCON_0(nK, h, n, Jxx, Jyy, Jzz, BZres, filename):
 
     currK = K[left:right, :]
 
-    sendbuf1 = py0s.minMaxCal(currK)
+    sendbuf1 = py0s.minMaxCal(currK,,
 
     recvbuf1 = None
 
@@ -695,7 +695,7 @@ def TWOSPINCON_general(nK, h, n, Jxx, Jyy, Jzz, BZres, flux, filename):
 
     currK = K[left:right, :]
 
-    sendbuf1 = py0s.minMaxCal(currK)
+    sendbuf1 = py0s.minMaxCal(currK,,
 
     recvbuf1 = None
 
@@ -741,7 +741,7 @@ def TWOSPINCON_gang(nK, h, n, Jpm, BZres, filename):
 
     currK = K[left:right, :]
 
-    sendbuf1 = py0s.minMaxCal(currK)
+    sendbuf1 = py0s.minMaxCal(currK,,
 
     recvbuf1 = None
 

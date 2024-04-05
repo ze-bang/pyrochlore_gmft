@@ -26,6 +26,7 @@ def deltas(Ek, Eq, omega, tol):
     Ekenlarged = contract('ik,j,w->iwkj', Ek, np.ones(size),np.ones(omsize))
     Eqenlarged = contract('ik,j,w->iwjk', Eq, np.ones(size),np.ones(omsize))
     omegaenlarged = contract('i, w, j, k->iwjk', np.ones(len(Ek)), omega, np.ones(size), np.ones(size))
+    B = omegaenlarged-Ekenlarged-Eqenlarged
     A = cauchy(omegaenlarged-Ekenlarged-Eqenlarged, tol)
     return A
 
@@ -39,15 +40,15 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     deltapm = deltas(tempE, tempQ, omega, tol)
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
-    ffactpm = np.exp(-1j * ffact)
+    ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
-    ffactpp = np.exp(-1j * ffact)
+    ffactpp = np.exp(1j * ffact)
 
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_here, piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Spp = contract('ioax, ipby, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
                    deltapm, pyp0.A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
@@ -116,8 +117,8 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpQ = pyp0.green_pi(Q, lam)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
 
-    ffactpm = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNminus))
-    ffactpp = np.exp(-1j * contract('ik, jlk->ijl', Kreal, NNplus))
+    ffactpm = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
+    ffactpp = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNplus))
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
@@ -625,7 +626,8 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
-    e = np.arange(max(emin - 0.02, 0), emax + 0.02, nE)
+    e = np.arange(max(emin - 0.1, 0), emax + 0.1, nE)
+    print(emin, emax)
     tol = nE / 2
     if not MPI.Is_initialized():
         MPI.Init()
