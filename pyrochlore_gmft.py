@@ -8,14 +8,14 @@ import time
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell=piunitcell):
     zmag = contract('k,ik->i', n, z)
     ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j * ffact)
+    ffact = np.exp(1j * ffact)
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                  np.exp(1j*A_pi_here), unitcell)
     return M
 
 def M_pi_sub_intrahopping_AA(k, alpha, Jpm, A_pi_rs_traced_here, unitcell=piunitcell):
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(-1j * neta(alpha) * ffact)
+    ffact = np.exp(1j * neta(alpha) * ffact)
     M = contract('jl,kjl,ijl, jka, lkb->iab', notrace, -Jpm * A_pi_rs_traced_here / 4, ffact, unitcell,
                  unitcell)
     return M
@@ -35,9 +35,9 @@ def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi, A_pi_rs_traced_pp_here, unitce
 
 def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
-    di = np.identity(4)
+    di = np.identity(unitcell.shape[1])
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(-1j * neta(alpha) * ffact)
+    ffact = np.exp(1j * neta(alpha) * ffact)
     tempchi0 = chi[:,0,0]
     M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi, d, di)
     M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
@@ -314,25 +314,25 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
 def chi_integrand(k, E, V, Jzz):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', k, NNminus)
-    ffactB = np.exp(-1j * ffact)
+    ffactB = np.exp(1j * ffact)
     A = contract('iab, ijl,jka, lkb->kjil', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
     return A
 
 def chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord):
     M = integrate_fixed(chi_integrand, weights, pts, E, V, Jzz)
     M1 = chi_mean_field(n, M[0], n1, n2, n3, n4, n5, unitcellCoord)
-    return M1
+    return M
 
 def xi_integrand(k, E, V, Jzz):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jk->ij', k, NN)
-    ffactA = np.exp(-1j * ffact)
+    ffactA = np.exp(1j * ffact)
     A = contract('ika, ij,jka->kij', green[:, 0:4, 4:8], ffactA, piunitcell)
     return A
 def xiCal(E, V, Jzz, n, n1, n2, n4, n5, pts, weights, unitcellCoord):
     M = integrate_fixed(xi_integrand, weights, pts, E, V, Jzz)
     M1 = xi_mean_field(n, M, n1, n2, n4, n5, unitcellCoord)
-    return M1
+    return M
 
 def calmeanfield(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord=piunitcellCoord):
     chi = chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord)
@@ -545,151 +545,6 @@ def green_pi_branch(E, V, Jzz):
     green = contract('ilk, ijk, ik->ikjl', V, np.conj(V), Jzz / E)
     return green
 
-
-
-def Encompassing_integrand(q, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    chi = chi * np.array([chi_A, chi_A])
-    chi0 = chi0 * np.ones((2, 4))
-    xi = xi * np.array([xipicell[0], xipicell[0]])
-
-    M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
-    E, V = np.linalg.eigh(M)
-    E = np.sqrt(2 * Jzz * E)
-
-    EQ = np.real(np.mean(E,axis=1))*2
-
-    k = contract('ij,jk->ik', q, BasisBZA)
-    green = green_pi(E, V, Jzz)
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffactA = np.exp(-1j * ffact)
-    ffactB = np.exp(1j*ffact)
-    E1A = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,0:4,0:4], ffactA,
-                 piunitcell, piunitcell))
-    E1B = np.real(contract('jl,klj, iab, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, green[:,4:8,4:8], ffactB,
-                 piunitcell, piunitcell))
-    E1 = np.real(E1A+E1B)/2
-    zmag = contract('k,ik->i', n, z)
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j * ffact)
-
-    Emag = np.real(contract('ku, u, ru, krx, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j*A_pi_here), green[:, 0:4, 4:8], piunitcell))
-
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
-    tempxb = xi[1]
-    tempxa = xi[0]
-
-    M1a = contract('jl, kjl, ij, kl, ikx, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], piunitcell)
-    M1b = contract('jl, kjl, il, kj, ikx, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,
-                           green[:, 0:4, 4:8], piunitcell)
-    M2a = contract('jl, kjl, ij, kl, ixk, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], piunitcell)
-    M2b = contract('jl, kjl, il, kj, ixk, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),
-                 green[:, 0:4, 4:8], piunitcell)
-
-    EAB = np.real(M1a + M1b + M2a + M2b)
-
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(-1j * ffact)
-    tempchi = chi[1]
-    tempchi0 = chi0[1]
-
-    M1 = contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, green[:, 0:4, 8:12])
-
-    M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
-                          green[:, 0:4, 8:12], piunitcell, piunitcell)
-
-    EAA = np.real(M1+M2)
-
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j * ffact)
-    tempchi = chi[0]
-    tempchi0 = chi0[0]
-
-    M1 = contract('jl, kjl, kjl, ikk->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, tempchi, green[:, 4:8, 12:16])
-
-    M2 = contract('jl, kjl, ijl, k, iba, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp / 8, ffact, tempchi0,
-                          green[:, 4:8, 12:16], piunitcell, piunitcell)
-    EBB = np.real(M1+ M2)
-    Etot = EQ + Emag + E1 + EAB + EAA + EBB
-    return Etot
-
-def MFE(Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, pts, weights):
-    Eall = integrate(Encompassing_integrand, pts, weights, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-    # print(EQ/4, E1/4, Emag/4, EAB/4, EAA/4, EBB/4, E/4)
-    return Eall/4
-
-def MFE_condensed(q, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, lams, rhos, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    chi = chi * np.array([chi_A, chi_A])
-    chi0 = chi0 * np.ones((2, 4))
-    xi = xi * np.array([xipicell[0], xipicell[0]])
-
-    # M = M_pi(q, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(lams, 4), 2))
-    # E, V = np.linalg.eigh(M)
-    # E = np.sqrt(2 * Jzz * E)
-
-    # EQ = np.real(np.mean(E,axis=1))*2
-    k = contract('ij,jk->ik', q, BasisBZA)
-
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffactA = np.exp(-1j * ffact)
-    ffactB = np.exp(1j * ffact)
-
-    E1A = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[0:4], rhos[0:4], ffactA,
-                 piunitcell, piunitcell)
-    E1B = contract('jl,kjl, a, b, ijl, jka, lkb->i', notrace, -Jpm * A_pi_rs_traced_here / 4, rhos[4:8], rhos[4:8], ffactB,
-                 piunitcell, piunitcell)
-
-    E1 = np.real(np.mean(E1A+E1B))/2
-
-    zmag = contract('k,ik->i', n, z)
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(-1j * ffact)
-    Emag = contract('ku, u, ru, r, x, urx->k', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
-                            np.exp(1j * A_pi_here), rhos[0:4], rhos[4:8], piunitcell)
-
-    Emag = np.real(np.mean(Emag))
-
-    ffact = contract('ik, jk->ij', k, NN)
-    ffact = np.exp(1j * ffact)
-    tempxb = xi[1]
-    tempxa = xi[0]
-    M1a = contract('jl, kjl, ij, kl, k, x, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell)
-    M1b = contract('jl, kjl, il, kj, k, x, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, tempxa,rhos[0:4], rhos[4:8], piunitcell)
-    M2a = contract('jl, kjl, ij, kl, x, k, jkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
-    M2b = contract('jl, kjl, il, kj, x, k, lkx->i', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(tempxb),rhos[0:4], rhos[4:8], piunitcell)
-    EAB = np.real(np.mean(M1a + M1b + M2a + M2b))
-
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(-1j * ffact)
-    beta = 1
-    tempchi = chi[beta]
-    tempchi0 = chi0[beta]
-
-    M1 = contract('jl, kjl, kjl, k, k->', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, rhos[0:4], rhos[0:4])
-    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[0:4], rhos[0:4], piunitcell,
-                          piunitcell))
-
-    EAA = np.real(M1 + M2)
-
-    ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j * ffact)
-    beta = 0
-    tempchi = chi[beta]
-    tempchi0 = chi0[beta]
-
-    M1 = contract('jl, kjl, kjl, k, k->', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, tempchi, rhos[4:8], rhos[4:8])
-    M2 = np.mean(contract('jl, kjl, ijl, k, b, a, jka, lkb->i', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, rhos[4:8], rhos[4:8], piunitcell,
-                          piunitcell))
-
-    EBB = np.real(M1 + M2)
-
-    E = Emag + E1 + EAB + EAA + EBB
-    # print(E1/4, Emag/4, EAB/4, EAA/4, EBB/4)
-    return E / 4
 #endregion
 
 #region miscellaneous
@@ -793,15 +648,15 @@ class piFluxSolver:
         self.ns = ns
         self.h = h
         self.n = n
-        self.xi = np.zeros((4,4))
-        self.chi = np.zeros((4,4,4))
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
         self.n3 = self.n4 =self.n5= 0
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
-        self.minLams = np.zeros(2, dtype=np.double)
+        self.xi = xi_mean_field(n, 0.5*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
+        self.chi = chi_mean_field(n, 0.5*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
 
+        self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
         self.graphres = graphres
 
@@ -848,25 +703,29 @@ class piFluxSolver:
         E, V = self.LV_zero(self.pts, lams)
         E = np.sqrt(2*self.Jzz*E)
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
-        return [chi, xi]
+        return chi, xi
 
-    def solvemeanfield(self, tol=1e-15):
-        mfs = [self.chi, self.xi]
-        self.condensation_check(mfs)
-        mfs = self.calmeanfield(self.lams)
+    def solvemeanfield(self, tol=1e-8):
+        self.condensation_check(self.chi, self.xi)
+        chi, xi = self.calmeanfield(self.lams)
         do = not (self.Jpmpm == 0)
         counter = 0
+        print(chi, xi, self.lams, self.minLams)
         while do:
-            mfslast = np.copy(mfs)
-            self.condensation_check(mfs)
-            mfs = self.calmeanfield(self.lams)
-            print(mfs, self.lams, self.minLams)
-            if (abs(mfs-mfslast) < tol).all() or counter >= 30:
+            chilast, xilast = np.copy(chi), np.copy(xi)
+            self.condensation_check(chi, xi)
+            chi, xi = self.calmeanfield(self.lams)
+            # self.condensation_check(chi1, xi1)
+            # chi2, xi2 = self.calmeanfield(self.lams)
+            # chi, xi = chi - (chi1-chi)**2/(chi2-2*chi1+chi), xi - (xi1-xi)**2/(xi2-2*xi1+xi)
+            chi, xi = (chi+chilast)/2, (xi+xilast)/2
+            print(chi, xi, self.lams, self.minLams)
+            if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()):
                 break
             counter = counter + 1
         if do:
-            self.condensation_check(mfs)
-        self.chi, self.xi = mfs
+            self.condensation_check(chi, xi)
+        self.chi, self.xi = chi, xi
         return 0
 
     def ifcondense(self):
@@ -900,8 +759,7 @@ class piFluxSolver:
             self.delta = np.zeros(16)
         warnings.resetwarnings()
 
-    def condensation_check(self, mfs):
-        chi, xi = mfs
+    def condensation_check(self, chi, xi):
         self.findminLam(chi, xi)
         self.lams = self.findLambda()
         self.set_condensed()
@@ -960,7 +818,9 @@ class piFluxSolver:
     def graph(self, show):
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
                       A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
         if show:
             plt.show()
@@ -1000,7 +860,9 @@ class piFluxSolver:
         unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
-        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
         if show:
             plt.show()
@@ -1009,7 +871,9 @@ class piFluxSolver:
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
-        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
         if show:
             plt.show()
@@ -1032,7 +896,7 @@ class piFluxSolver:
         green = green_pi(E, V, self.Jzz)
 
         ffact = contract('ik, jk->ij', k, NN)
-        ffact = np.exp(-1j * ffact)
+        ffact = np.exp(1j * ffact)
 
         magp = np.real(contract('ku, ru, krx, urx->k', ffact,
                              np.exp(1j * self.A_pi_here), green[:, 0:4, 4:8], piunitcell))
@@ -1044,8 +908,8 @@ class piFluxSolver:
         con = 0
         if self.condensed:
             ffact = contract('ik, jk->ij', self.qminB, NN)
-            ffactp = np.exp(-1j * ffact)
-            ffactm = np.exp(1j * ffact)
+            ffactp = np.exp(1j * ffact)
+            ffactm = np.exp(-1j * ffact)
 
             tempp = contract('ij, k, a, kj, jka->i', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * self.A_pi_here),
                             piunitcell) / 4
