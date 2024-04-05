@@ -921,7 +921,7 @@ class piFluxSolver:
         E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
              A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
         E = np.sqrt(2 * self.Jzz * E)
-        return green_pi_branch(E, V, self.Jzz), E
+        return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here
 
     def mag_integrand(self, k):
         M = M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
