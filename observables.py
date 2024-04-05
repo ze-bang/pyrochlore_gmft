@@ -26,7 +26,6 @@ def deltas(Ek, Eq, omega, tol):
     Ekenlarged = contract('ik,j,w->iwkj', Ek, np.ones(size),np.ones(omsize))
     Eqenlarged = contract('ik,j,w->iwjk', Eq, np.ones(size),np.ones(omsize))
     omegaenlarged = contract('i, w, j, k->iwjk', np.ones(len(Ek)), omega, np.ones(size), np.ones(size))
-    B = omegaenlarged-Ekenlarged-Eqenlarged
     A = cauchy(omegaenlarged-Ekenlarged-Eqenlarged, tol)
     return A
 
