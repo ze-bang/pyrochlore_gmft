@@ -727,7 +727,6 @@ class piFluxSolver:
                 self.condensation_check(self.chi, self.xi)
                 chi, xi = self.calmeanfield(self.lams)
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
-                print(self.chi, self.xi)
                 GS = self.GS()
                 if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break

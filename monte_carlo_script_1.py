@@ -22,6 +22,7 @@ Jpm = -0.03
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.zeros(4), 30, "Files/Jpm=-0.03_h001=0.1_HK0_0_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.zeros(4), 30, "Files/Jpm=-0.03_h001=0.2_HK0_0_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/Jpm=-0.03_h001=0.3_HK0_0_flux", "hk0", 0)
+
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux")
