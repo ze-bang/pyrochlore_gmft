@@ -504,12 +504,12 @@ def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres,
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHKK(A, B, d1, f1)
-        SSSFGraphHKK(A, B, d2, f2)
-        SSSFGraphHKK(A, B, d3, f3)
-        SSSFGraphHKK(A, B, d4, f4)
-        SSSFGraphHKK(A, B, d5, f5)
-        SSSFGraphHKK(A, B, d6, f6)
+        SSSFGraphHHL(A, B, d1, f1)
+        SSSFGraphHHL(A, B, d2, f2)
+        SSSFGraphHHL(A, B, d3, f3)
+        SSSFGraphHHL(A, B, d4, f4)
+        SSSFGraphHHL(A, B, d5, f5)
+        SSSFGraphHHL(A, B, d6, f6)
 
 def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
