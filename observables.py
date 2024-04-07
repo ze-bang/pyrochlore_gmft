@@ -668,7 +668,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
-    e = np.arange(max(emin - 0.1, 0), emax + 0.1, nE)
+    e = np.arange(max(emin *0.95, 0), emax *1.02, nE)
     tol = nE / 2
     if not MPI.Is_initialized():
         MPI.Init()
