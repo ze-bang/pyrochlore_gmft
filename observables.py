@@ -222,7 +222,7 @@ def DSSFgraph(A, B, D, py0s, filename):
     plt.ylabel(r'$\omega/J_{zz}$')
     py0s.graph_loweredge(False)
     py0s.graph_upperedge(False)
-    plt.savefig(filename + ".png")
+    plt.savefig(filename + ".pdf")
     plt.clf()
 
 def plot_line(A, B, color):
@@ -653,7 +653,6 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.TWOSPINON_DOMAIN(kk)
     e = np.arange(max(emin - 0.1, 0), emax + 0.1, nE)
-    print(emin, emax)
     tol = nE / 2
     if not MPI.Is_initialized():
         MPI.Init()
