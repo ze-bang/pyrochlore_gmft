@@ -766,20 +766,17 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
-    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
-        rectemp5 = np.zeros(le, dtype=np.float64)
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
@@ -789,82 +786,44 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         GS = py0s.MFE()
         GSp = pyps.MFE()
         if GS < GSp:
-            # py0s = py0.zeroFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-            # py0s.solvemeanfield(1e-4)
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS
-            sendtemp3[i] = py0s.xi
-            sendtemp4[i] = py0s.chi
-            sendtemp5[i] = py0s.chi0
+            sendtemp3[i] = py0s.xi[0,0]
+            sendtemp4[i] = py0s.chi[0,0,0]
         else:
-            # pyps = pypi.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres)
-            # pyps.solvemeanfield(1e-4)
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GSp
-            sendtemp3[i] = pyps.xi
-            sendtemp4[i] = pyps.chi
-            sendtemp5[i] = pyps.chi0
-
-        end = time.time()
-        # print(currJH[i], JPm, "This iteration costs " + str(end-start))
-
+            sendtemp3[i] = pyps.xi[0,0]
+            sendtemp4[i] = pyps.chi[0,0,0]
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
-    sendcounts5 =  np.array(comm.gather(sendtemp5.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
-    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
     if rank == 0:
         rectemp = rectemp.reshape((nK,nK))
         rectemp2 = rectemp2.reshape((nK,nK))
         rectemp3 = rectemp3.reshape((nK,nK))
         rectemp4 = rectemp4.reshape((nK,nK))
-        rectemp5 = rectemp5.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
         np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
-        np.savetxt('Files/' + filename + '_chi0.txt', rectemp5)
 
         JP = np.linspace(JPm, JPmax, nK)
+        JP1 = np.linspace(JP1m, JP1max, nK)
 
-        plt.contourf(JP, JP, rectemp.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'.png')
-        plt.clf()
-
-        plt.contourf(JP, JP, rectemp2.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'_MFE.png')
-        plt.clf()
-
-        plt.contourf(JP, JP, rectemp3.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'_xi.png')
-        plt.clf()
-
-        plt.contourf(JP, JP, rectemp4.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'_chi.png')
-        plt.clf()
-
-        plt.contourf(JP, JP, rectemp5.T)
-        plt.xlabel(r'$J_\pm/J_{y}$')
-        plt.ylabel(r'$h/J_{y}$')
-        plt.savefig('Files/' + filename+'_chi0.png')
-        plt.clf()
+        graphMagPhase(JP, JP1, rectemp, 'Files/' + filename)
+        graphColorMesh(JP, JP1, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_mag')
 
 #endregion
 
