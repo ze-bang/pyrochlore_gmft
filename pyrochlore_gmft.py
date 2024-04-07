@@ -724,7 +724,7 @@ class piFluxSolver:
             GS = self.GS()
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
-                self.condensation_check()
+                self.condensation_check(self.chi, self.xi)
                 chi, xi = self.calmeanfield(self.lams)
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
                 print(self.chi, self.xi)
