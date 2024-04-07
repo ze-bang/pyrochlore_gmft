@@ -485,7 +485,12 @@ def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres,
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((Ln, nK*nK))
+    d1 = np.zeros((Ln, nK * nK))
+    d2 = np.zeros((Ln, nK * nK))
+    d3 = np.zeros((Ln, nK * nK))
+    d4 = np.zeros((Ln, nK * nK))
+    d5 = np.zeros((Ln, nK * nK))
+    d6 = np.zeros((Ln, nK * nK))
 
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
@@ -540,7 +545,12 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((nK*nK, Ln))
+    d1 = np.zeros((Ln, nK * nK))
+    d2 = np.zeros((Ln, nK * nK))
+    d3 = np.zeros((Ln, nK * nK))
+    d4 = np.zeros((Ln, nK * nK))
+    d5 = np.zeros((Ln, nK * nK))
+    d6 = np.zeros((Ln, nK * nK))
 
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
@@ -596,7 +606,12 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
-    d1 = d2 = d3 = d4 = d5 = d6 = np.zeros((nK*nK, Ln))
+    d1 = np.zeros((Ln, nK * nK))
+    d2 = np.zeros((Ln, nK * nK))
+    d3 = np.zeros((Ln, nK * nK))
+    d4 = np.zeros((Ln, nK * nK))
+    d5 = np.zeros((Ln, nK * nK))
+    d6 = np.zeros((Ln, nK * nK))
 
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
