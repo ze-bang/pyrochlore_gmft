@@ -46,34 +46,42 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=p
 
 def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
          unitcell=piunitcell):
+
     k = contract('ij,jk->ik', k, BasisBZA)
     size = len(A_pi_here)
-    dummy = np.zeros((len(k), size, size), dtype=np.complex128)
+
 
     MAk = M_pi_sub_intrahopping_AA(k, 0, Jpm, A_pi_rs_traced_here, unitcell)
     MBk = M_pi_sub_intrahopping_AA(k, 1, Jpm, A_pi_rs_traced_here, unitcell)
     MAnk = M_pi_sub_intrahopping_AA(-k, 0, Jpm, A_pi_rs_traced_here, unitcell)
     MBnk = M_pi_sub_intrahopping_AA(-k, 1, Jpm, A_pi_rs_traced_here, unitcell)
 
-    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
-    # MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell)
+
+
+    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
-    MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
-    # MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell)
-    MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
-    MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
-    MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
-    MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
-    MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
+    if Jpmpm == 0:
+        FM = np.block([[MAk, MagAkBk],
+                       [MagBkAk, MBk]])
+    else:
+        dummy = np.zeros((len(k), size, size), dtype=np.complex128)
 
-    FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
-                   [MagBkAk, MBk, dummy, MBdkBdnk],
-                   [MAnkAk, dummy, MAnk, MagAnkBnk],
-                   [dummy, MBnkBk, MagBnkAnk, MBnk]])
+        MagAkBk = MagAkBk + M_pi_sub_interhopping_AB(k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
+        MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
+        MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(-k, 0, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
+        MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
-    # FM = np.block([[MAk, MagAkBk],
-    #                [MagBkAk, MBk]])
+        MAdkAdnk = M_pi_sub_pairing_AA(k, 0, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
+        MBdkBdnk = M_pi_sub_pairing_AA(k, 1, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
+        MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
+        MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
+
+        FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
+                       [MagBkAk, MBk, dummy, MBdkBdnk],
+                       [MAnkAk, dummy, MAnk, MagAnkBnk],
+                       [dummy, MBnkBk, MagBnkAnk, MBnk]])
+
     return FM
 
 #endregion
@@ -706,26 +714,31 @@ class piFluxSolver:
         return chi, xi
 
     def solvemeanfield(self, tol=1e-8):
-        self.condensation_check(self.chi, self.xi)
-        chi, xi = self.calmeanfield(self.lams)
-        do = not (self.Jpmpm == 0)
-        counter = 0
-        print(chi, xi, self.lams, self.minLams)
-        while do:
-            chilast, xilast = np.copy(chi), np.copy(xi)
-            self.condensation_check(chi, xi)
+        if self.Jpmpm == 0:
+            self.chi = np.zeros((4,4,4))
+            self.xi = np.zeros((4,4))
+            self.condensation_check(self.chi, self.xi)
+        else:
+            self.condensation_check(self.chi, self.xi)
             chi, xi = self.calmeanfield(self.lams)
-            # self.condensation_check(chi1, xi1)
-            # chi2, xi2 = self.calmeanfield(self.lams)
-            # chi, xi = chi - (chi1-chi)**2/(chi2-2*chi1+chi), xi - (xi1-xi)**2/(xi2-2*xi1+xi)
-            chi, xi = (chi+chilast)/2, (xi+xilast)/2
+            do = not (self.Jpmpm == 0)
+            counter = 0
             print(chi, xi, self.lams, self.minLams)
-            if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()):
-                break
-            counter = counter + 1
-        if do:
-            self.condensation_check(chi, xi)
-        self.chi, self.xi = chi, xi
+            while do:
+                chilast, xilast = np.copy(chi), np.copy(xi)
+                self.condensation_check(chi, xi)
+                chi, xi = self.calmeanfield(self.lams)
+                # self.condensation_check(chi1, xi1)
+                # chi2, xi2 = self.calmeanfield(self.lams)
+                # chi, xi = chi - (chi1-chi)**2/(chi2-2*chi1+chi), xi - (xi1-xi)**2/(xi2-2*xi1+xi)
+                chi, xi = (chi+chilast)/2, (xi+xilast)/2
+                print(chi, xi, self.lams, self.minLams)
+                if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()):
+                    break
+                counter = counter + 1
+            if do:
+                self.condensation_check(chi, xi)
+            self.chi, self.xi = chi, xi
         return 0
 
     def ifcondense(self):
@@ -887,6 +900,28 @@ class piFluxSolver:
         E, V = self.LV_zero(k, lam)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
+
+    def green_pi_reduced(self, k):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+             A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_pi(E, V, self.Jzz)
+
+    def green_pi_branch_reduced(self, k):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+             A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        E = np.sqrt(2 * self.Jzz * E)
+        return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
 
     def mag_integrand(self, k):
         M = M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,

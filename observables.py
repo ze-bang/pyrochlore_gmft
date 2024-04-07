@@ -26,7 +26,6 @@ def deltas(Ek, Eq, omega, tol):
     Ekenlarged = contract('ik,j,w->iwkj', Ek, np.ones(size),np.ones(omsize))
     Eqenlarged = contract('ik,j,w->iwjk', Eq, np.ones(size),np.ones(omsize))
     omegaenlarged = contract('i, w, j, k->iwjk', np.ones(len(Ek)), omega, np.ones(size), np.ones(size))
-    B = omegaenlarged-Ekenlarged-Eqenlarged
     A = cauchy(omegaenlarged-Ekenlarged-Eqenlarged, tol)
     return A
 
@@ -34,8 +33,16 @@ def deltas(Ek, Eq, omega, tol):
 # region DSSF
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
-    greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
-    greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+    # greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
+    # greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
+    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks)
+    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs)
+
+    if pyp0.Jpmpm ==0:
+        size = int(tempE.shape[1]/2)
+    else:
+        size = int(tempE.shape[1]/4)
+
     Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     deltapm = deltas(tempE, tempQ, omega, tol)
 
@@ -43,13 +50,12 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(1j * ffact)
-
-    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 0:4], greenpQ[:, :, 4:8, 4:8],
-                   deltapm, pyp0.A_pi_rs_rsp_here, piunitcell, piunitcell,
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
+                   deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
                    ffactpm) / 64
 
-    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:4, 4:8], greenpQ[:, :, 0:4, 4:8],
-                   deltapm, pyp0.A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
+                   deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / 64
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
@@ -117,14 +123,19 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     greenpQ = pyp0.green_pi(Q, lam)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
 
+    if pyp0.Jpmpm ==0:
+        size = int(greenpK.shape[1]/2)
+    else:
+        size = int(greenpK.shape[1]/4)
+
     ffactpm = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNminus))
     ffactpp = np.exp(1j * contract('ik, jlk->ijl', Kreal, NNplus))
 
-    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 0:4], greenpQ[:, 4:8, 4:8], pyp0.A_pi_rs_rsp_here,
+    Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 0:size], greenpQ[:, size:2*size, size:2*size], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
                    ffactpm) / 64
 
-    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:4, 4:8], greenpQ[:, 0:4, 4:8], pyp0.A_pi_rs_rsp_pp_here,
+    Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp) / 64
     return Spm, Spp
@@ -534,12 +545,12 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
 
-    d1 = contract('il,l->i',d1,Lweight)
-    d2 = contract('il,l->i',d2,Lweight)
-    d3 = contract('il,l->i',d3,Lweight)
-    d4 = contract('il,l->i',d4,Lweight)
-    d5 = contract('il,l->i',d5,Lweight)
-    d6 = contract('il,l->i',d6,Lweight)
+    d1 = contract('li,l->i',d1,Lweight)
+    d2 = contract('li,l->i',d2,Lweight)
+    d3 = contract('li,l->i',d3,Lweight)
+    d4 = contract('li,l->i',d4,Lweight)
+    d5 = contract('li,l->i',d5,Lweight)
+    d6 = contract('li,l->i',d6,Lweight)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
@@ -590,12 +601,12 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
     for i in range(Ln):
         d1[i], d2[i], d3[i], d4[i], d5[i], d6[i] = graph_SSSF(py0s, Q[i], np.einsum('k,i->ik',hb110,np.ones(nK*nK)), rank, size)
 
-    d1 = contract('il,l->i',d1,Lweight)
-    d2 = contract('il,l->i',d2,Lweight)
-    d3 = contract('il,l->i',d3,Lweight)
-    d4 = contract('il,l->i',d4,Lweight)
-    d5 = contract('il,l->i',d5,Lweight)
-    d6 = contract('il,l->i',d6,Lweight)
+    d1 = contract('li,l->i',d1,Lweight)
+    d2 = contract('li,l->i',d2,Lweight)
+    d3 = contract('li,l->i',d3,Lweight)
+    d4 = contract('li,l->i',d4,Lweight)
+    d5 = contract('li,l->i',d5,Lweight)
+    d6 = contract('li,l->i',d6,Lweight)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
