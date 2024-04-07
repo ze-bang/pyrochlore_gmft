@@ -29,6 +29,13 @@ def deltas(Ek, Eq, omega, tol):
     A = cauchy(omegaenlarged-Ekenlarged-Eqenlarged, tol)
     return A
 
+def deltas_pairing(Ek, omega, tol):
+    size = Ek.shape[1]
+    omsize = len(omega)
+    Ekenlarged = contract('ik,w->iwk', 2*Ek, np.ones(omsize))
+    omegaenlarged = contract('i, w, k->iwk', np.ones(len(Ek)), omega, np.ones(size))
+    A = cauchy(omegaenlarged-Ekenlarged, tol)
+    return A
 
 # region DSSF
 
@@ -57,6 +64,10 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / 64
+    if not pyp0.Jpmpm == 0:
+        deltapairing = deltas_pairing(tempE, omega, tol)
+        Spp = Spp + contract('ioab, ipyx, iwo, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:size, 2*size:3*size], greenpQ[:, :, 3*size:4*size, size:2*size],
+                             deltapairing, pyp0.A_pi_rs_rsp_pp_here, unitcell, unitcell, ffactpm) / 64
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
@@ -138,6 +149,11 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp) / 64
+
+    if not pyp0.Jpmpm == 0:
+        Spp = Spp + contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
+                   piunitcell, piunitcell,
+                   ffactpm) / 64
     return Spm, Spp
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts

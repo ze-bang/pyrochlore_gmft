@@ -329,7 +329,7 @@ def chi_integrand(k, E, V, Jzz):
 def chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord):
     M = integrate_fixed(chi_integrand, weights, pts, E, V, Jzz)
     M1 = chi_mean_field(n, M[0], n1, n2, n3, n4, n5, unitcellCoord)
-    return M
+    return M1
 
 def xi_integrand(k, E, V, Jzz):
     green = green_pi(E, V, Jzz)
@@ -340,7 +340,7 @@ def xi_integrand(k, E, V, Jzz):
 def xiCal(E, V, Jzz, n, n1, n2, n4, n5, pts, weights, unitcellCoord):
     M = integrate_fixed(xi_integrand, weights, pts, E, V, Jzz)
     M1 = xi_mean_field(n, M, n1, n2, n4, n5, unitcellCoord)
-    return M
+    return M1
 
 def calmeanfield(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord=piunitcellCoord):
     chi = chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord)
@@ -713,32 +713,24 @@ class piFluxSolver:
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
         return chi, xi
 
-    def solvemeanfield(self, tol=1e-8):
+    def solvemeanfield(self, tol=1e-15):
         if self.Jpmpm == 0:
             self.chi = np.zeros((4,4,4))
             self.xi = np.zeros((4,4))
             self.condensation_check(self.chi, self.xi)
         else:
             self.condensation_check(self.chi, self.xi)
-            chi, xi = self.calmeanfield(self.lams)
-            do = not (self.Jpmpm == 0)
-            counter = 0
-            print(chi, xi, self.lams, self.minLams)
-            while do:
-                chilast, xilast = np.copy(chi), np.copy(xi)
-                self.condensation_check(chi, xi)
+            self.chi, self.x = self.calmeanfield(self.lams)
+            GS = self.GS()
+            while True:
+                chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
+                self.lams = self.findLambda()
                 chi, xi = self.calmeanfield(self.lams)
-                # self.condensation_check(chi1, xi1)
-                # chi2, xi2 = self.calmeanfield(self.lams)
-                # chi, xi = chi - (chi1-chi)**2/(chi2-2*chi1+chi), xi - (xi1-xi)**2/(xi2-2*xi1+xi)
-                chi, xi = (chi+chilast)/2, (xi+xilast)/2
-                print(chi, xi, self.lams, self.minLams)
-                if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()):
+                self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
+                GS = self.GS()
+                if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break
-                counter = counter + 1
-            if do:
-                self.condensation_check(chi, xi)
-            self.chi, self.xi = chi, xi
+            self.condensation_check(self.chi, self.xi)
         return 0
 
     def ifcondense(self):
@@ -797,7 +789,7 @@ class piFluxSolver:
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
-                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, )
+                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
 
     def LV_zero(self, k, lam=np.zeros(2)):
         if np.any(lam == 0):

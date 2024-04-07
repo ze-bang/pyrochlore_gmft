@@ -185,7 +185,7 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
     plt.savefig(filename+"_total.pdf")
     plt.clf()
 
-Jpm = 0.02
+# Jpm = 0.02
 # h = 0
 # p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,0,0]))
 # p.solvemeanfield()
@@ -195,14 +195,17 @@ Jpm = 0.02
 # p.graph(True)
 #
 #
-h = 0.05
+# h = 0
+#
+# p = pycon.piFluxSolver(0.062/0.063, 1, 0.011/0.063, h=h, n=h110, flux=np.ones(4)*np.pi)
+# p.solvemeanfield()
+# print(p.condensed, p.lams, p.minLams, p.MFE())
+# # p.graph_loweredge(False)
+# # p.graph_upperedge(True)
+# p.graph(True)
 
-p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([0,0,0,0]))
-p.solvemeanfield()
-print(p.condensed, p.lams, p.minLams, p.MFE())
-p.graph_loweredge(False)
-p.graph_upperedge(True)
-p.graph(True)
+# SSSF(10, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,25,'test',"hhl")
+DSSF(0.1, 0.062/0.063,1, 0.011/0.063,0,h110, np.ones(4)*np.pi,10, 'test')
 #
 # Jpm = -0.289
 # h = 0.3
