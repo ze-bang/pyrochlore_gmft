@@ -35,8 +35,8 @@ def deltas(Ek, Eq, omega, tol):
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     # greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
     # greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
-    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here  = pyp0.green_pi_branch_reduced(Ks)
-    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here  = pyp0.green_pi_branch_reduced(Qs)
+    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks)
+    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs)
 
     if pyp0.Jpmpm ==0:
         size = int(tempE.shape[1]/2)
@@ -50,13 +50,12 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(1j * ffact)
-
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
-                   deltapm, A_pi_rs_rsp_here, piunitcell, piunitcell,
+                   deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
                    ffactpm) / 64
 
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
-                   deltapm, A_pi_rs_rsp_pp_here, piunitcell, piunitcell,
+                   deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / 64
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
