@@ -724,9 +724,10 @@ class piFluxSolver:
             GS = self.GS()
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
-                self.lams = self.findLambda()
+                self.condensation_check()
                 chi, xi = self.calmeanfield(self.lams)
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
+                print(self.chi, self.xi)
                 GS = self.GS()
                 if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break
