@@ -672,7 +672,7 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.MF)
 
     def findLambda(self):
-        return findlambda_pi(self.kappa,self.tol,self.minLams, self.Jzz, self.weights, self.E)
+        return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -709,6 +709,15 @@ class piFluxSolver:
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
         return chi, xi
 
+    def solvemufield(self):
+        self.findminLam()
+        self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                       self.A_pi_here,
+                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+        self.E, self.V = np.linalg.eigh(self.MF)
+        self.lams = self.findLambda()
+        return self.GS()
+
     def solvemeanfield(self, tol=1e-10):
         if self.Jpmpm == 0:
             self.chi = np.zeros((4,4,4))
@@ -718,19 +727,18 @@ class piFluxSolver:
             self.findminLam()
             self.lams = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
-            self.findminLam()
-            self.lams = self.findLambda()
-            GS = self.GS()
+            GS = self.solvemufield()
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
                 chi, xi = self.calmeanfield()
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
-                self.findminLam()
-                self.lams = self.findLambda()
-                GS = self.GS()
-                print(GS)
+                GS = self.solvemufield()
                 if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                           self.A_pi_here,
+                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+            self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
         return 0
 
