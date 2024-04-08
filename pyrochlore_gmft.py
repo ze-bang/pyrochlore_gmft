@@ -734,7 +734,7 @@ class piFluxSolver:
                 chi, xi = self.calmeanfield()
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
                 GS = self.solvemufield()
-                print(self.chi[0,0,0], self.xi[0,0], self.GS())
+                # print(self.chi[0,0,0], self.xi[0,0], self.GS())
                 count = count + 1
                 if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol) or count >= 31:
                     break
