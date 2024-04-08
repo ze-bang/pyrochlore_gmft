@@ -97,7 +97,6 @@ def E_pi_fixed(lams, M):
 def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
          unitcell=piunitcell):
     M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
-    # M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
     M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
     return [E, V]
@@ -288,21 +287,15 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
     return -Enowm, KnowF, Know
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
-    if lamM[0] == 0:
-        lamMin = np.zeros(2)
-        lamMax = np.ones(2)
-    else:
-        lamMin = np.copy(lamM)
-        lamMax = 10*np.ones(2)
+    lamMin = np.copy(lamM)
+    lamMax = 10*np.ones(2)
     lams = lamMax
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
-            # rhoguess = rho_true(BZres, lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, chi0, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, pts, weights)
             rhoguess = rho_true(weights, E, lams, Jzz)
             error = rhoguess-kappa
-            # print(lams, lamMin, lamMax, rhoguess,error)
             if error > 0:
                 lamMin = lams
             else:
@@ -311,7 +304,6 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
                 break
         except:
             lamMin = lams
-            # print(lams, rhoguess)
     warnings.resetwarnings()
     return lams
 
@@ -646,6 +638,7 @@ class piFluxSolver:
         a = np.argmax(J)
         xx = np.mod(a+1,3)
         yy = np.mod(a+2,3)
+        print(Jxx, Jyy, Jzz)
         self.Jzz = J[a]
         self.Jpm = -(J[xx] + J[yy]) / 4
         self.Jpmpm = (J[xx] - J[yy]) / 4
@@ -686,6 +679,10 @@ class piFluxSolver:
     def findLambda(self):
         return findlambda_pi(self.kappa,self.tol,self.minLams, self.Jzz, self.weights, self.E)
 
+    def findLambda_unconstrained(self):
+        return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
+
+
     def findminLam(self, chi, xi):
         searchGrid=34
         B = genBZ(searchGrid)
@@ -713,22 +710,26 @@ class piFluxSolver:
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
         return chi, xi
 
-    def solvemeanfield(self, tol=1e-15):
+    def solvemeanfield(self, tol=1e-10):
         if self.Jpmpm == 0:
             self.chi = np.zeros((4,4,4))
             self.xi = np.zeros((4,4))
             self.condensation_check(self.chi, self.xi)
         else:
-            self.condensation_check(self.chi, self.xi)
-            self.chi, self.x = self.calmeanfield(self.lams)
+            self.findminLam(self.chi, self.xi)
+            self.lams = self.findLambda()
+            self.chi, self.xi = self.calmeanfield(self.lams)
+            self.findminLam(self.chi, self.xi)
+            self.lams = self.findLambda()
             GS = self.GS()
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
-                self.condensation_check(self.chi, self.xi)
                 chi, xi = self.calmeanfield(self.lams)
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
+                self.findminLam(self.chi, self.xi)
+                self.lams = self.findLambda()
                 GS = self.GS()
-                if ((abs(chi-chilast) < tol).all() and (abs(xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
+                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break
             self.condensation_check(self.chi, self.xi)
         return 0
