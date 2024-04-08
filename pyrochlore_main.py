@@ -195,14 +195,14 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
 # p.graph(True)
 #
 #
-h = 0
+h = 0.2
 # #
 p = pycon.piFluxSolver(0.062/0.063, 1, 0.011/0.063, h=h, n=h110, flux=np.ones(4)*np.pi)
 p.solvemeanfield()
 print(p.condensed, p.lams, p.minLams, p.MFE())
 # # p.graph_loweredge(False)
 # # p.graph_upperedge(True)
-# p.graph(True)
+p.graph(True)
 
 # SSSF(10, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,25,'test',"hhl")
 # findXYZPhase(-1,1,-1,1,100,25,2,'XYZphase')

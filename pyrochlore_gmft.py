@@ -728,12 +728,15 @@ class piFluxSolver:
             self.lams = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
             GS = self.solvemufield()
+            count = 0
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
                 chi, xi = self.calmeanfield()
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
                 GS = self.solvemufield()
-                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
+                print(self.chi[0,0,0], self.xi[0,0], self.GS())
+                count = count + 1
+                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol) or count >= 31:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
