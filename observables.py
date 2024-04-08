@@ -233,11 +233,9 @@ def graph_SSSF(pyp0, K, V, rank, size):
 # endregion
 
 # region Graphing
-def DSSFgraph(A, B, D, py0s, filename):
+def DSSFgraph(A, B, D, filename):
     plt.imshow(D, interpolation="lanczos",extent =[A.min(), A.max(), B.min(), B.max()])
     plt.ylabel(r'$\omega/J_{zz}$')
-    py0s.graph_loweredge(False)
-    py0s.graph_upperedge(False)
     plt.savefig(filename + ".pdf")
     plt.clf()
 
@@ -667,7 +665,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
-    emin, emax = py0s.TWOSPINON_DOMAIN(kk)
+    emin, emax = py0s.graph_loweredge(False), py0s.graph_upperedge(False)
     e = np.arange(max(emin *0.95, 0), emax *1.02, nE)
     tol = 2*nE
     if not MPI.Is_initialized():
@@ -690,10 +688,10 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f4 + ".txt", d4)
         kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
         X, Y = np.meshgrid(kline, e)
-        DSSFgraph(X, Y, d1.T, py0s, f1)
-        DSSFgraph(X, Y, d2.T, py0s, f2)
-        DSSFgraph(X, Y, d3.T, py0s, f3)
-        DSSFgraph(X, Y, d4.T, py0s, f4)
+        DSSFgraph(X, Y, d1.T, f1)
+        DSSFgraph(X, Y, d2.T, f2)
+        DSSFgraph(X, Y, d3.T, f3)
+        DSSFgraph(X, Y, d4.T, f4)
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))
