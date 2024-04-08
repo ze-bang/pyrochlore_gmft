@@ -587,9 +587,9 @@ def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename, 
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
-        temp = py0s.qminT
+        temp = py0s.qmin
         leng = len(temp)
-        sendtemp5[i,0:leng] = py0s.qminT
+        sendtemp5[i,0:leng] = py0s.qmin
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
@@ -764,8 +764,8 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
-    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.complex128)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.complex128)
 
     rectemp = None
     rectemp2 = None
@@ -775,8 +775,8 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
-        rectemp3 = np.zeros(le, dtype=np.float64)
-        rectemp4 = np.zeros(le, dtype=np.float64)
+        rectemp3 = np.zeros(le, dtype=np.complex128)
+        rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))

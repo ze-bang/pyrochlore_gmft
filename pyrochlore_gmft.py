@@ -250,7 +250,7 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_t
 #endregion
 
 #region find minlam scipy
-def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
+def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3)), np.array([0,0,0]).reshape((1,3))
 
@@ -262,8 +262,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
     Know = np.unique(np.mod(Know, 1), axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    Know = symmetry_equivalence(Know, equi_class_flux)
-    Know = symmetry_equivalence(Know, equi_class_field)
+
     if len(Know) >= minLamK:
         Know = Know[0:minLamK]
 
@@ -277,14 +276,10 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
     Enowm = Enow.min()
     dex = np.where(abs(Enow-Enowm)<3e-16)
     Know = Know[dex]
+    Know = np.unique(np.mod(Know, 1),axis=0)
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
-    KnowF = gen_equi_class_field(Know)
-    KnowF = gen_equi_class_flux(KnowF)
-    KnowF = np.unique(np.mod(KnowF, 1),axis=0)
-    if KnowF.shape == (3,):
-        KnowF = KnowF.reshape(1,3)
-    return -Enowm, KnowF, Know
+    return -Enowm, Know
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
@@ -683,14 +678,18 @@ class piFluxSolver:
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
 
 
-    def findminLam(self, chi, xi):
+    def findminLam(self):
         searchGrid=34
         B = genBZ(searchGrid)
-        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        minLams, self.qmin, self.qminT = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, searchGrid,
-                                        self.kappa, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+                 A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
+                                        self.theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, searchGrid,
+                                        self.kappa)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
@@ -704,8 +703,8 @@ class piFluxSolver:
         B = np.delete(self.E, self.toignore, axis=0)
         C = np.delete(self.V, self.toignore, axis=0)
         return rho_true_site(A, B,C, lam,self.Jzz)
-    def calmeanfield(self, lams):
-        E, V = self.LV_zero(self.pts, lams)
+    def calmeanfield(self):
+        E, V = self.LV_zero(self.pts, self.lams)
         E = np.sqrt(2*self.Jzz*E)
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
         return chi, xi
@@ -714,24 +713,25 @@ class piFluxSolver:
         if self.Jpmpm == 0:
             self.chi = np.zeros((4,4,4))
             self.xi = np.zeros((4,4))
-            self.condensation_check(self.chi, self.xi)
+            self.condensation_check()
         else:
-            self.findminLam(self.chi, self.xi)
+            self.findminLam()
             self.lams = self.findLambda()
-            self.chi, self.xi = self.calmeanfield(self.lams)
-            self.findminLam(self.chi, self.xi)
+            self.chi, self.xi = self.calmeanfield()
+            self.findminLam()
             self.lams = self.findLambda()
             GS = self.GS()
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
-                chi, xi = self.calmeanfield(self.lams)
+                chi, xi = self.calmeanfield()
                 self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
-                self.findminLam(self.chi, self.xi)
+                self.findminLam()
                 self.lams = self.findLambda()
                 GS = self.GS()
+                print(GS)
                 if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol):
                     break
-            self.condensation_check(self.chi, self.xi)
+            self.condensation_check()
         return 0
 
     def ifcondense(self):
@@ -765,8 +765,8 @@ class piFluxSolver:
             self.delta = np.zeros(16)
         warnings.resetwarnings()
 
-    def condensation_check(self, chi, xi):
-        self.findminLam(chi, xi)
+    def condensation_check(self):
+        self.findminLam()
         self.lams = self.findLambda()
         self.set_condensed()
         self.ifcondense()
