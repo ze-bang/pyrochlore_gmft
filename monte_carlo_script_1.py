@@ -14,7 +14,7 @@ from observables import *
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h110,17,2,np.array([0,0,np.pi,np.pi]),'HanYan_Jpm_110_-0.3_0.1_h_0_1_0_00pipi_ex')
 
 Jpm = -0.05
-
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0_00pp")
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.3_pi_flux")
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.4_pi_flux")
 

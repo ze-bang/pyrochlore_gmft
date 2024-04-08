@@ -39,6 +39,10 @@ Jpm = 0.02
 # findXYZPhase(-1,1,-1,1,100,30,2,'XYZ_phase_diagram')
 
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.02, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.02")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.04, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.04")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.06, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.06")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.08, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.08")
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.1")
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.2")
 DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
