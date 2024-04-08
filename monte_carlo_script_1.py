@@ -13,7 +13,11 @@ from observables import *
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h110,17,2,np.array([np.pi, np.pi, 0,0]),'HanYan_110_Jpm_-0.3_0.1_h_0_1_pipi00_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h110,17,2,np.array([0,0,np.pi,np.pi]),'HanYan_Jpm_110_-0.3_0.1_h_0_1_0_00pipi_ex')
 
-Jpm = -0.03
+Jpm = -0.05
+
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.3_pi_flux")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.4_pi_flux")
+
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_0_flux", "hkk", 1.5)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_0_flux", "hkk", 1.5)

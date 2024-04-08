@@ -36,11 +36,13 @@ Jpm = 0.02
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
 
-findXYZPhase(-1,1,-1,1,100,30,2,'XYZ_phase_diagram')
+# findXYZPhase(-1,1,-1,1,100,30,2,'XYZ_phase_diagram')
 
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.15")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_h110=0.4")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.1")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.2")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
+DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.4")
 
 
 # SSSF_HHL_KK_integrated(10, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 3, 5, 'Jpm=-0.289_h110=0.2_L_integrated')
