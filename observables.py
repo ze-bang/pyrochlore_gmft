@@ -234,7 +234,7 @@ def graph_SSSF(pyp0, K, V, rank, size):
 
 # region Graphing
 def DSSFgraph(A, B, D, py0s, filename):
-    plt.pcolormesh(A, B, D)
+    plt.imshow(D, interpolation="lanczos",extent =[A.min(), A.max(), B.min(), B.max()])
     plt.ylabel(r'$\omega/J_{zz}$')
     py0s.graph_loweredge(False)
     py0s.graph_upperedge(False)
