@@ -234,7 +234,7 @@ def graph_SSSF(pyp0, K, V, rank, size):
 
 # region Graphing
 def DSSFgraph(A, B, D, filename):
-    plt.imshow(D, interpolation="lanczos", origin='lower',extent =[A.min(), A.max(), B.min(), B.max()])
+    plt.imshow(D, interpolation="lanczos",origin='lower',extent =[A.min(), A.max(), B.min(), B.max()], aspect='auto')
     plt.ylabel(r'$\omega/J_{zz}$')
     plt.savefig(filename + ".pdf")
     plt.clf()
