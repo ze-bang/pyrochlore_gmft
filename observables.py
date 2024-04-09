@@ -689,8 +689,14 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
         X, Y = np.meshgrid(kline, e)
         DSSFgraph(X, Y, d1.T, f1)
+        py0s.graph_loweredge(False)
+        py0s.graph_upperedge(False)
         DSSFgraph(X, Y, d2.T, f2)
+        py0s.graph_loweredge(False)
+        py0s.graph_upperedge(False)
         DSSFgraph(X, Y, d3.T, f3)
+        py0s.graph_loweredge(False)
+        py0s.graph_upperedge(False)
         DSSFgraph(X, Y, d4.T, f4)
 
 def samplegraph(nK, filenames):
