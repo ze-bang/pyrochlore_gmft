@@ -460,14 +460,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0):
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        if hkl==0:
+        if hkl=="hkl":
             SSSFGraphHK0(A, B, d1, f1)
             SSSFGraphHK0(A, B, d2, f2)
             SSSFGraphHK0(A, B, d3, f3)
             SSSFGraphHK0(A, B, d4, f4)
             SSSFGraphHK0(A, B, d5, f5)
             SSSFGraphHK0(A, B, d6, f6)
-        elif hkl==1:
+        elif hkl=="hhl":
             SSSFGraphHHL(A, B, d1, f1)
             SSSFGraphHHL(A, B, d2, f2)
             SSSFGraphHHL(A, B, d3, f3)
