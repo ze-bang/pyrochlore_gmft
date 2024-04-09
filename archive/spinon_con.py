@@ -437,8 +437,6 @@ def graph_SSSF_pi(pyp0, K, V, rank, size):
 def DSSFgraph(A,B,D, py0s, filename):
     plt.pcolormesh(A,B,D)
     plt.ylabel(r'$\omega/J_{zz}$')
-    py0s.graph_loweredge(False)
-    py0s.graph_upperedge(False)
     plt.savefig(filename+".png")
     plt.clf()
 
