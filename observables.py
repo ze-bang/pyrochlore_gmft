@@ -151,9 +151,10 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
                    ffactpp) / 64
 
     if not pyp0.Jpmpm == 0:
-        Spp = Spp + contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
+        SppA = contract('iab, ixy, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpm) / 64
+        Spp = Spp + SppA
     return Spm, Spp
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
@@ -413,6 +414,7 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
+    print("Finished solving mean field")
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
@@ -439,7 +441,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0):
     rank = comm.Get_rank()
 
     d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
-    if rank == 0:
+    if rank == "hk0":
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
         f3 = filename + "Szz_NSF"
@@ -458,14 +460,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0):
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        if hkl=="hkl":
+        if hkl=="hhl":
             SSSFGraphHK0(A, B, d1, f1)
             SSSFGraphHK0(A, B, d2, f2)
             SSSFGraphHK0(A, B, d3, f3)
             SSSFGraphHK0(A, B, d4, f4)
             SSSFGraphHK0(A, B, d5, f5)
             SSSFGraphHK0(A, B, d6, f6)
-        elif hkl=="hhl":
+        elif hkl==1:
             SSSFGraphHHL(A, B, d1, f1)
             SSSFGraphHHL(A, B, d2, f2)
             SSSFGraphHHL(A, B, d3, f3)

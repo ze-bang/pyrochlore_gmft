@@ -386,19 +386,40 @@ def find_quotient_group(arr, equiv_relation):
 # print(test.shape)
 # print(test[0])
 from matplotlib.colors import LogNorm
+#
+# dx, dy = 0.015, 0.05
+# y, x = np.mgrid[slice(-4, 4 + dy, dy),
+# slice(-4, 4 + dx, dx)]
+# z = (1 - x / 3. + x ** 5 + y ** 5) * np.exp(-x ** 2 - y ** 2)
+# z = z[:-1, :-1]
+# z_min, z_max = -np.abs(z).max(), np.abs(z).max()
+#
+# c = plt.imshow(z, cmap='Greens', vmin=z_min, vmax=z_max,
+#                extent=[x.min(), x.max(), 3, -3],
+#                interpolation='nearest', origin='lower', aspect='auto')
+# plt.colorbar(c)
+#
+# plt.title('matplotlib.pyplot.imshow() function Example',
+#           fontweight="bold")
+# plt.show()
 
-dx, dy = 0.015, 0.05
-y, x = np.mgrid[slice(-4, 4 + dy, dy),
-slice(-4, 4 + dx, dx)]
-z = (1 - x / 3. + x ** 5 + y ** 5) * np.exp(-x ** 2 - y ** 2)
-z = z[:-1, :-1]
-z_min, z_max = -np.abs(z).max(), np.abs(z).max()
+a, b, c = 1, 1, 0
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
 
-c = plt.imshow(z, cmap='Greens', vmin=z_min, vmax=z_max,
-               extent=[x.min(), x.max(), 3, -3],
-               interpolation='nearest', origin='lower', aspect='auto')
-plt.colorbar(c)
+a, b, c = 2, 2, 0
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
 
-plt.title('matplotlib.pyplot.imshow() function Example',
-          fontweight="bold")
-plt.show()
+a, b, c = 2, 2, 0.5
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+
+a, b, c = 2, 2, 1
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+
+a, b, c = 2, 2, 2
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+
+a, b, c = 1, 1, 1
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+
+a, b, c = 0.5, 0.5, 0.5
+print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))

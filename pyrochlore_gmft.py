@@ -26,18 +26,14 @@ def M_pi_sub_interhopping_AB(k, alpha, Jpmpm, xi, A_pi_rs_traced_pp_here, unitce
     ffact = np.exp(1j * neta(alpha) * ffact)
     M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
     M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
-    M2a = contract('jl, kjl, ij, kl, jkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi),
-                   unitcell)
-    M2b = contract('jl, kjl, il, kj, lkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi),
-                   unitcell)
-    return M1a + M1b + M2a + M2b
+    return M1a + M1b
 
 
 def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
     di = np.identity(unitcell.shape[1])
     ffact = contract('ik, jlk->ijl', k, NNminus)
-    ffact = np.exp(1j * neta(alpha) * ffact)
+    ffact = np.exp(-1j * neta(alpha) * ffact)
     tempchi0 = chi[:,0,0]
     M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi, d, di)
     M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
@@ -318,8 +314,8 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
 def chi_integrand(k, E, V, Jzz):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', k, NNminus)
-    ffactB = np.exp(1j * ffact)
-    A = contract('iab, ijl,jka, lkb->kjil', green[:, 8:12, 0:4], ffactB, piunitcell, piunitcell)
+    ffactB = np.exp(-1j * ffact)
+    A = contract('iab, ijl,jka, lkb->kjil', green[:, 12:16, 4:8], ffactB, piunitcell, piunitcell)
     return A
 
 def chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord):
@@ -669,7 +665,6 @@ class piFluxSolver:
         self.qmin = np.empty(3)
         self.qmin[:] = np.nan
         self.qminB = np.copy(self.qmin)
-        self.qminT = np.copy(self.qmin)
         self.condensed = False
         self.delta = np.zeros(16)
         self.rhos = np.zeros(16)
@@ -740,11 +735,11 @@ class piFluxSolver:
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
                 chi, xi = self.calmeanfield()
-                self.chi, self.xi = (chi+chilast)/2, (xi+xilast)/2
+                self.chi, self.xi = chi, xi
                 GS = self.solvemufield()
-                # print(self.chi[0,0,0], self.xi[0,0], self.GS())
+                print(self.chi[0], self.xi[0,0], self.GS())
                 count = count + 1
-                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or (abs(GS-GSlast) < tol) or count >= 31:
+                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or count >= 81:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
