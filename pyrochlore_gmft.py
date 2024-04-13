@@ -650,11 +650,11 @@ class piFluxSolver:
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
-        self.n3 = self.n4 =self.n5= 0
+        self.n3 = self.n4 = self.n5= 0
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
-        self.xi = xi_mean_field(n, 0.1*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
-        self.chi = chi_mean_field(n, 0.1*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
+        self.xi = xi_mean_field(n, 0.002*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
+        self.chi = chi_mean_field(n, 0.002*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
 
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
