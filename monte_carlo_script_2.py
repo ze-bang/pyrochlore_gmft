@@ -12,12 +12,12 @@ from observables import *
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h111,17,2,np.zeros(4),'HanYan_111_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h111,17,2,np.ones(4)*np.pi,'HanYan_111_Jpm_-0.3_0.1_h_0_1_pi_flux_ex')
 
-Jpm = -0.289
+Jpm = -0.05
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_00pp_flux", "hkk", 1.5)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_00pp_flux", "hkk", 1.5)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.3_HHKnK_00pp_flux", "hkk", 1.5)
 
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, -0.1, 0.1, 51, 30, "Files/Jpm=-0.289_h110=0.1_HHKnK_L_integrated")
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.1, 0.1, 51, 30, "Files/Jpm=-0.289_h110=0.2_HHKnK_L_integrated")
-SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, -0.1, 0.1, 51, 30, "Files/Jpm=-0.289_h110=0.3_HHKnK_L_integrated")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/Jpm=-0.05_h110=0.1_HHKnK_L_integrated")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/Jpm=-0.05_h110=0.2_HHKnK_L_integrated")
+SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/Jpm=-0.05_h110=0.3_HHKnK_L_integrated")

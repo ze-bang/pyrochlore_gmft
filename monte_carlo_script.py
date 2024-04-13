@@ -12,25 +12,25 @@ from observables import *
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.array([np.pi, 0,0, np.pi]),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0pipi0_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.array([0,np.pi,np.pi,0]),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0_pi00pi_ex')
 
-# Jpm = -0.03
-
-# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_pi_flux")
-# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_pi_flux")
-# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.03_h110=0.3_HHKnK_pi_flux")
-
 # Jpm = -0.289
+
+# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.289_h110=0.1_HHKnK_pi_flux")
+# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.289_h110=0.2_HHKnK_pi_flux")
+# SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.289_h110=0.3_HHKnK_pi_flux")
+
+Jpm = -0.289
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.05, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.05_L_integrated')
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.1_L_integrated')
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.15_L_integrated')
 
-DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0")
-DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.05, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.05")
-DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
+# DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0")
+# DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.05, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.05")
+# DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
 
 
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_pi_flux", "hkk", 1.5)
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_pi_flux", "hkk", 1.5)
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h110=0.3_HHKnK_pi_flux", "hkk", 1.5)
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.1_HHKnK_pi_flux_1.5_0.3", "hkk", 1.5, 1.5, 0.3)
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.2_HHKnK_pi_flux_1.5_0.3", "hkk", 1.5, 1.5, 0.3)
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.3_HHKnK_pi_flux_1.5_0.3", "hkk", 1.5, 1.5, 0.3)
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux", "hk0", 0)
