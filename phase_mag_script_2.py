@@ -20,16 +20,8 @@ SSSF(100, 0.011/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, 30, 'Jxx_0.0
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
 
-<<<<<<< HEAD
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.02, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.02")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.04, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.04")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.06, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.06")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.08, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.08")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.12, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.12")
-=======
-# DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0")
-# DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.1")
-# DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.2")
-# DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.3")
-# DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.4")
->>>>>>> 32ab8da5649fa5fff46773d3742a55e325bb682f
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.02, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.02")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.04, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.04")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.06, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.06")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.08, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.08")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.12, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.05/h110=0.12")
