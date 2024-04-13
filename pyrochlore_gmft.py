@@ -739,7 +739,7 @@ class piFluxSolver:
                 GS = self.solvemufield()
                 print(self.chi[0], self.xi[0,0], self.GS())
                 count = count + 1
-                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()):
+                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or count >=100:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
