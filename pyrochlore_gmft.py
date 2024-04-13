@@ -653,8 +653,8 @@ class piFluxSolver:
         self.n3 = self.n4 =self.n5= 0
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
-        self.xi = xi_mean_field(n, 0.5*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
-        self.chi = chi_mean_field(n, 0.5*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
+        self.xi = xi_mean_field(n, 0*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
+        self.chi = chi_mean_field(n, 0*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
 
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
@@ -739,7 +739,7 @@ class piFluxSolver:
                 GS = self.solvemufield()
                 print(self.chi[0], self.xi[0,0], self.GS())
                 count = count + 1
-                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or count >= 81:
+                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()):
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
