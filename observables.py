@@ -414,14 +414,8 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-<<<<<<< HEAD
     H = np.linspace(-Hr, Hr, nK)
     L = np.linspace(-Lr, Lr, nK)
-=======
-    print("Finished solving mean field")
-    H = np.linspace(-2.5, 2.5, nK)
-    L = np.linspace(-2.5, 2.5, nK)
->>>>>>> 550a5cbc7c5cad68a64acf52962361791334635c
     A, B = np.meshgrid(H, L)
 
     if hkl == "hk0":
