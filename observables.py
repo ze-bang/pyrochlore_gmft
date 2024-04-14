@@ -440,7 +440,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
     rank = comm.Get_rank()
 
     d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
-    if rank == "hk0":
+    if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
         f3 = filename + "Szz_NSF"
@@ -459,14 +459,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        if hkl=="hhl":
+        if hkl=="hk0":
             SSSFGraphHK0(A, B, d1, f1)
             SSSFGraphHK0(A, B, d2, f2)
             SSSFGraphHK0(A, B, d3, f3)
             SSSFGraphHK0(A, B, d4, f4)
             SSSFGraphHK0(A, B, d5, f5)
             SSSFGraphHK0(A, B, d6, f6)
-        elif hkl==1:
+        elif hkl=="hhl":
             SSSFGraphHHL(A, B, d1, f1)
             SSSFGraphHHL(A, B, d2, f2)
             SSSFGraphHHL(A, B, d3, f3)
