@@ -306,8 +306,8 @@ def SSSFGraphHKK(A, B, d1, filename):
 
     plt.ylabel(r'$(K,-K,0)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlim([A.min(),A.max()])
+    plt.ylim([B.min(),B.max()])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
@@ -340,8 +340,8 @@ def SSSFGraphHHL(A, B, d1, filename):
 
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlim([A.min(),A.max()])
+    plt.ylim([B.min(),B.max()])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
@@ -369,8 +369,8 @@ def SSSFGraphHK0(A, B, d1, filename):
 
     plt.ylabel(r'$(0,K,0)$')
     plt.xlabel(r'$(H,0,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlim([A.min(),A.max()])
+    plt.ylim([B.min(),B.max()])
     plt.savefig(filename + ".pdf")
     plt.clf()
 
