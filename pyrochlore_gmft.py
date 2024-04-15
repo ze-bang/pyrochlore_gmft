@@ -631,7 +631,7 @@ def graphing_M_setup(flux):
 
 #endregion
 class piFluxSolver:
-    def __init__(self, Jxx, Jyy, Jzz, theta=0, B=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
+    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
                  ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
@@ -646,7 +646,7 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
-        self.h = 5.7883818060*10**(-3)*B*gzz
+        self.h = 5.7883818060*10**(-3)*h*gzz
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
