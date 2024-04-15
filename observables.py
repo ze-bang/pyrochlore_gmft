@@ -268,17 +268,8 @@ def plot_BZ_hkk(offset, boundary, color):
     plot_line(B[6], B[7], color)
     plot_line(B[7], B[0], color)
 
-# Gamma = np.array([0, 0, 0])
-# L = np.array([1, 1, 1])/2
-# X = np.array([0, 0.5, 0.5])
-# W = np.array([0.25, 0.75, 0.5])
-# K = np.array([0.375, 0.75, 0.375])
-# U = np.array([0.25, 0.625, 0.625])
 
-# print(0.5*BasisBZA[0]+0.5*BasisBZA[1]+1*BasisBZA[2])
-# print(-0.5*BasisBZA[0]+0.5*BasisBZA[1]+0*BasisBZA[2])
-# print(1*np.array([0.5,0.5,1])-1*np.array([-0.5,0.5,0]))
-def SSSFGraphHKK(A, B, d1, filename):
+def SSSFGraphHKK(A, B, d1, filename, Hr, Lr):
     plt.pcolormesh(A, B, d1)
     plt.colorbar()
     Gamms = np.array([[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
@@ -306,12 +297,12 @@ def SSSFGraphHKK(A, B, d1, filename):
 
     plt.ylabel(r'$(K,-K,0)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([A.min(),A.max()])
-    plt.ylim([B.min(),B.max()])
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHHL(A, B, d1, filename):
+def SSSFGraphHHL(A, B, d1, filename, Hr, Lr):
     plt.pcolormesh(A, B, d1)
     plt.colorbar()
     Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
@@ -340,12 +331,12 @@ def SSSFGraphHHL(A, B, d1, filename):
 
     plt.ylabel(r'$(0,0,L)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([A.min(),A.max()])
-    plt.ylim([B.min(),B.max()])
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHK0(A, B, d1, filename):
+def SSSFGraphHK0(A, B, d1, filename, Hr, Lr):
     plt.pcolormesh(A, B, d1)
     plt.colorbar()
 
@@ -369,8 +360,8 @@ def SSSFGraphHK0(A, B, d1, filename):
 
     plt.ylabel(r'$(0,K,0)$')
     plt.xlabel(r'$(H,0,0)$')
-    plt.xlim([A.min(),A.max()])
-    plt.ylim([B.min(),B.max()])
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     plt.savefig(filename + ".pdf")
     plt.clf()
 
@@ -460,26 +451,26 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
         if hkl=="hk0":
-            SSSFGraphHK0(A, B, d1, f1)
-            SSSFGraphHK0(A, B, d2, f2)
-            SSSFGraphHK0(A, B, d3, f3)
-            SSSFGraphHK0(A, B, d4, f4)
-            SSSFGraphHK0(A, B, d5, f5)
-            SSSFGraphHK0(A, B, d6, f6)
+            SSSFGraphHK0(A, B, d1, f1, Hr, Lr)
+            SSSFGraphHK0(A, B, d2, f2, Hr, Lr)
+            SSSFGraphHK0(A, B, d3, f3, Hr, Lr)
+            SSSFGraphHK0(A, B, d4, f4, Hr, Lr)
+            SSSFGraphHK0(A, B, d5, f5, Hr, Lr)
+            SSSFGraphHK0(A, B, d6, f6, Hr, Lr)
         elif hkl=="hhl":
-            SSSFGraphHHL(A, B, d1, f1)
-            SSSFGraphHHL(A, B, d2, f2)
-            SSSFGraphHHL(A, B, d3, f3)
-            SSSFGraphHHL(A, B, d4, f4)
-            SSSFGraphHHL(A, B, d5, f5)
-            SSSFGraphHHL(A, B, d6, f6)
+            SSSFGraphHHL(A, B, d1, f1, Hr, Lr)
+            SSSFGraphHHL(A, B, d2, f2, Hr, Lr)
+            SSSFGraphHHL(A, B, d3, f3, Hr, Lr)
+            SSSFGraphHHL(A, B, d4, f4, Hr, Lr)
+            SSSFGraphHHL(A, B, d5, f5, Hr, Lr)
+            SSSFGraphHHL(A, B, d6, f6, Hr, Lr)
         else:
-            SSSFGraphHKK(A, B, d1, f1)
-            SSSFGraphHKK(A, B, d2, f2)
-            SSSFGraphHKK(A, B, d3, f3)
-            SSSFGraphHKK(A, B, d4, f4)
-            SSSFGraphHKK(A, B, d5, f5)
-            SSSFGraphHKK(A, B, d6, f6)
+            SSSFGraphHKK(A, B, d1, f1, Hr, Lr)
+            SSSFGraphHKK(A, B, d2, f2, Hr, Lr)
+            SSSFGraphHKK(A, B, d3, f3, Hr, Lr)
+            SSSFGraphHKK(A, B, d4, f4, Hr, Lr)
+            SSSFGraphHKK(A, B, d5, f5, Hr, Lr)
+            SSSFGraphHKK(A, B, d6, f6, Hr, Lr)
 
 
 def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):

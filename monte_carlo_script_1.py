@@ -19,8 +19,13 @@ from observables import *
 # DSSF(0.01, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.4_pi_flux")
 
 # DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0")
-DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.15, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.15")
-DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
+# DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.15, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.15")
+# DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
+
+# SSSF_HHKnK_L_integrated(100, 0.011/0.063, 0.062/0.063, 1, 0, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/Jxx=0.11_Jyy=0.062_Jzz=0.063_h110=0_HHKnK_L_integrated")
+SSSF_HHKnK_L_integrated(100, 0.011/0.063, 0.062/0.063, 1, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/Jxx=0.11_Jyy=0.062_Jzz=0.063_h110=0.15_HHKnK_L_integrated")
+SSSF_HHKnK_L_integrated(100, 0.011/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/Jxx=0.11_Jyy=0.062_Jzz=0.063_h110=0.2_HHKnK_L_integrated")
+
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_0_flux", "hkk", 1.5)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_0_flux", "hkk", 1.5)
