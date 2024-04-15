@@ -473,11 +473,11 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
             SSSFGraphHKK(A, B, d6, f6, Hr, Lr)
 
 
-def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    L = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    L = np.linspace(-Lr, Lr, nK)
     K, Kweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, L)
@@ -526,18 +526,18 @@ def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres,
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHHL(A, B, d1, f1)
-        SSSFGraphHHL(A, B, d2, f2)
-        SSSFGraphHHL(A, B, d3, f3)
-        SSSFGraphHHL(A, B, d4, f4)
-        SSSFGraphHHL(A, B, d5, f5)
-        SSSFGraphHHL(A, B, d6, f6)
+        SSSFGraphHHL(A, B, d1, f1, Hr, Lr)
+        SSSFGraphHHL(A, B, d2, f2, Hr, Lr)
+        SSSFGraphHHL(A, B, d3, f3, Hr, Lr)
+        SSSFGraphHHL(A, B, d4, f4, Hr, Lr)
+        SSSFGraphHHL(A, B, d5, f5, Hr, Lr)
+        SSSFGraphHHL(A, B, d6, f6, Hr, Lr)
 
-def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    K = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    K = np.linspace(-Lr, Lr, nK)
     L, Lweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, K)
@@ -586,19 +586,19 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHKK(A, B, d1, f1)
-        SSSFGraphHKK(A, B, d2, f2)
-        SSSFGraphHKK(A, B, d3, f3)
-        SSSFGraphHKK(A, B, d4, f4)
-        SSSFGraphHKK(A, B, d5, f5)
-        SSSFGraphHKK(A, B, d6, f6)
+        SSSFGraphHKK(A, B, d1, f1, Hr, Lr)
+        SSSFGraphHKK(A, B, d2, f2, Hr, Lr)
+        SSSFGraphHKK(A, B, d3, f3, Hr, Lr)
+        SSSFGraphHKK(A, B, d4, f4, Hr, Lr)
+        SSSFGraphHKK(A, B, d5, f5, Hr, Lr)
+        SSSFGraphHKK(A, B, d6, f6, Hr, Lr)
 
-def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
 
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    K = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    K = np.linspace(-Lr, Lr, nK)
     L, Lweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, K)
@@ -647,12 +647,12 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHK0(A, B, d1, f1)
-        SSSFGraphHK0(A, B, d2, f2)
-        SSSFGraphHK0(A, B, d3, f3)
-        SSSFGraphHK0(A, B, d4, f4)
-        SSSFGraphHK0(A, B, d5, f5)
-        SSSFGraphHK0(A, B, d6, f6)
+        SSSFGraphHK0(A, B, d1, f1, Hr, Lr)
+        SSSFGraphHK0(A, B, d2, f2, Hr, Lr)
+        SSSFGraphHK0(A, B, d3, f3, Hr, Lr)
+        SSSFGraphHK0(A, B, d4, f4, Hr, Lr)
+        SSSFGraphHK0(A, B, d5, f5, Hr, Lr)
+        SSSFGraphHK0(A, B, d6, f6, Hr, Lr)
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()

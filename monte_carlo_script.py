@@ -18,7 +18,6 @@ from observables import *
 # SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.289_h110=0.2_HHKnK_pi_flux")
 # SSSF_HHKnK_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 1.25, 1.75, 25, 30, "Files/Jpm=-0.289_h110=0.3_HHKnK_pi_flux")
 
-Jpm = -0.289
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.05, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.05_L_integrated')
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.1_L_integrated')
 # SSSF_HHL_KK_integrated(100, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, 'Jpm=-0.289_h110=0.15_L_integrated')
@@ -27,10 +26,9 @@ Jpm = -0.289
 # DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.05, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.05")
 # DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
 
+SSSF_HHL_KK_integrated(100, 0.011/0.063, 0.062/0.063, 1, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.11_Jyy=0.062_Jzz=0.063_h110=0.15_HHL_KnK_integrated")
+SSSF_HHL_KK_integrated(100, 0.011/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.11_Jyy=0.062_Jzz=0.063_h110=0.2_HHL_KnK_integrated")
 
-SSSF(100, 0.011/0.063, 0.062/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.1_HHKnK_pi_flux_1.5_0.3", "hkk")
-SSSF(100, 0.011/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.2_HHKnK_pi_flux_1.5_0.3", "hkk")
-SSSF(100, 0.011/0.063, 0.062/0.063, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/Jpm=-0.289_h110=0.3_HHKnK_pi_flux_1.5_0.3", "hkk")
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux", "hk0", 0)
