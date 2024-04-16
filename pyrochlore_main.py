@@ -195,10 +195,11 @@ Jpm = -0.289
 # p.solvemeanfield()
 # print(p.condensed)
 # p.graph(True)
-h = 0.1
-p = pycon.piFluxSolver(-0.5, 0.5, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+h = 0
+p = pycon.piFluxSolver(0.063, 0.062, 0.011, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+print(p.h/0.063)
 p.solvemeanfield()
-print(p.condensed)
+print(p.condensed, p.chi, p.xi)
 p.graph(True)
 # h = 0.05
 # p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
