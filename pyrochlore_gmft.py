@@ -646,16 +646,12 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
-<<<<<<< HEAD
-        self.h = 5.7883818060*10**(-2)*h*gzz
-=======
         if Breal:
             self.h = 5.7883818060*10**(-2)*h*gzz
         else:
             self.h = h
         if a == 0:
             self.h = -1j*self.h
->>>>>>> 6b8848b5a84bdf0dc72c8a18857ce4537dfe6b7b
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
