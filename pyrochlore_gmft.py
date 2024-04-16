@@ -646,7 +646,7 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
-        self.h = 5.7883818060*10**(-3)*h*gzz
+        self.h = 5.7883818060*10**(-2)*h*gzz
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
