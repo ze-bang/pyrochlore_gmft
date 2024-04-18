@@ -15,8 +15,6 @@ def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here):
     M = contract('ku, u, ru, urx->krx', -1 / 4 * h * ffact * (np.cos(theta) - 1j * np.sin(theta)), zmag,
                  np.exp(1j*A_pi_here), piunitcell)
     return M
-
-
 def M_pi_sub_intrahopping_dd(k, alpha, Jpm, A_pi_rs_traced_here):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
@@ -156,17 +154,26 @@ def bose_einstein(omega,T):
 
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=np.array([0, 0, 0]), kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=trapezoidal_rule_3d_pts, T=1):
+                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=trapezoidal_rule_3d_pts, T=1, gzz=2.24, Breal=False):
         self.intmethod = intmethod
-        self.Jzz = Jzz
-        self.Jpm = -(Jxx + Jyy) / 4
-        self.Jpmpm = (Jxx - Jyy) / 4
+        J = np.array([Jxx, Jyy, Jzz])
+        a = np.argmax(J)
+        xx = np.mod(a-2,3)
+        yy = np.mod(a-1,3)
+        self.Jzz = J[a]
+        self.Jpm = -(J[xx] + J[yy]) / 4
+        self.Jpmpm = (J[xx] - J[yy]) / 4
         self.theta = theta
         self.kappa = kappa
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
-        self.h = h
+        if Breal:
+            self.h = 5.7883818060*10**(-2)*h*gzz
+        else:
+            self.h = h
+        if a == 0:
+            self.h = -1j*self.h
         self.n = n
         self.chi = 0.18
         self.xi = 0.5

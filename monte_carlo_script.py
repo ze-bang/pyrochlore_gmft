@@ -1,11 +1,28 @@
 import os
+
+import monte_carlo
+
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-# from monte_carlo import *
+from monte_carlo import *
 from phase_diagram import *
 from observables import *
 # scan_all(h111, 2)
 # scan_all(h110, 2)
 # scan_all(h001, 2)
+
+
+# downtetrahedron = np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
+# uptetrahedron = np.array([[0,0,0],[0,0,1],[0,1,0],[0,1,1]])
+# ax = plt.axes(projection='3d', aspect='auto')
+# ax.set_axis_off()
+# graphdownpyrochlore(downtetrahedron,ax)
+# graphuppyrochlore(uptetrahedron,ax)
+
+# temp = contract('ia,ar->ir',downtetrahedron,r)
+# hexa=np.array([temp[0]+monte_carlo.NN[3],temp[0]+monte_carlo.NN[2],temp[2]+monte_carlo.NN[0],temp[2]+monte_carlo.NN[3], temp[3]+monte_carlo.NN[2], temp[3]+monte_carlo.NN[0]])
+# plothexagon(hexa, ax)
+# plt.show()
+# plt.savefig('test.pdf')
 
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.zeros(4),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.ones(4)*np.pi,'HanYan_100_Jpm_-0.3_0.1_h_0_1_pi_flux_ex')

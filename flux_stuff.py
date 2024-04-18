@@ -200,8 +200,8 @@ def constructA_pi_001(Fluxs):
     A20 = A00
     A30 = A00
     A11 = A01 + n1*np.pi
-    A21 = A01 + n1*np.pi
-    A31 = A01
+    A21 = A01 + n2*np.pi
+    A31 = A01 + (n1+n2)*np.pi
     A12 = A02
     A22 = A02 + n2*np.pi
     A32 = A02 + n2*np.pi
@@ -220,8 +220,8 @@ def A_init001(Fluxs):
     A, B, C, D = Fluxs
     A00 = 0
     A01 = 0
-    n1 = int(A / np.pi)
-    n2 = int(B/ np.pi)
+    n1 = int(A/ np.pi)
+    n2 = int(C/ np.pi)
     return np.array([A00,A01, n1, n2])
 
 def constructA_pi_111(Fluxs):

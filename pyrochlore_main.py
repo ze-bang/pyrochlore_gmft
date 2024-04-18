@@ -185,65 +185,28 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
     plt.savefig(filename+"_total.pdf")
     plt.clf()
 
-Jpm = -0.289
-# h = 0
-# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# p.graph(True)
-# h = 0
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
-h = 0
-p = pycon.piFluxSolver(0.063, 0.062, 0.011, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-print(p.h/0.063)
-p.solvemeanfield()
-print(p.condensed, p.chi, p.xi)
-p.graph(True)
-# h = 0.05
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
-# h = 0.08
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
-#
-#
-# h = 0.2
-# # #
-# p = pycon.piFluxSolver(0.062/0.063, 1, 0.011/0.063, h=h, n=h110, flux=np.ones(4)*np.pi)
-# p.solvemeanfield()
-# print(p.condensed, p.lams, p.minLams, p.MFE())
-# # # p.graph_loweredge(False)
-# # # p.graph_upperedge(True)
-# p.graph(True)
+n=20
+Jpm = np.linspace(0,-0.1, n)
+h = 0.1
+M1 = np.zeros(n)
+M2 = np.zeros(n)
+M3 = np.zeros(n)
+M4 = np.zeros(n)
+for i in range(n):
+    p1 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+    p2 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([0,0,np.pi,np.pi]))
+    p3 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([np.pi,np.pi,0,0]))
+    p4 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([0,0,0,0]))
+    p1.solvemeanfield()
+    p2.solvemeanfield()
+    p3.solvemeanfield()
+    p4.solvemeanfield()
+    M1[i] = p1.MFE()
+    M2[i] = p2.MFE()
+    M3[i] = p3.MFE()
+    M4[i] = p4.MFE()
+    print(Jpm[i], M1[i], M2[i], M3[i], M4[i])
 
-# SSSF(10, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,25,'test',"hhl")
-# findXYZPhase(-1,1,-1,1,100,25,2,'XYZphase')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.05')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.1')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.15')
-
-#y
-# Jpm = -0.289
-# h = 0.3
-# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed, p.lams, p.minLams, p.MFE())
-# p.graph_loweredge(False)
-# p.graph_upperedge(True)
-# p.graph(True)
-
-# Jpm = np.linspace(-0.5,0.1,100)
-# h = np.linspace(0, 2, 100)
-# A = np.loadtxt('phase_110_kappa=2.txt')
-#
-# graphMagPhase(Jpm, h[:], A[:,:], 'phase_110_kappa=2')
-#
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 25, 'test')
-
+plt.plot(Jpm, M1, Jpm, M2, Jpm, M3, Jpm, M4)
+plt.legend(['pi', '00pp', 'pp00', '0'])
+plt.show()
