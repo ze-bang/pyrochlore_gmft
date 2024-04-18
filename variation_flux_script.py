@@ -20,15 +20,20 @@ from observables import *
 # completeSpan(-0.1,0.1,100,0,0.3,100,h111,30,2,np.zeros(4),'HanYan_111_Jpm_-0.1_0.1_h_0_0.3_0_flux')
 # completeSpan(-0.1,0.1,100,0,0.3,100,h111,30,2,np.ones(4)*np.pi,'HanYan_111_Jpm_-0.1_0.1_h_0_0.3_pi_flux')
 
-Jpm = 0.02
+Jpm = -0.05
 
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.zeros(4),30, "Files/SSSF/dipolar/Jpm=-0.03_0")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.ones(4)*np.pi, 30, "Files/SSSF/dipolar/Jpm=-0.03_pi")
+SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=-0.03_00pp")
+
+
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
 #
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=5e-3_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=5e-3_pi")
 
 
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.15")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.3")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.15")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.3")
