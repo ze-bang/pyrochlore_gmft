@@ -839,7 +839,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 #endregion
 
 #region Phase for Magnetic Field - Exclusive Boson
-def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -871,10 +871,20 @@ def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range(currsizeK):
         try:
-            py0s = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
-            pyps = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
-            pyp0 = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
-            pyzp = pyex.piFluxSolver(-2*currJH[i][0], -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
+            if Jxx==True:
+                py0s = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.ones(4) * np.pi)
+                pyp0 = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]))
+                pyzp = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
+            else:
+                py0s = pyex.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+                pyp0 = pyex.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
+                pyzp = pyex.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
             py0s.solvemeanfield()
             pyps.solvemeanfield()
             pyp0.solvemeanfield()
@@ -921,7 +931,7 @@ def findPhaseMag110_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp,'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1,'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2,'Files/' + filename)
-def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -951,14 +961,24 @@ def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range(currsizeK):
         try:
-            py0s = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.zeros(4))
-            pyps = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.ones(4) * np.pi)
-            pyp0 = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.array([0 ,np.pi, np.pi, 0]))
-            pyzp = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.array([np.pi, 0, 0, np.pi]))
+            if Jxx == True:
+                py0s = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.ones(4) * np.pi)
+                pyp0 = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]))
+                pyzp = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
+            else:
+                py0s = pyex.piFluxSolver(-2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(-2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.ones(4) * np.pi)
+                pyp0 = pyex.piFluxSolver(-2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]))
+                pyzp = pyex.piFluxSolver(-2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
             py0s.solvemeanfield()
             pyps.solvemeanfield()
             pyp0.solvemeanfield()
@@ -1003,7 +1023,7 @@ def findPhaseMag001_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
         graphColorMesh(JP, h, rectemp, 'Files/' + filename + '_GS')
         graphColorMesh(JP, h, rectemp1, 'Files/' + filename + '_N')
         graphColorMesh(JP, h, rectemp2, 'Files/' + filename)
-def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
+def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -1033,10 +1053,16 @@ def findPhaseMag111_ex(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename):
 
     for i in range(currsizeK):
         try:
-            py0s = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.zeros(4))
-            pyps = pyex.piFluxSolver(-2 * currJH[i][0], -2 * currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa,
-                                     BZres=BZres, flux=np.ones(4) * np.pi)
+            if Jxx==True:
+                py0s = pyex.piFluxSolver(1, 2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(1, -2 * currJH[i][0], -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.ones(4) * np.pi)
+            else:
+                py0s = pyex.piFluxSolver(2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.zeros(4))
+                pyps = pyex.piFluxSolver(-2 * currJH[i][0], 1, -2 * currJH[i][0], h=currJH[i][1], n=n, kappa=kappa,
+                                         BZres=BZres, flux=np.ones(4) * np.pi)
             py0s.solvemeanfield()
             pyps.solvemeanfield()
             GS = np.array([py0s.GS(), pyps.GS()])
