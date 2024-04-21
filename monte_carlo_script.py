@@ -11,17 +11,19 @@ from observables import *
 # scan_all(h001, 2)
 
 
-# downtetrahedron = np.array([[0,0,0],[1,0,0],[0,1,0],[0,0,1]])
-# uptetrahedron = np.array([[0,0,0],[0,0,1],[0,1,0],[0,1,1]])
-# ax = plt.axes(projection='3d', aspect='auto')
-# ax.set_axis_off()
-# graphdownpyrochlore(downtetrahedron,ax)
-# graphuppyrochlore(uptetrahedron,ax)
-
+downtetrahedron = np.array([[0,0,0],[0,1,0]])
+uptetrahedron = np.array([[0,0,0],[0,1,0]])
+ax = plt.axes(projection='3d')
+ax.set_axis_off()
+graphdownpyrochlore(downtetrahedron,ax)
+graphuppyrochlore(uptetrahedron,ax)
+# graphallgaugebond(downtetrahedron,ax)
 # temp = contract('ia,ar->ir',downtetrahedron,r)
 # hexa=np.array([temp[0]+monte_carlo.NN[3],temp[0]+monte_carlo.NN[2],temp[2]+monte_carlo.NN[0],temp[2]+monte_carlo.NN[3], temp[3]+monte_carlo.NN[2], temp[3]+monte_carlo.NN[0]])
 # plothexagon(hexa, ax)
-# plt.show()
+ax.view_init(elev=-36, azim=-45, roll=60)
+ax.set_aspect('equal')
+plt.show()
 # plt.savefig('test.pdf')
 
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.zeros(4),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
@@ -43,8 +45,8 @@ from observables import *
 # DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.05, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.05")
 # DSSF(0.01, 0.062/0.063, 0.011/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jxx=0.011_Jyy=0.063_Jzz=0.062_h110=0.1")
 
-SSSF_HHL_KK_integrated(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.05_HHL_KnK_integrated")
-SSSF_HHL_KK_integrated(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.15_HHL_KnK_integrated")
+# SSSF_HHL_KK_integrated(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.05_HHL_KnK_integrated")
+# SSSF_HHL_KK_integrated(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, -0.3, 0.3, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.15_HHL_KnK_integrated")
 
 
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux", "hk0", 0)

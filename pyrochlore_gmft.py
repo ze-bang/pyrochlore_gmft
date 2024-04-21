@@ -600,33 +600,33 @@ def graphing_M_setup(flux):
                                 [0,np.pi,np.pi,0]])
         unitcellCoord = np.array([[0, 0, 0],[0,0,1]])
 
-    elif (flux == np.array([np.pi,0,0, np.pi])).all():
-        unitCellgraph = np.array([[[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[0,1],
-                                    [1,0]],
-                                    [[0,1],
-                                    [1,0]]
-                            ])
-        A_pi_here = np.array([[0,0,0,0],
-                                [0,np.pi,0,0]])
-        unitcellCoord = np.array([[0, 0, 0],[0,1,1]])
-
-    elif (flux == np.array([0, np.pi, np.pi, 0])).all():
-        unitCellgraph = np.array([[[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[0,1],
-                                    [1,0]]
-                            ])
-        A_pi_here = np.array([[0,0,0,0],
-                                [0,0,np.pi,0]])
-        unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
+    # elif (flux == np.array([np.pi,0,0, np.pi])).all():
+    #     unitCellgraph = np.array([[[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[0,1],
+    #                                 [1,0]],
+    #                                 [[0,1],
+    #                                 [1,0]]
+    #                         ])
+    #     A_pi_here = np.array([[0,0,0,0],
+    #                             [0,np.pi,0,0]])
+    #     unitcellCoord = np.array([[0, 0, 0],[0,1,1]])
+    #
+    # elif (flux == np.array([0, np.pi, np.pi, 0])).all():
+    #     unitCellgraph = np.array([[[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[0,1],
+    #                                 [1,0]]
+    #                         ])
+    #     A_pi_here = np.array([[0,0,0,0],
+    #                             [0,0,np.pi,0]])
+    #     unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
     return unitCellgraph, A_pi_here, unitcellCoord
 
 #endregion
@@ -945,9 +945,8 @@ class piFluxSolver:
         return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
 
     def mag_integrand(self, k):
-        M = M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(self.lams, 4), 2))
-        E, V = np.linalg.eigh(M)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         E = np.sqrt(2 * self.Jzz * E)
         green = green_pi(E, V, self.Jzz)
 

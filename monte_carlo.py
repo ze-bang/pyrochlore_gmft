@@ -9,7 +9,8 @@ from misc_helper import hhltoK, hkztoK, genBZ
 from observables import SSSFGraphHHL
 import h5py
 import pathlib
-
+from scipy.spatial.transform import Rotation as R
+import math
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
 
@@ -304,6 +305,17 @@ def plottetrahedron(x,y,z, ax, down=1):
     ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0,0,0]], linewidth=1.0, alpha=0.3, shade=True, color=c)
     center = center + down*np.array([1/4,1/4,1/4])/2
     ax.scatter(center[0],center[1],center[2], color=c, s=60)
+
+def magnitude(A):
+    return np.sqrt(A[0]**2+A[1]**2+A[2]**2)
+
+def plotgaugebond(x,y,z,ax):
+    center = x*r[0]+y*r[1]+z*r[2]
+    center = center + np.array([1/4,1/4,1/4])/2
+    coords = (NN+np.array([-1/4,-1/4,-1/4])/2)*2
+    ax.quiver(center[0],center[1],center[2],coords[0,0],coords[0,1],coords[0,2])
+
+
 def graphconfig(con):
     d = con.shape[0]
     ax = plt.axes(projection='3d')
@@ -334,6 +346,11 @@ def graphdownpyrochlore(con, ax):
     d = con.shape[0]
     for i in range(d):
         plottetrahedron(con[i,0], con[i,1], con[i,2],ax)
+
+def graphallgaugebond(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plotgaugebond(con[i,0], con[i,1], con[i,2],ax)
 
 
 def graphuppyrochlore(con, ax):
