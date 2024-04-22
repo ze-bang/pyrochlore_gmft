@@ -16,9 +16,9 @@ from observables import *
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03/h001=0.2")
 
 Jpm = 0.02
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.zeros(4),30, "Files/SSSF/dipolar/Jpm=0.02_0")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.ones(4)*np.pi, 30, "Files/SSSF/dipolar/Jpm=0.02_pi")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=0.02_00pp")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.zeros(4),30, "Files/SSSF/dipolar/Jpm=0.02_0")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.ones(4)*np.pi, 30, "Files/SSSF/dipolar/Jpm=0.02_pi")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=0.02_00pp")
 
 
 # completeSpan(-0.1,0.1,100,0,0.3,100,h110,30,2,np.zeros(4),'HanYan_110_Jpm_-0.1_0.1_h_0_0.3_0_flux')

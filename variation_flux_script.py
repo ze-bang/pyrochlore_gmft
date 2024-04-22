@@ -22,9 +22,9 @@ from observables import *
 
 Jpm = -0.05
 
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.zeros(4),30, "Files/SSSF/dipolar/Jpm=-0.03_0")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.ones(4)*np.pi, 30, "Files/SSSF/dipolar/Jpm=-0.03_pi")
-SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 15, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=-0.03_00pp")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.zeros(4),30, "Files/SSSF/dipolar/Jpm=-0.05_0")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.ones(4)*np.pi, 30, "Files/SSSF/dipolar/Jpm=-0.05_pi")
+SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.5, 15, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=-0.05_00pp")
 
 
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
