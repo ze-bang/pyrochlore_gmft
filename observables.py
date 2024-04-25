@@ -170,7 +170,7 @@ def SSSF_core(q, v, pyp0):
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
     qreal = contract('j,jk->k',q, BasisBZA)
-    G, TV = g(qreal)
+    G, TV = gTransverse(qreal)
     Sglobalzz = contract('ijk,jk,i->', Szz, G, pyp0.weights)
     SglobalzzT = contract('ijk,jk,i->', Szz, TV, pyp0.weights)
     SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
