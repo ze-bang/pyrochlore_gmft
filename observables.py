@@ -884,6 +884,24 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
 
+def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
+    hs = np.linspace(hmin, hmax, nH)
+    dirString = ""
+    scatplane = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+        scatplane="hk0"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+        scatplane="hhl"
+    else:
+        dirString = "111"
+        scatplane="hhk"
+    for i in range(nH):
+        filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
+
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
