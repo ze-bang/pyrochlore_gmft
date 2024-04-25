@@ -184,29 +184,133 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
     plt.legend([r'$0$', r'$\pi$', r'$0\pi\pi 0$', r'$\pi 00\pi$'])
     plt.savefig(filename+"_total.pdf")
     plt.clf()
+def regraph(dir, hhl):
+    H = np.linspace(-2.5, 2.5, 100)
+    L = np.linspace(-2.5, 2.5, 100)
+    A, B = np.meshgrid(H, L)
 
-n=20
-Jpm = np.linspace(0,-0.1, n)
-h = 0.1
-M1 = np.zeros(n)
-M2 = np.zeros(n)
-M3 = np.zeros(n)
-M4 = np.zeros(n)
-for i in range(n):
-    p1 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-    p2 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([0,0,np.pi,np.pi]))
-    p3 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([np.pi,np.pi,0,0]))
-    p4 = pycon.piFluxSolver(1, -2*Jpm[i], -2*Jpm[i], h=h, n=h001, flux=np.array([0,0,0,0]))
-    p1.solvemeanfield()
-    p2.solvemeanfield()
-    p3.solvemeanfield()
-    p4.solvemeanfield()
-    M1[i] = p1.MFE()
-    M2[i] = p2.MFE()
-    M3[i] = p3.MFE()
-    M4[i] = p4.MFE()
-    print(Jpm[i], M1[i], M2[i], M3[i], M4[i])
+    for dirs in os.listdir(dir):
+        foldname = dir+dirs
+        for files in os.listdir(foldname):
+            if files.endswith('.txt'):
+                temp = foldname+'/'+files
+                d = np.loadtxt(temp)
+                d = d/np.max(d)
+                vmin = 0
+                vmax = 1
+                if files.endswith('NSF.txt'):
+                    d = d/2
+                    vmax = 0.5
+                if files.endswith('global.txt'):
+                    vmin = 0.6
 
-plt.plot(Jpm, M1, Jpm, M2, Jpm, M3, Jpm, M4)
-plt.legend(['pi', '00pp', 'pp00', '0'])
-plt.show()
+                if hhl == "hhl":
+                    SSSFGraphHHL(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                elif hhl == "hk0":
+                    SSSFGraphHK0(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                else:
+                    SSSFGraphHKK(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
+
+def regraphDSSF(dir):
+    for dirs in os.listdir(dir):
+        foldname = dir+dirs
+        for files in os.listdir(foldname):
+            if files.endswith('.txt'):
+                temp = foldname+'/'+files
+                d = np.loadtxt(temp)
+                d = d/np.max(d)
+                kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
+                e = np.linspace(0,1,len(d))
+                X, Y = np.meshgrid(kline, e)
+                DSSFgraph(X, Y, d.T, temp[:-4])
+
+# Jpm = 0.02
+# h =0.3
+n=h110
+# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.zeros(4))
+# a.solvemeanfield()
+# a.graph(False)
+# plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
+# plt.clf()
+#
+# Jpm = -0.05
+# h =0.3
+# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([0,0,np.pi,np.pi]))
+# a.solvemeanfield()
+# a.graph(False)
+# plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
+# plt.clf()
+dir = "cedar_DSSF/"
+regraphDSSF(dir)
+
+
+
+Jpm = -0.289
+h = 0.15
+a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+a.solvemeanfield()
+a.graph(False)
+print(a.condensed, a.minLams, a.lams, a.lams-a.minLams)
+plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
+plt.clf()
+
+
+#
+# Jpm = -0.2
+# a = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1)
+# a.solvemeanfield()
+# C1 = a.green_pi(a.pts)
+# A1, B2 = SpmSpp(a.pts, a.pts,np.array([0,0,0]), a, a.lams)
+# Szz = (np.real(A1) + np.real(B2)) / 2
+# qreal = np.array([0, 0, 0])
+# Sglobalzz2 = contract('ijk,jk,i->jk', Szz, g(qreal), a.weights)
+# Szz2 = contract('ijk,i->jk', Szz, a.weights)
+# print(g(qreal),Szz2, Sglobalzz2)
+
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_00pp/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_00pp/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_00pp/h_110/"
+# regraph(dir, "hhl")
+#
+#
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_111/"
+# regraph(dir, "hkk")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_111/"
+# regraph(dir, "hkk")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_111/"
+# regraph(dir, "hkk")
+#
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_001/"
+# regraph(dir, "hk0")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_001/"
+# regraph(dir, "hk0")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_001/"
+# regraph(dir, "hk0")
+#
+#

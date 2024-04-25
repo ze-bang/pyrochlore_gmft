@@ -290,11 +290,11 @@ def generateflux110(n1, n2):
 
 
 # test = np.array([[0,0,0],[0,1,0],[0,0,1],[0,1,1]])
-# # fluxs=generateflux110(1,1)
-# # print(fluxs)
-# fluxs = np.array([np.pi,np.pi,0,0])
+# # # fluxs=generateflux110(1,1)
+# # # print(fluxs)
+# fluxs = np.array([np.pi,np.pi,np.pi,np.pi])
 # # fluxs = np.array([0,0,np.pi,np.pi])
-#
+# #
 # Api=constructA_pi_110(fluxs)
 # print(Api)
 # print(totalFlux(test,Api))

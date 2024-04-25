@@ -387,6 +387,7 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_r
     xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
+    plt.xlim([0,gW2])
 #endregion
 
 #region lower and upper edges

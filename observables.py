@@ -236,13 +236,13 @@ def graph_SSSF(pyp0, K, V, rank, size):
 # region Graphing
 def DSSFgraph(A, B, D, filename):
     plt.imshow(D, interpolation="lanczos",origin='lower',extent =[A.min(), A.max(), B.min(), B.max()], aspect='auto')
-    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.ylabel(r'$\omega/J_{yy}$')
     plt.savefig(filename + ".pdf")
     plt.clf()
 
 def plot_line(A, B, color):
     temp = np.array([A,B]).T
-    plt.plot(temp[0], temp[1], color,zorder=0)
+    plt.plot(temp[0], temp[1], color,zorder=5)
 
 def plot_text(A, text):
     temp = A + 0.05*np.array([1,-1])
@@ -269,8 +269,8 @@ def plot_BZ_hkk(offset, boundary, color):
     plot_line(B[7], B[0], color)
 
 
-def SSSFGraphHKK(A, B, d1, filename, Hr, Lr):
-    plt.pcolormesh(A, B, d1)
+def SSSFGraphHKK(A, B, d1, filename, Hr, Lr, vmin=0, vmax=1):
+    plt.imshow(d1, interpolation="lanczos",origin='lower',extent =[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin, vmax=vmax)
     plt.colorbar()
     Gamms = np.array([[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
 
@@ -287,12 +287,12 @@ def SSSFGraphHKK(A, B, d1, filename, Hr, Lr):
 
     Boundary = np.array([[0.75, -0.25],[0.25,-0.75],[-0.25,-0.75],[-0.75,-0.25],[-0.75,0.25],[-0.25,0.75],[0.25,0.75],[0.75,0.25]])
     # Boundary = np.array([[1,0],[0,1],[-1,0],[0,-1]])
-    plt.scatter(Gamms[0,0],Gamms[0,1])
-    plt.scatter(Xs[:,0], Xs[:,1])
-    plt.scatter(Ks[:,0], Ks[:,1])
-    plt.scatter(Ws[:, 0], Ws[:, 1])
+    plt.scatter(Gamms[0,0],Gamms[0,1],zorder=6)
+    plt.scatter(Xs[:,0], Xs[:,1],zorder=6)
+    plt.scatter(Ks[:,0], Ks[:,1],zorder=6)
+    plt.scatter(Ws[:, 0], Ws[:, 1],zorder=6)
 
-    plot_BZ_hkk(Gamms[0], Boundary, 'b:')
+    plot_BZ_hkk(Gamms[0], Boundary, 'w:')
 
 
     plt.ylabel(r'$(K,-K,0)$')
@@ -302,8 +302,8 @@ def SSSFGraphHKK(A, B, d1, filename, Hr, Lr):
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHHL(A, B, d1, filename, Hr, Lr):
-    plt.pcolormesh(A, B, d1)
+def SSSFGraphHHL(A, B, d1, filename, Hr, Lr, vmin=0, vmax=1):
+    plt.imshow(d1, interpolation="lanczos",origin='lower',extent =[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin, vmax=vmax)
     plt.colorbar()
     Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
     Ls = np.array([[0.5,0.5]])
@@ -316,13 +316,13 @@ def SSSFGraphHHL(A, B, d1, filename, Hr, Lr):
 
 
 
-    plot_BZ_hhl(Gamms[0], Boundary, 'b:')
+    plot_BZ_hhl(Gamms[0], Boundary, 'w:')
 
-    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=1)
-    plt.scatter(Ls[:,0], Ls[:,1],zorder=1)
-    plt.scatter(Xs[:, 0], Xs[:, 1],zorder=1)
-    plt.scatter(Ks[:, 0], Ks[:, 1],zorder=1)
-    plt.scatter(Us[:, 0], Us[:, 1],zorder=1)
+    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+    plt.scatter(Ls[:,0], Ls[:,1],zorder=6)
+    plt.scatter(Xs[:, 0], Xs[:, 1],zorder=6)
+    plt.scatter(Ks[:, 0], Ks[:, 1],zorder=6)
+    plt.scatter(Us[:, 0], Us[:, 1],zorder=6)
     plot_text(Gamms,r'$\Gamma$')
     plot_text(Ls,r'$L$')
     plot_text(Xs,r'$X$')
@@ -336,8 +336,8 @@ def SSSFGraphHHL(A, B, d1, filename, Hr, Lr):
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHK0(A, B, d1, filename, Hr, Lr):
-    plt.pcolormesh(A, B, d1)
+def SSSFGraphHK0(A, B, d1, filename, Hr, Lr, vmin=0, vmax=1):
+    plt.imshow(d1, interpolation="lanczos",origin='lower',extent =[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin, vmax=vmax)
     plt.colorbar()
 
     Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
@@ -347,10 +347,10 @@ def SSSFGraphHK0(A, B, d1, filename, Hr, Lr):
 
     Boundary = np.array([[1, 0.5], [0.5,1], [-0.5,1], [-1,0.5],[-1,-0.5],[-0.5,-1],[0.5,-1],[1,-0.5]])
 
-    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=1)
-    plt.scatter(Xs[:, 0], Xs[:, 1], zorder=1)
-    plt.scatter(Ks[:, 0], Ks[:, 1], zorder=1)
-    plt.scatter(Ws[:, 0], Ws[:, 1], zorder=1)
+    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+    plt.scatter(Xs[:, 0], Xs[:, 1], zorder=6)
+    plt.scatter(Ks[:, 0], Ks[:, 1], zorder=6)
+    plt.scatter(Ws[:, 0], Ws[:, 1], zorder=6)
     plot_text(Gamms,r'$\Gamma$')
     plot_text(Xs,r'$X$')
     plot_text(Ks,r'$K$')
