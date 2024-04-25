@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import warnings
+
+import numpy as np
+
 from misc_helper import *
 from flux_stuff import *
 import time
@@ -961,16 +964,6 @@ class piFluxSolver:
 
     def magnetization(self):
         mag = np.abs(integrate(self.mag_integrand, self.pts, self.weights))/16
-        con = 0
         if self.condensed:
-            ffact = contract('ik, jk->ij', self.qminB, NN)
-            ffactp = np.exp(1j * ffact)
-            ffactm = np.exp(-1j * ffact)
-
-            tempp = contract('ij, k, a, kj, jka->i', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * self.A_pi_here),
-                            piunitcell) / 4
-            tempm = contract('ij, a, k, kj, jka->i', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * self.A_pi_here),
-                            piunitcell) / 4
-            con = np.mean(tempp+tempm)
-
-        return  np.real(mag+con)
+            mag = np.NAN
+        return np.real(mag)

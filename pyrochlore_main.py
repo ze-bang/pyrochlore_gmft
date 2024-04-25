@@ -226,34 +226,31 @@ def regraphDSSF(dir):
 
 # Jpm = 0.02
 # h =0.3
-n=h110
-# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.zeros(4))
-# a.solvemeanfield()
-# a.graph(False)
-# plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
-# plt.clf()
-#
-# Jpm = -0.05
-# h =0.3
-# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([0,0,np.pi,np.pi]))
-# a.solvemeanfield()
-# a.graph(False)
-# plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
-# plt.clf()
-dir = "cedar_DSSF/"
-regraphDSSF(dir)
+# n=h110
+# # a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.zeros(4))
+# # a.solvemeanfield()
+# # a.graph(False)
+# # plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
+# # plt.clf()
+# #
+# # Jpm = -0.05
+# # h =0.3
+# # a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([0,0,np.pi,np.pi]))
+# # a.solvemeanfield()
+# # a.graph(False)
+# # plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
+# # plt.clf()
+# dir = "cedar_DSSF/"
+# regraphDSSF(dir)
 
 
 
 Jpm = -0.289
-h = 0.15
+h = 0.21
+n=h110
 a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([np.pi,np.pi,np.pi,np.pi]))
 a.solvemeanfield()
-a.graph(False)
-print(a.condensed, a.minLams, a.lams, a.lams-a.minLams)
-plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
-plt.clf()
-
+print(a.magnetization(),a.lams-a.minLams,a.condensed)
 
 #
 # Jpm = -0.2
