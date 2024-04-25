@@ -133,6 +133,21 @@ def g(q):
                 M[i, j] = np.dot(z[i], z[j])
     return M
 
+def gTransverse(q):
+    Transverse = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            if not np.dot(q,q) == 0:
+                Transverse[i,j] = - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            else:
+                Transverse[i, j] = 0
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            M[i, j] = np.dot(z[i], z[j])
+    return M, Transverse
+
+
 def gNSF(v):
     M = np.zeros((4,4))
     for i in range(4):

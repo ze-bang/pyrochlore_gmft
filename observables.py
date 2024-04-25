@@ -170,14 +170,17 @@ def SSSF_core(q, v, pyp0):
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
     qreal = contract('j,jk->k',q, BasisBZA)
-    Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
+    G, TV = g(qreal)
+    Sglobalzz = contract('ijk,jk,i->', Szz, G, pyp0.weights)
+    SglobalzzT = contract('ijk,jk,i->', Szz, TV, pyp0.weights)
     SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
     Szz = contract('ijk,i->', Szz, pyp0.weights)
-    Sglobalxx = contract('ijk,jk,i->', Sxx, g(qreal), pyp0.weights)
+    Sglobalxx = contract('ijk,jk,i->', Sxx, G, pyp0.weights)
+    SglobalxxT = contract('ijk,jk,i->', Sxx, TV, pyp0.weights)
     SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
+    return Szz, Sglobalzz, SglobalzzT, SNSFzz, Sxx, Sglobalxx, SglobalxxT, SNSFxx
 
-    return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 def graph_SSSF(pyp0, K, V, rank, size):
     comm = MPI.COMM_WORLD
     nK = len(K)
@@ -195,6 +198,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp6 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp7 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
@@ -202,6 +207,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     rectemp3 = None
     rectemp4 = None
     rectemp5 = None
+    rectemp6 = None
+    rectemp7 = None
 
     if rank == 0:
         rectemp = np.zeros(len(K), dtype=np.float64)
@@ -210,9 +217,11 @@ def graph_SSSF(pyp0, K, V, rank, size):
         rectemp3 = np.zeros(len(K), dtype=np.float64)
         rectemp4 = np.zeros(len(K), dtype=np.float64)
         rectemp5 = np.zeros(len(K), dtype=np.float64)
+        rectemp6 = np.zeros(len(K), dtype=np.float64)
+        rectemp7 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF_core(currK[i], V[i], pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i], sendtemp6[i], sendtemp7[i] = SSSF_core(currK[i], V[i], pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp), 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
@@ -220,6 +229,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     sendcounts3 = np.array(comm.gather(len(sendtemp3), 0))
     sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
     sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
+    sendcounts6 = np.array(comm.gather(len(sendtemp6), 0))
+    sendcounts7 = np.array(comm.gather(len(sendtemp7), 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
@@ -227,8 +238,10 @@ def graph_SSSF(pyp0, K, V, rank, size):
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+    comm.Gatherv(sendbuf=sendtemp6, recvbuf=(rectemp6, sendcounts6), root=0)
+    comm.Gatherv(sendbuf=sendtemp7, recvbuf=(rectemp7, sendcounts7), root=0)
 
-    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5
+    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5, rectemp6, rectemp7
 
 
 # endregion
@@ -387,20 +400,24 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, v, rank, size)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
-        f3 = filename + "Szz_NSF"
-        f4 = filename + "Sxx_local"
-        f5 = filename + "Sxx_global"
-        f6 = filename + "Sxx_NSF"
+        f3 = filename + "Szz_globalT"
+        f4 = filename + "Szz_NSF"
+        f5 = filename + "Sxx_local"
+        f6 = filename + "Sxx_global"
+        f7 = filename + "Sxx_globalT"
+        f8 = filename + "Sxx_NSF"
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
+        np.savetxt(f7 + '.txt', d7)
+        np.savetxt(f8 + '.txt', d8)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -430,14 +447,16 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, v, rank, size)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
-        f3 = filename + "Szz_NSF"
-        f4 = filename + "Sxx_local"
-        f5 = filename + "Sxx_global"
-        f6 = filename + "Sxx_NSF"
+        f3 = filename + "Szz_globalT"
+        f4 = filename + "Szz_NSF"
+        f5 = filename + "Sxx_local"
+        f6 = filename + "Sxx_global"
+        f7 = filename + "Sxx_globalT"
+        f8 = filename + "Sxx_NSF"
         d1 = d1.reshape((nK, nK))
         d2 = d2.reshape((nK, nK))
         d3 = d3.reshape((nK, nK))
@@ -450,6 +469,8 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
+        np.savetxt(f7 + '.txt', d7)
+        np.savetxt(f8 + '.txt', d8)
         if hkl=="hk0":
             SSSFGraphHK0(A, B, d1, f1, Hr, Lr)
             SSSFGraphHK0(A, B, d2, f2, Hr, Lr)
@@ -457,6 +478,8 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
             SSSFGraphHK0(A, B, d4, f4, Hr, Lr)
             SSSFGraphHK0(A, B, d5, f5, Hr, Lr)
             SSSFGraphHK0(A, B, d6, f6, Hr, Lr)
+            SSSFGraphHK0(A, B, d7, f7, Hr, Lr)
+            SSSFGraphHK0(A, B, d8, f8, Hr, Lr)
         elif hkl=="hhl":
             SSSFGraphHHL(A, B, d1, f1, Hr, Lr)
             SSSFGraphHHL(A, B, d2, f2, Hr, Lr)
@@ -464,6 +487,8 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
             SSSFGraphHHL(A, B, d4, f4, Hr, Lr)
             SSSFGraphHHL(A, B, d5, f5, Hr, Lr)
             SSSFGraphHHL(A, B, d6, f6, Hr, Lr)
+            SSSFGraphHHL(A, B, d7, f7, Hr, Lr)
+            SSSFGraphHHL(A, B, d8, f8, Hr, Lr)
         else:
             SSSFGraphHKK(A, B, d1, f1, Hr, Lr)
             SSSFGraphHKK(A, B, d2, f2, Hr, Lr)
@@ -471,6 +496,8 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
             SSSFGraphHKK(A, B, d4, f4, Hr, Lr)
             SSSFGraphHKK(A, B, d5, f5, Hr, Lr)
             SSSFGraphHKK(A, B, d6, f6, Hr, Lr)
+            SSSFGraphHKK(A, B, d7, f7, Hr, Lr)
+            SSSFGraphHKK(A, B, d8, f8, Hr, Lr)            
 
 
 def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
