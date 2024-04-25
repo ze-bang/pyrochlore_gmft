@@ -463,6 +463,8 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
         d4 = d4.reshape((nK, nK))
         d5 = d5.reshape((nK, nK))
         d6 = d6.reshape((nK, nK))
+        d7 = d7.reshape((nK, nK))
+        d8 = d8.reshape((nK, nK))
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)
