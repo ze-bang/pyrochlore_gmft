@@ -29,6 +29,6 @@ Jpm = 0.02
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=5e-3_pi")
 
 
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.15")
-DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.3")
+DSSF(300, -2*Jpm, -2*Jpm, 1, 0, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0")
+DSSF(300, -2*Jpm, -2*Jpm, 1, 0.15, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.15")
+DSSF(300, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.3")
