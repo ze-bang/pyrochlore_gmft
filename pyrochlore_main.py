@@ -195,21 +195,56 @@ def regraph(dir, hhl):
             if files.endswith('.txt'):
                 temp = foldname+'/'+files
                 d = np.loadtxt(temp)
-                d = d/np.max(d)
-                vmin = 0
-                vmax = 1
-                if files.endswith('NSF.txt'):
-                    d = d/2
-                    vmax = 0.5
-                if files.endswith('global.txt'):
-                    vmin = 0.6
 
-                if hhl == "hhl":
-                    SSSFGraphHHL(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
-                elif hhl == "hk0":
-                    SSSFGraphHK0(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
-                else:
-                    SSSFGraphHKK(A, B, d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                if files.endswith('global.txt'):
+                    tempT = foldname + '/' + files[:-4] + "T.txt"
+                    d1 = np.loadtxt(tempT)
+                    dsum = d + d1
+                    g = np.max(dsum)
+                    d = d/g
+
+                    vmin = np.min(d)
+                    vmax = np.max(d)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+
+                    d1 = d1/g
+                    vmin = np.min(d1)
+                    vmax = np.max(d1)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+
+
+                    dsum = dsum/g
+                    vmin = np.min(dsum)
+                    vmax = np.max(dsum)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+
+
+                elif files.endswith('NSF.txt'):
+                    d = d/np.max(d)/2
+                    vmin = np.min(d)
+                    vmax = np.max(d)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+
 
 def regraphDSSF(dir):
     for dirs in os.listdir(dir):
@@ -245,12 +280,26 @@ def regraphDSSF(dir):
 
 
 
-Jpm = -0.289
-h = 0.21
-n=h110
-a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-a.solvemeanfield()
-print(a.magnetization(),a.lams-a.minLams,a.condensed)
+# Jpm = -0.289
+# h = 0.15
+# n=h110
+# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([np.pi,np.pi,np.pi,np.pi]))
+# a.solvemeanfield()
+nH=1
+nL=40
+H = np.linspace(1, 1, nH)
+L = np.linspace(-2.5, 2.5, nL)
+A, B = np.meshgrid(H, L)
+K = hhltoK(A, B, K).reshape((nH*nL,3))
+Kreal = np.mod(contract('ij,jk', K, BasisBZA), 2*np.pi)
+Jpm=-0.3
+# SSSF_Ks(K, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi,30, "test")
+SSSF_pedantic(10, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi,5, "test", "hhl")
+# print(a.magnetization(),a.lams-a.minLams,a.condensed)
+
+# DSSF(300, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.1")
+#
+
 
 #
 # Jpm = -0.2
@@ -264,50 +313,50 @@ print(a.magnetization(),a.lams-a.minLams,a.condensed)
 # Szz2 = contract('ijk,i->jk', Szz, a.weights)
 # print(g(qreal),Szz2, Sglobalzz2)
 
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_110/"
+# dir = "Final/Jpm=-0.03_pi/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_110/"
+# dir = "Final/Jpm=-0.03_0/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_00pp/h_110/"
+# dir = "Final/Jpm=-0.03_00pp/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_110/"
+# dir = "Final/Jpm=0.02_0/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_110/"
+# dir = "Final/Jpm=0.02_pi/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_00pp/h_110/"
+# dir = "Final/Jpm=0.02_00pp/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_110/"
+# dir = "Final/Jpm=-0.289_pi/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_110/"
+# dir = "Final/Jpm=-0.289_0/h_110/"
 # regraph(dir, "hhl")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_00pp/h_110/"
+# dir = "Final/Jpm=-0.289_00pp/h_110/"
 # regraph(dir, "hhl")
 #
 #
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_111/"
+# dir = "Final/Jpm=-0.03_pi/h_111/"
 # regraph(dir, "hkk")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_111/"
+# dir = "Final/Jpm=-0.03_0/h_111/"
 # regraph(dir, "hkk")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_111/"
+# dir = "Final/Jpm=0.02_0/h_111/"
 # regraph(dir, "hkk")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_111/"
+# dir = "Final/Jpm=0.02_pi/h_111/"
 # regraph(dir, "hkk")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_111/"
+# dir = "Final/Jpm=-0.289_pi/h_111/"
 # regraph(dir, "hkk")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_111/"
+# dir = "Final/Jpm=-0.289_0/h_111/"
 # regraph(dir, "hkk")
 #
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_pi/h_001/"
+# dir = "Final/Jpm=-0.03_pi/h_001/"
 # regraph(dir, "hk0")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.03_0/h_001/"
+# dir = "Final/Jpm=-0.03_0/h_001/"
 # regraph(dir, "hk0")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_0/h_001/"
+# dir = "Final/Jpm=0.02_0/h_001/"
 # regraph(dir, "hk0")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=0.02_pi/h_001/"
+# dir = "Final/Jpm=0.02_pi/h_001/"
 # regraph(dir, "hk0")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_pi/h_001/"
+# dir = "Final/Jpm=-0.289_pi/h_001/"
 # regraph(dir, "hk0")
-# dir = "Nia_SSSF_DSSF/SSSF/octupolar/Jpm=-0.289_0/h_001/"
+# dir = "Final/Jpm=-0.289_0/h_001/"
 # regraph(dir, "hk0")
 #
 #

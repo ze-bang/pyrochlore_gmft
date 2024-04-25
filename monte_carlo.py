@@ -262,12 +262,12 @@ def SSSF(con, rcoord, nK, filename, n):
     np.savetxt(f4 + '.txt', S[0,1])
     np.savetxt(f5 + '.txt', S[0,2])
     np.savetxt(f6 + '.txt', S[1,2])
-    SSSFGraphHHL(A, B, S[0,0], f1, 2.5, 2.5)
-    SSSFGraphHHL(A, B, S[1,1], f2, 2.5, 2.5)
-    SSSFGraphHHL(A, B, S[2,2], f3, 2.5, 2.5)
-    SSSFGraphHHL(A, B, S[0, 1], f4, 2.5, 2.5)
-    SSSFGraphHHL(A, B, S[0, 2], f5, 2.5, 2.5)
-    SSSFGraphHHL(A, B, S[1, 2], f6, 2.5, 2.5)
+    SSSFGraphHHL(S[0, 0], f1, 2.5, 2.5)
+    SSSFGraphHHL(S[1, 1], f2, 2.5, 2.5)
+    SSSFGraphHHL(S[2, 2], f3, 2.5, 2.5)
+    SSSFGraphHHL(S[0, 1], f4, 2.5, 2.5)
+    SSSFGraphHHL(S[0, 2], f5, 2.5, 2.5)
+    SSSFGraphHHL(S[1, 2], f6, 2.5, 2.5)
 
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
