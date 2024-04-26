@@ -333,7 +333,8 @@ def plot_BZ_hkk(offset, boundary, color):
 
 def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
     if vmin == np.NaN or vmax == np.NaN:
-        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto')
+        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=np.min(d1),
+                   vmax=np.max(d1))
     else:
         plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin,
                    vmax=vmax)
