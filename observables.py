@@ -331,13 +331,18 @@ def plot_BZ_hkk(offset, boundary, color):
     plot_line(B[7], B[0], color)
 
 
-def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=0, vmax=1):
+def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
     if vmin == np.NaN or vmax == np.NaN:
         plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto')
     else:
         plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin,
                    vmax=vmax)
     plt.colorbar()
+
+def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
     Gamms = np.array([[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
 
     Xs = np.array([[0.5,0.5]])
@@ -369,11 +374,8 @@ def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=0, vmax=1):
     plt.savefig(filename + ".pdf")
     plt.clf()
 def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
-    if vmin==np.NaN or vmax == np.NaN:
-        plt.imshow(d1, interpolation="lanczos",origin='lower',extent =[-Hr, Hr, -Lr, Lr], aspect='auto')
-    else:
-        plt.imshow(d1, interpolation="lanczos",origin='lower',extent =[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin, vmax=vmax)
-    plt.colorbar()
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
     Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
     Ls = np.array([[0.5,0.5]])
     Xs = np.array([[0,1]])
@@ -405,13 +407,9 @@ def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=0, vmax=1):
-    if vmin == np.NaN or vmax == np.NaN:
-        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto')
-    else:
-        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin,
-                   vmax=vmax)
-    plt.colorbar()
+def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
 
     Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
     Xs = np.array([[1, 0]])

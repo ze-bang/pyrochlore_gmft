@@ -12,13 +12,9 @@ from observables import *
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h111,17,2,np.zeros(4),'HanYan_111_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h111,17,2,np.ones(4)*np.pi,'HanYan_111_Jpm_-0.3_0.1_h_0_1_pi_flux_ex')
 
-Jpm = -0.05
-
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.1_HHKnK_00pp_flux", "hkk", 1.5)
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.2_HHKnK_00pp_flux", "hkk", 1.5)
-# SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/Jpm=-0.03_h110=0.3_HHKnK_00pp_flux", "hkk", 1.5)
-
-SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0_HHKnK_L_integrated", 1.5, 0.3)
-SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.1_HHKnK_L_integrated", 1.5, 0.3)
-
 # SSSF_HHKnK_L_integrated(80, 0.062, 0.063, 0.011, 1.5, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.11_Jyy=0.062_Jzz=0.063_B110=1.5_HHKnK_L_integrated", 1.5, 0.3)
+Jpm=0
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.1_pi_flux", "hhl")
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.2_pi_flux", "hhl")
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.3_pi_flux", "hhl")
+SSSF(100, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.4_pi_flux", "hhl")
