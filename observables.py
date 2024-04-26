@@ -167,10 +167,14 @@ def SSSF_core_pedantic(q, pyp0):
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
+    qreal = contract('j,jk->k',q, BasisBZA)
+
+    Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
+    Sxxglobal = contract('ijk, jk,i->jk', Sxx, g(qreal), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
     Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
 
-    return Szz, Sxx
+    return Szz, Szzglobal, Sxx, Sxxglobal
 
 def graph_SSSF_pedantic(pyp0, K, rank, size):
     comm = MPI.COMM_WORLD
@@ -185,24 +189,34 @@ def graph_SSSF_pedantic(pyp0, K, rank, size):
 
     sendtemp = np.zeros((currsizeK,4,4), dtype=np.float64)
     sendtemp1 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp2 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp3 = np.zeros((currsizeK,4,4), dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
+    rectemp2 = None
+    rectemp3 = None
 
     if rank == 0:
         rectemp = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp1 = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp2 = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp3 = np.zeros((len(K),4,4), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i] = SSSF_core_pedantic(currK[i], pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = SSSF_core_pedantic(currK[i], pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp)*16, 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1)*16, 0))
+    sendcounts2 = np.array(comm.gather(len(sendtemp2)*16, 0))
+    sendcounts3 = np.array(comm.gather(len(sendtemp3)*16, 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
-    return rectemp, rectemp1
+    return rectemp, rectemp1, rectemp2, rectemp3
 
 
 def SSSF_core(q, v, pyp0):
@@ -482,7 +496,9 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
+            np.savetxt(f1 + '.txt', f1)
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr)
+
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
@@ -511,38 +527,37 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2 = graph_SSSF_pedantic(py0s, K, rank, size)
+    d1, d2, d3, d4 = graph_SSSF_pedantic(py0s, K, rank, size)
     if rank == 0:
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         f1 = filename + "/Szz/"
-        f2 = filename + "/Sxx/"
+        f2 = filename + "/Szzglobal/"
+        f3 = filename + "/Sxx/"
+        f4 = filename + "/Sxxglobal/"
         pathlib.Path(f1).mkdir(parents=True, exist_ok=True)
         pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
         d1 = d1.reshape((nK, nK, 4, 4))
         d2 = d2.reshape((nK, nK, 4, 4))
-        ncfilename = filename + '/full_info.nc'
-        with nc.Dataset(ncfilename, "w") as dataset:
-            dataset.createDimension("H", nK)
-            dataset.createDimension("L", nK)
-            dataset.createDimension("i", 4)
-            dataset.createDimension("j", 4)
-
-            temp_var = dataset.createVariable("Szz", "f4", ("H", "L", "i","j"))
-            temp_var[:, :, :] = d1
-            temp_var.long_name = "Szz"
-            temp_var = dataset.createVariable("Sxx", "f4", ("H", "L", "i","j"))
-            temp_var[:, :, :] = d2
-            temp_var.long_name = "Sxx"
+        d3 = d3.reshape((nK, nK, 4, 4))
+        d4 = d4.reshape((nK, nK, 4, 4))
 
         if hkl=="hk0":
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d2, f2, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d3, f3, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d4, f4, Hr, Lr)            
         elif hkl=="hhl":
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr)
-        else:
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr)            
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr)
+        else:            
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
