@@ -520,7 +520,7 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
-            np.savetxt(f1 + '.txt', d1[:,:,i,j])
+            np.savetxt(tempF + '.txt', d1[:,:,i,j])
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr)
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
