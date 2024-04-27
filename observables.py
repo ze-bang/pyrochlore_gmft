@@ -208,8 +208,8 @@ def graph_SSSF_pedantic(pyp0, K, v, rank, size):
         rectemp1 = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp2 = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp3 = np.zeros((len(K),4,4), dtype=np.float64)
-        sendtemp4 = np.zeros(len(K), dtype=np.float64)
-        sendtemp5 = np.zeros(len(K), dtype=np.float64)
+        rectemp4 = np.zeros(len(K), dtype=np.float64)
+        rectemp5 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
         sendtemp[i], sendtemp1[i], sendtemp4[i], sendtemp2[i], sendtemp3[i],sendtemp5[i] = SSSF_core_pedantic(currK[i], v, pyp0)
@@ -520,7 +520,7 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
-            np.savetxt(f1 + '.txt', d1)
+            np.savetxt(f1 + '.txt', d1[:,:,i,j])
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr)
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
@@ -562,8 +562,8 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
         d2 = d2.reshape((nK, nK, 4, 4))
         d3 = d3.reshape((nK, nK, 4, 4))
         d4 = d4.reshape((nK, nK, 4, 4))
-        d5 = d3.reshape((nK, nK))
-        d6 = d4.reshape((nK, nK))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
 
         Szz = contract('abjk->ab', d1)
         Szzglobal = contract('abjk->ab', d2)
@@ -593,7 +593,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr)            
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr)
-        else:
+        elif hkl=="hkk":
             SSSFGraphHKK(Szz, filename+'/Szz', Hr, Lr)
             SSSFGraphHKK(Szzglobal, filename + '/Szzglobal', Hr, Lr)
             SSSFGraphHKK(Sxx, filename + '/Sxx', Hr, Lr)
@@ -604,6 +604,17 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr)
+        else:
+            SSSFGraphHH2K(Szz, filename+'/Szz', Hr, Lr)
+            SSSFGraphHH2K(Szzglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHH2K(Sxx, filename + '/Sxx', Hr, Lr)
+            SSSFGraphHH2K(Sxxglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHH2K(d5, filename + '/SzzNSF', Hr, Lr)
+            SSSFGraphHH2K(d6, filename + '/SxxNSF', Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d1, f1, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d2, f2, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d3, f3, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d4, f4, Hr, Lr)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -939,19 +950,15 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
 
-def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
+def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname, scatplane):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
-    scatplane = ""
     if (n==np.array([0,0,1])).all():
         dirString = "001"
-        scatplane="hk0"
     elif (n==np.array([1,1,0])/np.sqrt(2)).all():
         dirString = "110"
-        scatplane="hhl"
     else:
         dirString = "111"
-        scatplane="hhk"
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
