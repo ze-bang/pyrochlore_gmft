@@ -159,7 +159,7 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
         Spp = Spp + SppA
     return Spm, Spp
 
-def SSSF_core_pedantic(q, pyp0):
+def SSSF_core_pedantic(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
 
@@ -171,12 +171,14 @@ def SSSF_core_pedantic(q, pyp0):
 
     Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
     Sxxglobal = contract('ijk, jk,i->jk', Sxx, g(qreal), pyp0.weights)
+    SNSFzz= contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
     Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
 
-    return Szz, Szzglobal, Sxx, Sxxglobal
+    return Szz, Szzglobal, SNSFzz, Sxx, Sxxglobal, SNSFxx
 
-def graph_SSSF_pedantic(pyp0, K, rank, size):
+def graph_SSSF_pedantic(pyp0, K, v, rank, size):
     comm = MPI.COMM_WORLD
     nK = len(K)
     nb = nK / size
@@ -191,32 +193,42 @@ def graph_SSSF_pedantic(pyp0, K, rank, size):
     sendtemp1 = np.zeros((currsizeK,4,4), dtype=np.float64)
     sendtemp2 = np.zeros((currsizeK,4,4), dtype=np.float64)
     sendtemp3 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
     rectemp2 = None
     rectemp3 = None
+    rectemp4 = None
+    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp1 = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp2 = np.zeros((len(K),4,4), dtype=np.float64)
         rectemp3 = np.zeros((len(K),4,4), dtype=np.float64)
+        sendtemp4 = np.zeros(len(K), dtype=np.float64)
+        sendtemp5 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = SSSF_core_pedantic(currK[i], pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp4[i], sendtemp2[i], sendtemp3[i],sendtemp5[i] = SSSF_core_pedantic(currK[i], v, pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp)*16, 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1)*16, 0))
     sendcounts2 = np.array(comm.gather(len(sendtemp2)*16, 0))
     sendcounts3 = np.array(comm.gather(len(sendtemp3)*16, 0))
+    sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
+    sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
-    return rectemp, rectemp1, rectemp2, rectemp3
+    return rectemp, rectemp1, rectemp4, rectemp2, rectemp3, rectemp5
 
 
 def SSSF_core(q, v, pyp0):
@@ -284,7 +296,7 @@ def graph_SSSF(pyp0, K, V, rank, size):
         rectemp7 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i], sendtemp6[i], sendtemp7[i] = SSSF_core(currK[i], V[i], pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i], sendtemp6[i], sendtemp7[i] = SSSF_core(currK[i], V, pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp), 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
@@ -347,7 +359,6 @@ def plot_BZ_hkk(offset, boundary, color):
 
 def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
     if vmin == np.NaN or vmax == np.NaN:
-        print(vmin, vmax)
         plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=np.min(d1),
                    vmax=np.max(d1))
     else:
@@ -453,6 +464,18 @@ def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plt.clf()
 
 
+def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+    plt.ylabel(r'$(K,K,-2K)$')
+    plt.xlabel(r'$(H,-H,0)$')
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
+    plt.savefig(filename + ".pdf")
+    plt.clf()
+
+
+
+
 # endregion
 
 
@@ -497,8 +520,8 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
-            np.savetxt(f1 + '.txt', d1[:,:,i,j])
-            graphMethod(d1[:,:,i,j], tempF, Hr, Lr,np.min(d1[:,:,i,j]),np.max(d1[:,:,i,j]))
+            np.savetxt(f1 + '.txt', d1)
+            graphMethod(d1[:,:,i,j], tempF, Hr, Lr)
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -509,17 +532,12 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
 
     if hkl == "hk0":
         K = hkztoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
     elif hkl=="hhl":
         K = hhltoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
-    else:
+    elif hkl=="hkk":
         K = hkktoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hkkscaplane(A, B).reshape((nK*nK,3))
-
-    v = np.zeros(scatterPlane.shape)
-    v[:,0] = -scatterPlane[:,1]
-    v[:,1] = scatterPlane[:,0]
+    else:
+        K = hhkk2ktoK(A, B, K).reshape((nK*nK,3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -528,7 +546,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4 = graph_SSSF_pedantic(py0s, K, rank, size)
+    d1, d2, d5, d3, d4, d6 = graph_SSSF_pedantic(py0s, K, n, rank, size)
     if rank == 0:
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         f1 = filename + "/Szz/"
@@ -539,22 +557,49 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
         pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
         pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
         pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
+
         d1 = d1.reshape((nK, nK, 4, 4))
         d2 = d2.reshape((nK, nK, 4, 4))
         d3 = d3.reshape((nK, nK, 4, 4))
         d4 = d4.reshape((nK, nK, 4, 4))
+        d5 = d3.reshape((nK, nK))
+        d6 = d4.reshape((nK, nK))
+
+        Szz = contract('abjk->ab', d1)
+        Szzglobal = contract('abjk->ab', d2)
+        Sxx = contract('abjk->ab', d3)
+        Sxxglobal = contract('abjk->ab', d4)
+
 
         if hkl=="hk0":
+            SSSFGraphHK0(Szz, filename+'/Szz', Hr, Lr)
+            SSSFGraphHK0(Szzglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHK0(Sxx, filename + '/Sxx', Hr, Lr)
+            SSSFGraphHK0(Sxxglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHK0(d5, filename + '/SzzNSF', Hr, Lr)
+            SSSFGraphHK0(d6, filename + '/SxxNSF', Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d2, f2, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d3, f3, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d4, f4, Hr, Lr)            
         elif hkl=="hhl":
+            SSSFGraphHHL(Szz, filename+'/Szz', Hr, Lr)
+            SSSFGraphHHL(Szzglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHHL(Sxx, filename + '/Sxx', Hr, Lr)
+            SSSFGraphHHL(Sxxglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHHL(d5, filename + '/SzzNSF', Hr, Lr)
+            SSSFGraphHHL(d6, filename + '/SxxNSF', Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr)            
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr)
-        else:            
+        else:
+            SSSFGraphHKK(Szz, filename+'/Szz', Hr, Lr)
+            SSSFGraphHKK(Szzglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHKK(Sxx, filename + '/Sxx', Hr, Lr)
+            SSSFGraphHKK(Sxxglobal, filename + '/Szzglobal', Hr, Lr)
+            SSSFGraphHKK(d5, filename + '/SzzNSF', Hr, Lr)
+            SSSFGraphHKK(d6, filename + '/SxxNSF', Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr)
@@ -569,17 +614,12 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
 
     if hkl == "hk0":
         K = hkztoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
     elif hkl=="hhl":
         K = hhltoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
+    elif hkl == "hkk":
+        K = hkktoK(A, B, K).reshape((nK * nK, 3))
     else:
-        K = hkktoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hkkscaplane(A, B).reshape((nK*nK,3))
-
-    v = np.zeros(scatterPlane.shape)
-    v[:,0] = -scatterPlane[:,1]
-    v[:,1] = scatterPlane[:,0]
+        K = hhkk2ktoK(A, B, K).reshape((nK * nK, 3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -588,7 +628,7 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, v, rank, size)
+    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, n, rank, size)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"

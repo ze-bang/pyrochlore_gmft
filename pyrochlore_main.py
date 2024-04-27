@@ -1,7 +1,6 @@
 import os
 
 import matplotlib.pyplot as plt
-import netCDF4
 import numpy as np
 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
@@ -12,6 +11,7 @@ from variation_flux import *
 from phase_diagram import *
 import pyrochlore_exclusive_boson as pyeb
 from observables import *
+import netCDF4 as nc
 
 def ex_vs_gauge_gs_110(h, n, filename, solvemeanfield=False):
     Jpm = np.linspace(-0.05, 0.05, 30)
@@ -259,59 +259,21 @@ def regraphDSSF(dir):
                 X, Y = np.meshgrid(kline, e)
                 DSSFgraph(X, Y, d.T, temp[:-4])
 
-# Jpm = 0.02
-# h =0.3
-# n=h110
-# # a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.zeros(4))
-# # a.solvemeanfield()
-# # a.graph(False)
-# # plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
-# # plt.clf()
-# #
-# # Jpm = -0.05
-# # h =0.3
-# # a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([0,0,np.pi,np.pi]))
-# # a.solvemeanfield()
-# # a.graph(False)
-# # plt.savefig("h110_Jpm="+str(Jpm)+"h="+str(h)+".pdf")
-# # plt.clf()
-# dir = "cedar_DSSF/"
-# regraphDSSF(dir)
 
-
-
-# Jpm = -0.289
-# h = 0.15
-# n=h110
-# a = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h,n=n,flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# a.solvemeanfield()
-nH=1
-nL=40
-H = np.linspace(1, 1, nH)
-L = np.linspace(-2.5, 2.5, nL)
-A, B = np.meshgrid(H, L)
-K = hhltoK(A, B, K).reshape((nH*nL,3))
-Kreal = np.mod(contract('ij,jk', K, BasisBZA), 2*np.pi)
-Jpm=-0.3
-# SSSF_Ks(K, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi,30, "test")
-SSSF_pedantic(10, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.ones(4)*np.pi,5, "test", "hhl")
-# print(a.magnetization(),a.lams-a.minLams,a.condensed)
-
-# DSSF(300, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.1")
+# def regraphSSSF(dir):
+#     for dirs in os.listdir(dir):
+#         foldname = dir+'/'+dirs
+#         for dirs1 in os.listdir(foldname):
+#             foldname1 = foldname +'/'+ dirs1
+#             for dirs2 in os.listdir(foldname1):
+#                 foldname2 = foldname1 +'/'+ dirs2
+#                 d = nc.Dataset(foldname2+"/full_info.nc")
+#                 print()
 #
-
-
 #
-# Jpm = -0.2
-# a = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1)
-# a.solvemeanfield()
-# C1 = a.green_pi(a.pts)
-# A1, B2 = SpmSpp(a.pts, a.pts,np.array([0,0,0]), a, a.lams)
-# Szz = (np.real(A1) + np.real(B2)) / 2
-# qreal = np.array([0, 0, 0])
-# Sglobalzz2 = contract('ijk,jk,i->jk', Szz, g(qreal), a.weights)
-# Szz2 = contract('ijk,i->jk', Szz, a.weights)
-# print(g(qreal),Szz2, Sglobalzz2)
+# d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")
+#
+# regraphSSSF("SSSF_April_25")
 
 # dir = "Final/Jpm=-0.03_pi/h_110/"
 # regraph(dir, "hhl")

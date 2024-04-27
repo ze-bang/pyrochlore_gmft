@@ -707,6 +707,12 @@ def hkktoK(H, K, L=0):
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
         + L*np.array([0.5,0.5,0])
 
+def hhkk2ktoK(H, K, L=0):
+    return np.einsum('ij,k->ijk',H, np.array([0.5,-0.5,0])) \
+        + np.einsum('ij,k->ijk',K, np.array([-0.5,-0.5,1])) \
+        + L*np.array([0.5,0.5,0])
+
+
 def hknkL(H,K,L):
     hk = hkktoK(H, K).reshape((len(H)*len(K), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(L))) \
@@ -723,13 +729,6 @@ def hhlK(H,K,L):
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(L)), K, np.array([-0.5,0.5,0]))
 
 
-
-def hhlscaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))
-def hk0scaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,0,0]))+ np.einsum('ij,k->ijk',L, np.array([0,1,0]))
-def hkkscaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))+ np.einsum('ij,k->ijk',L, np.array([1,-1,0]))
 
 def q_scaplane(K):
     tempB = np.array([np.array([-1,1,1]),np.array([1,-1,1]),np.array([1,1,-1])])
