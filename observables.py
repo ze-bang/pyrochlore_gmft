@@ -347,6 +347,7 @@ def plot_BZ_hkk(offset, boundary, color):
 
 def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
     if vmin == np.NaN or vmax == np.NaN:
+        print(vmin, vmax)
         plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=np.min(d1),
                    vmax=np.max(d1))
     else:
@@ -496,8 +497,8 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
-            np.savetxt(f1 + '.txt', f1)
-            graphMethod(d1[:,:,i,j], tempF, Hr, Lr)
+            np.savetxt(f1 + '.txt', d1[:,:,i,j])
+            graphMethod(d1[:,:,i,j], tempF, Hr, Lr,np.min(d1[:,:,i,j]),np.max(d1[:,:,i,j]))
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
