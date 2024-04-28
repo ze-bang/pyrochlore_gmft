@@ -246,8 +246,12 @@ def SSSF_core(q, v, pyp0):
         v = v/np.linalg.norm(v)
 
     Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
-    Szz = (np.real(Spm) + np.real(Spp)) / 2
-    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+    if pyp0.dominant == 0:
+        Sxx = (np.real(Spm) + np.real(Spp)) / 2
+        Szz = (np.real(Spm) - np.real(Spp)) / 2
+    else:
+        Szz = (np.real(Spm) + np.real(Spp)) / 2
+        Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
     qreal = contract('j,jk->k',q, BasisBZA)
     G, TV = gTransverse(qreal)
