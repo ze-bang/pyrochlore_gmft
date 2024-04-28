@@ -85,6 +85,8 @@ def realcoord(r):
 
 
 z = np.array([np.array([1,1,1])/np.sqrt(3), np.array([1,-1,-1])/np.sqrt(3), np.array([-1,1,-1])/np.sqrt(3), np.array([-1,-1,1])/np.sqrt(3)])
+x = np.array([[-2,1,1],[-2,-1,-1],[2,1,-1], [2,-1,1]])/np.sqrt(6)
+
 @nb.njit
 def BasisBZ(mu):
     if mu == 0:
@@ -131,6 +133,16 @@ def g(q):
                 M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
             else:
                 M[i, j] = np.dot(z[i], z[j])
+    return M
+
+def gx(q):
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            if not np.dot(q,q) == 0:
+                M[i,j] = np.dot(x[i], x[j]) - np.dot(x[i],q) * np.dot(x[j],q)/ np.dot(q,q)
+            else:
+                M[i, j] = np.dot(x[i], x[j])
     return M
 
 def gTransverse(q):
@@ -708,7 +720,7 @@ def hkktoK(H, K, L=0):
         + L*np.array([0.5,0.5,0])
 
 def hhkk2ktoK(H, K, L=0):
-    return np.einsum('ij,k->ijk',H, np.array([0.5,-0.5,0])) \
+    return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,-0.5,1])) \
         + L*np.array([0.5,0.5,0])
 

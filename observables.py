@@ -164,13 +164,18 @@ def SSSF_core_pedantic(q, v, pyp0):
     Qs = Ks - q
 
     Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
-    Szz = (np.real(Spm) + np.real(Spp)) / 2
-    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+
+    if pyp0.dominant == 0:
+        Sxx = (np.real(Spm) + np.real(Spp)) / 2
+        Szz = (np.real(Spm) - np.real(Spp)) / 2
+    else:
+        Szz = (np.real(Spm) + np.real(Spp)) / 2
+        Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
     qreal = contract('j,jk->k',q, BasisBZA)
 
     Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
-    Sxxglobal = contract('ijk, jk,i->jk', Sxx, g(qreal), pyp0.weights)
+    Sxxglobal = contract('ijk, jk,i->jk', Sxx, gx(qreal), pyp0.weights)
     SNSFzz= contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
     SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
@@ -400,6 +405,7 @@ def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
+
 def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
 
@@ -428,7 +434,7 @@ def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plot_text(Ks,r'$K$')
 
     plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
+    plt.xlabel(r'$(H,-H,0)$')
     plt.xlim([-Hr, Hr])
     plt.ylim([-Lr, Lr])
     # plt.show()
@@ -522,6 +528,10 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
             tempF = f1+str(i)+str(j)
             np.savetxt(tempF + '.txt', d1[:,:,i,j])
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr, np.min(d1[:,:,i,j]), np.max(d1[:,:,i,j]))
+    gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3] 
+    gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2] 
+    graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
+    graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)

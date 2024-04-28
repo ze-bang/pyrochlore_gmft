@@ -642,6 +642,7 @@ class piFluxSolver:
         a = np.argmax(J)
         xx = np.mod(a-2,3)
         yy = np.mod(a-1,3)
+        self.dominant = a
         self.Jzz = J[a]
         self.Jpm = -(J[xx] + J[yy]) / 4
         self.Jpmpm = (J[xx] - J[yy]) / 4

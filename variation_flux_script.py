@@ -22,8 +22,8 @@ from observables import *
 
 Jpm = 0.02
 
-SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.2, 5, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hk0", 1)
-SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.2, 5, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hk0", 1)
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hk0", 0)
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hk0", 0)
 # SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.2, 5, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=-0.03_00pp")
 
 
