@@ -526,16 +526,20 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f7 + '.txt', d7)
         np.savetxt(f8 + '.txt', d8)
 
-def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr):
+def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
             np.savetxt(tempF + '.txt', d1[:,:,i,j])
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr, np.min(d1[:,:,i,j]), np.max(d1[:,:,i,j]))
-    gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3] 
-    gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2] 
-    graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
-    graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+    if (dir==h110).all():
+        gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3] 
+        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2] 
+        graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
+        graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+    elif (dir==h111).all():
+        gp = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,1,3] + d1[:,:,2,2] + d1[:,:,2,3] + d1[:,:,3,3] 
+        graphMethod(gp, f1+"Kagome", Hr, Lr, np.min(gp), np.max(gp))
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -586,49 +590,73 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
 
 
         if hkl=="hk0":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
             SSSFGraphHK0(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHK0(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHK0(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
             SSSFGraphHK0(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHK0(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHK0(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
-            pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHK0, d2, f2, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHK0, d3, f3, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHK0, d4, f4, Hr, Lr)            
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d4, f4, Hr, Lr, n)            
         elif hkl=="hhl":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
             SSSFGraphHHL(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHHL(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHHL(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
             SSSFGraphHHL(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHHL(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHHL(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
-            pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr)            
-            pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr, n)            
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr, n)
         elif hkl=="hkk":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
             SSSFGraphHKK(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHKK(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHKK(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
             SSSFGraphHKK(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHKK(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHKK(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
-            pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr, n)
         else:
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
             SSSFGraphHH2K(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHH2K(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHH2K(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
             SSSFGraphHH2K(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHH2K(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHH2K(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
-            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d1, f1, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d2, f2, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d3, f3, Hr, Lr)
-            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d4, f4, Hr, Lr)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d4, f4, Hr, Lr, n)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
