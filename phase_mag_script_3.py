@@ -14,8 +14,8 @@ from observables import *
 # SSSF_line(100, 0.011/0.063, 0.062/0.063, 1, 0, 0.3, 10, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jxx_0.062_Jyy_0.063_Jzz_0.011_pi")
 
 Jpm = -0.289
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 3, h111, np.zeros(4),30, "Files/SSSF/Jpm=-0.289_0", "hh2k")
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 3, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.289_pi", "hh2k")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 3, h111, np.zeros(4),30, "Files/SSSF/Jpm=-0.289_0", "hh2k", 0, 3, 3)
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 3, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.289_pi", "hh2k", 0, 3, 3)
 
 
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.289/h110=0")

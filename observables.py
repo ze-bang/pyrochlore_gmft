@@ -575,7 +575,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             SSSFGraphHK0(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHK0(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHK0(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
-            SSSFGraphHK0(Sxxglobal, filename + '/Szzglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHK0(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHK0(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHK0(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
             pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr)
@@ -586,7 +586,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             SSSFGraphHHL(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHHL(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHHL(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
-            SSSFGraphHHL(Sxxglobal, filename + '/Szzglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHHL(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHHL(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHHL(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
             pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr)
@@ -597,7 +597,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             SSSFGraphHKK(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHKK(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHKK(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
-            SSSFGraphHKK(Sxxglobal, filename + '/Szzglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHKK(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHKK(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHKK(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr)
@@ -608,7 +608,7 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             SSSFGraphHH2K(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
             SSSFGraphHH2K(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
             SSSFGraphHH2K(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
-            SSSFGraphHH2K(Sxxglobal, filename + '/Szzglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHH2K(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
             SSSFGraphHH2K(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
             SSSFGraphHH2K(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
             pedantic_SSSF_graph_helper(SSSFGraphHH2K, d1, f1, Hr, Lr)
@@ -950,7 +950,7 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
 
-def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname, scatplane):
+def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname, scatplane, K=0, Hr=2.5, Lr=2.5):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
     if (n==np.array([0,0,1])).all():
@@ -962,7 +962,7 @@ def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirnam
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
+        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane, K, Hr, Lr)
 
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
