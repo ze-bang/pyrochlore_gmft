@@ -5,7 +5,7 @@ import numpy as np
 from opt_einsum import contract
 from numba import njit
 from mpi4py import MPI
-from misc_helper import hhltoK, hkztoK, genBZ
+from misc_helper import hnhltoK, hkztoK, genBZ
 from observables import SSSFGraphHHL
 import h5py
 import pathlib
@@ -245,7 +245,7 @@ def SSSF(con, rcoord, nK, filename, n):
     if (n == np.array([0,0,1])).all():
         K = hkztoK(A, B)
     else:
-        K = hhltoK(A, B)
+        K = hnhltoK(A, B)
     K = K.reshape((nK*nK,3))
     S = SSSF_q_e(con, rcoord, K)
     f1 = filename + "Sxx_local"

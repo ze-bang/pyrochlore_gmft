@@ -534,12 +534,34 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
             graphMethod(d1[:,:,i,j], tempF, Hr, Lr, np.min(d1[:,:,i,j]), np.max(d1[:,:,i,j]))
     if (dir==h110).all():
         gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3] 
-        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2] 
+        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
+        gcorre = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,1] + d1[:,:,3,2] + d1[:,:,1,3] + d1[:,:,2,3]
+        np.savetxt(f1+"polarized.txt", gp)
+        np.savetxt(f1+"unpolarized.txt", gup)
+        np.savetxt(f1+"polar_unpolar.txt", gcorre)
         graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
         graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, np.min(gcorre), np.max(gcorre))
     elif (dir==h111).all():
-        gp = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,1,3] + d1[:,:,2,2] + d1[:,:,2,3] + d1[:,:,3,3] 
-        graphMethod(gp, f1+"Kagome", Hr, Lr, np.min(gp), np.max(gp))
+        gKagome = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,1,3] + d1[:,:,2,1] + d1[:,:,3, 1] + d1[:,:,2,2] + d1[:,:,2,3] + d1[:,:,3,2] + d1[:,:,3,3]
+        gTri = d1[:,:,0,0]
+        gKagomeTri = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,0,3] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,0]
+        np.savetxt(f1+"Kagome.txt", gKagome)
+        np.savetxt(f1+"Triangular.txt", gTri)
+        np.savetxt(f1+"Kagome-Tri.txt", gKagomeTri)
+        graphMethod(gKagome, f1+"Kagome", Hr, Lr, np.min(gKagome), np.max(gKagome))
+        graphMethod(gTri, f1+"Triangular", Hr, Lr, np.min(gTri), np.max(gTri))
+        graphMethod(gKagomeTri, f1+"Kagome-Tri", Hr, Lr, np.min(gKagomeTri), np.max(gKagomeTri))
+    else:
+        gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3]
+        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
+        gcorre = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,1] + d1[:,:,3,2] + d1[:,:,1,3] + d1[:,:,2,3]
+        np.savetxt(f1+"polarized.txt", gp)
+        np.savetxt(f1+"unpolarized.txt", gup)
+        np.savetxt(f1+"polar_unpolar.txt", gcorre)
+        graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
+        graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, np.min(gcorre), np.max(gcorre))
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -550,12 +572,14 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
 
     if hkl == "hk0":
         K = hkztoK(A, B, K).reshape((nK*nK,3))
+    elif hkl=="hnhl":
+        K = hnhltoK(A, B, K).reshape((nK * nK, 3))
     elif hkl=="hhl":
-        K = hhltoK(A, B, K).reshape((nK*nK,3))
-    elif hkl=="hkk":
-        K = hkktoK(A, B, K).reshape((nK*nK,3))
+        K = hhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhknk":
+        K = hhknktoK(A, B, K).reshape((nK * nK, 3))
     else:
-        K = hhkk2ktoK(A, B, K).reshape((nK*nK,3))
+        K = hnhkkn2ktoK(A, B, K).reshape((nK * nK, 3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -667,12 +691,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
 
     if hkl == "hk0":
         K = hkztoK(A, B, K).reshape((nK*nK,3))
+    elif hkl=="hnhl":
+        K = hnhltoK(A, B, K).reshape((nK * nK, 3))
     elif hkl=="hhl":
-        K = hhltoK(A, B, K).reshape((nK*nK,3))
-    elif hkl == "hkk":
-        K = hkktoK(A, B, K).reshape((nK * nK, 3))
+        K = hhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhknk":
+        K = hhknktoK(A, B, K).reshape((nK * nK, 3))
     else:
-        K = hhkk2ktoK(A, B, K).reshape((nK * nK, 3))
+        K = hnhkkn2ktoK(A, B, K).reshape((nK * nK, 3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -1038,7 +1064,7 @@ def TWOSPINCON(nK, h, n, Jxx, Jyy, Jzz, flux, BZres, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hhltoK(A, B).reshape(3, -1).T
+    K = hnhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)
@@ -1088,7 +1114,7 @@ def TWOSPINCON_general(nK, h, n, Jxx, Jyy, Jzz, BZres, flux, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hhltoK(A, B).reshape(3, -1).T
+    K = hnhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)

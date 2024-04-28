@@ -706,27 +706,32 @@ def BZbasis(mu):
 
 
 
-def hhltoK(H, L, K=0):
+def hnhltoK(H, L, K=0):
     return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
         + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
         + K*np.array([0.5,0.5,1])
+
+def hhltoK(H, L, K=0):
+    return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
+        + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
+        + K*np.array([-0.5,0.5,0])
 def hkztoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) \
         + np.einsum('ij,k->ijk',K, np.array([0.5,0,0.5])) \
         + L*np.array([0.5,0.5,0])
-def hkktoK(H, K, L=0):
+def hhknktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
         + L*np.array([0.5,0.5,0])
 
-def hhkk2ktoK(H, K, L=0):
+def hnhkkn2ktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,-0.5,1])) \
         + L*np.array([0.5,0.5,0])
 
 
 def hknkL(H,K,L):
-    hk = hkktoK(H, K).reshape((len(H)*len(K), 3))
+    hk = hhknktoK(H, K).reshape((len(H) * len(K), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(L))) \
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
@@ -736,7 +741,7 @@ def hk0L(H,K,L):
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
 def hhlK(H,K,L):
-    hk = hhltoK(H, L).reshape((len(H)*len(L), 3))
+    hk = hnhltoK(H, L).reshape((len(H) * len(L), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(K))) \
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(L)), K, np.array([-0.5,0.5,0]))
 
