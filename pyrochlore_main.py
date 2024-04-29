@@ -254,11 +254,18 @@ def regraphDSSF(dir):
                 temp = foldname+'/'+files
                 d = np.loadtxt(temp)
                 d = d/np.max(d)
-                kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
+                # kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
                 e = np.linspace(0,1,len(d))
                 X, Y = np.meshgrid(kline, e)
                 DSSFgraph(X, Y, d.T, temp[:-4])
 
+
+Jpm=0.02
+h=0.2
+n=h110
+a = pycon.piFluxSolver(-2*Jpm,-2*Jpm, 1, h=h, n=n, flux=np.zeros(4))
+a.solvemeanfield()
+a.graph(True)
 
 # def regraphSSSF(dir):
 #     for dirs in os.listdir(dir):
