@@ -974,11 +974,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.graph_loweredge(False), py0s.graph_upperedge(False)
     e = np.linspace(max(emin *0.95, 0), emax *1.02, nE)
-<<<<<<< HEAD
     tol = (1.02*emax-max(emin *0.95, 0))/nE*4
-=======
-    tol = nE
->>>>>>> ca270c0cba5820ef1834cdfdf292a9de90305891
     if not MPI.Is_initialized():
         MPI.Init()
 
