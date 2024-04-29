@@ -61,16 +61,34 @@ b3 = np.pi * np.array([1, 1, -1])
 # U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
 
 
+# Gamma = np.array([0, 0, 0])
+# L = np.array([1, 1, 1])/2
+# X = np.array([0, 0.5, 0.5])
+# W = np.array([0.25, 0.75, 0.5])
+# K = np.array([0.375, 0.75, 0.375])
+# U = np.array([0.25, 0.625, 0.625])
+
+# Gamma = np.array([0, 0, 0])
+# K = 2 * np.pi * np.array([3/4, -3/4, 0])
+# W = 2 * np.pi * np.array([1, -1/2, 0])
+# X = 2 * np.pi * np.array([1, 0, 0])
+
+# L = np.pi * np.array([1, 1, 1])
+# U = 2 * np.pi * np.array([1/4, 1/4, 1])
+# W = 2 * np.pi * np.array([0, 1/2, 1])
+
 Gamma = np.array([0, 0, 0])
-L = np.array([1, 1, 1])/2
+K = np.array([-0.375, 0.375, 0])
+W = np.array([-0.25, 0.5, 0.25])
 X = np.array([0, 0.5, 0.5])
-W = np.array([0.25, 0.75, 0.5])
-K = np.array([0.375, 0.75, 0.375])
-U = np.array([0.25, 0.625, 0.625])
+
+L = np.array([1, 1, 1])/2
+U = np.array([0.625, 0.625, 0.25])
+W1 = np.array([0.75, 0.5, 0.25])
+X1 = np.array([0.5,0.5, 0])
 
 
-
-stepN = magnitude(np.abs(U-W))/graphres
+stepN = magnitude(np.abs(U-W1))/graphres
 
 
 @nb.njit
@@ -372,32 +390,51 @@ def obliqueProj(W):
     A = np.array(np.matmul(np.linalg.inv(M), y))
     return A
 
+# Gamma = np.array([0, 0, 0])
+# X = np.array([0, 0.5, 0.5])
+# K = np.array([-0.375, 0.375, 0])
+# W = np.array([-0.25, 0.5, 0.25])
+#
+#
+# L = np.array([1, 1, 1])/2
+# U = np.array([0.625, 0.625, 25])
+# W1 = np.array([0.75, 0.5, 0.25])
+# X1 = np.array([0.5,0.5, 0])
 
+#Path to 1-1
 GammaX = drawLine(Gamma, X, stepN)
 XW = drawLine(X, W, stepN)
 WK = drawLine(W, K, stepN)
 KGamma = drawLine(K, Gamma, stepN)
+
+#Path to 111 and then 001
 GammaL = drawLine(Gamma, L, stepN)
 LU = drawLine(L, U, stepN)
-UW = drawLine(U, W, stepN)
-
+UW1 = drawLine(U, W1, stepN)
+W1X1 = drawLine(W1, X1, stepN)
+X1Gamma = drawLine(X1, Gamma, stepN)
 
 gGamma1 = 0
 gX = magnitude(np.abs(Gamma-X))
-gW1 = gX + magnitude(np.abs(X-W))
-gK = gW1 + magnitude(np.abs(W-K))
+gW = gX + magnitude(np.abs(X-W))
+gK = gW + magnitude(np.abs(W-K))
+
 gGamma2 = gK + magnitude(np.abs(K-Gamma))
 gL = gGamma2 + magnitude(np.abs(Gamma-L))
 gU = gL + magnitude(np.abs(L-U))
-gW2 = gU + magnitude(np.abs(U-W))
+gW1 = gU + magnitude(np.abs(U-W1))
+gX1 = gW1 + magnitude(np.abs(X1-W1))
+gGamma3 = gX1 + magnitude(np.abs(Gamma-X1))
 
 graphGammaX = np.linspace(gGamma1, gX, len(GammaX))
-graphXW = np.linspace(gX, gW1, len(XW))
-graphWK = np.linspace(gW1, gK, len(WK))
+graphXW = np.linspace(gX, gW, len(XW))
+graphWK = np.linspace(gW, gK, len(WK))
 graphKGamma = np.linspace(gK, gGamma2, len(KGamma))
 graphGammaL = np.linspace(gGamma2, gL, len(GammaL))
 graphLU = np.linspace(gL, gU, len(LU))
-graphUW = np.linspace(gU, gW2, len(UW))
+graphUW1 = np.linspace(gU, gW1, len(UW1))
+graphW1X1 = np.linspace(gW1, gX1, len(W1X1))
+graphX1Gamma = np.linspace(gX1, gGamma3, len(X1Gamma))
 
 def msp(items):
   '''Yield the permutations of `items` where items is either a list

@@ -1,5 +1,4 @@
 # import pyrochlore_dispersion_pi_gang_chen as pygang
-from archive import pyrochlore_dispersion_pi_old as pypipyold
 from misc_helper import *
 import matplotlib.pyplot as plt
 from matplotlib import cm
@@ -971,7 +970,7 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
+    kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW1, W1X1, X1Gamma))
     emin, emax = py0s.graph_loweredge(False), py0s.graph_upperedge(False)
     e = np.linspace(max(emin *0.95, 0), emax *1.02, nE)
     tol = (1.02*emax-max(emin *0.95, 0))/nE*4
@@ -993,7 +992,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(f2 + ".txt", d2)
         np.savetxt(f3 + ".txt", d3)
         np.savetxt(f4 + ".txt", d4)
-        kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
+        kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW1, graphW1X1, graphX1Gamma))
         X, Y = np.meshgrid(kline, e)
         DSSFgraph(X, Y, d1.T, f1)
         py0s.graph_loweredge(False)

@@ -366,31 +366,40 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_r
                             A_pi_rs_traced_pp_here, unitcell)
     dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                         A_pi_rs_traced_pp_here, unitcell)
-    dUW = dispersion_pi(lams, UW, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+    dUW1 = dispersion_pi(lams, UW1, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                        A_pi_rs_traced_pp_here, unitcell)
+    dW1X1 = dispersion_pi(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                        A_pi_rs_traced_pp_here, unitcell)
+    dX1Gamma = dispersion_pi(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                         A_pi_rs_traced_pp_here, unitcell)
 
     for i in range(dGammaX.shape[1]):
         plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:, i], 'b')
-        plt.plot(np.linspace(gX, gW1, len(dXW)), dXW[:, i], 'b')
-        plt.plot(np.linspace(gW1, gK, len(dWK)), dWK[:, i], 'b')
+        plt.plot(np.linspace(gX, gW, len(dXW)), dXW[:, i], 'b')
+        plt.plot(np.linspace(gW, gK, len(dWK)), dWK[:, i], 'b')
         plt.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma[:, i], 'b')
         plt.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL[:, i], 'b')
         plt.plot(np.linspace(gL, gU, len(dLU)), dLU[:, i], 'b')
-        plt.plot(np.linspace(gU, gW2, len(dUW)), dUW[:, i], 'b')
+        plt.plot(np.linspace(gU, gW1, len(dUW1)), dUW1[:, i], 'b')
+        plt.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1[:, i], 'b')
+        plt.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma[:, i], 'b')
 
-    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.ylabel(r'$\omega/J_{\parallel}$')
     plt.axvline(x=gGamma1, color='b', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gX, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW1, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW, color='b', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gK, color='b', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gGamma2, color='b', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gL, color='b', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gU, color='b', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW2, color='b', label='axvline - full height', linestyle='dashed')
-    xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
-    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.axvline(x=gW1, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gX1, color='b', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gGamma3, color='b', label='axvline - full height', linestyle='dashed')
+
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     plt.xticks(xlabpos, labels)
-    plt.xlim([0,gW2])
+    plt.xlim([0,gGamma3])
 #endregion
 
 #region lower and upper edges
@@ -434,7 +443,6 @@ def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi
                            A_pi_rs_traced_pp_here, unitcell)
         temp[i, 0] = np.min(tt[:, 0] + mins)
         temp[i, 1] = np.max(tt[:, -1] + maxs)
-        # print(temp[i],i)
     return temp
 
 def DSSF_E_Low(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
@@ -475,30 +483,41 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
                      A_pi_rs_traced_pp_here, unitcell)
     dLU = minCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                  A_pi_rs_traced_pp_here, unitcell)
-    dUW = minCal(lams, UW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+    dUW1 = minCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                 A_pi_rs_traced_pp_here, unitcell)
+    dW1X1 = minCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                 A_pi_rs_traced_pp_here, unitcell)
+    dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                  A_pi_rs_traced_pp_here, unitcell)
 
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b',zorder=10)
-    plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b',zorder=10)
-    plt.plot(np.linspace(gW1, gK, len(dWK)), dWK, 'b',zorder=10)
+    plt.plot(np.linspace(gX, gW, len(dXW)), dXW, 'b',zorder=10)
+    plt.plot(np.linspace(gW, gK, len(dWK)), dWK, 'b',zorder=10)
     plt.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b',zorder=10)
     plt.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b',zorder=10)
     plt.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b',zorder=10)
-    plt.plot(np.linspace(gU, gW2, len(dUW)), dUW, 'b',zorder=10)
+    plt.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'b')
+    plt.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'b')
+    plt.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'b')
 
-    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.ylabel(r'$\omega/J_{\parallel}$')
     plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW2, color='w', label='axvline - full height', linestyle='dashed')
-    xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
-    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
+
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     plt.xticks(xlabpos, labels)
-    return min(np.min(dGammaX), np.min(dXW), np.min(dWK),np.min(dKGamma),np.min(dGammaL),np.min(dLU),np.min(dUW))
+    plt.xlim([0,gGamma3])
+
+    return min(np.min(dGammaX), np.min(dXW), np.min(dWK),np.min(dKGamma),np.min(dGammaL),np.min(dLU),np.min(dUW1),np.min(dW1X1),np.min(dX1Gamma))
 
 def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
               unitcell):
@@ -514,30 +533,42 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
                      A_pi_rs_traced_pp_here, unitcell)
     dLU = maxCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                  A_pi_rs_traced_pp_here, unitcell)
-    dUW = maxCal(lams, UW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+    dUW1 = maxCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                 A_pi_rs_traced_pp_here, unitcell)
+    dW1X1 = maxCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                 A_pi_rs_traced_pp_here, unitcell)
+    dX1Gamma = maxCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                  A_pi_rs_traced_pp_here, unitcell)
 
+
     plt.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b',zorder=10)
-    plt.plot(np.linspace(gX, gW1, len(dXW)), dXW, 'b',zorder=10)
-    plt.plot(np.linspace(gW1, gK, len(dWK)), dWK, 'b',zorder=10)
+    plt.plot(np.linspace(gX, gW, len(dXW)), dXW, 'b',zorder=10)
+    plt.plot(np.linspace(gW, gK, len(dWK)), dWK, 'b',zorder=10)
     plt.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b',zorder=10)
     plt.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b',zorder=10)
     plt.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b',zorder=10)
-    plt.plot(np.linspace(gU, gW2, len(dUW)), dUW, 'b',zorder=10)
+    plt.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'b')
+    plt.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'b')
+    plt.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'b')
 
-    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.ylabel(r'$\omega/J_{\parallel}$')
     plt.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gW, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gK, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gGamma2, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gL, color='w', label='axvline - full height', linestyle='dashed')
     plt.axvline(x=gU, color='w', label='axvline - full height', linestyle='dashed')
-    plt.axvline(x=gW2, color='w', label='axvline - full height', linestyle='dashed')
-    xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
-    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
+    plt.axvline(x=gW1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
+    plt.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
+
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     plt.xticks(xlabpos, labels)
-    return max(np.max(dGammaX), np.max(dXW), np.max(dWK),np.max(dKGamma),np.max(dGammaL),np.max(dLU),np.max(dUW))
+    plt.xlim([0,gGamma3])
+
+    return max(np.max(dGammaX), np.max(dXW), np.max(dWK),np.max(dKGamma),np.max(dGammaL),np.max(dLU),np.max(dUW1),np.max(dW1X1),np.max(dX1Gamma))
 #endregion
 
 #region greens function and energetics
