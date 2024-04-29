@@ -42,8 +42,6 @@ def deltas_pairing(Ek, omega, tol):
 # region DSSF
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
-    # greenpK, tempE = pyp0.green_pi_branch(Ks, lam)
-    # greenpQ, tempQ = pyp0.green_pi_branch(Qs, lam)
     greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks)
     greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs)
 
