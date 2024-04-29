@@ -38,35 +38,36 @@ from observables import *
 
 # findXYZPhase(-1,1,-1,1,100,30,2,'XYZ_phase_diagram')
 
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0")
+Jpm = 0.02
+DSSF(250, -2*Jpm, -2*Jpm, 1, 0, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.02, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.02")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.04, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.04")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.06, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.06")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.08, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.08")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.1")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.2")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.4")
+DSSF(250, -2*Jpm, -2*Jpm, 1, 0.15, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.15")
+DSSF(250, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.2")
+DSSF(250, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
+DSSF(250, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.4")
 
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.14, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.14")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.16, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.16")
 
-Jpm = -0.03
+# Jpm = -0.03
 
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0")
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi")
 
-# SSSF(100, 3001/0.063, 0.062/0.063, 1, 0, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_3001_h110=0', "hhl")
-# SSSF(100, 3001/0.063, 0.062/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_3001_h110=0.1', "hhl")
-# SSSF(100, 3001/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_3001_h110=0.2', "hhl")
+# SSSF(100, 2501/0.063, 0.062/0.063, 1, 0, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_2501_h110=0', "hhl")
+# SSSF(100, 2501/0.063, 0.062/0.063, 1, 0.1, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_2501_h110=0.1', "hhl")
+# SSSF(100, 2501/0.063, 0.062/0.063, 1, 0.2, h110, np.ones(4)*np.pi, 30, 'Jxx_0.062_Jyy_0.063_Jzz_2501_h110=0.2', "hhl")
 
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
 
-DSSF(300, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.1")
-DSSF(300, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.2")
-DSSF(300, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.3")
-DSSF(300, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.4")
+# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.1")
+# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.2")
+# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.3")
+# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.4")
 
 
 # SSSF_HHL_KK_integrated(10, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 3, 5, 'Jpm=-0.289_h110=0.2_L_integrated')
