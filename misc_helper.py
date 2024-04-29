@@ -85,6 +85,8 @@ def realcoord(r):
 
 
 z = np.array([np.array([1,1,1])/np.sqrt(3), np.array([1,-1,-1])/np.sqrt(3), np.array([-1,1,-1])/np.sqrt(3), np.array([-1,-1,1])/np.sqrt(3)])
+x = np.array([[-2,1,1],[-2,-1,-1],[2,1,-1], [2,-1,1]])/np.sqrt(6)
+
 @nb.njit
 def BasisBZ(mu):
     if mu == 0:
@@ -132,6 +134,31 @@ def g(q):
             else:
                 M[i, j] = np.dot(z[i], z[j])
     return M
+
+def gx(q):
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            if not np.dot(q,q) == 0:
+                M[i,j] = np.dot(x[i], x[j]) - np.dot(x[i],q) * np.dot(x[j],q)/ np.dot(q,q)
+            else:
+                M[i, j] = np.dot(x[i], x[j])
+    return M
+
+def gTransverse(q):
+    Transverse = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            if not np.dot(q,q) == 0:
+                Transverse[i,j] = - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
+            else:
+                Transverse[i, j] = 0
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            M[i, j] = np.dot(z[i], z[j])
+    return M, Transverse
+
 
 def gNSF(v):
     M = np.zeros((4,4))
@@ -679,6 +706,11 @@ def BZbasis(mu):
 
 
 
+def hnhltoK(H, L, K=0):
+    return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
+        + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
+        + K*np.array([0.5,0.5,1])
+
 def hhltoK(H, L, K=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
@@ -687,13 +719,19 @@ def hkztoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) \
         + np.einsum('ij,k->ijk',K, np.array([0.5,0,0.5])) \
         + L*np.array([0.5,0.5,0])
-def hkktoK(H, K, L=0):
+def hhknktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
         + L*np.array([0.5,0.5,0])
 
+def hnhkkn2ktoK(H, K, L=0):
+    return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
+        + np.einsum('ij,k->ijk',K, np.array([-0.5,-0.5,1])) \
+        + L*np.array([0.5,0.5,0])
+
+
 def hknkL(H,K,L):
-    hk = hkktoK(H, K).reshape((len(H)*len(K), 3))
+    hk = hhknktoK(H, K).reshape((len(H) * len(K), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(L))) \
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
@@ -703,18 +741,11 @@ def hk0L(H,K,L):
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(K)),L, np.array([0.5,0.5,0]))
 
 def hhlK(H,K,L):
-    hk = hhltoK(H, L).reshape((len(H)*len(L), 3))
+    hk = hnhltoK(H, L).reshape((len(H) * len(L), 3))
     return np.einsum('ik,l->lik', hk, np.ones(len(K))) \
         + np.einsum('i,l,k->lik',np.ones(len(H)*len(L)), K, np.array([-0.5,0.5,0]))
 
 
-
-def hhlscaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))
-def hk0scaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,0,0]))+ np.einsum('ij,k->ijk',L, np.array([0,1,0]))
-def hkkscaplane(H,L):
-    return np.einsum('ij,k->ijk',H, np.array([1,1,0]))+ np.einsum('ij,k->ijk',L, np.array([1,-1,0]))
 
 def q_scaplane(K):
     tempB = np.array([np.array([-1,1,1]),np.array([1,-1,1]),np.array([1,1,-1])])
@@ -765,7 +796,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin= 10
+deltamin= 100
 minLamK = 2
 
 def gauss_quadrature_1D_pts(a, b, n):

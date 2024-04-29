@@ -22,13 +22,24 @@ from observables import *
 
 Jpm = 0.02
 
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
-# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hk0", 0)
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hk0", 0)
+# SSSF_line(100, 1, -2*Jpm, -2*Jpm, 0, 0.2, 5, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/dipolar/Jpm=-0.03_00pp")
+
+
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")
+# SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi")
 #
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=5e-3_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=5e-3_pi")
 
 
+<<<<<<< HEAD
 DSSF(250, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.1")
 DSSF(250, -2*Jpm, -2*Jpm, 1, 0.05, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.05")
 DSSF(250, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.2")
+=======
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.15")
+# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h001=0.3")
+>>>>>>> ca270c0cba5820ef1834cdfdf292a9de90305891

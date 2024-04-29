@@ -7,6 +7,8 @@ import pyrochlore_gmft as pycon
 from mpi4py import MPI
 import os
 import pathlib
+import netCDF4 as nc
+
 
 def delta(Ek, Eq, omega, tol):
     beta = 0
@@ -156,6 +158,84 @@ def SpmSpp(K, Q, q, pyp0, lam=0):
                    ffactpm) / 64
         Spp = Spp + SppA
     return Spm, Spp
+
+def SSSF_core_pedantic(q, v, pyp0):
+    Ks = pyp0.pts
+    Qs = Ks - q
+
+    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+
+    if pyp0.dominant == 0:
+        Sxx = (np.real(Spm) + np.real(Spp)) / 2
+        Szz = (np.real(Spm) - np.real(Spp)) / 2
+    else:
+        Szz = (np.real(Spm) + np.real(Spp)) / 2
+        Sxx = (np.real(Spm) - np.real(Spp)) / 2
+
+    qreal = contract('j,jk->k',q, BasisBZA)
+
+    Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
+    Sxxglobal = contract('ijk, jk,i->jk', Sxx, gx(qreal), pyp0.weights)
+    SNSFzz= contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
+    Szz = contract('ijk,i->jk', Szz, pyp0.weights)
+    Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
+
+    return Szz, Szzglobal, SNSFzz, Sxx, Sxxglobal, SNSFxx
+
+def graph_SSSF_pedantic(pyp0, K, v, rank, size):
+    comm = MPI.COMM_WORLD
+    nK = len(K)
+    nb = nK / size
+
+    leftK = int(rank * nb)
+    rightK = int((rank + 1) * nb)
+    currsizeK = rightK - leftK
+
+    currK = K[leftK:rightK, :]
+
+    sendtemp = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp1 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp2 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp3 = np.zeros((currsizeK,4,4), dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
+
+    rectemp = None
+    rectemp1 = None
+    rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+    rectemp5 = None
+
+    if rank == 0:
+        rectemp = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp1 = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp2 = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp3 = np.zeros((len(K),4,4), dtype=np.float64)
+        rectemp4 = np.zeros(len(K), dtype=np.float64)
+        rectemp5 = np.zeros(len(K), dtype=np.float64)
+
+    for i in range(currsizeK):
+        sendtemp[i], sendtemp1[i], sendtemp4[i], sendtemp2[i], sendtemp3[i],sendtemp5[i] = SSSF_core_pedantic(currK[i], v, pyp0)
+
+    sendcounts = np.array(comm.gather(len(sendtemp)*16, 0))
+    sendcounts1 = np.array(comm.gather(len(sendtemp1)*16, 0))
+    sendcounts2 = np.array(comm.gather(len(sendtemp2)*16, 0))
+    sendcounts3 = np.array(comm.gather(len(sendtemp3)*16, 0))
+    sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
+    sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+
+    return rectemp, rectemp1, rectemp4, rectemp2, rectemp3, rectemp5
+
+
 def SSSF_core(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
@@ -166,18 +246,25 @@ def SSSF_core(q, v, pyp0):
         v = v/np.linalg.norm(v)
 
     Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
-    Szz = (np.real(Spm) + np.real(Spp)) / 2
-    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+    if pyp0.dominant == 0:
+        Sxx = (np.real(Spm) + np.real(Spp)) / 2
+        Szz = (np.real(Spm) - np.real(Spp)) / 2
+    else:
+        Szz = (np.real(Spm) + np.real(Spp)) / 2
+        Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
     qreal = contract('j,jk->k',q, BasisBZA)
-    Sglobalzz = contract('ijk,jk,i->', Szz, g(qreal), pyp0.weights)
+    G, TV = gTransverse(qreal)
+    Sglobalzz = contract('ijk,jk,i->', Szz, G, pyp0.weights)
+    SglobalzzT = contract('ijk,jk,i->', Szz, TV, pyp0.weights)
     SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
     Szz = contract('ijk,i->', Szz, pyp0.weights)
-    Sglobalxx = contract('ijk,jk,i->', Sxx, g(qreal), pyp0.weights)
+    Sglobalxx = contract('ijk,jk,i->', Sxx, G, pyp0.weights)
+    SglobalxxT = contract('ijk,jk,i->', Sxx, TV, pyp0.weights)
     SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
+    return Szz, Sglobalzz, SglobalzzT, SNSFzz, Sxx, Sglobalxx, SglobalxxT, SNSFxx
 
-    return Szz, Sglobalzz, SNSFzz, Sxx, Sglobalxx, SNSFxx
 def graph_SSSF(pyp0, K, V, rank, size):
     comm = MPI.COMM_WORLD
     nK = len(K)
@@ -195,6 +282,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp6 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp7 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp1 = None
@@ -202,6 +291,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     rectemp3 = None
     rectemp4 = None
     rectemp5 = None
+    rectemp6 = None
+    rectemp7 = None
 
     if rank == 0:
         rectemp = np.zeros(len(K), dtype=np.float64)
@@ -210,9 +301,11 @@ def graph_SSSF(pyp0, K, V, rank, size):
         rectemp3 = np.zeros(len(K), dtype=np.float64)
         rectemp4 = np.zeros(len(K), dtype=np.float64)
         rectemp5 = np.zeros(len(K), dtype=np.float64)
+        rectemp6 = np.zeros(len(K), dtype=np.float64)
+        rectemp7 = np.zeros(len(K), dtype=np.float64)
 
     for i in range(currsizeK):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i] = SSSF_core(currK[i], V[i], pyp0)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i], sendtemp4[i], sendtemp5[i], sendtemp6[i], sendtemp7[i] = SSSF_core(currK[i], V, pyp0)
 
     sendcounts = np.array(comm.gather(len(sendtemp), 0))
     sendcounts1 = np.array(comm.gather(len(sendtemp1), 0))
@@ -220,6 +313,8 @@ def graph_SSSF(pyp0, K, V, rank, size):
     sendcounts3 = np.array(comm.gather(len(sendtemp3), 0))
     sendcounts4 = np.array(comm.gather(len(sendtemp4), 0))
     sendcounts5 = np.array(comm.gather(len(sendtemp5), 0))
+    sendcounts6 = np.array(comm.gather(len(sendtemp6), 0))
+    sendcounts7 = np.array(comm.gather(len(sendtemp7), 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
@@ -227,8 +322,10 @@ def graph_SSSF(pyp0, K, V, rank, size):
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+    comm.Gatherv(sendbuf=sendtemp6, recvbuf=(rectemp6, sendcounts6), root=0)
+    comm.Gatherv(sendbuf=sendtemp7, recvbuf=(rectemp7, sendcounts7), root=0)
 
-    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5
+    return rectemp, rectemp1, rectemp2, rectemp3, rectemp4, rectemp5, rectemp6, rectemp7
 
 
 # endregion
@@ -236,13 +333,13 @@ def graph_SSSF(pyp0, K, V, rank, size):
 # region Graphing
 def DSSFgraph(A, B, D, filename):
     plt.imshow(D, interpolation="lanczos",origin='lower',extent =[A.min(), A.max(), B.min(), B.max()], aspect='auto')
-    plt.ylabel(r'$\omega/J_{zz}$')
+    plt.ylabel(r'$\omega/J_{yy}$')
     plt.savefig(filename + ".pdf")
     plt.clf()
 
 def plot_line(A, B, color):
     temp = np.array([A,B]).T
-    plt.plot(temp[0], temp[1], color,zorder=0)
+    plt.plot(temp[0], temp[1], color,zorder=5)
 
 def plot_text(A, text):
     temp = A + 0.05*np.array([1,-1])
@@ -268,19 +365,20 @@ def plot_BZ_hkk(offset, boundary, color):
     plot_line(B[6], B[7], color)
     plot_line(B[7], B[0], color)
 
-# Gamma = np.array([0, 0, 0])
-# L = np.array([1, 1, 1])/2
-# X = np.array([0, 0.5, 0.5])
-# W = np.array([0.25, 0.75, 0.5])
-# K = np.array([0.375, 0.75, 0.375])
-# U = np.array([0.25, 0.625, 0.625])
 
-# print(0.5*BasisBZA[0]+0.5*BasisBZA[1]+1*BasisBZA[2])
-# print(-0.5*BasisBZA[0]+0.5*BasisBZA[1]+0*BasisBZA[2])
-# print(1*np.array([0.5,0.5,1])-1*np.array([-0.5,0.5,0]))
-def SSSFGraphHKK(A, B, d1, filename):
-    plt.pcolormesh(A, B, d1)
+def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
+    if vmin == np.NaN or vmax == np.NaN:
+        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=np.min(d1),
+                   vmax=np.max(d1))
+    else:
+        plt.imshow(d1, interpolation="lanczos", origin='lower', extent=[-Hr, Hr, -Lr, Lr], aspect='auto', vmin=vmin,
+                   vmax=vmax)
     plt.colorbar()
+
+def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
     Gamms = np.array([[0,0],[1,1],[1,-1],[-1,1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
 
     Xs = np.array([[0.5,0.5]])
@@ -296,24 +394,25 @@ def SSSFGraphHKK(A, B, d1, filename):
 
     Boundary = np.array([[0.75, -0.25],[0.25,-0.75],[-0.25,-0.75],[-0.75,-0.25],[-0.75,0.25],[-0.25,0.75],[0.25,0.75],[0.75,0.25]])
     # Boundary = np.array([[1,0],[0,1],[-1,0],[0,-1]])
-    plt.scatter(Gamms[0,0],Gamms[0,1])
-    plt.scatter(Xs[:,0], Xs[:,1])
-    plt.scatter(Ks[:,0], Ks[:,1])
-    plt.scatter(Ws[:, 0], Ws[:, 1])
+    plt.scatter(Gamms[0,0],Gamms[0,1],zorder=6)
+    plt.scatter(Xs[:,0], Xs[:,1],zorder=6)
+    plt.scatter(Ks[:,0], Ks[:,1],zorder=6)
+    plt.scatter(Ws[:, 0], Ws[:, 1],zorder=6)
 
-    plot_BZ_hkk(Gamms[0], Boundary, 'b:')
+    plot_BZ_hkk(Gamms[0], Boundary, 'w:')
 
 
     plt.ylabel(r'$(K,-K,0)$')
     plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHHL(A, B, d1, filename):
-    plt.pcolormesh(A, B, d1)
-    plt.colorbar()
+
+def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
     Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
     Ls = np.array([[0.5,0.5]])
     Xs = np.array([[0,1]])
@@ -325,13 +424,13 @@ def SSSFGraphHHL(A, B, d1, filename):
 
 
 
-    plot_BZ_hhl(Gamms[0], Boundary, 'b:')
+    plot_BZ_hhl(Gamms[0], Boundary, 'w:')
 
-    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=1)
-    plt.scatter(Ls[:,0], Ls[:,1],zorder=1)
-    plt.scatter(Xs[:, 0], Xs[:, 1],zorder=1)
-    plt.scatter(Ks[:, 0], Ks[:, 1],zorder=1)
-    plt.scatter(Us[:, 0], Us[:, 1],zorder=1)
+    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+    plt.scatter(Ls[:,0], Ls[:,1],zorder=6)
+    plt.scatter(Xs[:, 0], Xs[:, 1],zorder=6)
+    plt.scatter(Ks[:, 0], Ks[:, 1],zorder=6)
+    plt.scatter(Us[:, 0], Us[:, 1],zorder=6)
     plot_text(Gamms,r'$\Gamma$')
     plot_text(Ls,r'$L$')
     plot_text(Xs,r'$X$')
@@ -339,15 +438,15 @@ def SSSFGraphHHL(A, B, d1, filename):
     plot_text(Ks,r'$K$')
 
     plt.ylabel(r'$(0,0,L)$')
-    plt.xlabel(r'$(H,H,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlabel(r'$(H,-H,0)$')
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHK0(A, B, d1, filename):
-    plt.pcolormesh(A, B, d1)
-    plt.colorbar()
+def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+
 
     Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
     Xs = np.array([[1, 0]])
@@ -356,10 +455,10 @@ def SSSFGraphHK0(A, B, d1, filename):
 
     Boundary = np.array([[1, 0.5], [0.5,1], [-0.5,1], [-1,0.5],[-1,-0.5],[-0.5,-1],[0.5,-1],[1,-0.5]])
 
-    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=1)
-    plt.scatter(Xs[:, 0], Xs[:, 1], zorder=1)
-    plt.scatter(Ks[:, 0], Ks[:, 1], zorder=1)
-    plt.scatter(Ws[:, 0], Ws[:, 1], zorder=1)
+    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+    plt.scatter(Xs[:, 0], Xs[:, 1], zorder=6)
+    plt.scatter(Ks[:, 0], Ks[:, 1], zorder=6)
+    plt.scatter(Ws[:, 0], Ws[:, 1], zorder=6)
     plot_text(Gamms,r'$\Gamma$')
     plot_text(Xs,r'$X$')
     plot_text(Ks,r'$K$')
@@ -369,10 +468,31 @@ def SSSFGraphHK0(A, B, d1, filename):
 
     plt.ylabel(r'$(0,K,0)$')
     plt.xlabel(r'$(H,0,0)$')
-    plt.xlim([-2.5,2.5])
-    plt.ylim([-2.5,2.5])
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
     plt.savefig(filename + ".pdf")
     plt.clf()
+
+
+def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+    plt.ylabel(r'$(K,K,-2K)$')
+    plt.xlabel(r'$(H,-H,0)$')
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
+    plt.savefig(filename + ".pdf")
+    plt.clf()
+
+def SSSFGraphHnHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+    plt.ylabel(r'$(0,0, L)$')
+    plt.xlabel(r'$(H,-H,0)$')
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
+    plt.savefig(filename + ".pdf")
+    plt.clf()
+
+
 
 
 # endregion
@@ -396,20 +516,197 @@ def SSSF_Ks(K, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
+    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, v, rank, size)
     if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
-        f3 = filename + "Szz_NSF"
-        f4 = filename + "Sxx_local"
-        f5 = filename + "Sxx_global"
-        f6 = filename + "Sxx_NSF"
+        f3 = filename + "Szz_globalT"
+        f4 = filename + "Szz_NSF"
+        f5 = filename + "Sxx_local"
+        f6 = filename + "Sxx_global"
+        f7 = filename + "Sxx_globalT"
+        f8 = filename + "Sxx_NSF"
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
+        np.savetxt(f7 + '.txt', d7)
+        np.savetxt(f8 + '.txt', d8)
+
+def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
+    for i in range(4):
+        for j in range(4):
+            tempF = f1+str(i)+str(j)
+            np.savetxt(tempF + '.txt', d1[:,:,i,j])
+            graphMethod(d1[:,:,i,j], tempF, Hr, Lr, np.min(d1[:,:,i,j]), np.max(d1[:,:,i,j]))
+    if (dir==h110).all():
+        gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3] 
+        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
+        gcorre = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,1] + d1[:,:,3,2] + d1[:,:,1,3] + d1[:,:,2,3]
+        np.savetxt(f1+"polarized.txt", gp)
+        np.savetxt(f1+"unpolarized.txt", gup)
+        np.savetxt(f1+"polar_unpolar.txt", gcorre)
+        graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
+        graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, np.min(gcorre), np.max(gcorre))
+    elif (dir==h111).all():
+        gKagome = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,1,3] + d1[:,:,2,1] + d1[:,:,3, 1] + d1[:,:,2,2] + d1[:,:,2,3] + d1[:,:,3,2] + d1[:,:,3,3]
+        gTri = d1[:,:,0,0]
+        gKagomeTri = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,0,3] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,0]
+        np.savetxt(f1+"Kagome.txt", gKagome)
+        np.savetxt(f1+"Triangular.txt", gTri)
+        np.savetxt(f1+"Kagome-Tri.txt", gKagomeTri)
+        graphMethod(gKagome, f1+"Kagome", Hr, Lr, np.min(gKagome), np.max(gKagome))
+        graphMethod(gTri, f1+"Triangular", Hr, Lr, np.min(gTri), np.max(gTri))
+        graphMethod(gKagomeTri, f1+"Kagome-Tri", Hr, Lr, np.min(gKagomeTri), np.max(gKagomeTri))
+    else:
+        gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3]
+        gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
+        gcorre = d1[:,:,0,1] + d1[:,:,0,2] + d1[:,:,1,0] + d1[:,:,2,0] + d1[:,:,3,1] + d1[:,:,3,2] + d1[:,:,1,3] + d1[:,:,2,3]
+        np.savetxt(f1+"polarized.txt", gp)
+        np.savetxt(f1+"unpolarized.txt", gup)
+        np.savetxt(f1+"polar_unpolar.txt", gcorre)
+        graphMethod(gp, f1+"polarized", Hr, Lr, np.min(gp), np.max(gp))
+        graphMethod(gup, f1+"unpolarized", Hr, Lr, np.min(gup), np.max(gup))
+        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, np.min(gcorre), np.max(gcorre))
+
+def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s.solvemeanfield()
+    H = np.linspace(-Hr, Hr, nK)
+    L = np.linspace(-Lr, Lr, nK)
+    A, B = np.meshgrid(H, L)
+
+    if hkl == "hk0":
+        K = hkztoK(A, B, K).reshape((nK*nK,3))
+    elif hkl=="hnhl":
+        K = hnhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhl":
+        K = hhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhknk":
+        K = hhknktoK(A, B, K).reshape((nK * nK, 3))
+    else:
+        K = hnhkkn2ktoK(A, B, K).reshape((nK * nK, 3))
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d5, d3, d4, d6 = graph_SSSF_pedantic(py0s, K, n, rank, size)
+    if rank == 0:
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+        f1 = filename + "/Szz/"
+        f2 = filename + "/Szzglobal/"
+        f3 = filename + "/Sxx/"
+        f4 = filename + "/Sxxglobal/"
+        pathlib.Path(f1).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
+
+        d1 = d1.reshape((nK, nK, 4, 4))
+        d2 = d2.reshape((nK, nK, 4, 4))
+        d3 = d3.reshape((nK, nK, 4, 4))
+        d4 = d4.reshape((nK, nK, 4, 4))
+        d5 = d5.reshape((nK, nK))
+        d6 = d6.reshape((nK, nK))
+
+        Szz = contract('abjk->ab', d1)
+        Szzglobal = contract('abjk->ab', d2)
+        Sxx = contract('abjk->ab', d3)
+        Sxxglobal = contract('abjk->ab', d4)
+
+
+        if hkl=="hk0":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHK0(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHK0(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHK0(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHK0(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHK0(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHK0(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHK0, d4, f4, Hr, Lr, n)            
+        elif hkl=="hhl":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHHL(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHHL(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHHL(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHHL(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHHL(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHHL(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d2, f2, Hr, Lr, n)            
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHHL, d4, f4, Hr, Lr, n)
+        elif hkl=="hkk":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHKK(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHKK(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHKK(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHKK(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHKK(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHKK(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr, n)
+        elif hkl=="hnhl":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHnHL(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHnHL(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHnHL(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHnHL(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHnHL(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHnHL(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d4, f4, Hr, Lr, n)
+        else:
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHH2K(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHH2K(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHH2K(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHH2K(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHH2K(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHH2K(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHH2K, d4, f4, Hr, Lr, n)
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -420,17 +717,14 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
 
     if hkl == "hk0":
         K = hkztoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hk0scaplane(A, B).reshape((nK*nK,3))
+    elif hkl=="hnhl":
+        K = hnhltoK(A, B, K).reshape((nK * nK, 3))
     elif hkl=="hhl":
-        K = hhltoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hhlscaplane(A, B).reshape((nK*nK,3))
+        K = hhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhknk":
+        K = hhknktoK(A, B, K).reshape((nK * nK, 3))
     else:
-        K = hkktoK(A, B, K).reshape((nK*nK,3))
-        scatterPlane = hkkscaplane(A, B).reshape((nK*nK,3))
-
-    v = np.zeros(scatterPlane.shape)
-    v[:,0] = -scatterPlane[:,1]
-    v[:,1] = scatterPlane[:,0]
+        K = hnhkkn2ktoK(A, B, K).reshape((nK * nK, 3))
 
     if not MPI.Is_initialized():
         MPI.Init()
@@ -439,54 +733,66 @@ def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4, d5, d6 = graph_SSSF(py0s, K, v, rank, size)
-    if rank == "hk0":
+    d1, d2, d3, d4, d5, d6, d7, d8 = graph_SSSF(py0s, K, n, rank, size)
+    if rank == 0:
         f1 = filename + "Szz_local"
         f2 = filename + "Szz_global"
-        f3 = filename + "Szz_NSF"
-        f4 = filename + "Sxx_local"
-        f5 = filename + "Sxx_global"
-        f6 = filename + "Sxx_NSF"
+        f3 = filename + "Szz_globalT"
+        f4 = filename + "Szz_NSF"
+        f5 = filename + "Sxx_local"
+        f6 = filename + "Sxx_global"
+        f7 = filename + "Sxx_globalT"
+        f8 = filename + "Sxx_NSF"
         d1 = d1.reshape((nK, nK))
         d2 = d2.reshape((nK, nK))
         d3 = d3.reshape((nK, nK))
         d4 = d4.reshape((nK, nK))
         d5 = d5.reshape((nK, nK))
         d6 = d6.reshape((nK, nK))
+        d7 = d7.reshape((nK, nK))
+        d8 = d8.reshape((nK, nK))
         np.savetxt(f1 + '.txt', d1)
         np.savetxt(f2 + '.txt', d2)
         np.savetxt(f3 + '.txt', d3)
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        if hkl=="hhl":
-            SSSFGraphHK0(A, B, d1, f1)
-            SSSFGraphHK0(A, B, d2, f2)
-            SSSFGraphHK0(A, B, d3, f3)
-            SSSFGraphHK0(A, B, d4, f4)
-            SSSFGraphHK0(A, B, d5, f5)
-            SSSFGraphHK0(A, B, d6, f6)
-        elif hkl==1:
-            SSSFGraphHHL(A, B, d1, f1)
-            SSSFGraphHHL(A, B, d2, f2)
-            SSSFGraphHHL(A, B, d3, f3)
-            SSSFGraphHHL(A, B, d4, f4)
-            SSSFGraphHHL(A, B, d5, f5)
-            SSSFGraphHHL(A, B, d6, f6)
+        np.savetxt(f7 + '.txt', d7)
+        np.savetxt(f8 + '.txt', d8)
+        if hkl=="hk0":
+            SSSFGraphHK0(d1, f1, Hr, Lr)
+            SSSFGraphHK0(d2, f2, Hr, Lr)
+            SSSFGraphHK0(d3, f3, Hr, Lr)
+            SSSFGraphHK0(d4, f4, Hr, Lr)
+            SSSFGraphHK0(d5, f5, Hr, Lr)
+            SSSFGraphHK0(d6, f6, Hr, Lr)
+            SSSFGraphHK0(d7, f7, Hr, Lr)
+            SSSFGraphHK0(d8, f8, Hr, Lr)
+        elif hkl=="hhl":
+            SSSFGraphHHL(d1, f1, Hr, Lr)
+            SSSFGraphHHL(d2, f2, Hr, Lr)
+            SSSFGraphHHL(d3, f3, Hr, Lr)
+            SSSFGraphHHL(d4, f4, Hr, Lr)
+            SSSFGraphHHL(d5, f5, Hr, Lr)
+            SSSFGraphHHL(d6, f6, Hr, Lr)
+            SSSFGraphHHL(d7, f7, Hr, Lr)
+            SSSFGraphHHL(d8, f8, Hr, Lr)
         else:
-            SSSFGraphHKK(A, B, d1, f1)
-            SSSFGraphHKK(A, B, d2, f2)
-            SSSFGraphHKK(A, B, d3, f3)
-            SSSFGraphHKK(A, B, d4, f4)
-            SSSFGraphHKK(A, B, d5, f5)
-            SSSFGraphHKK(A, B, d6, f6)
+            SSSFGraphHKK(d1, f1, Hr, Lr)
+            SSSFGraphHKK(d2, f2, Hr, Lr)
+            SSSFGraphHKK(d3, f3, Hr, Lr)
+            SSSFGraphHKK(d4, f4, Hr, Lr)
+            SSSFGraphHKK(d5, f5, Hr, Lr)
+            SSSFGraphHKK(d6, f6, Hr, Lr)
+            SSSFGraphHKK(d7, f7, Hr, Lr)
+            SSSFGraphHKK(d8, f8, Hr, Lr)
 
 
-def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    L = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    L = np.linspace(-Lr, Lr, nK)
     K, Kweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, L)
@@ -535,18 +841,18 @@ def SSSF_HHL_KK_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres,
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHHL(A, B, d1, f1)
-        SSSFGraphHHL(A, B, d2, f2)
-        SSSFGraphHHL(A, B, d3, f3)
-        SSSFGraphHHL(A, B, d4, f4)
-        SSSFGraphHHL(A, B, d5, f5)
-        SSSFGraphHHL(A, B, d6, f6)
+        SSSFGraphHHL(d1, f1, Hr, Lr)
+        SSSFGraphHHL(d2, f2, Hr, Lr)
+        SSSFGraphHHL(d3, f3, Hr, Lr)
+        SSSFGraphHHL(d4, f4, Hr, Lr)
+        SSSFGraphHHL(d5, f5, Hr, Lr)
+        SSSFGraphHHL(d6, f6, Hr, Lr)
 
-def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    K = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    K = np.linspace(-Lr, Lr, nK)
     L, Lweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, K)
@@ -595,19 +901,19 @@ def SSSF_HHKnK_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHKK(A, B, d1, f1)
-        SSSFGraphHKK(A, B, d2, f2)
-        SSSFGraphHKK(A, B, d3, f3)
-        SSSFGraphHKK(A, B, d4, f4)
-        SSSFGraphHKK(A, B, d5, f5)
-        SSSFGraphHKK(A, B, d6, f6)
+        SSSFGraphHKK(d1, f1, Hr, Lr)
+        SSSFGraphHKK(d2, f2, Hr, Lr)
+        SSSFGraphHKK(d3, f3, Hr, Lr)
+        SSSFGraphHKK(d4, f4, Hr, Lr)
+        SSSFGraphHKK(d5, f5, Hr, Lr)
+        SSSFGraphHKK(d6, f6, Hr, Lr)
 
-def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename):
+def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, filename, Hr=2.5, Lr=2.5):
 
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
-    H = np.linspace(-2.5, 2.5, nK)
-    K = np.linspace(-2.5, 2.5, nK)
+    H = np.linspace(-Hr, Hr, nK)
+    K = np.linspace(-Lr, Lr, nK)
     L, Lweight = gauss_quadrature_1D_pts(Lmin,Lmax,Ln)
 
     A, B = np.meshgrid(H, K)
@@ -656,19 +962,23 @@ def SSSF_HK0_L_integrated(nK, Jxx, Jyy, Jzz, h, n, flux, Lmin, Lmax, Ln, BZres, 
         np.savetxt(f4 + '.txt', d4)
         np.savetxt(f5 + '.txt', d5)
         np.savetxt(f6 + '.txt', d6)
-        SSSFGraphHK0(A, B, d1, f1)
-        SSSFGraphHK0(A, B, d2, f2)
-        SSSFGraphHK0(A, B, d3, f3)
-        SSSFGraphHK0(A, B, d4, f4)
-        SSSFGraphHK0(A, B, d5, f5)
-        SSSFGraphHK0(A, B, d6, f6)
+        SSSFGraphHK0(d1, f1, Hr, Lr)
+        SSSFGraphHK0(d2, f2, Hr, Lr)
+        SSSFGraphHK0(d3, f3, Hr, Lr)
+        SSSFGraphHK0(d4, f4, Hr, Lr)
+        SSSFGraphHK0(d5, f5, Hr, Lr)
+        SSSFGraphHK0(d6, f6, Hr, Lr)
 def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW))
     emin, emax = py0s.graph_loweredge(False), py0s.graph_upperedge(False)
     e = np.linspace(max(emin *0.95, 0), emax *1.02, nE)
+<<<<<<< HEAD
     tol = (1.02*emax-max(emin *0.95, 0))/nE*4
+=======
+    tol = nE
+>>>>>>> ca270c0cba5820ef1834cdfdf292a9de90305891
     if not MPI.Is_initialized():
         MPI.Init()
 
@@ -738,6 +1048,20 @@ def SSSF_line(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         SSSF(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane)
 
+def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname, scatplane, K=0, Hr=2.5, Lr=2.5):
+    hs = np.linspace(hmin, hmax, nH)
+    dirString = ""
+    if (n==np.array([0,0,1])).all():
+        dirString = "001"
+    elif (n==np.array([1,1,0])/np.sqrt(2)).all():
+        dirString = "110"
+    else:
+        dirString = "111"
+    for i in range(nH):
+        filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane, K, Hr, Lr)
+
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)
     dirString = ""
@@ -770,7 +1094,7 @@ def TWOSPINCON(nK, h, n, Jxx, Jyy, Jzz, flux, BZres, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hhltoK(A, B).reshape(3, -1).T
+    K = hnhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)
@@ -820,7 +1144,7 @@ def TWOSPINCON_general(nK, h, n, Jxx, Jyy, Jzz, BZres, flux, filename):
     H = np.linspace(-2.5, 2.5, nK)
     L = np.linspace(-2.5, 2.5, nK)
     A, B = np.meshgrid(H, L)
-    K = hhltoK(A, B).reshape(3, -1).T
+    K = hnhltoK(A, B).reshape(3, -1).T
 
     n = len(K) / size
     left = int(rank * n)

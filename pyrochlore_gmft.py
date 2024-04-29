@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
 import warnings
+
+import numpy as np
+
 from misc_helper import *
 from flux_stuff import *
 import time
@@ -257,7 +260,7 @@ def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_t
 #region find minlam scipy
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
-        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3)), np.array([0,0,0]).reshape((1,3))
+        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
 
     E, V = np.linalg.eigh(M)
     E = E[:,0]
@@ -387,6 +390,7 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_r
     xlabpos = [gGamma1, gX, gW1, gK, gGamma2, gL, gU, gW2]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W$']
     plt.xticks(xlabpos, labels)
+    plt.xlim([0,gW2])
 #endregion
 
 #region lower and upper edges
@@ -600,44 +604,45 @@ def graphing_M_setup(flux):
                                 [0,np.pi,np.pi,0]])
         unitcellCoord = np.array([[0, 0, 0],[0,0,1]])
 
-    elif (flux == np.array([np.pi,0,0, np.pi])).all():
-        unitCellgraph = np.array([[[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[0,1],
-                                    [1,0]],
-                                    [[0,1],
-                                    [1,0]]
-                            ])
-        A_pi_here = np.array([[0,0,0,0],
-                                [0,np.pi,0,0]])
-        unitcellCoord = np.array([[0, 0, 0],[0,1,1]])
-
-    elif (flux == np.array([0, np.pi, np.pi, 0])).all():
-        unitCellgraph = np.array([[[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[1,0],
-                                    [0,1]],
-                                    [[0,1],
-                                    [1,0]]
-                            ])
-        A_pi_here = np.array([[0,0,0,0],
-                                [0,0,np.pi,0]])
-        unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
+    # elif (flux == np.array([np.pi,0,0, np.pi])).all():
+    #     unitCellgraph = np.array([[[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[0,1],
+    #                                 [1,0]],
+    #                                 [[0,1],
+    #                                 [1,0]]
+    #                         ])
+    #     A_pi_here = np.array([[0,0,0,0],
+    #                             [0,np.pi,0,0]])
+    #     unitcellCoord = np.array([[0, 0, 0],[0,1,1]])
+    #
+    # elif (flux == np.array([0, np.pi, np.pi, 0])).all():
+    #     unitCellgraph = np.array([[[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[1,0],
+    #                                 [0,1]],
+    #                                 [[0,1],
+    #                                 [1,0]]
+    #                         ])
+    #     A_pi_here = np.array([[0,0,0,0],
+    #                             [0,0,np.pi,0]])
+    #     unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
     return unitCellgraph, A_pi_here, unitcellCoord
 
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts):
+                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         a = np.argmax(J)
-        xx = np.mod(a+1,3)
-        yy = np.mod(a+2,3)
+        xx = np.mod(a-2,3)
+        yy = np.mod(a-1,3)
+        self.dominant = a
         self.Jzz = J[a]
         self.Jpm = -(J[xx] + J[yy]) / 4
         self.Jpmpm = (J[xx] - J[yy]) / 4
@@ -646,7 +651,12 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.ns = ns
-        self.h = h
+        if Breal:
+            self.h = 5.7883818060*10**(-2)*h*gzz
+        else:
+            self.h = h
+        if a == 0:
+            self.h = -1j*self.h
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
@@ -737,7 +747,7 @@ class piFluxSolver:
                 chi, xi = self.calmeanfield()
                 self.chi, self.xi = chi, xi
                 GS = self.solvemufield()
-                print(self.chi[0], self.xi[0,0], self.GS())
+                # print(self.chi[0], self.xi[0,0], self.GS())
                 count = count + 1
                 if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or count >=100:
                     break
@@ -940,9 +950,8 @@ class piFluxSolver:
         return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
 
     def mag_integrand(self, k):
-        M = M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here) + np.diag(np.repeat(np.repeat(self.lams, 4), 2))
-        E, V = np.linalg.eigh(M)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
         E = np.sqrt(2 * self.Jzz * E)
         green = green_pi(E, V, self.Jzz)
 
@@ -956,16 +965,6 @@ class piFluxSolver:
 
     def magnetization(self):
         mag = np.abs(integrate(self.mag_integrand, self.pts, self.weights))/16
-        con = 0
         if self.condensed:
-            ffact = contract('ik, jk->ij', self.qminB, NN)
-            ffactp = np.exp(1j * ffact)
-            ffactm = np.exp(-1j * ffact)
-
-            tempp = contract('ij, k, a, kj, jka->i', ffactp, self.rhos[0:4], self.rhos[4:8], np.exp(1j * self.A_pi_here),
-                            piunitcell) / 4
-            tempm = contract('ij, a, k, kj, jka->i', ffactm, self.rhos[4:8], self.rhos[0:4], np.exp(-1j * self.A_pi_here),
-                            piunitcell) / 4
-            con = np.mean(tempp+tempm)
-
-        return  np.real(mag+con)
+            mag = np.NAN
+        return np.real(mag)

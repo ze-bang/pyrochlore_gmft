@@ -1,7 +1,6 @@
 import os
 
 import matplotlib.pyplot as plt
-import netCDF4
 import numpy as np
 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
@@ -12,6 +11,7 @@ from variation_flux import *
 from phase_diagram import *
 import pyrochlore_exclusive_boson as pyeb
 from observables import *
+import netCDF4 as nc
 
 def ex_vs_gauge_gs_110(h, n, filename, solvemeanfield=False):
     Jpm = np.linspace(-0.05, 0.05, 30)
@@ -184,65 +184,141 @@ def ex_vs_gauge_gs_001(h, n, filename, solvemeanfield=False):
     plt.legend([r'$0$', r'$\pi$', r'$0\pi\pi 0$', r'$\pi 00\pi$'])
     plt.savefig(filename+"_total.pdf")
     plt.clf()
+def regraph(dir, hhl):
+    H = np.linspace(-2.5, 2.5, 100)
+    L = np.linspace(-2.5, 2.5, 100)
+    A, B = np.meshgrid(H, L)
 
-Jpm = -0.289
-# h = 0
-# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# p.graph(True)
-# h = 0
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
-h = 0.1
-p = pycon.piFluxSolver(-0.5, 0.5, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-p.solvemeanfield()
-print(p.condensed)
-p.graph(True)
-# h = 0.05
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
-# h = 0.08
-# p = pycon.piFluxSolver(0.011/0.063, 0.062/0.063, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed)
-# p.graph(True)
+    for dirs in os.listdir(dir):
+        foldname = dir+dirs
+        for files in os.listdir(foldname):
+            if files.endswith('.txt'):
+                temp = foldname+'/'+files
+                d = np.loadtxt(temp)
+
+                if files.endswith('global.txt'):
+                    tempT = foldname + '/' + files[:-4] + "T.txt"
+                    d1 = np.loadtxt(tempT)
+                    dsum = d + d1
+                    g = np.max(dsum)
+                    d = d/g
+
+                    vmin = np.min(d)
+                    vmax = np.max(d)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+
+                    d1 = d1/g
+                    vmin = np.min(d1)
+                    vmax = np.max(d1)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d1, tempT[:-4], 2.5, 2.5, vmin, vmax)
+
+
+                    dsum = dsum/g
+                    vmin = np.min(dsum)
+                    vmax = np.max(dsum)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(dsum, temp[:-4] + "_sum", 2.5, 2.5, vmin, vmax)
+
+
+                elif files.endswith('NSF.txt'):
+                    d = d/np.max(d)/2
+                    vmin = np.min(d)
+                    vmax = np.max(d)
+                    if hhl == "hhl":
+                        SSSFGraphHHL(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    elif hhl == "hk0":
+                        SSSFGraphHK0(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+                    else:
+                        SSSFGraphHKK(d, temp[:-4], 2.5, 2.5, vmin, vmax)
+
+
+def regraphDSSF(dir):
+    for dirs in os.listdir(dir):
+        foldname = dir+dirs
+        for files in os.listdir(foldname):
+            if files.endswith('.txt'):
+                temp = foldname+'/'+files
+                d = np.loadtxt(temp)
+                d = d/np.max(d)
+                kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW))
+                e = np.linspace(0,1,len(d))
+                X, Y = np.meshgrid(kline, e)
+                DSSFgraph(X, Y, d.T, temp[:-4])
+
+
+# def regraphSSSF(dir):
+#     for dirs in os.listdir(dir):
+#         foldname = dir+'/'+dirs
+#         for dirs1 in os.listdir(foldname):
+#             foldname1 = foldname +'/'+ dirs1
+#             for dirs2 in os.listdir(foldname1):
+#                 foldname2 = foldname1 +'/'+ dirs2
+#                 d = nc.Dataset(foldname2+"/full_info.nc")
+#                 print()
 #
 #
-# h = 0.2
-# # #
-# p = pycon.piFluxSolver(0.062/0.063, 1, 0.011/0.063, h=h, n=h110, flux=np.ones(4)*np.pi)
-# p.solvemeanfield()
-# print(p.condensed, p.lams, p.minLams, p.MFE())
-# # # p.graph_loweredge(False)
-# # # p.graph_upperedge(True)
-# p.graph(True)
-
-# SSSF(10, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,25,'test',"hhl")
-# findXYZPhase(-1,1,-1,1,100,25,2,'XYZphase')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.05')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.1')
-# DSSF(0.01, 0.062/0.063,1, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi,30, 'Files/DSSF/Ce2Zr2O7_h110=0.15')
-
-#y
-# Jpm = -0.289
-# h = 0.3
-# p = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, h=h, n=h110, flux=np.array([np.pi,np.pi,np.pi,np.pi]))
-# p.solvemeanfield()
-# print(p.condensed, p.lams, p.minLams, p.MFE())
-# p.graph_loweredge(False)
-# p.graph_upperedge(True)
-# p.graph(True)
-
-# Jpm = np.linspace(-0.5,0.1,100)
-# h = np.linspace(0, 2, 100)
-# A = np.loadtxt('phase_110_kappa=2.txt')
+# d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")
 #
-# graphMagPhase(Jpm, h[:], A[:,:], 'phase_110_kappa=2')
-#
-# DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 25, 'test')
+# regraphSSSF("SSSF_April_25")
 
+# dir = "Final/Jpm=-0.03_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=-0.03_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=-0.03_00pp/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=0.02_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=0.02_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=0.02_00pp/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=-0.289_pi/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=-0.289_0/h_110/"
+# regraph(dir, "hhl")
+# dir = "Final/Jpm=-0.289_00pp/h_110/"
+# regraph(dir, "hhl")
+#
+#
+# dir = "Final/Jpm=-0.03_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Final/Jpm=-0.03_0/h_111/"
+# regraph(dir, "hkk")
+# dir = "Final/Jpm=0.02_0/h_111/"
+# regraph(dir, "hkk")
+# dir = "Final/Jpm=0.02_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Final/Jpm=-0.289_pi/h_111/"
+# regraph(dir, "hkk")
+# dir = "Final/Jpm=-0.289_0/h_111/"
+# regraph(dir, "hkk")
+#
+# dir = "Final/Jpm=-0.03_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Final/Jpm=-0.03_0/h_001/"
+# regraph(dir, "hk0")
+# dir = "Final/Jpm=0.02_0/h_001/"
+# regraph(dir, "hk0")
+# dir = "Final/Jpm=0.02_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Final/Jpm=-0.289_pi/h_001/"
+# regraph(dir, "hk0")
+# dir = "Final/Jpm=-0.289_0/h_001/"
+# regraph(dir, "hk0")
+#
+#

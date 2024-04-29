@@ -403,23 +403,34 @@ from matplotlib.colors import LogNorm
 #           fontweight="bold")
 # plt.show()
 
-a, b, c = 1, 1, 0
+# Gamma = np.array([0, 0, 0])
+# L = np.pi * np.array([1, 1, 1])
+# X = 2 * np.pi * np.array([1, 0, 0])
+# W = 2 * np.pi * np.array([1, 0, 1 / 2])
+# K = 2 * np.pi * np.array([3/4, 0, 3 / 4])
+# U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
+
+# A = 0
+# B = 1
+# print((A*np.array([1,-1,0])+B*np.array([1,1,-2]))/2)
+
+a, b, c = 1, -1, 0
 print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
 
-a, b, c = 2, 2, 0
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+# Gamms = np.array([[0, 0], [2, 0], [0, 2], [-2, 0], [0, -2], [2, 2], [-2, 2], [2, -2], [-2, -2], [1, 1], [1,-1],[-1,1],[-1,-1]])
+#
+# Xs = np.array([[0.5,0.5],[0.5,-0.5],[-0.5,0.5],[-0.5,-0.5], [0, 1], [0,-1]])
+# # Ws = np.array([[1, 0.5],[1,-0.5],[-1,0.5],[-1,-0.5]])
+# Ks = np.array([[0.75,0],[-0.75,0]])
+#
+# plt.scatter(Gamms[:, 0], Gamms[:, 1], zorder=6)
+# plt.scatter(Xs[:, 0], Xs[:, 1], zorder=6)
+# # plt.scatter(Ws[:, 0], Ws[:, 1], zorder=6)
+# plt.scatter(Ks[:, 0], Ks[:, 1], zorder=6)
+# # #
+# plt.ylabel(r'$(K,K,-2K)$')
+# plt.xlabel(r'$(H,-H,0)$')
+# plt.xlim([-2.5, 2.5])
+# plt.ylim([-2.5, 2.5])
+# plt.show()
 
-a, b, c = 2, 2, 0.5
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
-
-a, b, c = 2, 2, 1
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
-
-a, b, c = 2, 2, 2
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
-
-a, b, c = 1, 1, 1
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
-
-a, b, c = 0.5, 0.5, 0.5
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))

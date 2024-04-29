@@ -5,11 +5,12 @@ import numpy as np
 from opt_einsum import contract
 from numba import njit
 from mpi4py import MPI
-from misc_helper import hhltoK, hkztoK, genBZ
-from archive.spinon_con import SSSFGraph
+from misc_helper import hnhltoK, hkztoK, genBZ
+from observables import SSSFGraphHHL
 import h5py
 import pathlib
-
+from scipy.spatial.transform import Rotation as R
+import math
 #Pyrochlore with XXZ Heisenberg on local coordinates. Couple of ways we can do this, simply project global cartesian coordinate
 #onto local axis to determine local Sx, Sy, Sz.
 
@@ -190,7 +191,7 @@ def anneal(d, Target, Tinit, ntemp, nsweep, Jxx, Jyy, Jzz, gx, gy, gz, h, hvec):
 
 r = np.array([[0,1/2,1/2],[1/2,0,1/2],[1/2,1/2,0]])
 
-NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])/4
+NN = np.array([[-1/4,-1/4,-1/4],[-1/4,1/4,1/4],[1/4,-1/4,1/4],[1/4,1/4,-1/4]])/2-np.array([-1/4,-1/4,-1/4])/2
 
 
 
@@ -244,7 +245,7 @@ def SSSF(con, rcoord, nK, filename, n):
     if (n == np.array([0,0,1])).all():
         K = hkztoK(A, B)
     else:
-        K = hhltoK(A, B)
+        K = hnhltoK(A, B)
     K = K.reshape((nK*nK,3))
     S = SSSF_q_e(con, rcoord, K)
     f1 = filename + "Sxx_local"
@@ -261,12 +262,12 @@ def SSSF(con, rcoord, nK, filename, n):
     np.savetxt(f4 + '.txt', S[0,1])
     np.savetxt(f5 + '.txt', S[0,2])
     np.savetxt(f6 + '.txt', S[1,2])
-    SSSFGraph(A, B, S[0,0], f1)
-    SSSFGraph(A, B, S[1,1], f2)
-    SSSFGraph(A, B, S[2,2], f3)
-    SSSFGraph(A, B, S[0, 1], f4)
-    SSSFGraph(A, B, S[0, 2], f5)
-    SSSFGraph(A, B, S[1, 2], f6)
+    SSSFGraphHHL(S[0, 0], f1, 2.5, 2.5)
+    SSSFGraphHHL(S[1, 1], f2, 2.5, 2.5)
+    SSSFGraphHHL(S[2, 2], f3, 2.5, 2.5)
+    SSSFGraphHHL(S[0, 1], f4, 2.5, 2.5)
+    SSSFGraphHHL(S[0, 2], f5, 2.5, 2.5)
+    SSSFGraphHHL(S[1, 2], f6, 2.5, 2.5)
 
 BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
@@ -294,24 +295,31 @@ def ordering_q(con, rcoord):
     return temp
 
 
-def plottetrahedron(x,y,z, ax):
+def plottetrahedron(x,y,z, ax, down=1):
     center = x*r[0]+y*r[1]+z*r[2]
-    coords = center + NN
-    start = np.zeros((6,3))
-    start[0] = start[1] = start[2] = coords[0]
-    start[3] = start[4] = coords[1]
-    start[5] = coords[2]
-    end = np.zeros((6,3))
-    end[0] = coords[1]
-    end[1] = end[3] = coords[2]
-    end[2] = end[4] = end[5] = coords[3]
+    coords = center + down*NN
+    if down==1:
+        c = (49/256, 76/256, 232/256)
+    else:
+        c = (42/256, 232/256, 137/256)
+    ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0,0,0]], linewidth=1.0, alpha=0.3, shade=True, color=c)
+    center = center + down*np.array([1/4,1/4,1/4])/2
+    ax.scatter(center[0],center[1],center[2], color=c, s=60)
 
-    for i in range(6):
-        ax.plot([start[i,0], end[i,0]], [start[i,1], end[i,1]], zs=[start[i,2], end[i,2]], color='blue')
+def magnitude(A):
+    return np.sqrt(A[0]**2+A[1]**2+A[2]**2)
+
+def plotgaugebond(x,y,z,ax):
+    center = x*r[0]+y*r[1]+z*r[2]
+    center = center + np.array([1/4,1/4,1/4])/2
+    coords = (NN+np.array([-1/4,-1/4,-1/4])/2)*2
+    ax.quiver(center[0],center[1],center[2],coords[0,0],coords[0,1],coords[0,2])
+
 
 def graphconfig(con):
     d = con.shape[0]
     ax = plt.axes(projection='3d')
+    ax.set_axis_off()
     coord = np.zeros((4*d*d*d,3))
     spin = np.zeros((4*d*d*d,3))
     d = con.shape[0]
@@ -329,6 +337,27 @@ def graphconfig(con):
     ax.quiver(coord[:,0], coord[:,1], coord[:,2],spin[:,0], spin[:,1], spin[:,2], color='red', length=0.3)
     plt.savefig("test_monte_carlo.png")
     plt.show()
+
+
+def plothexagon(a, ax):
+    ax.plot_trisurf(a[:,0], a[:,1], a[:,2],triangles=[[0,1,2],[0,2,3],[0,3,4],[0,4,5]], linewidth=0, alpha=0.3, shade=True, color='r')
+    # ax.scatter(a[:,0], a[:,1], a[:,2])
+def graphdownpyrochlore(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plottetrahedron(con[i,0], con[i,1], con[i,2],ax)
+
+def graphallgaugebond(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plotgaugebond(con[i,0], con[i,1], con[i,2],ax)
+
+
+def graphuppyrochlore(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plottetrahedron(con[i,0], con[i,1], con[i,2],ax, -1)
+
 
 def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
     Jx = np.linspace(-1, 1, nK)
