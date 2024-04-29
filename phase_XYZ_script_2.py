@@ -8,9 +8,9 @@ from observables import *
 # findPhaseMag001_ex(-0.05, 0.05, 100, 0, 0.3, 100, h001, 17, 2, "phase_100_kappa=2_zoomed_in_more_ex")
 
 Jpm = -0.289
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.289_0", "hhl")
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.289_pi", "hhl")
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.289_00pp", "hhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.289_0", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.289_pi", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.3, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.289_00pp", "hnhl")
 
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.289/h111=0")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.15, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.289/h111=0.15")

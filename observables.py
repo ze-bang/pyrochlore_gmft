@@ -483,6 +483,15 @@ def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
+def SSSFGraphHnHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+    SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
+    plt.ylabel(r'$(0,0, L)$')
+    plt.xlabel(r'$(H,-H,0)$')
+    plt.xlim([-Hr, Hr])
+    plt.ylim([-Lr, Lr])
+    plt.savefig(filename + ".pdf")
+    plt.clf()
+
 
 
 
@@ -664,6 +673,23 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d2, f2, Hr, Lr, n)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d3, f3, Hr, Lr, n)
             pedantic_SSSF_graph_helper(SSSFGraphHKK, d4, f4, Hr, Lr, n)
+        elif hkl=="hnhl":
+            np.savetxt(filename+'/Szz' + '.txt', Szz)
+            np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
+            np.savetxt(filename+'/SzzNSF' + '.txt', d5)
+            np.savetxt(filename+'/Sxx' + '.txt', Sxx)
+            np.savetxt(filename+'/Sxxglobal' + '.txt', Sxxglobal)
+            np.savetxt(filename+'/SxxNSF' + '.txt', d6)
+            SSSFGraphHnHL(Szz, filename+'/Szz', Hr, Lr, np.min(Szz), np.max(Szz))
+            SSSFGraphHnHL(Szzglobal, filename + '/Szzglobal', Hr, Lr, np.min(Szzglobal), np.max(Szzglobal))
+            SSSFGraphHnHL(Sxx, filename + '/Sxx', Hr, Lr, np.min(Sxx), np.max(Sxx))
+            SSSFGraphHnHL(Sxxglobal, filename + '/Sxxglobal', Hr, Lr, np.min(Sxxglobal), np.max(Sxxglobal))
+            SSSFGraphHnHL(d5, filename + '/SzzNSF', Hr, Lr, np.min(d5), np.max(d5))
+            SSSFGraphHnHL(d6, filename + '/SxxNSF', Hr, Lr, np.min(d6), np.max(d6))
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d1, f1, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d2, f2, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d3, f3, Hr, Lr, n)
+            pedantic_SSSF_graph_helper(SSSFGraphHnHL, d4, f4, Hr, Lr, n)
         else:
             np.savetxt(filename+'/Szz' + '.txt', Szz)
             np.savetxt(filename+'/Szzglobal' + '.txt', Szzglobal)
