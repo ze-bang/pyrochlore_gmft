@@ -150,7 +150,7 @@ def g(q):
             if not np.dot(q,q) == 0:
                 M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
             else:
-                M[i, j] = np.dot(z[i], z[j])
+                M[i, j] = 0
     return M
 
 def gx(q):
