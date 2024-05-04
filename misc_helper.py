@@ -833,7 +833,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin= 100
+deltamin= 25
 minLamK = 2
 
 def gauss_quadrature_1D_pts(a, b, n):
