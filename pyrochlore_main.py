@@ -431,7 +431,7 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
 
 
 
-DSSF_line_pedantic(20, -0.055, -0.055, 1, 0, 0.1, 2, h110, np.zeros(4), 5, "test/")
+DSSF_line_pedantic(20, -0.055, -0.055, 1, 0, 0.1, 2, h110, np.zeros(4), 5, "Files/DSSF/Jpm/")
 
 # ffact = contract('ik, jk->ij', np.array([[0,0,1]]), NN)
 # ffact = np.exp(1j * ffact)

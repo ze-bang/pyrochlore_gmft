@@ -137,7 +137,7 @@ def DSSF_core_pedantic(q, omega, pyp0, tol):
     Sglobalzz = contract('wijk,jk, i->wjk', Szz, g(q), pyp0.weights)
     Szz = contract('wijk, i->wjk', Szz, pyp0.weights)
 
-    Sglobalxx = contract('wijk,jk, i->wjk', Sxx, g(q), pyp0.weights)
+    Sglobalxx = contract('wijk,jk, i->wjk', Sxx, gx(q), pyp0.weights)
     Sxx = contract('wijk, i->wjk', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
@@ -1087,12 +1087,12 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         py0s.graph_upperedge(False)
         DSSFgraph(d4.T, f4, X, Y)
 
-def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge):
+def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge, dmax):
     for i in range(4):
         for j in range(4):
             tempF = f1+str(i)+str(j)
             np.savetxt(tempF + '.txt', d1[:,:,i,j])
-            graphMethod(d1[:,:,i,j], tempF, Hr, Lr, lowedge, upedge)
+            graphMethod(d1[:,:,i,j]/dmax, tempF, Hr, Lr, lowedge, upedge)
     if (dir==h110).all():
         gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3]
         gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
@@ -1100,9 +1100,9 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         np.savetxt(f1+"polarized.txt", gp)
         np.savetxt(f1+"unpolarized.txt", gup)
         np.savetxt(f1+"polar_unpolar.txt", gcorre)
-        graphMethod(gp, f1+"polarized", Hr, Lr, lowedge, upedge)
-        graphMethod(gup, f1+"unpolarized", Hr, Lr, lowedge, upedge)
-        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
+        graphMethod(gp/dmax, f1+"polarized", Hr, Lr, lowedge, upedge)
+        graphMethod(gup/dmax, f1+"unpolarized", Hr, Lr, lowedge, upedge)
+        graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
     elif (dir==h111).all():
         gKagome = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,1,3] + d1[:,:,2,1] + d1[:,:,3, 1] + d1[:,:,2,2] + d1[:,:,2,3] + d1[:,:,3,2] + d1[:,:,3,3]
         gTri = d1[:,:,0,0]
@@ -1110,9 +1110,9 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         np.savetxt(f1+"Kagome.txt", gKagome)
         np.savetxt(f1+"Triangular.txt", gTri)
         np.savetxt(f1+"Kagome-Tri.txt", gKagomeTri)
-        graphMethod(gKagome, f1+"Kagome", Hr, Lr, lowedge, upedge)
-        graphMethod(gTri, f1+"Triangular", Hr, Lr, lowedge, upedge)
-        graphMethod(gKagomeTri, f1+"Kagome-Tri", Hr, Lr, lowedge, upedge)
+        graphMethod(gKagome/dmax, f1+"Kagome", Hr, Lr, lowedge, upedge)
+        graphMethod(gTri/dmax, f1+"Triangular", Hr, Lr, lowedge, upedge)
+        graphMethod(gKagomeTri/dmax, f1+"Kagome-Tri", Hr, Lr, lowedge, upedge)
     else:
         gp = d1[:,:,0,0] + d1[:,:,0,3] + d1[:,:,3,0] + d1[:,:,3,3]
         gup = d1[:,:,1,1] + d1[:,:,1,2] + d1[:,:,2,1] + d1[:,:,2,2]
@@ -1120,9 +1120,9 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         np.savetxt(f1+"polarized.txt", gp)
         np.savetxt(f1+"unpolarized.txt", gup)
         np.savetxt(f1+"polar_unpolar.txt", gcorre)
-        graphMethod(gp, f1+"polarized", Hr, Lr, lowedge, upedge)
-        graphMethod(gup, f1+"unpolarized", Hr, Lr, lowedge, upedge)
-        graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
+        graphMethod(gp/dmax, f1+"polarized", Hr, Lr, lowedge, upedge)
+        graphMethod(gup/dmax, f1+"unpolarized", Hr, Lr, lowedge, upedge)
+        graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
 
 def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -1152,10 +1152,7 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
         pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
         kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW1, graphW1X1, graphX1Gamma))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge)
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge)
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge)
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge)
+
 
         Szz = contract('iwjk->iw', d1)
         Szzglobal = contract('iwjk->iw', d2)
@@ -1167,10 +1164,16 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(filename+"Sxx.txt", Sxx)
         np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
 
-        DSSFgraph_pedantic(Szz, filename+"Szz", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Szzglobal, filename+"Szzglobal", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxx, filename+"Sxx", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxxglobal, filename+"Sxxglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Szz/np.max(Szz), filename+"Szz", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
+
+
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.max(Szz))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.max(Sxx))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))

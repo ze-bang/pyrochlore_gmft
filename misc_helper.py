@@ -160,7 +160,7 @@ def gx(q):
             if not np.dot(q,q) == 0:
                 M[i,j] = np.dot(x[i], x[j]) - np.dot(x[i],q) * np.dot(x[j],q)/ np.dot(q,q)
             else:
-                M[i, j] = np.dot(x[i], x[j])
+                M[i, j] = 0
     return M
 
 def gTransverse(q):
