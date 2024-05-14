@@ -716,9 +716,9 @@ def hhltoK(H, L, K=0):
         + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
         + K*np.array([-0.5,0.5,0])
 def hkztoK(H, K, L=0):
-    return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) \
-        + np.einsum('ij,k->ijk',K, np.array([0.5,0,0.5])) \
-        + L*np.array([0.5,0.5,0])
+    return np.einsum('ij,k->ijk',H, np.array([0.5,0,0.5])) \
+        + np.einsum('ij,k->ijk',K, np.array([0.5,0.5,0])) \
+        + L*np.array([0, 0.5, 0.5])
 def hhknktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
@@ -796,7 +796,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin= 100
+deltamin= 25
 minLamK = 2
 
 def gauss_quadrature_1D_pts(a, b, n):

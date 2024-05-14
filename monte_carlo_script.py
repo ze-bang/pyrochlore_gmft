@@ -53,6 +53,6 @@ from observables import *
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux", "hk0", 0)
 
-findPhaseMag110(-0.5, 0.1, 250, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2")
-findPhaseMag111(-0.5, 0.1, 250, 0, 0.7, 200, h111, 30, 2, "phase_111_kappa=2")
-findPhaseMag001(-0.5, 0.1, 250, 0, 0.5, 200, h001, 30, 2, "phase_100_kappa=2")
+# findPhaseMag110(-0.5, 0.1, 300, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2")
+findPhaseMag111(-0.5, 0.1, 300, 0, 0.7, 200, h100, 30, 2, "phase_100_kappa=2")
+# findPhaseMag001(-0.5, 0.1, 300, 0, 0.5, 200, h001, 30, 2, "phase_100_kappa=2")

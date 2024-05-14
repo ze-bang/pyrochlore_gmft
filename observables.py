@@ -448,26 +448,26 @@ def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
 
 
-    Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
-    Xs = np.array([[1, 0]])
-    Ks = np.array([[1,1]])*0.375/0.5
-    Ws = np.array([[1,0.5]])
+    # Gamms = np.array([[0,0],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
+    # Xs = np.array([[1, 0]])
+    # Ks = np.array([[1,1]])*0.375/0.5
+    # Ws = np.array([[1,0.5]])
 
-    Boundary = np.array([[1, 0.5], [0.5,1], [-0.5,1], [-1,0.5],[-1,-0.5],[-0.5,-1],[0.5,-1],[1,-0.5]])
+    # Boundary = np.array([[1, 0.5], [0.5,1], [-0.5,1], [-1,0.5],[-1,-0.5],[-0.5,-1],[0.5,-1],[1,-0.5]])
 
-    plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
-    plt.scatter(Xs[:, 0], Xs[:, 1], zorder=6)
-    plt.scatter(Ks[:, 0], Ks[:, 1], zorder=6)
-    plt.scatter(Ws[:, 0], Ws[:, 1], zorder=6)
-    plot_text(Gamms,r'$\Gamma$')
-    plot_text(Xs,r'$X$')
-    plot_text(Ks,r'$K$')
-    plot_text(Ws,r'$W$')
+    # plt.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+    # plt.scatter(Xs[:, 0], Xs[:, 1], zorder=6)
+    # plt.scatter(Ks[:, 0], Ks[:, 1], zorder=6)
+    # plt.scatter(Ws[:, 0], Ws[:, 1], zorder=6)
+    # plot_text(Gamms,r'$\Gamma$')
+    # plot_text(Xs,r'$X$')
+    # plot_text(Ks,r'$K$')
+    # plot_text(Ws,r'$W$')
 
-    plot_BZ_hkk(Gamms[0], Boundary, 'b:')
+    # plot_BZ_hkk(Gamms[0], Boundary, 'b:')
 
-    plt.ylabel(r'$(0,K,0)$')
-    plt.xlabel(r'$(H,0,0)$')
+    plt.ylabel(r'$(0,0,K)$')
+    plt.xlabel(r'$(0,H,0)$')
     plt.xlim([-Hr, Hr])
     plt.ylim([-Lr, Lr])
     plt.savefig(filename + ".pdf")
