@@ -152,20 +152,22 @@ def Ainit(Fluxs, A00=0, A01=0, A02=0, A10=0):
 
 def constructA_pi_110(Fluxs):
     n4 = 0
-    A00, A01, A03, F, n1, n2 = A_init110(Fluxs)
+    A00, A01, A02, n1, n2 = A_init110(Fluxs)
 
-
-    A02 = A01 + n4*np.pi + F
+    A03 = A00+n2*np.pi
 
     A10 = A00
     A20 = A00
     A30 = A00
+
     A11 = A01 + n1*np.pi
     A21 = A01 + n2*np.pi
     A31 = A01 + (n1+n2) * np.pi
+
     A12 = A02
     A22 = A02 + n2*np.pi
     A32 = A02 + n2*np.pi
+
     A13 = A03
     A23 = A03
     A33 = A03
@@ -179,32 +181,34 @@ def A_init110(Fluxs):
     A, B, C, D = Fluxs
     A00 = 0
     A01 = 0
-    A03 = 0
+    A02 = 0
     n1 = int(A / np.pi)
     n2 = int(C / np.pi)
-    F = 0
-    return np.array([A00, A01, A03, F, n1,n2])
+    return np.array([A00, A01, A02, n1,n2])
 
 def constructA_pi_001(Fluxs):
 
-    n4, n5 = 0,0
     try:
-        A00, A01, n1, n2 = A_init001(Fluxs)
+        A00, n1 = A_init001(Fluxs)
     except:
         return -1
 
-    A03 = A00 + (n4+n5)*np.pi
-    A02 = A01 + n5*np.pi
+    A01 = A00
+    A02 = A00 + n1*np.pi
+    A03 = A00
 
     A10 = A00
     A20 = A00
     A30 = A00
+
     A11 = A01 + n1*np.pi
-    A21 = A01 + n2*np.pi
-    A31 = A01 + (n1+n2)*np.pi
+    A21 = A01 + n1*np.pi
+    A31 = A01
+
     A12 = A02
-    A22 = A02 + n2*np.pi
-    A32 = A02 + n2*np.pi
+    A22 = A02 + n1*np.pi
+    A32 = A02 + n1*np.pi
+
     A13 = A03
     A23 = A03
     A33 = A03
@@ -213,30 +217,29 @@ def constructA_pi_001(Fluxs):
                      [A10, A11, A12, A13],
                      [A20, A21, A22, A23],
                      [A30, A31, A32, A33]])
-    return np.mod(M, 2*np.pi), n1, n2
+    return np.mod(M, 2*np.pi), n1, 0
 
 def A_init001(Fluxs):
     ## A=B, C=D
     A, B, C, D = Fluxs
     A00 = 0
-    A01 = 0
     n1 = int(A/ np.pi)
-    n2 = int(C/ np.pi)
-    return np.array([A00,A01, n1, n2])
+    return np.array([A00, n1])
 
 def constructA_pi_111(Fluxs):
     n5 = 0
     try:
-        A00, A01, F, n1 = A_init111(Fluxs)
+        A00, A01, n1 = A_init111(Fluxs)
     except:
         return -1
 
-    A02 = A01 + n5*np.pi
-    A03 = A01 + n5*np.pi + F
+    A02 = A01
+    A03 = A01
 
     A10 = A00
     A20 = A00
     A30 = A00
+
     A13 = A03
     A23 = A03
     A33 = A03
@@ -261,8 +264,7 @@ def A_init111(Fluxs):
     A00 = 0
     A01 = 0
     n1 = int(A / np.pi)
-    F = 0
-    return np.array([A00,A01, F, n1])
+    return np.array([A00,A01, n1])
 
 def generateflux111(n1):
     A = n1*np.pi

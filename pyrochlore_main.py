@@ -431,7 +431,7 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
 
 
 
-DSSF_line_pedantic(20, -0.055, -0.055, 1, 0, 0.1, 2, h110, np.zeros(4), 5, "Files/DSSF/Jpm/")
+# DSSF_line_pedantic(20, -0.055, -0.055, 1, 0, 0.1, 2, h110, np.zeros(4), 5, "Files/DSSF/Jpm/")
 
 # ffact = contract('ik, jk->ij', np.array([[0,0,1]]), NN)
 # ffact = np.exp(1j * ffact)
@@ -442,12 +442,13 @@ DSSF_line_pedantic(20, -0.055, -0.055, 1, 0, 0.1, 2, h110, np.zeros(4), 5, "File
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 #
-# fig, axs = plt.subplots()
-#
-# a = pycon.piFluxSolver(-0.04,1,-0.04,flux=np.array([0,0,np.pi,np.pi]), h=0.3)
-# a.solvemeanfield()
-# a.graph(axs)
-# plt.show()
+fig, axs = plt.subplots()
+
+a = pycon.piFluxSolver(0.289*2,1,0.289*2,flux=np.array([np.pi,np.pi,0,0]), h=0.2, n=h110)
+print(a.A_pi_here)
+a.solvemeanfield()
+a.graph(axs)
+plt.show()
 #
 # fig, axs = plt.subplots()
 #
