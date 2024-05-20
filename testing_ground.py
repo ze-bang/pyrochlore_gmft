@@ -410,12 +410,18 @@ from matplotlib.colors import LogNorm
 # K = 2 * np.pi * np.array([3/4, 0, 3 / 4])
 # U = 2 * np.pi * np.array([1, 1/4, 1 / 4])
 
-# A = 0
-# B = 1
-# print((A*np.array([1,-1,0])+B*np.array([1,1,-2]))/2)
-
-a, b, c = 1, -1, 0
-print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+# A = 2
+# B = 2
+# print(A*np.array([0.5,-0.5,0])+B*np.array([0.5,0.5,-1]))
+#
+# a, b, c = 1, -1, 0
+# print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
+a = 1
+print(isinstance(a, np.ndarray))
+# H = np.loadtxt("phase_110_kappa=2_mag.txt")
+#
+# plt.plot(H[200])
+# plt.show()
 
 # Gamms = np.array([[0, 0], [2, 0], [0, 2], [-2, 0], [0, -2], [2, 2], [-2, 2], [2, -2], [-2, -2], [1, 1], [1,-1],[-1,1],[-1,-1]])
 #

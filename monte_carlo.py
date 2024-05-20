@@ -295,16 +295,22 @@ def ordering_q(con, rcoord):
     return temp
 
 
-def plottetrahedron(x,y,z, ax, down=1):
+def plottetrahedron(x,y,z, ax, down=1, a=0.35, ap=1):
     center = x*r[0]+y*r[1]+z*r[2]
     coords = center + down*NN
     if down==1:
         c = (49/256, 76/256, 232/256)
     else:
         c = (42/256, 232/256, 137/256)
-    ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0,0,0]], linewidth=1.0, alpha=0.3, shade=True, color=c)
+    ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0.1,0.1,0.1]], linewidth=1, alpha=a, shade=True, color=c)
     center = center + down*np.array([1/4,1/4,1/4])/2
-    ax.scatter(center[0],center[1],center[2], color=c, s=60)
+    ax.scatter(center[0],center[1],center[2], color=c, s=60,alpha=ap)
+
+def plottetrahedron_blank(x,y,z, ax, down=1):
+    center = x*r[0]+y*r[1]+z*r[2]
+    coords = center + down*NN
+    ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0.1,0.1,0.1]], linewidth=1, shade=False, alpha=0)
+
 
 def magnitude(A):
     return np.sqrt(A[0]**2+A[1]**2+A[2]**2)
@@ -346,6 +352,18 @@ def graphdownpyrochlore(con, ax):
     d = con.shape[0]
     for i in range(d):
         plottetrahedron(con[i,0], con[i,1], con[i,2],ax)
+def graphuppyrochlore(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plottetrahedron(con[i,0], con[i,1], con[i,2],ax, -1)
+def graphdownpyrochlore_blank(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plottetrahedron_blank(con[i,0], con[i,1], con[i,2],ax)
+def graphuppyrochlore_blank(con, ax):
+    d = con.shape[0]
+    for i in range(d):
+        plottetrahedron_blank(con[i,0], con[i,1], con[i,2],ax, -1)
 
 def graphallgaugebond(con, ax):
     d = con.shape[0]
@@ -353,10 +371,6 @@ def graphallgaugebond(con, ax):
         plotgaugebond(con[i,0], con[i,1], con[i,2],ax)
 
 
-def graphuppyrochlore(con, ax):
-    d = con.shape[0]
-    for i in range(d):
-        plottetrahedron(con[i,0], con[i,1], con[i,2],ax, -1)
 
 
 def phase_diagram(nK, sites, nT, nSweep, h, hvec, filename):
