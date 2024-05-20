@@ -753,9 +753,9 @@ def hhltoK(H, L, K=0):
         + np.einsum('ij,k->ijk',L, np.array([0.5,0.5,0])) \
         + K*np.array([-0.5,0.5,0])
 def hkztoK(H, K, L=0):
-    return np.einsum('ij,k->ijk',H, np.array([0.5,0,0.5])) \
-        + np.einsum('ij,k->ijk',K, np.array([0.5,0.5,0])) \
-        + L*np.array([0, 0.5, 0.5])
+    return np.einsum('ij,k->ijk',H, np.array([0,0.5,0.5])) \
+        + np.einsum('ij,k->ijk',K, np.array([0.5,0,0.5])) \
+        + L*np.array([0.5, 0.5, 0])
 def hhknktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([0.5,0.5,1])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,0.5,0])) \
