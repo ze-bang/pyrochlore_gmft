@@ -275,9 +275,9 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
                                       BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
         else:
             py0s = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
-            pyps = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
-            pyp0 = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
-            pyzp = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], 1, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
+            pyps = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+            pyp0 = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([np.pi,np.pi,0,0]))
+            pyzp = pycon.piFluxSolver(-2*currJH[i][0], 1, -2*currJH[i][0], h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.array([0,0,np.pi,np.pi]))
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()

@@ -46,33 +46,18 @@ Jpm = 0.02
 # DSSF(250, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
 # DSSF(250, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.4")
 
+<<<<<<< HEAD
 DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_0")
 DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
+=======
+# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_0")
+# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
+>>>>>>> 3ba3618cd8a7545c8913cb413fd8d86dee0d6642
 
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.14, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.14")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.16, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.16")
 
-# Jpm=0.02
-# # SSSF_line_pedantic(10, -2*Jpm, -2*Jpm, 1, 0, 0.4, 3, h111, np.zeros(4),5, "test", "hh2k")
-#
-# SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hh2k", 0, 3, 3)
-# SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hh2k", 0, 3, 3)
+Jpm=0.02
 
-# SSSF(100, 0.063, 0.062, 0.011, 0, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0_hhk_1.5_zoomed_in', "hkk", 1.5, 1.5, 0.3)
-# SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.1_hhk_1.5_zoomed_in', "hkk", 1.5, 1.5, 0.3)
-# SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.2, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.1_hhk_1.5_zoomed_in', "hkk", 1.5, 1.5, 0.3)
-# SSSF(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 1, 1.5, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.011_Jyy_0.062_Jzz_0.063_B110=1.5_hhk_1.5_zoomed_in', "hkk", 1.5, 1.5, 0.3)
-
-# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=-0.03_0")
-# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
-
-# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.1")
-# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03/h110=0.2")
-# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.3")
-# DSSF(250, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.4")
-
-
-# SSSF_HHL_KK_integrated(10, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, -0.3, 0.3, 3, 5, 'Jpm=-0.289_h110=0.2_L_integrated')
-
-# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.zeros(4),30, "Files/DSSF/Jpm=0.02_0")
-# DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
+SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hh2k", 0, 3, 3)
+SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hh2k", 0, 3, 3)
