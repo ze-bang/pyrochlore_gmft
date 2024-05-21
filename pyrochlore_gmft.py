@@ -886,6 +886,15 @@ class piFluxSolver:
         return np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
+    def E_pi_reduced(self, k):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        return np.sqrt(2 * self.Jzz *
+                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
+                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
 
 
     def dispersion(self, k):

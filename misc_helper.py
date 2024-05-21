@@ -134,6 +134,7 @@ def telltime(sec):
 def gaussian(mu, tol):
     return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
 
+
 def cauchy(mu, tol):
     return tol/(mu**2+tol**2)/np.pi
 

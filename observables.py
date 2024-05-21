@@ -126,17 +126,19 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
 
     return rectemp, rectemp1, rectemp2, rectemp3
 
-def TWO_S_rho_core(omega, Jpm, h, n, flux, BZres, tol):
-    pyp0 = pycon.piFluxSolver(-2*Jpm, 1, -2*Jpm, h=h, n=n, flux=flux, BZres=BZres)
+def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol):
+    pyp0 = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,h=h,n=hn,flux=flux,BZres=BZres)
     pyp0.solvemeanfield()
-    E = pyp0.E_pi(pyp0.pts)
-    l = len(E)
-    Qs = contract('ik,j->ijk',E, np.ones(l))
-    Ks = contract('jk, i->ijk', E, np.ones(l))
-    A = np.zeros(len(omega))
-    for i in range(len(omega)):
-        A[i] = np.mean(cauchy(omega[i]-contract('ija, ijb->ijab', Qs, Ks), tol))
-    return A
+    Ks = pyp0.pts
+    Ek = pyp0.E_pi_reduced(Ks)
+    A = np.zeros((len(Ks),len(E)))
+    for i in range(len(Ks)):
+        Qs = Ks - Ks[i]
+        Eq = pyp0.E_pi_reduced(Qs)
+        # Eq = np.roll(Ek, i, axis=0)
+        A[i] = contract('iwjk->w', deltas(Ek, Eq, E, tol))
+    A = np.mean(A,axis=0)
+    return A/np.linalg.norm(A)
 def graph_2S_rho(E, Jpm, h, hn, flux, BZres, tol, rank, size):
     comm = MPI.COMM_WORLD
     if isinstance(Jpm, np.ndarray):
@@ -152,7 +154,7 @@ def graph_2S_rho(E, Jpm, h, hn, flux, BZres, tol, rank, size):
         if rank == 0:
             rectemp = np.zeros((len(Jpm), len(E)), dtype=np.float64)
         for i in range(currsize):
-            sendtemp[i] = TWO_S_rho_core(E, currK[i], h, hn, flux, BZres, tol)
+            sendtemp[i] = TWOSPINON_core_dumb(E, currK[i], h, hn, flux, BZres, tol)
         sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
         comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
         return rectemp
@@ -169,11 +171,34 @@ def graph_2S_rho(E, Jpm, h, hn, flux, BZres, tol, rank, size):
         if rank == 0:
             rectemp = np.zeros((len(h), len(E)), dtype=np.float64)
         for i in range(currsize):
-            sendtemp[i] = TWO_S_rho_core(E, Jpm, currK[i], hn, flux, BZres, tol)
+            sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol)
         sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
         comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
         return rectemp
 
+
+def graph_2S_rho_111(E, Jpm, h, hn, BZres, rank, size, tol):
+    comm = MPI.COMM_WORLD
+    n = len(h) / size
+
+    left = int(rank * n)
+    right = int((rank + 1) * n)
+
+    currsize = right - left
+    sendtemp = np.zeros((currsize, len(E)), dtype=np.float64)
+    currK = h[left:right]
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros((len(h), len(E)), dtype=np.float64)
+    for i in range(currsize):
+        if currK[i] > 0.35:
+            flux = np.zeros(4)
+        else:
+            flux = np.ones(4) * np.pi
+        sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol)
+    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    return rectemp
 
 def DSSF_core_pedantic(q, omega, pyp0, tol):
     Ks = pyp0.pts
@@ -1158,6 +1183,26 @@ def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
         else:
             X, Y = np.meshgrid(h, e)
             DSSFgraph(d1.T, f1, X, Y)
+
+def TwoSpinonDOS_111(nH, BZres, filename):
+    if not MPI.Is_initialized():
+        MPI.Init()
+    E = np.linspace(0, 2, 200)
+    tol = 2.2/220
+    h = np.linspace(0,0.5,nH)
+    Jpm=-0.03
+    hn = h111
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1 = graph_2S_rho_111(E, Jpm, h, hn, BZres, rank, size, tol)
+
+    if rank == 0:
+        f1 = filename + "two_spinon_DOS_111"
+        np.savetxt(f1 + ".txt", d1)
+        X, Y = np.meshgrid(h, E)
+        DSSFgraph(d1.T, f1, X, Y)
 
 
 

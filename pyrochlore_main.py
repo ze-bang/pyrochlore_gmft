@@ -667,9 +667,14 @@ def phaseExGraph(filename):
 # SSSFgraphGen(np.array([0,0.08,0.2]),np.array([0,0.08,0.2]), np.array(["pi","pi","0"]),np.array([0,0.08]),h001,"Szzglobal.txt", "h001_SSSF.pdf", np.array(['b','w','w','b','w','w','w','w','w','w']))
 #
 # sublatticeSSSFgraphGen(h110, np.array(["Szz/00.txt", "Szz/12.txt", "Szzglobal/03.txt", "Szzglobal/12.txt"]), np.array([0,0.18,0.42]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","00pp"]]), "h110_sublattice.pdf")
-sublatticeSSSFgraphGen(h111, np.array(["Szz/Kagome.txt", "Szz/Triangular.txt", "Szzglobal/Kagome.txt", "Szz/Kagome-Tri.txt"]), np.array([0,0.16,0.32]), np.array([0.02,-0.289]), np.array([["0","0","0"],["pi","pi","pi"]]), "h111_sublattice.pdf")
+# sublatticeSSSFgraphGen(h111, np.array(["Szz/Kagome.txt", "Szz/Triangular.txt", "Szzglobal/Kagome.txt", "Szz/Kagome-Tri.txt"]), np.array([0,0.16,0.32]), np.array([0.02,-0.289]), np.array([["0","0","0"],["pi","pi","pi"]]), "h111_sublattice.pdf")
 # sublatticeSSSFgraphGen(h001, np.array(["Szz/01.txt", "Szz/03.txt", "Szzglobal/01.txt", "Szzglobal/03.txt"]), np.array([0,0.08,0.2]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","0"]]), "h001_sublattice.pdf")
+# e = np.linspace(0, 2.5,200)
+# A = graph_2S_rho(e, np.array([-0.1]), 0, h110, np.ones(4)*np.pi, 10, 1e-3, 0, 1)
+# plt.plot(e, A.T)
+# plt.savefig('test.pdf')
 
+TwoSpinonDOS_111(2, 5, "test")
 
 # d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")
 #
