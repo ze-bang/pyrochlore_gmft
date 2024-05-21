@@ -191,7 +191,7 @@ def graph_2S_rho_111(E, Jpm, h, hn, BZres, rank, size, tol):
     if rank == 0:
         rectemp = np.zeros((len(h), len(E)), dtype=np.float64)
     for i in range(currsize):
-        if currK[i] > 0.35:
+        if currK[i] > 0.33:
             flux = np.zeros(4)
         else:
             flux = np.ones(4) * np.pi
@@ -1188,7 +1188,7 @@ def TwoSpinonDOS_111(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
     E = np.linspace(0, 2, 200)
-    tol = 2.2/220
+    tol = 2/200
     h = np.linspace(0,0.5,nH)
     Jpm=-0.03
     hn = h111
