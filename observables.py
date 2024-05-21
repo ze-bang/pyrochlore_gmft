@@ -200,6 +200,30 @@ def graph_2S_rho_111(E, Jpm, h, hn, BZres, rank, size, tol):
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     return rectemp
 
+
+def graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol):
+    comm = MPI.COMM_WORLD
+    n = len(Jpm) / size
+
+    left = int(rank * n)
+    right = int((rank + 1) * n)
+
+    currsize = right - left
+    sendtemp = np.zeros((currsize, len(E)), dtype=np.float64)
+    currK = Jpm[left:right]
+    rectemp = None
+    if rank == 0:
+        rectemp = np.zeros((len(Jpm), len(E)), dtype=np.float64)
+    for i in range(currsize):
+        if currK[i] > -0.015:
+            flux = np.zeros(4)
+        else:
+            flux = np.ones(4) * np.pi
+        sendtemp[i] = TWOSPINON_core_dumb(E, currK[i], h, hn, flux, BZres, tol)
+    sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    return rectemp
+
 def DSSF_core_pedantic(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
@@ -1188,7 +1212,7 @@ def TwoSpinonDOS_111(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
     E = np.linspace(0, 2, 200)
-    tol = 2.2/220
+    tol = 2/200
     h = np.linspace(0,0.5,nH)
     Jpm=-0.03
     hn = h111
@@ -1204,6 +1228,25 @@ def TwoSpinonDOS_111(nH, BZres, filename):
         X, Y = np.meshgrid(h, E)
         DSSFgraph(d1.T, f1, X, Y)
 
+def TwoSpinonDOS_111_a(nH, BZres, filename):
+    if not MPI.Is_initialized():
+        MPI.Init()
+    E = np.linspace(0, 2, 200)
+    tol = 2/200
+    h = 0.3
+    Jpm= np.linspace(-0.3,0.04,nH)
+    hn = h111
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1 = graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol)
+
+    if rank == 0:
+        f1 = filename + "two_spinon_DOS_111"
+        np.savetxt(f1 + ".txt", d1)
+        X, Y = np.meshgrid(h, E)
+        DSSFgraph(d1.T, f1, X, Y)
 
 
 def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge, dmax):

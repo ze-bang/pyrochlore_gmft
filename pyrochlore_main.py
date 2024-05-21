@@ -674,7 +674,7 @@ def phaseExGraph(filename):
 # plt.plot(e, A.T)
 # plt.savefig('test.pdf')
 
-TwoSpinonDOS_111(2, 5, "test")
+TwoSpinonDOS_111(50, 10, "test")
 
 # d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")
 #
