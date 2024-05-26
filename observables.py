@@ -1259,12 +1259,12 @@ def TwoSpinonDOS_001(nH, BZres, filename):
     d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
 
     if rank == 0:
-        f1 = filename + "two_spinon_DOS_111"
+        f1 = filename
         np.savetxt(f1 + ".txt", d1)
-        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.22, 0, 2], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
-        plt.savefig(filename)
+        plt.savefig(filename+ ".pdf")
         plt.clf()
 
 def TwoSpinonDOS_110(nH, BZres, filename):
@@ -1272,7 +1272,7 @@ def TwoSpinonDOS_110(nH, BZres, filename):
         MPI.Init()
     E = np.linspace(0, 2, 200)
     tol = 2/200
-    h = np.linspace(0,0.22,nH)
+    h = np.linspace(0,0.5,nH)
     Jpm=-0.03
     hn = h001
     comm = MPI.COMM_WORLD
@@ -1282,12 +1282,12 @@ def TwoSpinonDOS_110(nH, BZres, filename):
     d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
 
     if rank == 0:
-        f1 = filename + "two_spinon_DOS_111"
+        f1 = filename
         np.savetxt(f1 + ".txt", d1)
         plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
-        plt.savefig(filename)
+        plt.savefig(filename+ ".pdf")
         plt.clf()
 
 def TwoSpinonDOS_111_a(nH, BZres, filename):
