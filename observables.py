@@ -215,7 +215,7 @@ def graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol):
     if rank == 0:
         rectemp = np.zeros((len(Jpm), len(E)), dtype=np.float64)
     for i in range(currsize):
-        if currK[i] > -0.015:
+        if currK[i] > -0.02:
             flux = np.zeros(4)
         else:
             flux = np.ones(4) * np.pi
@@ -1231,7 +1231,7 @@ def TwoSpinonDOS_111(nH, BZres, filename):
 def TwoSpinonDOS_111_a(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
-    E = np.linspace(0, 2, 200)
+    E = np.linspace(0, 2.5, 250)
     tol = 2/200
     h = 0.3
     Jpm= np.linspace(-0.3,0.04,nH)
@@ -1245,7 +1245,7 @@ def TwoSpinonDOS_111_a(nH, BZres, filename):
     if rank == 0:
         f1 = filename + "two_spinon_DOS_111"
         np.savetxt(f1 + ".txt", d1)
-        X, Y = np.meshgrid(h, E)
+        X, Y = np.meshgrid(Jpm, E)
         DSSFgraph(d1.T, f1, X, Y)
 
 

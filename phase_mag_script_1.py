@@ -23,7 +23,7 @@ from observables import *
 # plotLinefromnetCDF(h001, "h001=0.2_largeN.pdf", h=0.2, diff=True)
 # plotLinefromnetCDF(h001, "h001=0.3_largeN.pdf", h=0.3, diff=True)
 
-Jpm = 0.02
+Jpm = 0.03
 # py0s = pycon.piFluxSolver(-2*Jpm, -2*Jpm, 1, BZres=25, h=0.3, n=h111, flux=np.ones(4)*np.pi)
 # py0s.solvemeanfield()
 # print(SSSF_core(np.array([0.5,1,0.5]), hb110, py0s))
@@ -46,18 +46,14 @@ Jpm = 0.02
 # DSSF(250, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.3")
 # DSSF(250, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.02/h110=0.4")
 
-<<<<<<< HEAD
-DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_0")
-DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
-=======
-# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.02_0")
-# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.02_pi")
->>>>>>> 3ba3618cd8a7545c8913cb413fd8d86dee0d6642
+DSSF_pedantic(200,-2*Jpm, -2*Jpm, 1, 0.35, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.03_0/h111/h=0.35")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.zeros(4), 30, "Files/DSSF/Jpm=0.03_0")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h111, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.03_pi")
 
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.14, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.14")
 # DSSF(0.005, -2*Jpm, -2*Jpm, 1, 0.16, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.05/h110=0.16")
 
-Jpm=0.02
+# Jpm=0.02
 
-SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hh2k", 0, 3, 3)
-SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hh2k", 0, 3, 3)
+# SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hh2k", 0, 3, 3)
+# SSSF_line_pedantic(200, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hh2k", 0, 3, 3)
