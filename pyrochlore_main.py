@@ -328,9 +328,9 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     axs[0,0].text(.01, .99, r"$a)$", ha='left', va='top', transform=axs[0,0].transAxes, zorder=10)
     axs[0,1].text(.01, .99, r"$b)$", ha='left', va='top', transform=axs[0,1].transAxes, zorder=10)
     axs[0,2].text(.01, .99, r"$c)$", ha='left', va='top', transform=axs[0,2].transAxes, zorder=10)
-    axs[1,0].text(.01, .99, r"$d)$", ha='left', va='top', transform=axs[1,0].transAxes, color='w', zorder=10)
-    axs[1,1].text(.01, .99, r"$e)$", ha='left', va='top', transform=axs[1,1].transAxes, color='w', zorder=10)
-    axs[1,2].text(.01, .99, r"$f)$", ha='left', va='top', transform=axs[1,2].transAxes, color='w', zorder=10)
+    axs[1,0].text(.01, .95, r"$d)$", ha='left', va='top', transform=axs[1,0].transAxes, color='w', zorder=10)
+    axs[1,1].text(.01, .95, r"$e)$", ha='left', va='top', transform=axs[1,1].transAxes, color='w', zorder=10)
+    axs[1,2].text(.01, .95, r"$f)$", ha='left', va='top', transform=axs[1,2].transAxes, color='w', zorder=10)
 
     axs[0,0].set_ylabel(r'$\omega/J_{yy}$')
     axs[1,0].set_ylabel(r'$\omega/J_{yy}$')
@@ -358,9 +358,9 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     a.graph(axs[0,0])
 
     emin, emax = a.graph_loweredge(False, axs[1,0]), a.graph_upperedge(False, axs[1,0])
-    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=0.02_0/h_"+dirString+"/h="+str(h0)+"/Szzglobal.txt")
+    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h="+str(h0)+"/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
-    c = axs[1,0].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto')
+    c = axs[1,0].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
     fig.colorbar(c, ax=axs[1,0])
 
     a = pycon.piFluxSolver(0.06,0.06,1,flux=mid,h=hmid,n=n)
@@ -370,7 +370,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     emin, emax = a.graph_loweredge(False, axs[1,1]), a.graph_upperedge(False, axs[1,1])
     d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.03_"+fluxString+"/h_"+dirString+"/h="+str(hmid)+"/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
-    c = axs[1,1].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto')
+    c = axs[1,1].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
     fig.colorbar(c, ax=axs[1,1])
 
 
@@ -381,7 +381,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     emin, emax = a.graph_loweredge(False, axs[1,2]), a.graph_upperedge(False, axs[1,2])
     d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_"+dirString+"/h="+str(hpi)+"/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
-    c = axs[1,2].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto')
+    c = axs[1,2].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
     fig.colorbar(c, ax=axs[1,2])
 
 
@@ -394,8 +394,8 @@ def DSSFgraphGen_0(n, filename):
 
     axs[0,0].text(.01, .99, r"$a)$", ha='left', va='top', transform=axs[0,0].transAxes, zorder=10)
     axs[0,1].text(.01, .99, r"$b)$", ha='left', va='top', transform=axs[0,1].transAxes, zorder=10)
-    axs[1,0].text(.01, .99, r"$d)$", ha='left', va='top', transform=axs[1,0].transAxes, color='w', zorder=10)
-    axs[1,1].text(.01, .99, r"$e)$", ha='left', va='top', transform=axs[1,1].transAxes, color='w', zorder=10)
+    axs[1,0].text(.01, .95, r"$c)$", ha='left', va='top', transform=axs[1,0].transAxes, color='w', zorder=10)
+    axs[1,1].text(.01, .95, r"$d)$", ha='left', va='top', transform=axs[1,1].transAxes, color='w', zorder=10)
     axs[0,0].set_ylabel(r'$\omega/J_{yy}$')
     axs[1,0].set_ylabel(r'$\omega/J_{yy}$')
     dirString = ""
@@ -406,14 +406,14 @@ def DSSFgraphGen_0(n, filename):
     else:
         dirString = "001"
 
-    a = pycon.piFluxSolver(-0.04,-0.04,1,flux=np.zeros(4),h=0,n=n)
+    a = pycon.piFluxSolver(-0.06,-0.06,1,flux=np.zeros(4),h=0,n=n)
     a.solvemeanfield()
     a.graph(axs[0,0])
 
     emin, emax = a.graph_loweredge(False, axs[1,0]), a.graph_upperedge(False, axs[1,0])
-    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=0.02_0/h_"+dirString+"/h=0.0/Szzglobal.txt")
+    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h=0.0/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
-    c = axs[1,0].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto')
+    c = axs[1,0].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
     fig.colorbar(c, ax=axs[1,0])
 
 
@@ -424,7 +424,7 @@ def DSSFgraphGen_0(n, filename):
     emin, emax = a.graph_loweredge(False, axs[1,1]), a.graph_upperedge(False, axs[1,1])
     d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_"+dirString+"/h=0.0/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
-    c = axs[1,1].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto')
+    c = axs[1,1].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
     fig.colorbar(c, ax=axs[1,1])
 
     plt.savefig(filename)
@@ -476,7 +476,7 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
 
 
     for i in range(len(h0)):
-        d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=0.02_0/h_"+dirString+"/h="+str(h0[i])+"/"+tograph)
+        d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h="+str(h0[i])+"/"+tograph)
         SSSFgenhelper(d/np.max(d), dirString, axs[i,0], fig)
 
     for i in range(len(hmid)):
@@ -551,7 +551,7 @@ def sublatticeSSSFgraphGen(n, tograph, h, JP, flux, filename):
     for i in range(len(tograph)):
         globalS = ""
         if "global" in tograph[i]:
-            globalS ='global,'
+            globalS ='\mathrm{global},'
         temp = tograph[i].split("/")
 
         if (n==h111).all():
@@ -660,12 +660,12 @@ def phaseExGraph(filename):
 # DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
 # DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]),0.09999999999999999,h110,"h110_DSSF.pdf")
 # DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),0.05,h001,"h001_DSSF.pdf")
-# DSSFgraphGen(0.2,0.2,np.array([np.pi,np.pi,np.pi,np.pi]),0.2,h111,"h111_DSSF.pdf")
+# DSSFgraphGen(0.35,0.2,np.array([np.pi,np.pi,np.pi,np.pi]),0.2,h111,"h111_DSSF.pdf")
 
 # SSSFgraphGen(np.array([0,0.18,0.42]),np.array([0,0.18,0.42]), np.array(["pi","pi","00pp"]),np.array([0,0.18]),h110,"Szzglobal.txt", "h110_SSSF.pdf", np.array(['w','b','b','w','b','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.16,0.32]),np.array([0,0.16,0.32]), np.array(["pi","pi","pi"]),np.array([0,0.16,0.32]),h111,"Szzglobal.txt", "h111_SSSF.pdf", np.array(['w','w','w','w','w','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.08,0.2]),np.array([0,0.08,0.2]), np.array(["pi","pi","0"]),np.array([0,0.08]),h001,"Szzglobal.txt", "h001_SSSF.pdf", np.array(['b','w','w','b','w','w','w','w','w','w']))
-#
+
 # sublatticeSSSFgraphGen(h110, np.array(["Szz/00.txt", "Szz/12.txt", "Szzglobal/03.txt", "Szzglobal/12.txt"]), np.array([0,0.18,0.42]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","00pp"]]), "h110_sublattice.pdf")
 # sublatticeSSSFgraphGen(h111, np.array(["Szz/Kagome.txt", "Szz/Triangular.txt", "Szzglobal/Kagome.txt", "Szz/Kagome-Tri.txt"]), np.array([0,0.16,0.32]), np.array([0.02,-0.289]), np.array([["0","0","0"],["pi","pi","pi"]]), "h111_sublattice.pdf")
 # sublatticeSSSFgraphGen(h001, np.array(["Szz/01.txt", "Szz/03.txt", "Szzglobal/01.txt", "Szzglobal/03.txt"]), np.array([0,0.08,0.2]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","0"]]), "h001_sublattice.pdf")
@@ -673,9 +673,23 @@ def phaseExGraph(filename):
 # A = graph_2S_rho(e, np.array([-0.1]), 0, h110, np.ones(4)*np.pi, 10, 1e-3, 0, 1)
 # plt.plot(e, A.T)
 # plt.savefig('test.pdf')
+# d = np.loadtxt("testtwo_spinon_DOS_111.txt")
+# plt.imshow(d.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+# plt.ylabel(r'$\omega/J_{yy}$')
+# plt.xlabel(r'$h/J_{yy}$')
+# # plt.colorbar()
+# plt.savefig("testtwo_spinon_DOS_111.pdf")
+from scipy.ndimage.filters import gaussian_filter
 
-TwoSpinonDOS_111(50, 10, "test")
+# a = np.loadtxt("testtwo_spinon_DOS_111.txt")
+# a=gaussian_filter(a, 0.7)
+# plt.imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+# plt.savefig("testtwo_spinon_DOS_111.pdf")
+# TwoSpinonDOS_111(50, 5, "two_spinon_DOS_111_Jpm=-0.03.pdf")
+TwoSpinonDOS_001(50, 10, "two_spinon_DOS_001_Jpm=-0.03.pdf")
+TwoSpinonDOS_110(50, 10, "two_spinon_DOS_110_Jpm=-0.03.pdf")
 
+# TwoSpinonDOS_111_a(50, 10, "test_Jpm")
 # d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")
 #
 # regraphSSSF("SSSF_April_25")
