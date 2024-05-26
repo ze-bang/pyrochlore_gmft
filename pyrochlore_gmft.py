@@ -511,7 +511,7 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     ax.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
 
-    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1*1.02, gX1, gGamma3]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     ax.set_xticks(xlabpos, labels)
     ax.set_xlim([0,gGamma3])
@@ -561,7 +561,7 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     ax.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
 
-    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1*1.02, gX1, gGamma3]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     ax.set_xticks(xlabpos, labels)
     ax.set_xlim([0,gGamma3])
