@@ -679,9 +679,15 @@ def phaseExGraph(filename):
 # plt.xlabel(r'$h/J_{yy}$')
 # # plt.colorbar()
 # plt.savefig("testtwo_spinon_DOS_111.pdf")
-TwoSpinonDOS_111(50, 13, "two_spinon_DOS_111_Jpm=-0.03")
-TwoSpinonDOS_001(50, 13, "two_spinon_DOS_001_Jpm=-0.03")
-TwoSpinonDOS_110(50, 13, "two_spinon_DOS_110_Jpm=-0.03")
+from scipy.ndimage.filters import gaussian_filter
+
+# a = np.loadtxt("testtwo_spinon_DOS_111.txt")
+# a=gaussian_filter(a, 0.7)
+# plt.imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+# plt.savefig("testtwo_spinon_DOS_111.pdf")
+# TwoSpinonDOS_111(50, 5, "two_spinon_DOS_111_Jpm=-0.03.pdf")
+TwoSpinonDOS_001(50, 10, "two_spinon_DOS_001_Jpm=-0.03.pdf")
+TwoSpinonDOS_110(50, 10, "two_spinon_DOS_110_Jpm=-0.03.pdf")
 
 # TwoSpinonDOS_111_a(50, 10, "test_Jpm")
 # d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")

@@ -1236,7 +1236,7 @@ def TwoSpinonDOS_111(nH, BZres, filename):
     d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
 
     if rank == 0:
-        f1 = filename + "two_spinon_DOS_111"
+        f1 = filename
         np.savetxt(f1 + ".txt", d1)
         plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
