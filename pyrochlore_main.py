@@ -443,11 +443,16 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
     axs[0,2].set_xlabel(r'$J_\pm/J_{yy}=-0.3$', labelpad=10)
     axs[0,2].xaxis.set_label_position('top')
 
-    fig.text(1, 0.85, r'$h/J_{yy}=' + str(h0[0]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.52, r'$h/J_{yy}=' + str(h0[1]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.2, r'$h/J_{yy}=' + str(h0[2]) + '$', ha='right', va='center', rotation=270)
+
+    htoprint = h0
+    if not (n==h001).all():
+        htoprint = np.around(2*h0,decimals=1)/2
+    fig.text(1, 0.85, r'$h/J_{yy}=' + str(htoprint[0]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.52, r'$h/J_{yy}=' + str(htoprint[1]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.2, r'$h/J_{yy}=' + str(htoprint[2]) + '$', ha='right', va='center', rotation=270)
 
     dirString = ""
+    fluxString = ""
     if (n==h110).all():
         dirString = "110"
         axs[0, 0].set_ylabel(r'$(0,0,l)$')
@@ -456,7 +461,7 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
         axs[2, 0].set_xlabel(r'$(h,-h,0)$')
         axs[2, 1].set_xlabel(r'$(h,-h,0)$')
         axs[1, 2].set_xlabel(r'$(h,-h,0)$')
-
+        fluxString="(0,\pi,\pi,0)"
     elif (n==h111).all():
         dirString = "111"
         axs[0, 0].set_ylabel(r'$(k,k,-2k)$')
@@ -465,6 +470,8 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
         axs[2, 0].set_xlabel(r'$(h,-h,0)$')
         axs[2, 1].set_xlabel(r'$(h,-h,0)$')
         axs[2, 2].set_xlabel(r'$(h,-h,0)$')
+        fluxString="\pi\; flux"
+
     else:
         dirString = "001"
         axs[0, 0].set_ylabel(r'$(0,k,0)$')
@@ -473,31 +480,45 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
         axs[2, 0].set_xlabel(r'$(h,0,0)$')
         axs[2, 1].set_xlabel(r'$(h,0,0)$')
         axs[1, 2].set_xlabel(r'$(h,0,0)$')
+        fluxString="0\; flux"
 
 
     for i in range(len(h0)):
         d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h="+str(h0[i])+"/"+tograph)
+        if (np.mean(d[-10:, 0:30]) - np.min(d)) / (np.max(d) - np.min(d)) > 0.5:
+            color = 'black'
+        else:
+            color = 'white'
+        axs[i, 0].text(.01, .99, r"$"+chr(97+3*i)+")\; 0\; flux$", ha='left', va='top', transform=axs[i, 0].transAxes, color=color)
         SSSFgenhelper(d/np.max(d), dirString, axs[i,0], fig)
 
     for i in range(len(hmid)):
         d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=-0.03_"+ fluxmid[i] +"/h_"+dirString+"/h="+str(hmid[i])+"/"+tograph)
+        if (np.mean(d[-10:, 0:30]) - np.min(d)) / (np.max(d) - np.min(d)) > 0.5:
+            color = 'black'
+        else:
+            color = 'white'
+        if i < 2:
+            axs[i, 1].text(.01, .99, r"$" + chr(98 + 3*i) + ")\; \pi\; flux$", ha='left', va='top', transform=axs[i, 1].transAxes,
+                           color=color)
+        else:
+            axs[i, 1].text(.01, .99, r"$" + chr(98 + 3*i) + ")\;"+ fluxString +"$", ha='left', va='top', transform=axs[i, 1].transAxes,
+                           color=color)
         SSSFgenhelper(d/np.max(d), dirString, axs[i,1], fig)
 
     for i in range(len(hpi)):
         d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=-0.289_pi/h_"+dirString+"/h="+str(hpi[i])+"/"+tograph)
+        if (np.mean(d[-10:, 0:30]) - np.min(d)) / (np.max(d) - np.min(d)) > 0.5:
+            color = 'black'
+        else:
+            color = 'white'
+        axs[i, 2].text(.01, .99, r"$" + chr(99 + 3*i) + ")\; \pi\; flux$", ha='left', va='top', transform=axs[i, 2].transAxes,
+                       color=color)
         SSSFgenhelper(d/np.max(d), dirString, axs[i,2], fig)
 
-    axs[0,0].text(.01, .99, r"$a)$", ha='left', va='top', transform=axs[0,0].transAxes, color=colors[0])
-    axs[0,1].text(.01, .99, r"$b)$", ha='left', va='top', transform=axs[0,1].transAxes, color=colors[1])
-    axs[0,2].text(.01, .99, r"$c)$", ha='left', va='top', transform=axs[0,2].transAxes, color=colors[2])
-    axs[1,0].text(.01, .99, r"$d)$", ha='left', va='top', transform=axs[1,0].transAxes, color=colors[3])
-    axs[1,1].text(.01, .99, r"$e)$", ha='left', va='top', transform=axs[1,1].transAxes, color=colors[4])
-    axs[1,2].text(.01, .99, r"$f)$", ha='left', va='top', transform=axs[1,2].transAxes, color=colors[5])
-    axs[2,0].text(.01, .99, r"$g)$", ha='left', va='top', transform=axs[2,0].transAxes, color=colors[6])
-    axs[2,1].text(.01, .99, r"$h)$", ha='left', va='top', transform=axs[2,1].transAxes, color=colors[7])
-    if not len(hpi) == 2:
-        axs[2,2].text(.01, .99, r"$i)$", ha='left', va='top', transform=axs[2,2].transAxes, color=colors[8])
-    # plt.show()
+    # if not len(hpi) == 2:
+    #     axs[2,2].text(.01, .99, r"$i)$", ha='left', va='top', transform=axs[2,2].transAxes, color=colors[8])
+    # # plt.show()
     plt.savefig(filename)
 
 def sublatticeSSSFgraphGen(n, tograph, h, JP, flux, filename):
@@ -541,13 +562,15 @@ def sublatticeSSSFgraphGen(n, tograph, h, JP, flux, filename):
         axs[5, 1].set_xlabel(r'$(h,0,0)$')
         axs[5, 2].set_xlabel(r'$(h,0,0)$')
         axs[5, 3].set_xlabel(r'$(h,0,0)$')
-
-    fig.text(1, 0.91, r'$h/J_{yy}=' + str(h[0]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.74, r'$h/J_{yy}=' + str(h[1]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.58, r'$h/J_{yy}=' + str(h[2]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.42, r'$h/J_{yy}=' + str(h[0]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.26, r'$h/J_{yy}=' + str(h[1]) + '$', ha='right', va='center', rotation=270)
-    fig.text(1, 0.1, r'$h/J_{yy}=' + str(h[2]) + '$', ha='right', va='center', rotation=270)
+    htoprint = h
+    if not (n==h001).all():
+        htoprint = np.around(2*h,decimals=1)/2
+    fig.text(1, 0.91, r'$h/J_{yy}=' + str(htoprint[0]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.74, r'$h/J_{yy}=' + str(htoprint[1]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.58, r'$h/J_{yy}=' + str(htoprint[2]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.42, r'$h/J_{yy}=' + str(htoprint[0]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.26, r'$h/J_{yy}=' + str(htoprint[1]) + '$', ha='right', va='center', rotation=270)
+    fig.text(1, 0.1, r'$h/J_{yy}=' + str(htoprint[2]) + '$', ha='right', va='center', rotation=270)
     for i in range(len(tograph)):
         globalS = ""
         if "global" in tograph[i]:
@@ -582,12 +605,11 @@ def sublatticeSSSFgraphGen(n, tograph, h, JP, flux, filename):
                 dmax = np.max(dmax)
                 d = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm="+str(JP[j])+"_" + fluxString + "/h_" + dirString + "/h=" + str(
                     h[i]) + "/" + tograph[k])
-                if (np.mean(d[-10:,0:10])-np.min(d))/(np.max(d)-np.min(d))>0.5:
+                SSSFgenhelper(d /dmax, dirString, axs[i+j*len(h),k], fig)
+                if (np.mean(d[-10:,0:20])-np.min(d))/(np.max(d)-np.min(d))>0.5:
                     color = 'black'
                 else:
                     color = 'white'
-
-                SSSFgenhelper(d /dmax, dirString, axs[i+j*len(h),k], fig)
                 axs[i+j*len(h),k].text(.01, .99, r"$"+str(j+1)+chr(97+i*len(tograph)+k)+")$", ha='left', va='top', transform=axs[i+j*len(h),k].transAxes, color=color)
     plt.savefig(filename)
 
@@ -643,13 +665,15 @@ def phaseExGraph(filename):
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 #
-# fig, axs = plt.subplots()
-#
-# a = pycon.piFluxSolver(0.03*2,1,0.03*2,flux=np.array([np.pi,np.pi,np.pi,np.pi]), h=0.2, n=h001)
-# print(a.A_pi_here)
-# a.solvemeanfield()
-# a.graph(axs)
-# plt.show()
+fig, axs = plt.subplots()
+Jpm=-0.1
+flux = np.zeros(4)
+flux = np.ones(4)*np.pi
+a = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,flux=flux, h=0.2, n=h001)
+a.solvemeanfield()
+print(a.magnetization())
+a.graph(axs)
+plt.show()
 #
 # fig, axs = plt.subplots()
 #
@@ -665,7 +689,7 @@ def phaseExGraph(filename):
 # SSSFgraphGen(np.array([0,0.18,0.42]),np.array([0,0.18,0.42]), np.array(["pi","pi","00pp"]),np.array([0,0.18]),h110,"Szzglobal.txt", "h110_SSSF.pdf", np.array(['w','b','b','w','b','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.16,0.32]),np.array([0,0.16,0.32]), np.array(["pi","pi","pi"]),np.array([0,0.16,0.32]),h111,"Szzglobal.txt", "h111_SSSF.pdf", np.array(['w','w','w','w','w','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.08,0.2]),np.array([0,0.08,0.2]), np.array(["pi","pi","0"]),np.array([0,0.08]),h001,"Szzglobal.txt", "h001_SSSF.pdf", np.array(['b','w','w','b','w','w','w','w','w','w']))
-
+#
 # sublatticeSSSFgraphGen(h110, np.array(["Szz/00.txt", "Szz/12.txt", "Szzglobal/03.txt", "Szzglobal/12.txt"]), np.array([0,0.18,0.42]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","00pp"]]), "h110_sublattice.pdf")
 # sublatticeSSSFgraphGen(h111, np.array(["Szz/Kagome.txt", "Szz/Triangular.txt", "Szzglobal/Kagome.txt", "Szz/Kagome-Tri.txt"]), np.array([0,0.16,0.32]), np.array([0.02,-0.289]), np.array([["0","0","0"],["pi","pi","pi"]]), "h111_sublattice.pdf")
 # sublatticeSSSFgraphGen(h001, np.array(["Szz/01.txt", "Szz/03.txt", "Szzglobal/01.txt", "Szzglobal/03.txt"]), np.array([0,0.08,0.2]), np.array([0.02,-0.03]), np.array([["0","0","0"],["pi","pi","0"]]), "h001_sublattice.pdf")
@@ -680,14 +704,34 @@ def phaseExGraph(filename):
 # # plt.colorbar()
 # plt.savefig("testtwo_spinon_DOS_111.pdf")
 # from scipy.ndimage.filters import gaussian_filter
-
+#
+# mpl.rcParams.update({'font.size': 25})
+# fig, axs = plt.subplots(nrows=1, ncols=3, layout="tight", sharey= True, figsize=(22,6))
+#
+# a = np.loadtxt("two_spinon_DOS_110_Jpm=-0.03.txt")
+# a=gaussian_filter(a, 0.8)
+# c = axs[0].imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+# cb = fig.colorbar(c, ax=axs[0])
+# axs[0].set_ylabel(r'$\omega/J_{yy}$')
+# axs[0].set_xlabel(r'$h/J_{yy}$')
+#
 # a = np.loadtxt("testtwo_spinon_DOS_111.txt")
 # a=gaussian_filter(a, 0.7)
-# plt.imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
-# plt.savefig("testtwo_spinon_DOS_111.pdf")
+# c = axs[1].imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+# cb = fig.colorbar(c, ax=axs[1])
+# axs[1].set_xlabel(r'$h/J_{yy}$')
+#
+# a = np.loadtxt("two_spinon_DOS_001_Jpm=-0.03.txt")
+# a=gaussian_filter(a, 0.8)
+# c = axs[2].imshow(a.T, interpolation="lanczos", origin='lower', extent=[0, 0.22, 0, 2], aspect='auto', cmap='gnuplot')
+# cb = fig.colorbar(c, ax=axs[2])
+# axs[2].set_xlabel(r'$h/J_{yy}$')
+#
+# plt.savefig("two_spinon_DOS.pdf")
+
 # TwoSpinonDOS_111(50, 5, "two_spinon_DOS_111_Jpm=-0.03.pdf")
-TwoSpinonDOS_001(50, 10, "two_spinon_DOS_001_Jpm=-0.03")
-TwoSpinonDOS_110(50, 10, "two_spinon_DOS_110_Jpm=-0.03")
+# TwoSpinonDOS_001(50, 10, "two_spinon_DOS_001_Jpm=-0.03.pdf")
+# TwoSpinonDOS_110(50, 10, "two_spinon_DOS_110_Jpm=-0.03.pdf")
 
 # TwoSpinonDOS_111_a(50, 10, "test_Jpm")
 # d = nc.Dataset("SSSF_April_25/Jpm=-0.03_0/h_001/h=0.0/full_info.nc")

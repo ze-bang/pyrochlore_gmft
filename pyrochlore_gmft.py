@@ -1069,13 +1069,14 @@ class piFluxSolver:
         ffact = contract('ik, jk->ij', k, NN)
         ffact = np.exp(1j * ffact)
 
-        magp = np.real(contract('ku, ru, krx, urx->k', ffact,
+        magp = np.real(contract('ku, ru, krx, urx->ku', ffact,
                              np.exp(1j * self.A_pi_here), green[:, 0:4, 4:8], piunitcell))
         return magp
 
 
     def magnetization(self):
-        mag = np.abs(integrate(self.mag_integrand, self.pts, self.weights))/16
+        sz = integrate(self.mag_integrand, self.pts, self.weights)/4
+        mag = np.dot(contract('ua, u->a', z, sz), self.n)
         if self.condensed:
             mag = np.NAN
         return np.real(mag)

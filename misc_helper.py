@@ -186,7 +186,7 @@ def gNSF(v):
             M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
     return M
 
-NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
+NN = -np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
 
 
 NNminus = np.zeros((4,4,3), dtype=float)

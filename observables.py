@@ -200,7 +200,6 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
     if rank == 0:
         rectemp = np.zeros((len(h), len(E)), dtype=np.float64)
     for i in range(currsize):
-        print(currK[i])
         if currK[i] > change:
             if (hn==h110).all():
                 flux = np.array([0,0,np.pi.np.pi])
