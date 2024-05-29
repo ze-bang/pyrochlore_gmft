@@ -27,7 +27,9 @@ from observables import *
 # SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.05_HHKnK_L_integrated", 1.5, 0.3)
 # SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.15_HHKnK_L_integrated", 1.5, 0.3)
 
-TwoSpinonDOS_111(50, 20, "Jpm=-0.03_2SPINONS")
+TwoSpinonDOS_111(50, 15, "two_spinon_DOS_111_Jpm=-0.03")
+# TwoSpinonDOS_001(50, 15, "two_spinon_DOS_001_Jpm=-0.03")
+# TwoSpinonDOS_110(50, 15, "two_spinon_DOS_110_Jpm=-0.03")
 
 
 # Jpm=0
