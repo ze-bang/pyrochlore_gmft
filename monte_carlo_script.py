@@ -1,6 +1,7 @@
 import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
-from monte_carlo import *
+# import monte_carlo
+# from monte_carlo import *
 from phase_diagram import *
 from observables import *
 # scan_all(h111, 2)
@@ -8,17 +9,41 @@ from observables import *
 # scan_all(h001, 2)
 
 
-# downtetrahedron = np.array([[0,0,0],[0,1,0]])
-# uptetrahedron = np.array([[0,0,0],[0,1,0]])
+# downtetrahedron = np.array([[0,0,0],[0,1,0],[1,0,0],[0,0,1],[0,2,0],[2,0,0],[-1,1,1],[1,-1,1], [1,1,-1], [0,1,1], [1,1,0], [1,1,1]])
+# uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0], [1,1,1]])
+# downtetrahedron = np.array([[0,0,0]])
+# uptetrahedron =  np.array([[0,0,1],[0,1,0],[1,0,0]])
 # ax = plt.axes(projection='3d')
 # ax.set_axis_off()
-# graphdownpyrochlore(downtetrahedron,ax)
-# graphuppyrochlore(uptetrahedron,ax)
-# # graphallgaugebond(downtetrahedron,ax)
-# # temp = contract('ia,ar->ir',downtetrahedron,r)
-# # hexa=np.array([temp[0]+monte_carlo.NN[3],temp[0]+monte_carlo.NN[2],temp[2]+monte_carlo.NN[0],temp[2]+monte_carlo.NN[3], temp[3]+monte_carlo.NN[2], temp[3]+monte_carlo.NN[0]])
-# # plothexagon(hexa, ax)
-# ax.view_init(elev=-36, azim=-45, roll=60)
+
+
+# graphdownpyrochlore_blank(downtetrahedron,ax)
+# graphuppyrochlore_blank(uptetrahedron,ax)
+# points = np.array([[0,0,0],[]])
+# ax.plot([-0.75,0.75],[-0.75,0.75],[0,0], color='red', linewidth=1)
+# ax.plot([0,0],[0,0.75],[0,0.75], color='black', linewidth=0.3)
+# ax.plot([0,0.75],[0,0],[0,0.75], color='black', linewidth=0.3)
+# ax.plot([0,0.75],[0,0],[0,0.75], color='black', linewidth=0.3)
+# ax.plot([0.75,0.75],[0.75,0],[0,0.75], color='black', linewidth=0.3)
+# ax.plot([0,0.75],[0.75,0],[0.75,0.75], color='black', linewidth=0.3)
+# ax.plot([0,0.75],[0.75,0.75],[0.75,0], color='black', linewidth=0.3)
+# ax.plot([0,1],[0,0],[0,0], color='black', linewidth=0.3)
+# ax.plot([0,0],[0,1],[0,0], color='black', linewidth=0.3)
+# ax.plot([0,0],[0,0],[0,1], color='black', linewidth=0.3)
+# ax.plot([1,1],[1,0],[0,0], color='black', linewidth=0.3)
+# ax.plot([1,1],[0,0],[1,0], color='black', linewidth=0.3)
+# ax.plot([1,1],[0,1],[1,1], color='black', linewidth=0.3)
+# ax.plot([1,1],[1,1],[1,0], color='black', linewidth=0.3)
+# ax.plot([0,1],[1,1],[1,1], color='black', linewidth=0.3)
+# ax.plot([0,1],[1,1],[0,0], color='black', linewidth=0.3)
+# ax.plot([0,0],[1,1],[1,0], color='black', linewidth=0.3)
+# ax.plot([0,0],[1,0],[1,1], color='black', linewidth=0.3)
+# ax.plot([1,0],[0,0],[1,1], color='black', linewidth=0.3)
+# graphallgaugebond(downtetrahedron,ax)
+# temp = contract('ia,ar->ir',downtetrahedron,r)
+# hexa=np.array([temp[0]+monte_carlo.NN[3],temp[0]+monte_carlo.NN[2],temp[2]+monte_carlo.NN[0],temp[2]+monte_carlo.NN[3], temp[3]+monte_carlo.NN[2], temp[3]+monte_carlo.NN[0]])
+# plothexagon(hexa, ax)
+# ax.view_init(elev=18, azim=-93, roll=0)
 # ax.set_aspect('equal')
 # plt.show()
 # plt.savefig('test.pdf')
@@ -56,6 +81,7 @@ from observables import *
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux", "hk0", 0)
 
-findPhaseMag110(-0.1, 0, 300, 0, 1, 200, h110, 30, 2, "phase_110_kappa=2_zoomed_in")
+# findPhaseMag110(-0.5, 0.1, 300, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2")
 # findPhaseMag111(-0.5, 0.1, 300, 0, 0.7, 200, h111, 30, 2, "phase_111_kappa=2")
 # findPhaseMag111(-0.5, 0.1, 300, 0, 0.5, 200, h001, 30, 2, "phase_001_kappa=2")
+TwoSpinonDOS_111_a(50, 20, "h=0.3_2SPINONS")

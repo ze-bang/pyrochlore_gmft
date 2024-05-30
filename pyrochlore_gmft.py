@@ -490,15 +490,15 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                  A_pi_rs_traced_pp_here, unitcell)
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'b',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'b',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'b',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'b',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'b',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -511,7 +511,7 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     ax.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
 
-    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1*1.02, gX1, gGamma3]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     ax.set_xticks(xlabpos, labels)
     ax.set_xlim([0,gGamma3])
@@ -540,15 +540,15 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
                  A_pi_rs_traced_pp_here, unitcell)
 
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'b',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'b',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'b',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'b',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'b',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'b',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'b',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'b',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'b',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -561,7 +561,7 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     ax.axvline(x=gX1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gGamma3, color='w', label='axvline - full height', linestyle='dashed')
 
-    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1, gX1, gGamma3]
+    xlabpos = [gGamma1, gX, gW, gK, gGamma2, gL, gU, gW1*1.02, gX1, gGamma3]
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     ax.set_xticks(xlabpos, labels)
     ax.set_xlim([0,gGamma3])
@@ -886,6 +886,15 @@ class piFluxSolver:
         return np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
+    def E_pi_reduced(self, k):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        return np.sqrt(2 * self.Jzz *
+                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
+                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
 
 
     def dispersion(self, k):
@@ -1060,13 +1069,14 @@ class piFluxSolver:
         ffact = contract('ik, jk->ij', k, NN)
         ffact = np.exp(1j * ffact)
 
-        magp = np.real(contract('ku, ru, krx, urx->k', ffact,
+        magp = np.real(contract('ku, ru, krx, urx->ku', ffact,
                              np.exp(1j * self.A_pi_here), green[:, 0:4, 4:8], piunitcell))
         return magp
 
 
     def magnetization(self):
-        mag = np.abs(integrate(self.mag_integrand, self.pts, self.weights))/16
+        sz = integrate(self.mag_integrand, self.pts, self.weights)/4
+        mag = np.dot(contract('ua, u->a', z, sz), self.n)
         if self.condensed:
             mag = np.NAN
         return np.real(mag)

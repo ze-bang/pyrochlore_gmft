@@ -134,6 +134,7 @@ def telltime(sec):
 def gaussian(mu, tol):
     return np.exp(-np.power( - mu, 2) / (2 * np.power(tol, 2)))
 
+
 def cauchy(mu, tol):
     return tol/(mu**2+tol**2)/np.pi
 
@@ -185,7 +186,7 @@ def gNSF(v):
             M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
     return M
 
-NN = np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
+NN = -np.array([np.array([-1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, 1 / 4]), np.array([1 / 4, 1 / 4, -1 / 4])])
 
 
 NNminus = np.zeros((4,4,3), dtype=float)
