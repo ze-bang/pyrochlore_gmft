@@ -289,13 +289,16 @@ def regraphDSSF(dir):
         foldname = dir+dirs
         for files in os.listdir(foldname):
             if files.endswith('.txt'):
+                fig, axs = plt.subplots()
                 temp = foldname+'/'+files
                 d = np.loadtxt(temp)
                 d = d/np.max(d)
-                kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW1, graphW1X1, graphX1Gamma))
-                e = np.linspace(0,1,len(d))
-                X, Y = np.meshgrid(kline, e)
-                DSSFgraph(d.T, temp[:-4], X, Y)
+                a = pycon.piFluxSolver(-0.04, -0.04, 1, flux=np.zeros(4), h=h0, n=n)
+                a.solvemeanfield()
+                emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
+                c = axs.imshow(d.T / np.max(d), interpolation="lanczos", origin='lower',
+                                     extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
+                fig.colorbar(c, ax=axs)
 
 def regraphPhase(dir):
     for files in os.listdir(dir):
@@ -317,8 +320,6 @@ def regraphPhase(dir):
             plt.ylabel(r'$h/J_{yy}$')
             plt.savefig(temp[:-4] + '.pdf')
             plt.clf()
-
-
 def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     mpl.rcParams.update({'font.size': 22})
     plt.margins(x=0.04,y=0.04)
@@ -664,16 +665,34 @@ def phaseExGraph(filename):
 # print(ffact, zmag)
 # print('\n')
 # print(np.exp(1j*A_pi_here))
+# fig, axs = plt.subplots()
+# a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0, n=h110)
+# a.solvemeanfield()
+
+# emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
 #
+# d0 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/10.txt")
+# d1 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/11.txt")
+# d2 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/12.txt")
+# d3 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/13.txt")
+#
+# d = d0+d1+d2+d3
+# c = axs.imshow(d.T/np.max(d))
+# fig.colorbar(c)
+# plt.show()
+
 fig, axs = plt.subplots()
-Jpm=-0.1
-flux = np.zeros(4)
+Jpm=0.0
+# flux = np.zeros(4)
 flux = np.ones(4)*np.pi
-a = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,flux=flux, h=0.2, n=h001)
+# flux = np.array([0,0,np.pi,np.pi])
+a = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,flux=flux, h=0.2, n=h111)
 a.solvemeanfield()
-print(a.magnetization())
+print(a.magnetization(), a.GS())
 a.graph(axs)
 plt.show()
+#0.03270822529038331
+#0.23696352285562072
 #
 # fig, axs = plt.subplots()
 #

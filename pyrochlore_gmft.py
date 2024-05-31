@@ -644,14 +644,25 @@ def EMAX(M, lams):
     temp = np.amax(E)
     return temp
 
-def graphing_M_setup(flux):
+def graphing_M_setup(flux, n):
     if (flux == np.zeros(4)).all():
         unitCellgraph = np.array([[[1]],[[1]],[[1]],[[1]]])
         A_pi_here = np.array([[0,0,0,0]])
         unitcellCoord = np.array([[0,0,0]])
     elif (flux == np.pi*np.ones(4)).all():
         unitCellgraph = piunitcell
-        A_pi_here = A_pi
+        if (n==h111).all():
+            A_pi_here = A_pi
+        elif (n==h001).all():
+            A_pi_here = np.array([[0, 0, np.pi, 0],
+                             [0, np.pi, np.pi, 0],
+                             [0, np.pi, 0, 0],
+                             [0, 0, 0, 0]])
+        else:
+            A_pi_here = np.array([[0, 0, 0, np.pi],
+                             [0, np.pi, 0, np.pi],
+                             [0, np.pi, np.pi, np.pi],
+                             [0, 0, np.pi, np.pi]])
         unitcellCoord = np.array([[0, 0, 0],[0,1,0],[0,0,1],[0,1,1]])
     elif (flux == np.array([np.pi,np.pi,0,0])).all():
         unitCellgraph = np.array([[[1,0],
@@ -676,8 +687,8 @@ def graphing_M_setup(flux):
                                     [[0,1],
                                     [1,0]]
                             ])
-        A_pi_here = np.array([[0,0,0,0],
-                                [0,np.pi,np.pi,0]])
+        A_pi_here = np.array([[0,0,0,np.pi],
+                                [0,np.pi,np.pi,np.pi]])
         unitcellCoord = np.array([[0, 0, 0],[0,0,1]])
 
     # elif (flux == np.array([np.pi,0,0, np.pi])).all():
@@ -756,8 +767,15 @@ class piFluxSolver:
         self.rhos = np.zeros(16)
 
         self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
+        self.unitCellgraph = piunitcell
+        # self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+        # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+        #     self.A_pi_here)
+        # self.xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, self.unitcellCoord)
+        # self.chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, self.unitcellCoord)
+
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
 
     def findLambda(self):
@@ -770,7 +788,7 @@ class piFluxSolver:
     def findminLam(self):
         searchGrid=34
         B = genBZ(searchGrid)
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
         chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
@@ -800,9 +818,11 @@ class piFluxSolver:
 
     def solvemufield(self):
         self.findminLam()
+        A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux = determineEquivalence(self.n, self.flux)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                       self.A_pi_here,
-                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                       A_pi_here,
+                       A_pi_rs_traced_here, A_pi_rs_traced_pp_here, piunitcell)
         self.E, self.V = np.linalg.eigh(self.MF)
         self.lams = self.findLambda()
         return self.GS()
@@ -887,7 +907,7 @@ class piFluxSolver:
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
     def E_pi_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -931,16 +951,16 @@ class piFluxSolver:
             plt.show()
 
     def graph(self, axes):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
-                      A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, axes, unitCellgraph)
+        # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
+        # xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
+        # chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, axes, self.unitCellgraph)
 
 
     def minCal(self, K):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
         chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
@@ -950,7 +970,7 @@ class piFluxSolver:
                       xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
 
     def maxCal(self, K):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
         chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
@@ -972,7 +992,7 @@ class piFluxSolver:
     def TWOSPINON_DOMAIN(self):
         searchGrid=34
         B = genBZ(searchGrid)
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
         chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
@@ -984,7 +1004,7 @@ class piFluxSolver:
         return 2*mins, 2*maxs
 
     def graph_loweredge(self, show, ax=plt):
-        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -996,7 +1016,7 @@ class piFluxSolver:
         return min
 
     def graph_upperedge(self, show, ax=plt):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -1009,7 +1029,7 @@ class piFluxSolver:
 
 
     def loweredge(self):
-        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -1019,7 +1039,7 @@ class piFluxSolver:
         return min
 
     def upperedge(self):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -1039,7 +1059,7 @@ class piFluxSolver:
         return green_pi_branch(E, V, self.Jzz), E
 
     def green_pi_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -1050,7 +1070,7 @@ class piFluxSolver:
         return green_pi(E, V, self.Jzz)
 
     def green_pi_branch_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             A_pi_here)
         xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
@@ -1062,21 +1082,25 @@ class piFluxSolver:
 
     def mag_integrand(self, k):
         E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         E = np.sqrt(2 * self.Jzz * E)
         green = green_pi(E, V, self.Jzz)
 
         ffact = contract('ik, jk->ij', k, NN)
         ffact = np.exp(1j * ffact)
-
-        magp = np.real(contract('ku, ru, krx, urx->ku', ffact,
-                             np.exp(1j * self.A_pi_here), green[:, 0:4, 4:8], piunitcell))
-        return magp
+        l = len(self.A_pi_here)
+        zmag = contract('k,ik->i', self.n, z)
+        # magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
+        #              np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
+        # magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
+        #              np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
+        magp = contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l)
+        # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
+        return np.real(magp)/2
 
 
     def magnetization(self):
-        sz = integrate(self.mag_integrand, self.pts, self.weights)/4
-        mag = np.dot(contract('ua, u->a', z, sz), self.n)
-        if self.condensed:
-            mag = np.NAN
-        return np.real(mag)
+        sz = integrate(self.mag_integrand, self.pts, self.weights)
+        # zmag = contract('k,ik->i', self.n, z)
+        # mag = contract('ua, ru,a->r', z, sz, self.n)
+        return sz
