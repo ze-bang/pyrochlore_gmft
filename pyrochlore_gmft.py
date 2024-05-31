@@ -1101,6 +1101,6 @@ class piFluxSolver:
 
     def magnetization(self):
         sz = integrate(self.mag_integrand, self.pts, self.weights)
-        # zmag = contract('k,ik->i', self.n, z)
-        # mag = contract('ua, ru,a->r', z, sz, self.n)
+        if self.condensed==True:
+            return np.NaN
         return sz
