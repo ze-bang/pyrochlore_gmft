@@ -416,8 +416,8 @@ from matplotlib.colors import LogNorm
 #
 # a, b, c = 1, -1, 0
 # print(a*np.array([0,0.5,0.5])+b*np.array([0.5,0,0.5])+c*np.array([0.5,0.5,0]))
-a = 1
-print(isinstance(a, np.ndarray))
+# a = 1
+# print(isinstance(a, np.ndarray))
 # H = np.loadtxt("phase_110_kappa=2_mag.txt")
 #
 # plt.plot(H[200])
@@ -440,3 +440,73 @@ print(isinstance(a, np.ndarray))
 # plt.ylim([-2.5, 2.5])
 # plt.show()
 
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+
+def plot_truncated_octahedron():
+    # Define the vertices of a truncated octahedron
+    vertices = np.array([
+        [1, 1, 0],
+        [1, -1, 0],
+        [-1, 1, 0],
+        [-1, -1, 0],
+        [1, 0, 1],
+        [1, 0, -1],
+        [-1, 0, 1],
+        [-1, 0, -1],
+        [0, 1, 1],
+        [0, 1, -1],
+        [0, -1, 1],
+        [0, -1, -1]
+    ])
+
+    # Define the faces of the truncated octahedron
+    faces = [
+        [0, 4, 8],
+        [0, 5, 9],
+        [1, 4, 10],
+        [1, 5, 11],
+        [2, 6, 8],
+        [2, 7, 9],
+        [3, 6, 10],
+        [3, 7, 11],
+        [0, 1, 4],
+        [0, 1, 5],
+        [2, 3, 6],
+        [2, 3, 7],
+        [4, 6, 8],
+        [4, 6, 10],
+        [5, 7, 9],
+        [5, 7, 11],
+        [8, 9, 2],
+        [8, 9, 10],
+        [10, 11, 0],
+        [10, 11, 1]
+    ]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    poly3d = Poly3DCollection([vertices[face] for face in faces], facecolors='cyan', linewidths=1, edgecolors='r',
+                              alpha=.25)
+    ax.add_collection3d(poly3d)
+
+    ax.set_xlabel('kx')
+    ax.set_ylabel('ky')
+    ax.set_zlabel('kz')
+
+    max_lim = np.max(np.abs(vertices)) * 1.1
+    ax.set_xlim([-max_lim, max_lim])
+    ax.set_ylim([-max_lim, max_lim])
+    ax.set_zlim([-max_lim, max_lim])
+
+    plt.show()
+
+
+plot_truncated_octahedron()

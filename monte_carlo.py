@@ -295,16 +295,16 @@ def ordering_q(con, rcoord):
     return temp
 
 
-def plottetrahedron(x,y,z, ax, down=1, a=0.35, ap=1):
+def plottetrahedron(x,y,z, ax, down=1, a=0.3, ap=1):
     center = x*r[0]+y*r[1]+z*r[2]
     coords = center + down*NN
     if down==1:
-        c = (49/256, 76/256, 232/256)
+        c = (59/256, 137/256, 255/256)
     else:
         c = (42/256, 232/256, 137/256)
     ax.plot_trisurf(coords[:,0], coords[:,1], coords[:,2],triangles=[[0,1,2],[0,1,3],[0,2,3],[1,2,3]], edgecolor=[[0.1,0.1,0.1]], linewidth=1, alpha=a, shade=True, color=c)
-    center = center + down*np.array([1/4,1/4,1/4])/2
-    ax.scatter(center[0],center[1],center[2], color=c, s=60,alpha=ap)
+    # center = center + down*np.array([1/4,1/4,1/4])/2
+    # ax.scatter(coords[:,0],coords[:,1],coords[:,2], color='w', edgecolors='b', s=60,alpha=ap)
 
 def plottetrahedron_blank(x,y,z, ax, down=1):
     center = x*r[0]+y*r[1]+z*r[2]
@@ -345,8 +345,8 @@ def graphconfig(con):
     plt.show()
 
 
-def plothexagon(a, ax):
-    ax.plot_trisurf(a[:,0], a[:,1], a[:,2],triangles=[[0,1,2],[0,2,3],[0,3,4],[0,4,5]], linewidth=0, alpha=0.3, shade=True, color='r')
+def plothexagon(a, ax, color):
+    ax.plot_trisurf(a[:,0], a[:,1], a[:,2],triangles=[[0,1,2],[0,2,3],[0,3,4],[0,4,5]], linewidth=1, alpha=0.8, shade=False, color=color)
     # ax.scatter(a[:,0], a[:,1], a[:,2])
 def graphdownpyrochlore(con, ax):
     d = con.shape[0]
