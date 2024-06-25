@@ -800,12 +800,12 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS
             sendtemp3[i] = py0s.xi[0,0]
-            sendtemp4[i] = py0s.chi[0,0,0]
+            sendtemp4[i] = py0s.chi[0,0,0,0]
         else:
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GSp
             sendtemp3[i] = pyps.xi[0,0]
-            sendtemp4[i] = pyps.chi[0,0,0]
+            sendtemp4[i] = pyps.chi[0,0,0,0]
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))

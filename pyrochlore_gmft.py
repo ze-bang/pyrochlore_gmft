@@ -935,6 +935,7 @@ class piFluxSolver:
                  ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, nS=0):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
+        print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
         a = np.argmax(J)
         xx = np.mod(a-2,3)
         yy = np.mod(a-1,3)
