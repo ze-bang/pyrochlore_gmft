@@ -76,6 +76,7 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
         MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
         MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
 
+        # print(MAk.shape[1], MagAkBk.shape[1],MAdkAdnk.shape[1],dummy.shape[1])
         FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
                        [MagBkAk, MBk, dummy, MBdkBdnk],
                        [MAnkAk, dummy, MAnk, MagBnkAnk],
@@ -291,8 +292,10 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
-    lamMax = 10*np.ones(2)
+    lamMax = 2*lamMin
     lams = lamMax
+    # print(lams, lamMin, lamMax)
+    # rhoguess = rho_true(weights, E, lams, Jzz)
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
@@ -303,10 +306,12 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
                 lamMin = lams
             else:
                 lamMax = lams
-            if (abs(lamlast - lams) < 1e-15).all() or ((np.absolute(rhoguess - kappa) <= tol).all()):
+            if ((np.absolute(rhoguess - kappa) <= tol).all()):
                 break
         except:
             lamMin = lams
+        if (abs(lamlast - lams) < 1e-15).all():
+            break
     warnings.resetwarnings()
     return lams
 
@@ -319,15 +324,15 @@ def chi_integrand(k, E, V, Jzz, unitcell):
     ffact = contract('ik,jlk->ijl', k, NNminus)
     ffactB = np.exp(-1j * ffact)
     size = int(E.shape[1]/4)
-    B = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 3*size:4*size, size:2*size], ffactB, unitcell, unitcell, notrace)/size
+    B = contract('iab, ijl,jka, lkb->ikjl', green[:, 3*size:4*size, size:2*size], ffactB, unitcell, unitcell)/size
     ffactA = np.exp(1j * ffact)
-    A = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 2*size:3*size, 0:size], ffactA, unitcell, unitcell, notrace)/size
+    A = contract('iab, ijl,jka, lkb->ikjl', green[:, 2*size:3*size, 0:size], ffactA, unitcell, unitcell)/size
     return A, B
 
 def chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, nS):
     A, B = chi_integrand(pts, E, V, Jzz, unitcellGraph)
-    A = contract('ikjl,i', A, weights)
-    B = contract('ikjl,i', B, weights)
+    A = contract('ikjl,i->kjl', A, weights)
+    B = contract('ikjl,i->kjl', B, weights)
     M1 = chi_field(n, n1, n2, unitcellCoord, B[0], A[0], nS)
     return M1
 
@@ -979,7 +984,7 @@ class piFluxSolver:
         self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
         self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             self.A_pi_here)
-        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, np.ones(4), self.nS)
+        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.nS)
         self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.nS)
 
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
@@ -1036,35 +1041,50 @@ class piFluxSolver:
 
     def xiSubrountine(self, tol, GS):
         count = 0
+        print("Begin Xi Subroutine")
         while True:
             xilast, GSlast = np.copy(self.xi), GS
+            # print("Xi Mean Field Compute")
             self.xi = self.solvexifield()
+            # print("Solve mu field")
             GS = self.solvemufield()
-            print(self.xi[0], GS)
+            if np.abs(GS) > 1e5:
+                self.xi=xilast
+                print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+                return GSlast
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count >= 30:
                 break
+        print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS
 
     def chiSubrountine(self, tol, GS):
         count = 0
+        print("Begin Chi Subroutine")
         while True:
             chilast, GSlast = np.copy(self.chi), GS
+            # print("Chi Mean Field Compute")
             self.chi = self.solvechifield()
+            # print("Solve mu field")
             GS = self.solvemufield()
-            print(self.chi[0,0], GS)
+            if np.abs(GS) > 1e5:
+                self.chi=chilast
+                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+                return GSlast
+            # print(self.chi[0,0], GS)
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count >= 30:
                 break
+        print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS
 
     def solvemufield(self):
         self.findminLam()
-        A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux = determineEquivalence(self.n, self.flux)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
+        # A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux = determineEquivalence(self.n, self.flux)
+        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                       A_pi_here,
-                       A_pi_rs_traced_here, A_pi_rs_traced_pp_here, piunitcell)
+                       self.A_pi_here,
+                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
         self.lams = self.findLambda()
         return self.GS()
@@ -1075,24 +1095,26 @@ class piFluxSolver:
             self.xi = np.zeros((4,4))
             self.condensation_check()
         else:
+            print("Initialization Routine")
             self.findminLam()
             self.lams = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
             GS = self.solvemufield()
+            print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
             while True:
-                chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
+                chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 # self.chi, self.xi = self.calmeanfield()
                 # GS = self.solvemufield()
                 GS = self.xiSubrountine(tol,GS)
                 GS = self.chiSubrountine(tol, GS)
-                print(self.chi[0,0], self.xi[0], GS)
+                print(self.chi[0,0], self.xi[0], count)
                 count = count + 1
                 if ((abs(GS-GSlast) < tol).all()) or count >=10:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
-                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
         return 0
@@ -1116,7 +1138,10 @@ class piFluxSolver:
         # A = self.rho(self.minLams+1e-14)
         # self.condensed = A < self.kappa
         A = -self.minLams[0] + self.lams[0]
-        self.condensed = A < (deltamin /(self.BZres**3)) ** 2
+        if A < (deltamin /(self.BZres**3)) ** 2 or not (np.abs(self.chi)<=1e-5).all():
+            self.condensed = True
+        else:
+            self.condensed = False
 
     def set_delta(self):
         warnings.filterwarnings('error')
@@ -1143,7 +1168,7 @@ class piFluxSolver:
     def E_pi_mean(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
                                E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                                    self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0]), axis=1)
+                                    self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)[0]), axis=1)
 
     def E_pi(self, k):
         return np.sqrt(2 * self.Jzz *
@@ -1162,13 +1187,13 @@ class piFluxSolver:
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
-                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def LV_zero(self, k, lam=np.zeros(2)):
         if np.any(lam == 0):
             lam = self.lams
         return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def GS(self):
         return integrate(self.E_pi_mean, self.pts, self.weights) - self.kappa*self.lams[0]
