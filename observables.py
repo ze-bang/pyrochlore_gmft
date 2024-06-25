@@ -58,11 +58,11 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(1j * ffact)
-    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
                    ffactpm) / 64
 
-    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / 64
     if not pyp0.Jpmpm == 0:
@@ -242,14 +242,14 @@ def DSSF_core_pedantic(q, omega, pyp0, tol):
     Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
-    Sxx = (np.real(Spm) - np.real(Spp)) / 2
+    # Sxx = (np.real(Spm) - np.real(Spp)) / 2
 
-    Sglobalzz = contract('wijk,jk, i->wjk', Szz, g(q), pyp0.weights)
+    # Sglobalzz = contract('wijk,jk, i->wjk', Szz, g(q), pyp0.weights)
     Szz = contract('wijk, i->wjk', Szz, pyp0.weights)
 
-    Sglobalxx = contract('wijk,jk, i->wjk', Sxx, gx(q), pyp0.weights)
-    Sxx = contract('wijk, i->wjk', Sxx, pyp0.weights)
-    return Szz, Sglobalzz, Sxx, Sglobalxx
+    # Sglobalxx = contract('wijk,jk, i->wjk', Sxx, gx(q), pyp0.weights)
+    # Sxx = contract('wijk, i->wjk', Sxx, pyp0.weights)
+    return Szz
 def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
     n = len(K) / size
@@ -260,37 +260,39 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
     currsize = right - left
 
     sendtemp = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
-    sendtemp1 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
-    sendtemp2 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
-    sendtemp3 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
+    # sendtemp1 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
+    # sendtemp2 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
+    # sendtemp3 = np.zeros((currsize, len(E), 4 ,4), dtype=np.float64)
 
     currK = K[left:right]
 
     rectemp = None
-    rectemp1 = None
-    rectemp2 = None
-    rectemp3 = None
+    # rectemp1 = None
+    # rectemp2 = None
+    # rectemp3 = None
 
     if rank == 0:
         rectemp = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
-        rectemp1 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
-        rectemp2 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
-        rectemp3 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
+        # rectemp1 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
+        # rectemp2 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
+        # rectemp3 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
 
     for i in range(currsize):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol)
+        # sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol)
+        sendtemp[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1]*16, 0))
-    sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1]*16, 0))
-    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1]*16, 0))
-    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1]*16, 0))
+    # sendcounts1 = np.array(comm.gather(sendtemp1.shape[0] * sendtemp1.shape[1]*16, 0))
+    # sendcounts2 = np.array(comm.gather(sendtemp2.shape[0] * sendtemp2.shape[1]*16, 0))
+    # sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1]*16, 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
-    comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
-    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
-    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    # comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
+    # comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    # comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
-    return rectemp, rectemp1, rectemp2, rectemp3
+    # return rectemp, rectemp1, rectemp2, rectemp3
+    return rectemp
 
 
 # endregion
@@ -1362,41 +1364,42 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, kk, tol, rank, size)
+    # d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, kk, tol, rank, size)
+    d1= graph_DSSF_pedantic(py0s, e, kk, tol, rank, size)
 
     if rank == 0:
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
         f1 = filename + "/Szz/"
-        f2 = filename + "/Szzglobal/"
-        f3 = filename + "/Sxx/"
-        f4 = filename + "/Sxxglobal/"
+        # f2 = filename + "/Szzglobal/"
+        # f3 = filename + "/Sxx/"
+        # f4 = filename + "/Sxxglobal/"
         pathlib.Path(f1).mkdir(parents=True, exist_ok=True)
-        pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
-        pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
-        pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
+        # pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
+        # pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
+        # pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
         kline = np.concatenate((graphGammaX, graphXW, graphWK, graphKGamma, graphGammaL, graphLU, graphUW1, graphW1X1, graphX1Gamma))
 
 
         Szz = contract('iwjk->iw', d1)
-        Szzglobal = contract('iwjk->iw', d2)
-        Sxx = contract('iwjk->iw', d3)
-        Sxxglobal = contract('iwjk->iw', d4)
+        # Szzglobal = contract('iwjk->iw', d2)
+        # Sxx = contract('iwjk->iw', d3)
+        # Sxxglobal = contract('iwjk->iw', d4)
 
         np.savetxt(filename+"Szz.txt", Szz)
-        np.savetxt(filename+"Szzglobal.txt", Szzglobal)
-        np.savetxt(filename+"Sxx.txt", Sxx)
-        np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
+        # np.savetxt(filename+"Szzglobal.txt", Szzglobal)
+        # np.savetxt(filename+"Sxx.txt", Sxx)
+        # np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
 
         DSSFgraph_pedantic(Szz/np.max(Szz), filename+"Szz", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
+        # DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
+        # DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
+        # DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
 
 
         pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.max(Szz))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.max(Sxx))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
+        # pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
+        # pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.max(Sxx))
+        # pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))

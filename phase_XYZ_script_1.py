@@ -5,11 +5,10 @@ import time
 from observables import *
 
 Jpm = -0.03
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0", "hnhl")
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi", "hnhl")
-SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.03_00pp", "hnhl")
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0", "hnhl")
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi", "hnhl")
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.03_00pp", "hnhl")
 
-<<<<<<< HEAD
 DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03_0")
 DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03_00pp")
 DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
@@ -25,8 +24,3 @@ DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.ones(4)*np.pi, 30,
 # SSSF(100, 0.063, 0.062, 0.011, 0, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0_hhl', "hhl")
 # SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.1_hhl', "hhl")
 # SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.2, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.2_hhl', "hhl")
-=======
-# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03_0")
-# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03_00pp")
-# DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.03_pi")
->>>>>>> 3ba3618cd8a7545c8913cb413fd8d86dee0d6642
