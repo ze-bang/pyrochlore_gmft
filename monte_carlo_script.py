@@ -2,7 +2,7 @@ import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 # import monte_carlo
 from monte_carlo import *
-# from phase_diagram import *
+from phase_diagram import *
 # from observables import *
 # scan_all(h111, 2)
 # scan_all(h110, 2)
@@ -92,7 +92,9 @@ plt.show()
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux", "hk0", 0)
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux", "hk0", 0)
 
-findPhaseMag110(-0.5, 0.1, 300, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2")
-findPhaseMag111(-0.5, 0.1, 300, 0, 0.7, 200, h111, 30, 2, "phase_111_kappa=2")
-findPhaseMag111(-0.5, 0.1, 300, 0, 0.5, 200, h001, 30, 2, "phase_001_kappa=2")
+# findPhaseMag110(-0.5, 0.1, 300, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2")
+# findPhaseMag111(-0.5, 0.1, 300, 0, 0.7, 200, h111, 30, 2, "phase_111_kappa=2")
+# findPhaseMag111(-0.5, 0.1, 300, 0, 0.5, 200, h001, 30, 2, "phase_001_kappa=2")
 # TwoSpinonDOS_111_a(50, 20, "h=0.3_2SPINONS")
+
+findXYZPhase(-0.5, 1, -0.5, 1, 100, 30, 2, "phase_XYZ_0_field")
