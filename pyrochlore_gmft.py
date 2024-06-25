@@ -959,9 +959,9 @@ class piFluxSolver:
             xilast, GSlast = np.copy(self.xi), GS
             self.xi = self.solvexifield()
             GS = self.solvemufield()
-            print(self.xi[0], GS)
+            # print(self.xi[0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 100:
+            if ((abs(GS - GSlast) < tol).all()) or count >= 30:
                 break
         return GS
 
@@ -971,9 +971,9 @@ class piFluxSolver:
             chilast, GSlast = np.copy(self.chi), GS
             self.chi = self.solvechifield()
             GS = self.solvemufield()
-            print(self.chi[0,0], GS)
+            # print(self.chi[0,0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 100:
+            if ((abs(GS - GSlast) < tol).all()) or count >= 30:
                 break
         return GS
 
@@ -1005,9 +1005,9 @@ class piFluxSolver:
                 # GS = self.solvemufield()
                 GS = self.xiSubrountine(tol,GS)
                 GS = self.chiSubrountine(tol, GS)
-                print(self.chi[0,0], self.xi[0], GS)
+                # print(self.chi[0,0], self.xi[0], GS)
                 count = count + 1
-                if ((abs(GS-GSlast) < tol).all()) or count >=100:
+                if ((abs(GS-GSlast) < tol).all()) or count >=10:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
