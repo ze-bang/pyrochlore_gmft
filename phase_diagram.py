@@ -790,9 +790,9 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
-        py0s = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
         py0s.solvemeanfield()
-        pyps = pycon.piFluxSolver(currJH[i][0], currJH[i][1], 1, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+        pyps = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         pyps.solvemeanfield()
         GS = py0s.MFE()
         GSp = pyps.MFE()
