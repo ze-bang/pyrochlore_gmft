@@ -833,8 +833,8 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
 
         graphMagPhase(JP, JP1, rectemp, 'Files/' + filename)
         graphColorMesh(JP, JP1, rectemp2,'Files/' + filename + '_MFE')
-        graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_lam')
-        graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_mag')
+        graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_xi')
+        graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
 
 #endregion
 
