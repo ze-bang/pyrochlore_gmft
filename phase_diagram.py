@@ -776,18 +776,18 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.complex128)
-    sendtemp4 = np.zeros(currsizeK, dtype=np.complex128)
+    # sendtemp4 = np.zeros(currsizeK, dtype=np.complex128)
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
-    rectemp4 = None
+    # rectemp4 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.complex128)
-        rectemp4 = np.zeros(le, dtype=np.complex128)
+        # rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
@@ -800,33 +800,33 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS
             sendtemp3[i] = py0s.xi[0,0]
-            sendtemp4[i] = py0s.chi[0,0,0,0]
+            # sendtemp4[i] = py0s.chi[0,0,0,0]
         else:
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GSp
             sendtemp3[i] = pyps.xi[0,0]
-            sendtemp4[i] = pyps.chi[0,0,0,0]
+            # sendtemp4[i] = pyps.chi[0,0,0,0]
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
-    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
+    # sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
-    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    # comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
 
     if rank == 0:
         rectemp = rectemp.reshape((nK,nK))
         rectemp2 = rectemp2.reshape((nK,nK))
         rectemp3 = rectemp3.reshape((nK,nK))
-        rectemp4 = rectemp4.reshape((nK,nK))
+        # rectemp4 = rectemp4.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
-        np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
+        # np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
 
         JP = np.linspace(JPm, JPmax, nK)
         JP1 = np.linspace(JP1m, JP1max, nK)
@@ -834,7 +834,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         graphMagPhase(JP, JP1, rectemp, 'Files/' + filename)
         graphColorMesh(JP, JP1, rectemp2,'Files/' + filename + '_MFE')
         graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_xi')
-        graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
+        # graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
 
 #endregion
 

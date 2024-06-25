@@ -1109,7 +1109,7 @@ class piFluxSolver:
                 # GS = self.solvemufield()
                 GS = self.xiSubrountine(tol,GS)
                 GS = self.chiSubrountine(tol, GS)
-                print(self.chi[0,0], self.xi[0], count)
+                print("Iteration #"+str(count))
                 count = count + 1
                 if ((abs(GS-GSlast) < tol).all()) or count >=10:
                     break
@@ -1118,6 +1118,7 @@ class piFluxSolver:
                            self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
+            print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
         return 0
 
     def ifcondense(self):
