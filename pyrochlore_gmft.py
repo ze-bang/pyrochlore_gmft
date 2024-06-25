@@ -751,7 +751,7 @@ def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0):
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
         if (n==h110).all():
-            mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n2*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n2*np.pi*unitcellcoord[i,2])), xi0[3]*np.exp(1j*n2*np.pi)])
+            mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n2*np.pi*unitcellcoord[i,2])), xi0[2]*np.exp(1j*(n2*np.pi*unitcellcoord[i,2])), xi0[0]])
         elif (n==h111).all():
             mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[1]])
         else:
