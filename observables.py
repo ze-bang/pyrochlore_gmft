@@ -131,14 +131,17 @@ def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol):
     pyp0.solvemeanfield()
     Ks = pyp0.pts
     Ek = pyp0.E_pi_reduced(Ks)
-    A = np.zeros((len(Ks),len(E)))
-    for i in range(len(Ks)):
-        # Qs = Ks - Ks[i]
-        # Eq = pyp0.E_pi_reduced(Qs)
-        Eq = np.roll(Ek, i, axis=0)
-        A[i] = contract('iwjk->w', deltas(Ek, Eq, E, tol))
-    A = np.mean(A,axis=0)
-    return A/np.linalg.norm(A)
+    size = Ek.shape[1]
+    omsize = len(E)
+    Ekenlarged = contract('ik,w->iwk', Ek, np.ones(omsize))
+    omegaenlarged = contract('i, w, k->iwk', np.ones(len(Ek)), E, np.ones(size))
+    A = contract('iwk->w',cauchy(omegaenlarged-Ekenlarged, tol))
+    A = np.convolve(A, A)
+    A = A/np.linalg.norm(A)
+    # plt.plot(A)
+    # plt.yscale("log")
+    # plt.show()
+    return A
 def graph_2S_rho_dumb(E, Jpm, h, hn, flux, BZres, tol, rank, size):
     comm = MPI.COMM_WORLD
     if isinstance(Jpm, np.ndarray):
@@ -183,26 +186,31 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
     comm = MPI.COMM_WORLD
     n = len(h) / size
 
-    if (hn==h111).all():
-        change = 0.33
-    elif (hn==h001).all():
-        change = 0.17
-    else:
-        change = 0.2
+    if Jpm == -0.03:
+        if (hn==h111).all():
+            change = 0.33
+        elif (hn==h001).all():
+            change = 0.17
+        else:
+            change = 0.2
 
     left = int(rank * n)
     right = int((rank + 1) * n)
 
     currsize = right - left
-    sendtemp = np.zeros((currsize, len(E)), dtype=np.float64)
+    sendtemp = np.zeros((currsize, 2*len(E)-1), dtype=np.float64)
     currK = h[left:right]
     rectemp = None
     if rank == 0:
-        rectemp = np.zeros((len(h), len(E)), dtype=np.float64)
+        rectemp = np.zeros((len(h), 2*len(E)-1), dtype=np.float64)
     for i in range(currsize):
-        if currK[i] > change:
+        if Jpm == -0.3:
+            flux = np.ones(4) * np.pi
+        elif Jpm == 0.03:
+            flux = np.zeros(4)
+        elif currK[i] > change:
             if (hn==h110).all():
-                flux = np.array([0,0,np.pi.np.pi])
+                flux = np.array([0,0,np.pi,np.pi])
             else:
                 flux = np.zeros(4)
         else:
@@ -1223,8 +1231,8 @@ def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
 def TwoSpinonDOS_111(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
-    E = np.linspace(0, 2, 200)
-    tol = 2/200
+    E = np.linspace(0.2, 0.9, 200)
+    tol = 1/200
     h = np.linspace(0,0.5,nH)
     Jpm=-0.03
     hn = h111
@@ -1246,9 +1254,9 @@ def TwoSpinonDOS_111(nH, BZres, filename):
 def TwoSpinonDOS_001(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
-    E = np.linspace(0, 2, 200)
-    tol = 2/200
-    h = np.linspace(0,0.22,nH)
+    E = np.linspace(0.3, 0.8, 200)
+    tol = 1/200
+    h = np.linspace(0.0,0.22,nH)
     Jpm=-0.03
     hn = h001
     comm = MPI.COMM_WORLD
@@ -1263,16 +1271,64 @@ def TwoSpinonDOS_001(nH, BZres, filename):
         plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.22, 0, 2], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
-        plt.savefig(filename+ ".pdf")
+        plt.savefig(filename)
         plt.clf()
-
 def TwoSpinonDOS_110(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
-    E = np.linspace(0, 2, 200)
-    tol = 2/200
-    h = np.linspace(0,0.5,nH)
+    E = np.linspace(0.22, 0.8, 200)
+    tol = 1/200
+    h = np.linspace(0.0,0.3,nH)
     Jpm=-0.03
+    hn = h110
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
+
+    if rank == 0:
+        f1 = filename
+        np.savetxt(f1 + ".txt", d1)
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.3, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.ylabel(r'$\omega/J_{yy}$')
+        plt.xlabel(r'$h/J_{yy}$')
+        plt.savefig(filename)
+        plt.clf()
+
+
+def TwoSpinonDOS_111_a(nH, BZres, filename):
+    if not MPI.Is_initialized():
+        MPI.Init()
+    start = 0.25
+    end = 0.9
+    E = np.linspace(start, end, 200)
+    tol = (end-start)/200
+    h = np.linspace(0,0.4,nH)
+    Jpm=0.03
+    hn = h111
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
+
+    if rank == 0:
+        f1 = filename
+        np.savetxt(f1 + ".txt", d1)
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.4, start*2, end*2], aspect='auto', cmap='gnuplot')
+        plt.ylabel(r'$\omega/J_{yy}$')
+        plt.xlabel(r'$h/J_{yy}$')
+        plt.savefig(filename)
+        plt.clf()
+        # DSSFgraph(d1.T, f1, X, Y)
+def TwoSpinonDOS_001_a(nH, BZres, filename):
+    if not MPI.Is_initialized():
+        MPI.Init()
+    E = np.linspace(0, 1.5, 200)
+    tol = 1.5/200
+    h = np.linspace(0,0.1,nH)
+    Jpm=-0.3
     hn = h001
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
@@ -1283,33 +1339,57 @@ def TwoSpinonDOS_110(nH, BZres, filename):
     if rank == 0:
         f1 = filename
         np.savetxt(f1 + ".txt", d1)
-        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.1, 0, 3], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
-        plt.savefig(filename+ ".pdf")
+        plt.savefig(filename)
         plt.clf()
-
-def TwoSpinonDOS_111_a(nH, BZres, filename):
+def TwoSpinonDOS_110_a(nH, BZres, filename):
     if not MPI.Is_initialized():
         MPI.Init()
-    E = np.linspace(0, 2.5, 250)
-    tol = 2/200
-    h = 0.3
-    Jpm= np.linspace(-0.3,0.04,nH)
+    E = np.linspace(0, 1.5, 200)
+    tol = 1/200
+    h = np.linspace(0.0,0.23,nH)
+    Jpm=-0.3
+    hn = h110
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
+
+    if rank == 0:
+        f1 = filename
+        np.savetxt(f1 + ".txt", d1)
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.23, 0, 3], aspect='auto', cmap='gnuplot')
+        plt.ylabel(r'$\omega/J_{yy}$')
+        plt.xlabel(r'$h/J_{yy}$')
+        plt.savefig(filename)
+        plt.clf()
+
+def TwoSpinonDOS_111_b(nH, BZres, filename):
+    if not MPI.Is_initialized():
+        MPI.Init()
+    E = np.linspace(0, 1, 200)
+    tol = 1/200
+    h = np.linspace(0,0.4,nH)
+    Jpm=0.03
     hn = h111
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1 = graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol)
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
 
     if rank == 0:
-        f1 = filename + "two_spinon_DOS_111"
+        f1 = filename
         np.savetxt(f1 + ".txt", d1)
-        X, Y = np.meshgrid(Jpm, E)
-        DSSFgraph(d1.T, f1, X, Y)
-
-
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.4, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.ylabel(r'$\omega/J_{yy}$')
+        plt.xlabel(r'$h/J_{yy}$')
+        plt.savefig(filename)
+        plt.clf()
+        # DSSFgraph(d1.T, f1, X, Y)
 def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge, dmax):
     for i in range(4):
         for j in range(4):

@@ -1,5 +1,6 @@
 import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import numba as nb
 from opt_einsum import contract
@@ -81,7 +82,6 @@ Gamma = np.array([0, 0, 0])
 K = np.array([-0.375, 0.375, 0])
 W = np.array([-0.25, 0.5, 0.25])
 X = np.array([0, 0.5, 0.5])
-
 L = np.array([1, 1, 1])/2
 U = np.array([0.625, 0.625, 0.25])
 W1 = np.array([0.75, 0.5, 0.25])
@@ -509,6 +509,88 @@ def genALLSymPointsBare():
     d = 9 * 1j
     b = np.mgrid[0:1:d, 0:1:d, 0:1:d].reshape(3, -1).T
     return b
+GammaALL = np.array([0, 0, 0])
+KALL = np.array([[0.375, 0.375, 0],
+                 [0.375, 0, 0.375],
+                 [0, 0.375, 0.375],
+                 [-0.375, 0.375, 0],
+                 [-0.375, 0, 0.375],
+                 [0, -0.375, 0.375],
+                 [0.375, -0.375, 0],
+                 [0.375, 0, -0.375],
+                 [0, 0.375, -0.375],
+                 [-0.375, -0.375, 0],
+                 [-0.375, 0, -0.375],
+                 [0, -0.375, -0.375]])
+XALL = np.array([[0, 0.5, 0.5],
+                 [0.5, 0, 0.5],
+                 [0.5, 0.5, 0],
+                 [0, -0.5, 0.5],
+                 [-0.5, 0, 0.5],
+                 [-0.5, 0.5, 0],
+                 [0, 0.5, -0.5],
+                 [0.5, 0, -0.5],
+                 [0.5, -0.5, 0],
+                 [0, -0.5, -0.5],
+                 [-0.5, 0, -0.5],
+                 [-0.5, -0.5, 0]])
+WALL = np.array([[0.25, 0.25, 0.5],
+                 [0.25, 0.5, 0.25],
+                 [0.5, 0.25, 0.25],
+                 [-0.25, 0.25, 0.5],
+                 [-0.25, 0.5, 0.25],
+                 [-0.5, 0.25, 0.25],
+                 [0.25, -0.25, 0.5],
+                 [0.25, -0.5, 0.25],
+                 [0.5, -0.25, 0.25],
+                 [0.25, 0.25, -0.5],
+                 [0.25, 0.5, -0.25],
+                 [0.5, 0.25, -0.25],
+                 [-0.25, -0.25, 0.5],
+                 [-0.25, -0.5, 0.25],
+                 [-0.5, -0.25, 0.25],
+                 [0.25, -0.25, -0.5],
+                 [0.25, -0.5, -0.25],
+                 [0.5, -0.25, -0.25],
+                 [-0.25, 0.25, -0.5],
+                 [-0.25, 0.5, -0.25],
+                 [-0.5, 0.25, -0.25],
+                 [-0.25, -0.25, -0.5],
+                 [-0.25, -0.5, -0.25],
+                 [-0.5, -0.25, -0.25]])
+LALL = np.array([[1, 1, 1],
+                 [-1, 1, 1],
+                 [1, -1, 1],
+                 [1, 1, -1],
+                 [-1, -1, 1],
+                 [-1, 1, -1],
+                 [1, -1, -1],
+                 [-1, -1, -1]])/2
+UALL = np.array([[0.625, 0.625, 0.25],
+                 [0.625, 0.25, 0.625],
+                 [0.25, 0.625, 0.625],
+                 [-0.625, 0.625, 0.25],
+                 [-0.625, 0.25, 0.625],
+                 [-0.25, 0.625, 0.625],
+                 [0.625, -0.625, 0.25],
+                 [0.625, -0.25, 0.625],
+                 [0.25, -0.625, 0.625],
+                 [0.625, 0.625, -0.25],
+                 [0.625, 0.25, -0.625],
+                 [0.25, 0.625, -0.625],
+                 [-0.625, -0.625, 0.25],
+                 [-0.625, -0.25, 0.625],
+                 [-0.25, -0.625, 0.625],
+                 [-0.625, 0.625, -0.25],
+                 [-0.625, 0.25, -0.625],
+                 [-0.25, 0.625, -0.625],
+                 [0.625, -0.625, -0.25],
+                 [0.625, -0.25, -0.625],
+                 [0.25, -0.625, -0.625],
+                 [-0.625, -0.625, -0.25],
+                 [-0.625, -0.25, -0.625],
+                 [-0.25, -0.625, -0.625]])
+
 @nb.njit
 def equi_class_111(K1, K2):
     if (K1 == K2).all() or (K1 == np.array([K2[2], K2[0], K2[1]])).all() or (K1 == np.array([K2[1], K2[2], K2[0]])).all()\
@@ -698,9 +780,6 @@ def genALLSymPoints():
     d = 9 * 1j
     b = np.mgrid[-2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d, -2*np.pi:2*np.pi:d].reshape(3, -1).T
     return b
-
-symK = genALLSymPoints()
-
 def phase0(lams, minLams, pi):
     lamA, lamB = lams
     if np.all(lams < minLams):
@@ -1069,4 +1148,92 @@ def chi_mean_field(n, chi, n1, n2, n3, n4, n5, unitcellCoord):
         return chi_mean_field_111(chi, n1, n5, unitcellCoord)
     else:
         return chi_mean_field_001(chi, n1, n2, n4, n5, unitcellCoord)
+asize = 100
+def plthhlfBZ(ax):
+    Gamma = np.array([[0,0]])
+    K = np.array([[3/4,0]])
+    L = np.array([[0.5,0.5]])
+    U = np.array([[1/4,1]])
+    X = np.array([[0,1]])
+    ax.scatter(Gamma[:,0], Gamma[:,1], zorder=10,s=asize)
+    ax.scatter(K[:,0], K[:,1], zorder=10,s=asize)
+    ax.scatter(U[:,0], U[:,1], zorder=10,s=asize)
+    ax.scatter(L[:,0], L[:,1], zorder=10,s=asize)
+    ax.scatter(X[:,0], X[:,1], zorder=10,s=asize)
+    ax.text(Gamma[:,0]+0.05, Gamma[:,1]+0.05, r'$\Gamma$', zorder=10, color="w")
+    ax.text(K[:,0]+0.05, K[:,1]+0.05, r'$K$', zorder=10, color="w")
+    ax.text(U[:,0]+0.05, U[:,1]+0.05, r'$U$', zorder=10, color="w")
+    ax.text(L[:,0]+0.05, L[:,1]+0.05, r'$L$', zorder=10, color="w")
+    ax.text(X[:,0], X[:,1]+0.05, r'$X$', zorder=10, color="w")
+    BZ = np.array([[3/4,0],
+                   [1/4,1],
+                   [-1/4,1],
+                   [-3/4,0],
+                   [-1/4,-1],
+                   [1/4,-1],
+                   [3/4,0]])
+    ax.plot(BZ[:,0], BZ[:,1], '--', zorder=9, color='w')
+def plthk0fBZ(ax):
+    Gamma = np.array([[0,0]])
+    K = np.array([[3/4,3/4]])
+    W = np.array([[1/2, 1]])
+    X = np.array([[0,1]])
+    ax.scatter(Gamma[:,0], Gamma[:,1], zorder=10,s=asize)
+    ax.scatter(K[:,0], K[:,1], zorder=10,s=asize)
+    ax.scatter(W[:,0], W[:,1], zorder=10,s=asize)
+    ax.scatter(X[:,0], X[:,1], zorder=10,s=asize)
+    ax.text(Gamma[:,0]+0.05, Gamma[:,1]+0.05, r'$\Gamma$', zorder=10, color="w")
+    ax.text(K[:,0]+0.05, K[:,1]+0.05, r'$K$', zorder=10, color="w")
+    ax.text(W[:,0]+0.05, W[:,1]+0.05, r'$W$', zorder=10, color="w")
+    ax.text(X[:,0]+0.05, X[:,1]+0.05, r'$X$', zorder=10, color="w")
+    BZ = np.array([[1,0.5],
+                   [0.5,1],
+                   [-0.5,1],
+                   [-1,0.5],
+                   [-1,-0.5],
+                   [-0.5,-1],
+                   [0.5,-1],
+                   [1,-0.5],
+                   [1,0.5]])
+    ax.plot(BZ[:,0], BZ[:,1], '--', zorder=9, color='w')
 
+def plthh2kfBZ(ax):
+    return 0
+    # Gamma = np.array([[0,0]])
+    # K = np.array([[3/4,0]])
+    # X = np.array([[0.5,0.5]])
+    # ax.scatter(Gamma[:,0], Gamma[:,1], zorder=10,s=asize)
+    # ax.scatter(K[:,0], K[:,1], zorder=10)
+    # # ax.scatter(W[:,0], W[:,1], zorder=10)
+    # ax.scatter(X[:,0], X[:,1], zorder=10)
+    # # ax.scatter(U[:,0], U[:,1], zorder=10)
+    # # ax.scatter(L[:,0], L[:,1], zorder=10)
+    # ax.text(Gamma[:,0]+0.05, Gamma[:,1]+0.05, r'$\Gamma$')
+    # ax.text(K[:,0]+0.05, K[:,1]+0.05, r'$K$')
+    # ax.text(X[:,0]+0.05, X[:,1]+0.05, r'$X$')
+    # BZ = np.array([[3/4,0],
+    #                [1/3,1/3],
+    #                [-1/3,1/3],
+    #                [-3/4,0],
+    #                [-1/3,-1/3],
+    #                [1/3,-1/3],
+    #                [3/4,0]])
+    #
+    # ax.plot(BZ[:,0], BZ[:,1], '--', zorder=9, color='w')
+
+def plt1dhhlfBZ(ax):
+    Gamma = np.array([[0,0],[2,0],[-2,0]])
+    K = np.array([[1,0],[-1,0]])
+    ax.scatter(Gamma[:,0], Gamma[:,1], zorder=10,s=100)
+    ax.scatter(K[:,0], K[:,1], zorder=10,s=100)
+    ax.text(np.array([0.05]), np.array([0.05]), r'$\Gamma_\beta$', zorder=10, color="w")
+    ax.text(np.array([1.05]), np.array([0.05]), r'$K_\beta$', zorder=10, color="w")
+    ax.axvline(x=1, color='w', label='axvline - full height', linestyle='dashed')
+    ax.axvline(x=-1, color='w', label='axvline - full height', linestyle='dashed')
+
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# plthh2kfBZ(ax)
+# plt.xlim([-3,3])
+# plt.ylim([-3,3])
+# plt.show()

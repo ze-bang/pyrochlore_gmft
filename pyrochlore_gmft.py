@@ -37,8 +37,8 @@ def M_pi_sub_pairing_AA(k, alpha, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=p
     di = np.identity(unitcell.shape[1])
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * neta(alpha) * ffact)
-    tempchi0 = chi[:,0,0]
-    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi, d, di)
+    tempchi0 = chi[1-alpha, :,0,0]
+    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi[1-alpha], d, di)
     M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
                   unitcell)
     return M1 + M2
@@ -78,8 +78,8 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
 
         FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
                        [MagBkAk, MBk, dummy, MBdkBdnk],
-                       [MAnkAk, dummy, MAnk, MagAnkBnk],
-                       [dummy, MBnkBk, MagBnkAnk, MBnk]])
+                       [MAnkAk, dummy, MAnk, MagBnkAnk],
+                       [dummy, MBnkBk, MagAnkBnk, MBnk]])
 
     return FM
 
@@ -314,32 +314,55 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
 
 #region Mean field calculation
 
-def chi_integrand(k, E, V, Jzz):
+def chi0_integrand(k, E, V, Jzz, unitcell):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jlk->ijl', k, NNminus)
     ffactB = np.exp(-1j * ffact)
-    A = contract('iab, ijl,jka, lkb->kjil', green[:, 12:16, 4:8], ffactB, piunitcell, piunitcell)
-    return A
-
-def chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord):
-    M = integrate_fixed(chi_integrand, weights, pts, E, V, Jzz)
-    M1 = chi_mean_field(n, M[0], n1, n2, n3, n4, n5, unitcellCoord)
+    size = int(E.shape[1]/4)
+    B = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 3*size:4*size, size:2*size], unitcell, unitcell, notrace)
+    ffactA = np.exp(1j * ffact)
+    A = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 2*size:3*size, 0:size], unitcell, unitcell, notrace)
+    return A, B
+def chi0Cal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph):
+    A, B = chi0_integrand(pts, E, V, Jzz, unitcellGraph)
+    A = contract('ikjl,i', A, weights)
+    B = contract('ikjl,i', B, weights)
+    M1 = chi_w_field_Octu(n, n1, n2, unitcellCoord, B[0], A[0])
     return M1
 
-def xi_integrand(k, E, V, Jzz):
+def chi_integrand(k, E, V, Jzz, unitcell):
+    green = green_pi(E, V, Jzz)
+    ffact = contract('ik,jlk->ijl', k, NNminus)
+    ffactB = np.exp(-1j * ffact)
+    size = int(E.shape[1]/4)
+    B = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 3*size:4*size, size:2*size], ffactB, unitcell, unitcell, notrace)/size
+    ffactA = np.exp(1j * ffact)
+    A = contract('iab, ijl,jka, lkb, jl->ikjl', green[:, 2*size:3*size, 0:size], ffactA, unitcell, unitcell, notrace)/size
+    return A, B
+
+def chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph):
+    A, B = chi_integrand(pts, E, V, Jzz, unitcellGraph)
+    A = contract('ikjl,i', A, weights)
+    B = contract('ikjl,i', B, weights)
+    M1 = chi_w_field_Octu(n, n1, n2, unitcellCoord, B[0], A[0])
+    return M1
+
+def xi_integrand(k, E, V, Jzz, unitcellGraph):
     green = green_pi(E, V, Jzz)
     ffact = contract('ik,jk->ij', k, NN)
     ffactA = np.exp(1j * ffact)
-    A = contract('ika, ij,jka->kij', green[:, 0:4, 4:8], ffactA, piunitcell)
+    size = int(E.shape[1]/4)
+    A = contract('ika, ij,jka->kij', green[:, 0:size, size:2*size], ffactA, unitcellGraph)/size
     return A
-def xiCal(E, V, Jzz, n, n1, n2, n4, n5, pts, weights, unitcellCoord):
-    M = integrate_fixed(xi_integrand, weights, pts, E, V, Jzz)
-    M1 = xi_mean_field(n, M, n1, n2, n4, n5, unitcellCoord)
+def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph):
+    M = integrate_fixed(xi_integrand, weights, pts, E, V, Jzz, unitcellGraph)
+    M1 = xi_w_field_Octu(n, n1, n2, unitcellCoord, M[0])
     return M1
 
-def calmeanfield(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord=piunitcellCoord):
-    chi = chiCal(E, V, Jzz, n, n1, n2, n3, n4, n5, pts, weights, unitcellCoord)
-    return chi, xiCal(E, V, Jzz, n, n1, n2, n4, n5, pts, weights, unitcellCoord)
+def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph):
+    chi = chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph)
+    # chi = np.zeros((len(unitcellCoord),4,4))
+    return chi, xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph)
 
 # endregion
 
@@ -400,6 +423,8 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_r
     labels = [r'$\Gamma$', r'$X$', r'$W$', r'$K$', r'$\Gamma$', r'$L$', r'$U$', r'$W^\prime$', r'$X^\prime$', r'$\Gamma$']
     axes.set_xticks(xlabpos, labels)
     axes.set_xlim([0,gGamma3])
+    cluster = np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
+    axes.set_ylim([np.min(cluster)*0.5, np.max(cluster)*1.2])
 #endregion
 
 #region lower and upper edges
@@ -687,8 +712,8 @@ def graphing_M_setup(flux, n):
                                     [[0,1],
                                     [1,0]]
                             ])
-        A_pi_here = np.array([[0,0,0,np.pi],
-                                [0,np.pi,np.pi,np.pi]])
+        A_pi_here = np.array([[0,0,0,0],
+                                [0,np.pi,np.pi,0]])
         unitcellCoord = np.array([[0, 0, 0],[0,0,1]])
 
     # elif (flux == np.array([np.pi,0,0, np.pi])).all():
@@ -720,6 +745,112 @@ def graphing_M_setup(flux, n):
     #     unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
     return unitCellgraph, A_pi_here, unitcellCoord
 
+
+def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0):
+    #in the case of 110, three xi mf: xi0, xi1, xi3
+    mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
+    for i in range(len(unitcellcoord)):
+        if (n==h110).all():
+            mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n2*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n2*np.pi*unitcellcoord[i,2])), xi0[3]*np.exp(1j*n2*np.pi)])
+        elif (n==h111).all():
+            mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[1]])
+        else:
+            mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[0]])
+        return mult
+
+def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A):
+
+    mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
+
+    for i in range(len(unitcellCoord)):
+        r2 = unitcellCoord[i,1]
+        r3 = unitcellCoord[i,2]
+
+        chi00 = chi0[0,0]
+
+        if (n==h110).all():
+            chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*r3))
+            chi02 = chi0[0,2]*np.exp(1j*np.pi*(n2*r3))
+            chi03 = chi0[0,3]
+            chi12 = chi0[1,2]*np.exp(1j*np.pi*(n1*r2))
+            chi13 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*(r3+1)))
+            chi23 = chi0[1,2]*np.exp(1j*np.pi*n2*r3)
+
+            psiI = chi0[0,3]/chi0A[0,3]
+            psiIT2 = chi0A[0,2]/chi0[0,2]*psiI
+            psiIT1 = chi0A[0,1]/chi0[0,1]*psiI
+
+            chi00A = chi0[0,0]/psiI
+            chi01A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*r3))*psiIT1/psiI
+            chi02A = chi0[0,2]*np.exp(1j*np.pi*(n2*r3))*psiIT2/psiI
+            chi03A = chi0[0,3]/psiI
+            chi12A = chi0[1,2]*np.exp(1j*np.pi*(n1*r2))*psiIT2/psiI/psiIT1
+            chi13A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*(r3+1)))/psiI/psiIT1
+            chi23A = chi0[1,2]*np.exp(1j*np.pi*n2*r3)/psiI/psiIT2
+
+        elif (n==h111).all():
+            psiC6 = chi0[0,1]/chi0A[0,1]
+
+            chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+            chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))*psiC6**(-4/3)
+            chi03 = chi0[0,1]*psiC6**(-2/3)
+            chi12 = chi0[2,3]*np.exp(1j*np.pi*(n1*r2))*psiC6**(-2/3)
+            chi13 = chi0[2,3]*np.exp(1j*np.pi*(n1*r2+n2*r3))*psiC6**(-4/3)
+            chi23 = chi0[2,3]*np.exp(1j*np.pi*n1*r3)
+
+            chi00A = chi0[0,0]/psiC6
+            chi01A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))/psiC6
+            chi02A = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))*psiC6**(-7/3)
+            chi03A = chi0[0,1]*psiC6**(-5/3)
+            chi12A = chi0[2,3]*np.exp(1j*np.pi*(n1*r2))*psiC6**(-5/3)
+            chi13A = chi0[2,3]*np.exp(1j*np.pi*(n1*r2+n2*r3))*psiC6**(-7/3)
+            chi23A = chi0[2,3]*np.exp(1j*np.pi*n1*r3)/psiC6
+
+
+        else:
+            chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+            chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))
+            chi03 = chi0[0,3]
+            chi12 = chi0[0,3]*np.exp(1j*np.pi*(n1*r2))
+            chi13 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+            chi23 = chi0[0,1]*np.exp(1j*np.pi*n1*r3)
+
+            chi00A = chi0[0,0]
+            chi01A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+            chi02A = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))
+            chi03A = chi0[0,3]
+            chi12A = chi0[0,3]*np.exp(1j*np.pi*(n1*r2))
+            chi13A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+            chi23A = chi0[0,1]*np.exp(1j*np.pi*n1*r3)
+
+        mult[1, i] = np.array([[chi00, chi01, chi02, chi03],
+                               [chi01, chi00, chi12, chi13],
+                               [chi02, chi12, chi00, chi23],
+                               [chi03, chi13, chi23, chi00]])
+        mult[0, i] = np.array([[chi00A, chi01A, chi02A, chi03A],
+                               [chi01A, chi00A, chi12A, chi13A],
+                               [chi02A, chi12A, chi00A, chi23A],
+                               [chi03A, chi13A, chi23A, chi00A]])
+    return mult
+
+# def xiwithfieldOctu(n, n1, n2, r2, r3):
+#     if (n==h110).all():
+#         mult = np.array([[1, ],
+#                          ])
+#         same = np.array([[0, 1, 2, 3],
+#                          [1, 0, 4, 1],
+#                          [2, 4, 0, 4],
+#                          [3, 1, 4, 0]])
+#     elif (n==h110).all():
+#         same = np.array([[0, 1, 2, 3],
+#                          [1, 0, 4, 1],
+#                          [2, 4, 0, 4],
+#                          [3, 1, 4, 0]])
+#     else:
+#         same = np.array([[0, 1, 2, 3],
+#                          [1, 0, 4, 1],
+#                          [2, 4, 0, 4],
+#                          [3, 1, 4, 0]])
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
@@ -747,11 +878,7 @@ class piFluxSolver:
         self.n = n
         self.flux = flux
         self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
-        self.n3 = self.n4 = self.n5= 0
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
-
-        self.xi = xi_mean_field(n, 0.002*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n4,self.n5,piunitcellCoord)
-        self.chi = chi_mean_field(n, 0.002*np.random.rand()*np.ones((4,4)),self.n1,self.n2,self.n3,self.n4,self.n5,piunitcellCoord)
 
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
@@ -766,13 +893,13 @@ class piFluxSolver:
         self.delta = np.zeros(16)
         self.rhos = np.zeros(16)
 
-        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
-        self.unitCellgraph = piunitcell
-        # self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
-        # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-        #     self.A_pi_here)
-        # self.xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, self.unitcellCoord)
-        # self.chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, self.unitcellCoord)
+        # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
+        # self.unitCellgraph = piunitcell
+        self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            self.A_pi_here)
+        self.xi = xi_w_field_Octu(n, self.n1, self.n2, self.unitcellCoord, np.ones(4))
+        self.chi = chi_w_field_Octu(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)))
 
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
@@ -790,12 +917,10 @@ class piFluxSolver:
         B = genBZ(searchGrid)
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
-        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, A_pi_here,
                  A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
         minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph,
+                                        self.theta, self.chi, self.xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph,
                                         searchGrid, self.kappa)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
@@ -813,8 +938,44 @@ class piFluxSolver:
     def calmeanfield(self):
         E, V = self.LV_zero(self.pts, self.lams)
         E = np.sqrt(2*self.Jzz*E)
-        chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.n3, self.n4, self.n5, self.pts, self.weights)
+        chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph)
         return chi, xi
+
+    def solvexifield(self):
+        E, V = self.LV_zero(self.pts, self.lams)
+        E = np.sqrt(2*self.Jzz*E)
+        xi = xiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph)
+        return xi
+
+    def solvechifield(self):
+        E, V = self.LV_zero(self.pts, self.lams)
+        E = np.sqrt(2*self.Jzz*E)
+        chi = chiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph)
+        return chi
+
+    def xiSubrountine(self, tol, GS):
+        count = 0
+        while True:
+            xilast, GSlast = np.copy(self.xi), GS
+            self.xi = self.solvexifield()
+            GS = self.solvemufield()
+            print(self.xi[0], GS)
+            count = count + 1
+            if ((abs(GS - GSlast) < tol).all()) or count >= 100:
+                break
+        return GS
+
+    def chiSubrountine(self, tol, GS):
+        count = 0
+        while True:
+            chilast, GSlast = np.copy(self.chi), GS
+            self.chi = self.solvechifield()
+            GS = self.solvemufield()
+            print(self.chi[0,0], GS)
+            count = count + 1
+            if ((abs(GS - GSlast) < tol).all()) or count >= 100:
+                break
+        return GS
 
     def solvemufield(self):
         self.findminLam()
@@ -829,7 +990,7 @@ class piFluxSolver:
 
     def solvemeanfield(self, tol=1e-10):
         if self.Jpmpm == 0:
-            self.chi = np.zeros((4,4,4))
+            self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
             self.condensation_check()
         else:
@@ -840,12 +1001,13 @@ class piFluxSolver:
             count = 0
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), GS
-                chi, xi = self.calmeanfield()
-                self.chi, self.xi = chi, xi
-                GS = self.solvemufield()
-                # print(self.chi[0], self.xi[0,0], self.GS())
+                # self.chi, self.xi = self.calmeanfield()
+                # GS = self.solvemufield()
+                GS = self.xiSubrountine(tol,GS)
+                GS = self.chiSubrountine(tol, GS)
+                print(self.chi[0,0], self.xi[0], GS)
                 count = count + 1
-                if ((abs(self.chi-chilast) < tol).all() and (abs(self.xi-xilast) < tol).all()) or count >=100:
+                if ((abs(GS-GSlast) < tol).all()) or count >=100:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
@@ -914,7 +1076,7 @@ class piFluxSolver:
         chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
         return np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
-                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0])
+                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)[0])
 
 
     def dispersion(self, k):
@@ -1090,17 +1252,21 @@ class piFluxSolver:
         ffact = np.exp(1j * ffact)
         l = len(self.A_pi_here)
         zmag = contract('k,ik->i', self.n, z)
-        # magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
-        #              np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
-        # magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
-        #              np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
-        magp = contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l)
+        magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
+                     np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
+        magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
+                     np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
+        mag = (magp + magn)/2
         # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
-        return np.real(magp)/2
+        return mag
 
 
     def magnetization(self):
         sz = integrate(self.mag_integrand, self.pts, self.weights)
-        if self.condensed==True:
-            return np.NaN
-        return sz
+        # zmag = contract('k,ik->i', self.n, z)
+        # mag = contract('ua, ru,a->r', z, sz, self.n)
+        print(sz)
+
+        # if self.condensed:
+        #     mag = np.NAN
+        # return np.real(mag)
