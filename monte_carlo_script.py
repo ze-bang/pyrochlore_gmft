@@ -1,7 +1,7 @@
 import os
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 # import monte_carlo
-from monte_carlo import *
+# from monte_carlo import *
 from phase_diagram import *
 # from observables import *
 # scan_all(h111, 2)
