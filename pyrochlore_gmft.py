@@ -949,7 +949,7 @@ class piFluxSolver:
         self.lams = np.array([lam, lam], dtype=np.double)
         self.nS = nS
 
-        if a == 1:
+        if a == 1 or a == 2:
             self.xi_field = xi_w_field_Octu
             self.chi_field = chi_w_field_Octu
         else:
@@ -1054,7 +1054,7 @@ class piFluxSolver:
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 30:
+            if ((abs(GS - GSlast) < tol).all()) or count >= 10:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS
@@ -1074,7 +1074,7 @@ class piFluxSolver:
                 return GSlast
             # print(self.chi[0,0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 30:
+            if ((abs(GS - GSlast) < tol).all()) or count >= 10:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS
@@ -1090,7 +1090,7 @@ class piFluxSolver:
         self.lams = self.findLambda()
         return self.GS()
 
-    def solvemeanfield(self, tol=1e-10):
+    def solvemeanfield(self, tol=1e-8):
         if self.Jpmpm == 0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))

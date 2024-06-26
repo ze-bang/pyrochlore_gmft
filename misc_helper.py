@@ -1231,9 +1231,51 @@ def plt1dhhlfBZ(ax):
     ax.axvline(x=1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=-1, color='w', label='axvline - full height', linestyle='dashed')
 
-# import matplotlib.pyplot as plt
-# fig, ax = plt.subplots()
-# plthh2kfBZ(ax)
-# plt.xlim([-3,3])
-# plt.ylim([-3,3])
-# plt.show()
+def XYZparambuilder(JPm, JPmax, JP1m, JP1max, nK):
+    JH = np.mgrid[JPm:JPmax:1j * nK, JP1m:JP1max:1j * nK].reshape(2,-1).T.reshape(nK,nK,2)
+    split = int(nK/2)
+    JH1 = JH[0:split, :,:]
+    JH2 = np.transpose(JH[split:, split:, :], (1,0,2))
+    if nK % 2 == 0:
+        for i in range(1,split):
+            JH2[i-1,i:] = JH1[i-1,i-1:split-1]
+        temp = np.zeros((split,2*split+1,2))
+        temp[:,0:split] = JH2
+        temp[:, split:] = JH1[:, split-1:,:]
+        return temp.reshape(2,-1).T
+
+
+def inverseXYZparambuilder(M):
+    split = len(M)
+    temp = np.copy(M[0:split, 0:split])
+    temp = temp.T
+    orig = np.zeros((2*split,2*split))
+    orig[0:split,:] = M[:,1:]
+    orig[split:,split:]=temp
+
+    for i in range(2*split):
+        for j in range(2*split):
+            if i > j:
+                orig[i,j] = orig[j,i]
+    return orig
+
+
+# JH = np.arange(100).reshape((10,10))
+# nK = 10
+# split = int(nK/2)
+# JH1 = JH[0:split, :]
+# JH2 = np.transpose(JH[split:, split:], (1,0))
+#
+# for i in range(1,split):
+#     JH2[i-1,i:] = JH1[i-1,i-1:split-1]
+# A = np.zeros((split,2*split+1))
+# A[:,0:split] = JH2
+# A[:, split:] = JH1[:, split-1:]
+#
+# A = A.reshape((1,-1)).T
+#
+# A = A.reshape((5,11))
+#
+# B = inverseXYZparambuilder(A)
+# # A = XYZparambuilder(0, 1, 10)
+# print()
