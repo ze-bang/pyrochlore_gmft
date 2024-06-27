@@ -790,29 +790,6 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         # rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
-<<<<<<< HEAD
-        if currJH[i][0] >= currJH[i][1]:
-            py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
-            py0s.solvemeanfield()
-            pyps = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
-            pyps.solvemeanfield()
-            GS = py0s.MFE()
-            GSp = pyps.MFE()
-            if GS < GSp:
-                sendtemp[i] = py0s.condensed
-                sendtemp2[i] = GS
-                sendtemp3[i] = py0s.xi[0,0]
-                # sendtemp4[i] = py0s.chi[0,0,0,0]
-            else:
-                sendtemp[i] = pyps.condensed + 5
-                sendtemp2[i] = GSp
-                sendtemp3[i] = pyps.xi[0,0]
-                # sendtemp4[i] = pyps.chi[0,0,0,0]
-        else:
-            sendtemp[i] = np.NaN
-            sendtemp2[i] = np.NaN
-            sendtemp3[i] = np.NaN
-=======
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
         py0s.solvemeanfield()
         pyps = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
@@ -829,7 +806,6 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
             sendtemp2[i] = GSp
             sendtemp3[i] = (pyps.xi==0).all()
             # sendtemp4[i] = pyps.chi[0,0,0,0]
->>>>>>> ce5cdae8fd799b73f9a0f84364ca1546b013abdd
 
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
