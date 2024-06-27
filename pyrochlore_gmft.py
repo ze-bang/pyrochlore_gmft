@@ -1054,7 +1054,7 @@ class piFluxSolver:
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 10:
+            if ((abs(GS - GSlast) < tol).all()) or count > 5:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS
