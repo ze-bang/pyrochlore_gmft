@@ -799,12 +799,12 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         if GS < GSp:
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = GS
-            sendtemp3[i] = py0s.xi[0,0]
+            sendtemp3[i] = (py0s.xi==0).all()
             # sendtemp4[i] = py0s.chi[0,0,0,0]
         else:
             sendtemp[i] = pyps.condensed + 5
             sendtemp2[i] = GSp
-            sendtemp3[i] = pyps.xi[0,0]
+            sendtemp3[i] = (pyps.xi==0).all()
             # sendtemp4[i] = pyps.chi[0,0,0,0]
 
 
@@ -819,9 +819,9 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     # comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
 
     if rank == 0:
-        rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK)/2,nK+1)))
-        rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK)/2,nK+1)))
-        rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK)/2,nK+1)))
+        rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK/2),nK+1)))
+        rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK/2),nK+1)))
+        rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK/2),nK+1)))
 
 
         # rectemp4 = rectemp4.reshape((nK,nK))
