@@ -828,7 +828,7 @@ def phaseExGraph(filename):
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(0.5,0.8, 1, flux=np.ones(4) * np.pi, h=0, n=h110)
+a = pycon.piFluxSolver(0.4,1, 1, flux=np.ones(4) * np.pi, h=0, n=h110)
 a.solvemeanfield()
 a.graph(axs)
 print(a.condensed)

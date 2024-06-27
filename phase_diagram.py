@@ -762,7 +762,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    JH = np.mgrid[JPm:JPmax:1j*nK, JP1m:JP1max:1j*nK].reshape(2,-1).T
+    JH = XYZparambuilder(JPm, JPmax, JP1m, JP1max, nK)
     le = len(JH)
     nb = le/size
 
@@ -790,6 +790,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         # rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
+<<<<<<< HEAD
         if currJH[i][0] >= currJH[i][1]:
             py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
             py0s.solvemeanfield()
@@ -811,6 +812,25 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
             sendtemp[i] = np.NaN
             sendtemp2[i] = np.NaN
             sendtemp3[i] = np.NaN
+=======
+        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.zeros(4))
+        py0s.solvemeanfield()
+        pyps = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
+        pyps.solvemeanfield()
+        GS = py0s.MFE()
+        GSp = pyps.MFE()
+        if GS < GSp:
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = GS
+            sendtemp3[i] = (py0s.xi==0).all()
+            # sendtemp4[i] = py0s.chi[0,0,0,0]
+        else:
+            sendtemp[i] = pyps.condensed + 5
+            sendtemp2[i] = GSp
+            sendtemp3[i] = (pyps.xi==0).all()
+            # sendtemp4[i] = pyps.chi[0,0,0,0]
+>>>>>>> ce5cdae8fd799b73f9a0f84364ca1546b013abdd
+
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
@@ -823,9 +843,11 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
     # comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
 
     if rank == 0:
-        rectemp = rectemp.reshape((nK,nK))
-        rectemp2 = rectemp2.reshape((nK,nK))
-        rectemp3 = rectemp3.reshape((nK,nK))
+        rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK/2),nK+1)))
+        rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK/2),nK+1)))
+        rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK/2),nK+1)))
+
+
         # rectemp4 = rectemp4.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)

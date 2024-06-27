@@ -97,4 +97,8 @@ from phase_diagram import *
 # findPhaseMag111(-0.5, 0.1, 300, 0, 0.5, 200, h001, 30, 2, "phase_001_kappa=2")
 # TwoSpinonDOS_111_a(50, 20, "h=0.3_2SPINONS")
 
+<<<<<<< HEAD
 findXYZPhase(-0.5, 1, -0.5, 1, 100, 30, 2, "phase_XYZ_0_field")
+=======
+findXYZPhase(-0.5, 1, -0.5, 1, 2, 25, 2, "phase_XYZ_0_field")
+>>>>>>> ce5cdae8fd799b73f9a0f84364ca1546b013abdd
