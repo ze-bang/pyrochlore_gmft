@@ -1049,15 +1049,15 @@ class piFluxSolver:
             self.xi = self.solvexifield()
             # print("Solve mu field")
             GS = self.solvemufield()
-            if np.abs(GS) > 1e5:
+            if np.abs(GS) > 1e1:
                 self.xi=xilast
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                return GSlast
+                return GSlast, True
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > 5:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS
+        return GS, False
 
     def chiSubrountine(self, tol, GS):
         count = 0
@@ -1068,16 +1068,16 @@ class piFluxSolver:
             self.chi = self.solvechifield()
             # print("Solve mu field")
             GS = self.solvemufield()
-            if np.abs(GS) > 1e5:
+            if np.abs(GS) > 1e1:
                 self.chi=chilast
                 print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                return GSlast
+                return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count >= 10:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS
+        return GS, False
 
     def solvemufield(self):
         self.findminLam()
@@ -1107,11 +1107,11 @@ class piFluxSolver:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 # self.chi, self.xi = self.calmeanfield()
                 # GS = self.solvemufield()
-                GS = self.xiSubrountine(tol,GS)
-                GS = self.chiSubrountine(tol, GS)
+                GS, pocon1 = self.xiSubrountine(tol,GS)
+                GS, pocon2 = self.chiSubrountine(tol, GS)
                 print("Iteration #"+str(count))
                 count = count + 1
-                if ((abs(GS-GSlast) < tol).all()) or count >=10:
+                if ((abs(GS-GSlast) < tol).all()) or count >5 or pocon1 or pocon2:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
