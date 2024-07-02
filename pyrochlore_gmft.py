@@ -1085,7 +1085,7 @@ class piFluxSolver:
             GS = self.solvemufield()
             if np.abs(GS) > 1e1:
                 self.chi=chilast
-                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + ".")
                 return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
