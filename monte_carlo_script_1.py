@@ -27,7 +27,7 @@ from observables import *
 # SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.05_HHKnK_L_integrated", 1.5, 0.3)
 # SSSF_HHKnK_L_integrated(80, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, 1.25, 1.75, 51, 30, "Files/SSSF/CZO_gaulin/Jxx=0.063_Jyy=0.062_Jzz=0.011_h110=0.15_HHKnK_L_integrated", 1.5, 0.3)
 
-TwoSpinonDOS_111(50, 15, "two_spinon_DOS_111_Jpm=-0.03")
+# TwoSpinonDOS_111(50, 15, "two_spinon_DOS_111_Jpm=-0.03")
 # TwoSpinonDOS_001(50, 15, "two_spinon_DOS_001_Jpm=-0.03")
 # TwoSpinonDOS_110(50, 15, "two_spinon_DOS_110_Jpm=-0.03")
 
@@ -45,3 +45,4 @@ TwoSpinonDOS_111(50, 15, "two_spinon_DOS_111_Jpm=-0.03")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux")
+findXYZPhase_separate(-0.5, 1, -0.5, 1, 20, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux")

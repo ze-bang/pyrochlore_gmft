@@ -1040,8 +1040,11 @@ class piFluxSolver:
         chi = chiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         return chi
 
-    def xiSubrountine(self, tol, GS):
-        count = 0
+    def xiSubrountine(self, tol, GS, pcon=False):
+        if pcon:
+            count = 5
+        else:
+            count = 0
         print("Begin Xi Subroutine")
         while True:
             xilast, GSlast = np.copy(self.xi), GS
@@ -1054,13 +1057,16 @@ class piFluxSolver:
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast, True
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count > 5:
+            if ((abs(GS - GSlast) < tol).all()) or count > 10:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
-    def chiSubrountine(self, tol, GS):
-        count = 0
+    def chiSubrountine(self, tol, GS, pcon=False):
+        if pcon:
+            count = 5
+        else:
+            count = 0
         print("Begin Chi Subroutine")
         while True:
             chilast, GSlast = np.copy(self.chi), GS
@@ -1074,7 +1080,7 @@ class piFluxSolver:
                 return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count >= 10:
+            if ((abs(GS - GSlast) < tol).all()) or count > 10:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
@@ -1091,6 +1097,7 @@ class piFluxSolver:
         return self.GS()
 
     def solvemeanfield(self, tol=1e-8):
+        tstart = time.time()
         if self.Jpmpm == 0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
@@ -1103,15 +1110,17 @@ class piFluxSolver:
             GS = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
+            pconxi = False
+            pconChi = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 # self.chi, self.xi = self.calmeanfield()
                 # GS = self.solvemufield()
-                GS, pocon1 = self.xiSubrountine(tol,GS)
-                GS, pocon2 = self.chiSubrountine(tol, GS)
+                GS, pconxi = self.xiSubrountine(tol, pconxi)
+                GS, pconChi = self.chiSubrountine(tol, pconChi)
                 print("Iteration #"+str(count))
                 count = count + 1
-                if ((abs(GS-GSlast) < tol).all()) or count >5 or pocon1 or pocon2:
+                if ((abs(GS-GSlast) < tol).all()) or count >5:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
@@ -1119,6 +1128,8 @@ class piFluxSolver:
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
             print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
+        tend = time.time()
+        print("This run took "+ str(tend-tstart))
         return 0
 
     def ifcondense(self):
