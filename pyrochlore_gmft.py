@@ -294,8 +294,7 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     lamMin = np.copy(lamM)
     lamMax = 2*lamMin
     lams = lamMax
-    # print(lams, lamMin, lamMax)
-    # rhoguess = rho_true(weights, E, lams, Jzz)
+    diverge = False
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
@@ -310,10 +309,11 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
                 break
         except:
             lamMin = lams
-        if (abs(lamlast - lams) < 1e-15).all():
+        if (abs(lamMin - lamMax) < 1e-15).all():
+            diverge=True
             break
     warnings.resetwarnings()
-    return lams
+    return lams, diverge
 
 #endregion
 
@@ -734,7 +734,47 @@ def graphing_M_setup(flux, n):
     #     unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
     return unitCellgraph, A_pi_here, unitcellCoord
 
+def xi_wo_field(n, n1, n2, unitcellcoord, xi0, nS):
+    #in the case of 110, three xi mf: xi0, xi1, xi3
+    mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
+    for i in range(len(unitcellcoord)):
+        mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
+    return mult
 
+def chi_wo_field(n, n1, n2, unitcellCoord, chi0, chi0A, nS):
+
+    mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
+
+    for i in range(len(unitcellCoord)):
+        r2 = unitcellCoord[i,1]
+        r3 = unitcellCoord[i,2]
+
+        chi00 = chi0[0,0]
+
+        chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+        chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))
+        chi03 = chi0[0,3]
+        chi12 = chi0[0,3]*np.exp(1j*np.pi*(n1*(r2+1)))
+        chi13 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3+n1))
+        chi23 = chi0[0,1]*np.exp(1j*np.pi*n1*(r3+1))
+
+        chi00A = chi0[0,0]
+        chi01A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
+        chi02A = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))
+        chi03A = chi0[0,3]
+        chi12A = chi0[0,3]*np.exp(1j*np.pi*(n1*(r2+1)))
+        chi13A = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3+n1))
+        chi23A = chi0[0,1]*np.exp(1j*np.pi*n1*(r3+1))
+
+        mult[1, i] = np.array([[chi00, chi01, chi02, chi03],
+                               [chi01, chi00, chi12, chi13],
+                               [chi02, chi12, chi00, chi23],
+                               [chi03, chi13, chi23, chi00]])
+        mult[0, i] = np.array([[chi00A, chi01A, chi02A, chi03A],
+                               [chi01A, chi00A, chi12A, chi13A],
+                               [chi02A, chi12A, chi00A, chi23A],
+                               [chi03A, chi13A, chi23A, chi00A]])
+    return mult
 def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, nS):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
@@ -745,7 +785,7 @@ def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, nS):
             mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[1]])
         else:
             mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[0]])
-        return mult
+    return mult
 
 def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, nS):
 
@@ -832,7 +872,7 @@ def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0, nS):
             mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[1]])
         else:
             mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2]+nS)), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2]+nS)), xi0[0]*np.exp(1j*nS*np.pi)])
-        return mult
+    return mult
 
 def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, nS):
 
@@ -949,7 +989,10 @@ class piFluxSolver:
         self.lams = np.array([lam, lam], dtype=np.double)
         self.nS = nS
 
-        if a == 1 or a == 2:
+        if h == 0:
+            self.xi_field = xi_wo_field
+            self.chi_field = chi_wo_field
+        elif a == 1 or a == 2:
             self.xi_field = xi_w_field_Octu
             self.chi_field = chi_w_field_Octu
         else:
@@ -1059,8 +1102,8 @@ class piFluxSolver:
             self.xi = self.solvexifield()
             self.updateMF()
             # print("Solve mu field")
-            GS = self.solvemufield()
-            if np.abs(GS) > 1e1:
+            GS, diverge = self.solvemufield(False)
+            if np.abs(GS) > 1e1 or diverge:
                 self.xi=xilast
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast, True
@@ -1082,10 +1125,10 @@ class piFluxSolver:
             self.chi = self.solvechifield()
             self.updateMF()
             # print("Solve mu field")
-            GS = self.solvemufield()
-            if np.abs(GS) > 1e1:
+            GS, diverge = self.solvemufield(False)
+            if np.abs(GS) > 1e1 or diverge:
                 self.chi=chilast
-                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + ".")
+                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
@@ -1097,8 +1140,8 @@ class piFluxSolver:
     def solvemufield(self, a=True):
         if a:
             self.findminLam()
-        self.lams = self.findLambda(a)
-        return self.GS()
+        self.lams, diverge = self.findLambda(a)
+        return self.GS(), diverge
 
 
     def solvemeanfield(self, tol=1e-8):
@@ -1109,21 +1152,24 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
+            limit = 5
             # self.findminLam()
-            self.lams = self.findLambda(False)
+            self.lams, d = self.findLambda(False)
             self.chi, self.xi = self.calmeanfield()
-            GS = self.solvemufield()
+            GS, d = self.solvemufield(False)
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
             pconxi = False
             pconChi = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
-                GS, pconxi = self.xiSubrountine(tol, pconxi)
-                GS, pconChi = self.chiSubrountine(tol, pconChi)
+                GS, pconxi = self.xiSubrountine(tol, GS, pconxi)
+                GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
                 print("Iteration #"+str(count))
                 count = count + 1
-                if ((abs(GS-GSlast) < tol).all()) or count >5:
+                if pconxi or pconChi:
+                    limit = 2
+                if ((abs(GS-GSlast) < tol).all()) or count > limit:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here,
@@ -1171,7 +1217,7 @@ class piFluxSolver:
 
     def condensation_check(self):
         self.findminLam()
-        self.lams = self.findLambda()
+        self.lams, d = self.findLambda()
         self.set_condensed()
         self.ifcondense()
         self.set_delta()
@@ -1216,18 +1262,9 @@ class piFluxSolver:
 
 
     def MFE(self):
-        # if self.condensed:
-        # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-        #          self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, np.delete(self.pts,self.toignore), np.delete(self.weights,self.toignore))
         Ep = self.GS()
-        # Eq = MFE_condensed(self.qminB, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0,
-        #                    self.xi, self.lams, self.rhos, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        # print(Ep, Eq)
         return Ep
-        # else:
-        # Ep = MFE(self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.chi0, self.xi,
-        # self.lams, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.BZres, self.kappa, self.pts, self.weights)
-        # return Ep
+
     def graph_raw(self, show):
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                       self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
@@ -1244,26 +1281,20 @@ class piFluxSolver:
 
 
     def minCal(self, K):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
-        mins = dispersion_pi(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                             A_pi_rs_traced_pp_here, unitCellgraph)[:, 0]
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
-                      xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+                      xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def maxCal(self, K):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
-                      xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+                      xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def minMaxCal(self, K):
         return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi,
-                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitcell)
+                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def EMAX(self):
         return np.sqrt(2 * self.Jzz * EMAX(self.MF, self.lams))
@@ -1278,8 +1309,8 @@ class piFluxSolver:
         B = genBZ(searchGrid)
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         q = np.sqrt(2 * self.Jzz *
                        E_pi(B, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
                             A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)[0])
@@ -1288,48 +1319,36 @@ class piFluxSolver:
         return 2*mins, 2*maxs
 
     def graph_loweredge(self, show, ax=plt):
-        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph, ax)
+                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
         if show:
             plt.show()
         return min
 
     def graph_upperedge(self, show, ax=plt):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph, ax)
+                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
         if show:
             plt.show()
         return max
 
 
     def loweredge(self):
-        unitCellgraph, A_pi_here,unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         return min
 
     def upperedge(self):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         return max
 
     def green_pi(self, k, lam=np.zeros(2)):
