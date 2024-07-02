@@ -992,8 +992,11 @@ class piFluxSolver:
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
 
-    def findLambda(self):
-        return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
+    def findLambda(self, a=True):
+        if a:
+            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
+        else:
+            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*0.8*np.ones(2), self.Jzz, self.weights, self.E)
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1040,6 +1043,10 @@ class piFluxSolver:
         chi = chiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         return chi
 
+    def updateMF(self):
+        self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
             count = 5
@@ -1050,6 +1057,7 @@ class piFluxSolver:
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
             self.xi = self.solvexifield()
+            self.updateMF()
             # print("Solve mu field")
             GS = self.solvemufield()
             if np.abs(GS) > 1e1:
@@ -1072,6 +1080,7 @@ class piFluxSolver:
             chilast, GSlast = np.copy(self.chi), GS
             # print("Chi Mean Field Compute")
             self.chi = self.solvechifield()
+            self.updateMF()
             # print("Solve mu field")
             GS = self.solvemufield()
             if np.abs(GS) > 1e1:
@@ -1085,16 +1094,12 @@ class piFluxSolver:
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
-    def solvemufield(self):
-        self.findminLam()
-        # A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux = determineEquivalence(self.n, self.flux)
-        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
-        self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                       self.A_pi_here,
-                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
-        self.E, self.V = np.linalg.eigh(self.MF)
-        self.lams = self.findLambda()
+    def solvemufield(self, a=True):
+        if a:
+            self.findminLam()
+        self.lams = self.findLambda(a)
         return self.GS()
+
 
     def solvemeanfield(self, tol=1e-8):
         tstart = time.time()
@@ -1104,8 +1109,8 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            self.findminLam()
-            self.lams = self.findLambda()
+            # self.findminLam()
+            self.lams = self.findLambda(False)
             self.chi, self.xi = self.calmeanfield()
             GS = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
@@ -1114,8 +1119,6 @@ class piFluxSolver:
             pconChi = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
-                # self.chi, self.xi = self.calmeanfield()
-                # GS = self.solvemufield()
                 GS, pconxi = self.xiSubrountine(tol, pconxi)
                 GS, pconChi = self.chiSubrountine(tol, pconChi)
                 print("Iteration #"+str(count))
