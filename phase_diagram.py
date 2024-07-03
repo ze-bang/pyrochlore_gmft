@@ -840,7 +840,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         # graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
 
 
-def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename):
+def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename, nS=0):
     # totaltask = nK*nH
     # increment = totaltask/50
     # count = 0
@@ -877,7 +877,7 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         # rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
-        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux)
+        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux, nS=nS)
         py0s.solvemeanfield()
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
