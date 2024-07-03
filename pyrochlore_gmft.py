@@ -1146,7 +1146,12 @@ class piFluxSolver:
 
     def solvemeanfield(self, tol=1e-8):
         tstart = time.time()
-        if self.Jpmpm == 0:
+        if self.Jpmpm == 0 and self.Jpm==0:
+            self.chi = np.zeros((len(self.unitcellCoord),4,4))
+            self.xi = np.zeros((4,4))
+            self.condensation_check()
+            self.condensed = False
+        elif self.Jpmpm == 0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
             self.condensation_check()
