@@ -1242,7 +1242,7 @@ def XYZparambuilder(JPm, JPmax, JP1m, JP1max, nK):
         temp = np.zeros((split,2*split+1,2))
         temp[:,0:split] = JH2
         temp[:, split:] = JH1[:, split-1:,:]
-        return temp.reshape(2,-1).T
+        return temp.reshape((split*(2*split+1),2))
 
 
 def inverseXYZparambuilder(M):
