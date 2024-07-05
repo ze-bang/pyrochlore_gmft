@@ -292,7 +292,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
-    lamMax = 2*lamMin
+    lamMax = 10*lamMin
     lams = lamMax
     diverge = False
     while True:
@@ -738,7 +738,6 @@ def xi_wo_field(n, n1, n2, unitcellcoord, xi0, *args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     nS, = args
-    print(nS)
     for i in range(len(unitcellcoord)):
         mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
     return mult
@@ -1145,7 +1144,7 @@ class piFluxSolver:
 
     def solvemeanfield(self, tol=1e-8):
         tstart = time.time()
-        if self.Jpmpm == 0 and self.Jpm==0:
+        if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
             self.condensation_check()
@@ -1204,7 +1203,7 @@ class piFluxSolver:
         # A = self.rho(self.minLams+1e-14)
         # self.condensed = A < self.kappa
         A = -self.minLams[0] + self.lams[0]
-        if A < (deltamin /(self.BZres**3)) ** 2 or not (np.abs(self.chi)<=1e-5).all():
+        if A < (deltamin /(self.BZres**3)) ** 2:
             self.condensed = True
         else:
             self.condensed = False
