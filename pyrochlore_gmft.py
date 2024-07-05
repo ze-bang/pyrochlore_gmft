@@ -88,10 +88,9 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
 
 #region E_pi
 def E_pi_fixed(lams, M):
-    # M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)), 2))
     M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
-    return [E, V]
+    return E, V
 
 
 def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
@@ -738,7 +737,6 @@ def xi_wo_field(n, n1, n2, unitcellcoord, xi0, *args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     nS, = args
-    print(nS)
     for i in range(len(unitcellcoord)):
         mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
     return mult
@@ -1029,7 +1027,6 @@ class piFluxSolver:
             self.A_pi_here)
         self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.nS)
         self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.nS)
-
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
@@ -1074,6 +1071,7 @@ class piFluxSolver:
         return chi, xi
 
     def solvexifield(self):
+        print(self.lams, self.minLams)
         E, V = self.LV_zero(self.pts, self.lams)
         E = np.sqrt(2*self.Jzz*E)
         xi = xiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
@@ -1096,12 +1094,13 @@ class piFluxSolver:
             count = 0
         print("Begin Xi Subroutine")
         while True:
+            print(self.xi)
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
             self.xi = self.solvexifield()
             self.updateMF()
             # print("Solve mu field")
-            GS, diverge = self.solvemufield(False)
+            GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
                 self.xi=xilast
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
@@ -1124,7 +1123,7 @@ class piFluxSolver:
             self.chi = self.solvechifield()
             self.updateMF()
             # print("Solve mu field")
-            GS, diverge = self.solvemufield(False)
+            GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
                 self.chi=chilast
                 print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
@@ -1157,10 +1156,10 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 5
-            # self.findminLam()
-            self.lams, d = self.findLambda(False)
+            self.findminLam()
+            self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
-            GS, d = self.solvemufield(False)
+            GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
             pconxi = False
@@ -1262,7 +1261,7 @@ class piFluxSolver:
                     self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def GS(self):
-        return integrate(self.E_pi_mean, self.pts, self.weights) - self.kappa*self.lams[0]
+        return np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
 
 
     def MFE(self):
