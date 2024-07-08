@@ -1019,7 +1019,7 @@ class piFluxSolver:
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
         else:
-            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*0.8*np.ones(2), self.Jzz, self.weights, self.E)
+            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*0.9*np.ones(2), self.Jzz, self.weights, self.E)
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1077,7 +1077,6 @@ class piFluxSolver:
             count = 0
         print("Begin Xi Subroutine")
         while True:
-            print(self.xi)
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
             self.xi = self.solvexifield()
@@ -1118,7 +1117,7 @@ class piFluxSolver:
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
-    def solvemufield(self, a=True):
+    def solvemufield(self, a=False):
         if a:
             self.findminLam()
         self.lams, diverge = self.findLambda(a)
