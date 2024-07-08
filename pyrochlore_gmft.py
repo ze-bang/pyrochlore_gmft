@@ -1019,7 +1019,7 @@ class piFluxSolver:
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
         else:
-            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*0.8*np.ones(2), self.Jzz, self.weights, self.E)
+            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*0.9*np.ones(2), self.Jzz, self.weights, self.E)
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1078,7 +1078,6 @@ class piFluxSolver:
         print("Begin Xi Subroutine")
         count = 0
         while True:
-            print(self.xi)
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
             self.xi = self.solvexifield()
