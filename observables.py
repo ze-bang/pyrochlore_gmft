@@ -60,15 +60,16 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpp = np.exp(1j * ffact)
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
-                   ffactpm) / 64
+                   ffactpm) / size**2
 
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                   ffactpp) / 64
+                   ffactpp) / size**2
     if not pyp0.Jpmpm == 0:
-        deltapairing = deltas_pairing(tempE, omega, tol)
-        Spp = Spp + contract('ioab, ipyx, iwo, abjk, jax, kby, ijk->ijk', greenpK[:, :, 0:size, 2*size:3*size], greenpQ[:, :, 3*size:4*size, size:2*size],
-                             deltapairing, pyp0.A_pi_rs_rsp_pp_here, unitcell, unitcell, ffactpm) / 64
+        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, 2*size:3*size],
+                       greenpQ[:, :, 3*size:4*size, size:2*size],
+                       deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+                       ffactpm) / size**2
     return Spm, Spp
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
@@ -321,16 +322,16 @@ def SpmSpp(K, Q, q, pyp0):
 
     Spm = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 0:size], greenpQ[:, size:2*size, size:2*size], pyp0.A_pi_rs_rsp_here,
                    piunitcell, piunitcell,
-                   ffactpm) / 64
+                   ffactpm)/size**2
 
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
-                   ffactpp) / 64
+                   ffactpp)/size**2
 
     if not pyp0.Jpmpm == 0:
-        SppA = contract('iab, ixy, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
+        SppA = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
-                   ffactpm) / 64
+                   ffactpm)/size**2
         Spp = Spp + SppA
     return Spm, Spp
 
@@ -338,7 +339,7 @@ def SSSF_core_pedantic(q, v, pyp0):
     Ks = pyp0.pts
     Qs = Ks - q
 
-    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0)
 
     if pyp0.dominant == 0:
         Sxx = (np.real(Spm) + np.real(Spp)) / 2
@@ -420,7 +421,7 @@ def SSSF_core(q, v, pyp0):
     else:
         v = v/np.linalg.norm(v)
 
-    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0, lam=pyp0.lams)
+    Spm, Spp = SpmSpp(Ks, Qs, q, pyp0)
     if pyp0.dominant == 0:
         Sxx = (np.real(Spm) + np.real(Spp)) / 2
         Szz = (np.real(Spm) - np.real(Spp)) / 2

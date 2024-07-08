@@ -781,7 +781,7 @@ def chi_wo_field(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
                                [chi02A, chi12A, chi00A, chi23A],
                                [chi03A, chi13A, chi23A, chi00A]])
     return mult
-def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0):
+def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, *args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
@@ -804,8 +804,10 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
         chi00 = chi0[0,0]
 
         if (n==h110).all():
-
-            psiIT1, psiIT2, psiI = args
+            try:
+                psiIT1, psiIT2, psiI = args
+            except:
+                psiIT1, psiIT2, psiI = 1,1,1
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*r3))
             chi02 = chi0[0,2]*np.exp(1j*np.pi*(n2*r3))
@@ -823,7 +825,10 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
             chi23A = chi0[1,2]*np.exp(1j*np.pi*n2*r3)/psiI/psiIT2
 
         elif (n==h111).all():
-            psiC6, = args
+            try:
+                psiC6, = args
+            except:
+                psiC6 = 1
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
             chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))*psiC6**(-4/3)
@@ -842,7 +847,10 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
 
         else:
-            psiS, = args
+            try:
+                psiS, = args
+            except:
+                psiS = 1
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
             chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))/psiS**(3/2)
@@ -869,7 +877,7 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
                                [chi03A, chi13A, chi23A, chi00A]])
     return mult
 
-def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0):
+def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0, *args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
@@ -891,7 +899,10 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
         chi00 = chi0[0,0]
         if (n==h110).all():
-            psisigmaT1, psisigmaT2, psiI, nI = args
+            try:
+                psisigmaT1, psisigmaT2, psiI, nI = args
+            except:
+                psisigmaT1, psisigmaT2, psiI, nI = 1, 1, 1, 0
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n2*r3))
             chi02 = chi0[0,2]*np.exp(1j*np.pi*(n2*r3))
@@ -909,7 +920,10 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
             chi23A = chi0[1,2]*np.exp(1j*np.pi*n2*r3)/psiI*psisigmaT2*(-1)**nI*psisigmaT1
 
         elif (n==h111).all():
-            psiC6, = args
+            try:
+                psiC6, = args
+            except:
+                psiC6 = 1
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
             chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))*psiC6**(-4/3)
@@ -928,8 +942,10 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
 
         else:
-
-            psiS, nI = args
+            try:
+                psiS, nI = args
+            except:
+                psiS, nI = 1, 0
 
             chi01 = chi0[0,1]*np.exp(1j*np.pi*(n1*r2+n1*r3))
             chi02 = chi0[0,1]*np.exp(1j*np.pi*(n1*r3))/psiS**(3/2)
@@ -958,8 +974,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
 #endregion
 class piFluxSolver:
-    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20,
-                 ns=1, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, nS=0):
+    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, nS=0):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
@@ -1348,26 +1363,16 @@ class piFluxSolver:
         return green_pi_branch(E, V, self.Jzz), E
 
     def green_pi_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
-        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
-             A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
     def green_pi_branch_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
-        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
-             A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         E = np.sqrt(2 * self.Jzz * E)
-        return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
+        return green_pi_branch(E, V, self.Jzz), E, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here, self.unitCellgraph
 
     def mag_integrand(self, k):
         E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
