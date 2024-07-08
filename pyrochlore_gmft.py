@@ -291,7 +291,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
-    lamMax = 10*lamMin
+    lamMax = 10*np.copy(lamM)
     lams = lamMax
     diverge = False
     while True:
