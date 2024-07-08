@@ -1015,7 +1015,7 @@ class piFluxSolver:
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
 
-    def findLambda(self, a=True):
+    def findLambda(self, a=False):
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E)
         else:
@@ -1049,19 +1049,19 @@ class piFluxSolver:
         C = np.delete(self.V, self.toignore, axis=0)
         return rho_true_site(A, B,C, lam,self.Jzz)
     def calmeanfield(self):
-        E, V = self.LV_zero(self.pts, self.lams)
+        E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*E)
         chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.chi_field, self.nS)
         return chi, xi
 
     def solvexifield(self):
-        E, V = self.LV_zero(self.pts, self.lams)
+        E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*E)
         xi = xiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
         return xi
 
     def solvechifield(self):
-        E, V = self.LV_zero(self.pts, self.lams)
+        E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*E)
         chi = chiCal(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
         return chi
@@ -1069,6 +1069,7 @@ class piFluxSolver:
     def updateMF(self):
         self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                  self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+        self.E, self.V = np.linalg.eigh(self.M)
 
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
@@ -1140,9 +1141,9 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 5
-            self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
+            self.updateMF()
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
@@ -1204,7 +1205,7 @@ class piFluxSolver:
 
     def condensation_check(self):
         self.findminLam()
-        self.lams, d = self.findLambda()
+        self.lams, d = self.findLambda(True)
         self.set_condensed()
         self.ifcondense()
         self.set_delta()
@@ -1238,10 +1239,8 @@ class piFluxSolver:
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
                              self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
-    def LV_zero(self, k, lam=np.zeros(2)):
-        if np.any(lam == 0):
-            lam = self.lams
-        return E_pi(k, lam, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+    def LV_zero(self, k):
+        return E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                     self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def GS(self):
@@ -1338,13 +1337,13 @@ class piFluxSolver:
                   self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         return max
 
-    def green_pi(self, k, lam=np.zeros(2)):
-        E, V = self.LV_zero(k, lam)
+    def green_pi(self, k):
+        E, V = self.LV_zero(k)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
-    def green_pi_branch(self, k, lam=np.zeros(2)):
-        E, V = self.LV_zero(k, lam)
+    def green_pi_branch(self, k):
+        E, V = self.LV_zero(k)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
 

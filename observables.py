@@ -306,9 +306,9 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-def SpmSpp(K, Q, q, pyp0, lam=0):
-    greenpK = pyp0.green_pi(K, lam)
-    greenpQ = pyp0.green_pi(Q, lam)
+def SpmSpp(K, Q, q, pyp0):
+    greenpK = pyp0.green_pi(K)
+    greenpQ = pyp0.green_pi(Q)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
 
     if pyp0.Jpmpm ==0:

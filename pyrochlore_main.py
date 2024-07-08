@@ -834,7 +834,9 @@ a.solvemeanfield()
 a.graph(axs)
 print(a.condensed)
 plt.show()
-
+# lambda is 0.162617135149081
+# lambda is 0.162617135149081
+# lambda is 0.162617135149081
 # emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
 #
 # d0 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/10.txt")
