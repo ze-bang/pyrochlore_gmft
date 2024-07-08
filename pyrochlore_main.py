@@ -827,16 +827,27 @@ def phaseExGraph(filename):
 # print(ffact, zmag)
 # print('\n')
 # print(np.exp(1j*A_pi_here))
-Jxx, Jyy, Jzz = -0.42105263,  1.,          0.28947368
+Jxx, Jyy, Jzz = -0.08,         1.,         -0.3
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0, n=h110)
 a.solvemeanfield()
 a.graph(axs)
 print(a.condensed)
 plt.show()
-# lambda is 0.162617135149081
-# lambda is 0.162617135149081
-# lambda is 0.162617135149081
+
+
+# 0.5811437155148994
+# [0.64571524 0.64571524] True
+# 0.7300161999813554
+# Initialization Routine Ends. Starting Parameters: GS=nan xi0= [-0.16887209+0.38810882j -0.16887209+0.38810882j -0.16887209+0.38810882j
+#  -0.16887209+0.38810882j] chi0= [[-1.06030718+1.16904288e-18j -0.81826966-4.47020503e-01j
+#   -0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j]
+#  [-0.81826966-4.47020503e-01j -1.06030718+1.16904288e-18j
+#   -0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j]
+#  [-0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j
+#   -1.06030718+1.16904288e-18j -0.81826966-4.47020503e-01j]
+#  [-0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j
+#   -0.81826966-4.47020503e-01j -1.06030718+1.16904288e-18j]]
 # emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
 #
 # d0 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/10.txt")
