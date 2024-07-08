@@ -881,7 +881,7 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         py0s.solvemeanfield()
         sendtemp[i] = py0s.condensed
         sendtemp2[i] = py0s.MFE()
-        sendtemp3[i] = (py0s.xi<=1e-5).all()
+        sendtemp3[i] = (py0s.xi<=1e-6).all()
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))

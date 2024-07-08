@@ -1072,10 +1072,11 @@ class piFluxSolver:
 
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            count = 5
+            limit = 1
         else:
-            count = 0
+            limit = 5
         print("Begin Xi Subroutine")
+        count = 0
         while True:
             print(self.xi)
             xilast, GSlast = np.copy(self.xi), GS
@@ -1089,17 +1090,18 @@ class piFluxSolver:
                 print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
                 return GSlast, True
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count > 10:
+            if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
     def chiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            count = 5
+            limit = 1
         else:
-            count = 0
+            limit = 5
         print("Begin Chi Subroutine")
+        count = 0
         while True:
             chilast, GSlast = np.copy(self.chi), GS
             # print("Chi Mean Field Compute")
@@ -1113,12 +1115,12 @@ class piFluxSolver:
                 return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count > 10:
+            if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
-    def solvemufield(self, a=True):
+    def solvemufield(self, a=False):
         if a:
             self.findminLam()
         self.lams, diverge = self.findLambda(a)
