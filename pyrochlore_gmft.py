@@ -1037,8 +1037,11 @@ class piFluxSolver:
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
 
-    def findLambda(self, a=True):
-        return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+    def findLambda(self, a=False):
+        if a:
+            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+        else:
+            return findlambda_pi(self.kappa, self.tol,np.min(self.E)*0.9*np.ones(2), self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1094,7 +1097,6 @@ class piFluxSolver:
         while True:
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
-            print(self.lams, self.minLams)
             self.xi = self.solvexifield()
             self.updateMF()
             # print("Solve mu field")
@@ -1134,14 +1136,10 @@ class piFluxSolver:
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, False
 
-    def solvemufield(self, a=True):
+    def solvemufield(self, a=False):
         if a:
             self.findminLam()
-            print("After find min lam")
-            print(self.lams[0], self.minLams[0])
         self.lams, diverge = self.findLambda(a)
-        print("After find lam")
-        print(self.lams[0], self.minLams[0])
         return self.GS(), diverge
 
 
@@ -1159,7 +1157,7 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 5
-            self.findminLam()
+            # self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
             self.updateMF()
