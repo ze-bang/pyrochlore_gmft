@@ -297,7 +297,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
 def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
-    lamMax = 10*np.copy(lamM)
+    lamMax = max(50, 10*lamM[0])*np.ones(2)
     lams = lamMax
     diverge = False
     while True:
@@ -312,6 +312,7 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
                 lamMax = lams
             if ((np.absolute(rhoguess - kappa) <= tol).all()):
                 break
+            # print(rhoguess, lams, lamMin, lamMax)
         except:
             lamMin = lams
         if (abs(lamMin - lamMax) < 1e-15).all():
@@ -1037,10 +1038,7 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.MF)
 
     def findLambda(self, a=True):
-        if a:
-            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
-        else:
-            return findlambda_pi(self.kappa, self.tol,np.abs(np.min(self.E))*np.ones(2), self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+        return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1096,6 +1094,7 @@ class piFluxSolver:
         while True:
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
+            print(self.lams, self.minLams)
             self.xi = self.solvexifield()
             self.updateMF()
             # print("Solve mu field")
@@ -1138,7 +1137,11 @@ class piFluxSolver:
     def solvemufield(self, a=True):
         if a:
             self.findminLam()
+            print("After find min lam")
+            print(self.lams[0], self.minLams[0])
         self.lams, diverge = self.findLambda(a)
+        print("After find lam")
+        print(self.lams[0], self.minLams[0])
         return self.GS(), diverge
 
 
@@ -1159,6 +1162,7 @@ class piFluxSolver:
             self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
+            self.updateMF()
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0

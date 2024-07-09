@@ -827,17 +827,17 @@ def phaseExGraph(filename):
 # print(ffact, zmag)
 # print('\n')
 # print(np.exp(1j*A_pi_here))
-# Jxx, Jyy, Jzz = 1,         1.,        0
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.1, n=h110)
-# a.solvemeanfield()
-# a.graph(axs)
-# print(a.condensed)
-# plt.show()
+Jxx, Jyy, Jzz = -0.30769231,  1.,          0.30769231
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0, n=h110)
+a.solvemeanfield()
+a.graph(axs)
+print(a.condensed)
+plt.show()
 
-Jxx = np.linspace(0,0.5,10)
-for i in range(10):
-    SSSF_pedantic(100, Jxx[i], 1, 1-Jxx[i], 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.25_Jpmpm="+str(1-2*Jxx[i]), "hnhl", K=0, Hr=2.5, Lr=2.5)
+# Jxx = np.linspace(0,0.5,10)
+# for i in range(10):
+#     SSSF_pedantic(100, Jxx[i], 1, 1-Jxx[i], 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.25_Jpmpm="+str(1-2*Jxx[i]), "hnhl", K=0, Hr=2.5, Lr=2.5)
 
 
 # 0.5811437155148994
