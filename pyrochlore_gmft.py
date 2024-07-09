@@ -1222,7 +1222,7 @@ class piFluxSolver:
 
     def condensation_check(self):
         self.findminLam()
-        self.lams, d = self.findLambda()
+        self.lams, d = self.findLambda(True)
         self.set_condensed()
         self.ifcondense()
         # self.set_delta()
