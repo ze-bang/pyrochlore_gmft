@@ -577,7 +577,7 @@ def SSSFGraph_helper(d1, Hr, Lr, vmin, vmax):
                    vmax=vmax)
     plt.colorbar()
 
-def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.nan, vmax=np.nan):
 
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
 
@@ -612,7 +612,7 @@ def SSSFGraphHKK(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
-def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.nan, vmax=np.nan):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
 
     Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
@@ -646,7 +646,7 @@ def SSSFGraphHHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     # plt.show()
     plt.savefig(filename + ".pdf")
     plt.clf()
-def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.nan, vmax=np.nan):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
 
     #
@@ -676,7 +676,7 @@ def SSSFGraphHK0(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plt.clf()
 
 
-def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.nan, vmax=np.nan):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
     plt.ylabel(r'$(K,K,-2K)$')
     plt.xlabel(r'$(H,-H,0)$')
@@ -685,7 +685,7 @@ def SSSFGraphHH2K(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
-def SSSFGraphHnHL(d1, filename, Hr, Lr, vmin=np.NaN, vmax=np.NaN):
+def SSSFGraphHnHL(d1, filename, Hr, Lr, vmin=np.nan, vmax=np.nan):
     SSSFGraph_helper(d1, Hr, Lr, vmin, vmax)
     plt.ylabel(r'$(0,0, L)$')
     plt.xlabel(r'$(H,-H,0)$')
@@ -774,8 +774,8 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gup, f1+"unpolarized", Hr, Lr)
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
-def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, args, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
     L = np.linspace(-Lr, Lr, nK)
@@ -1430,8 +1430,8 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         graphMethod(gup/dmax, f1+"unpolarized", Hr, Lr, lowedge, upedge)
         graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
 
-def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, *args):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, args, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW1, W1X1, X1Gamma))
     lowedge, upedge = py0s.loweredge(), py0s.upperedge()
