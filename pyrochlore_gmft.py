@@ -335,11 +335,11 @@ def chi_integrand(k, E, V, Jzz, unitcell):
     A = contract('iab, ijl,jka, lkb->ikjl', green[:, 2*size:3*size, 0:size], ffactA, unitcell, unitcell)/size
     return A, B
 
-def chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, nS):
+def chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, *args):
     A, B = chi_integrand(pts, E, V, Jzz, unitcellGraph)
     A = contract('ikjl,i->kjl', A, weights)
     B = contract('ikjl,i->kjl', B, weights)
-    M1 = chi_field(n, n1, n2, unitcellCoord, B[0], A[0], nS)
+    M1 = chi_field(n, n1, n2, unitcellCoord, B[0], A[0], *args)
     return M1
 
 def xi_integrand(k, E, V, Jzz, unitcellGraph):
@@ -349,15 +349,15 @@ def xi_integrand(k, E, V, Jzz, unitcellGraph):
     size = int(E.shape[1]/4)
     A = contract('ika, ij,jka->kij', green[:, 0:size, size:2*size], ffactA, unitcellGraph)/size
     return A
-def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, nS):
+def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, *args):
     M = integrate_fixed(xi_integrand, weights, pts, E, V, Jzz, unitcellGraph)
-    M1 = xi_field(n, n1, n2, unitcellCoord, M[0], nS)
+    M1 = xi_field(n, n1, n2, unitcellCoord, M[0], *args)
     return M1
 
-def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, chi_field, nS):
-    chi = chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, nS)
+def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, chi_field, params):
+    chi = chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, params)
     # chi = np.zeros((len(unitcellCoord),4,4))
-    return chi, xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, nS)
+    return chi, xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, params)
 
 # endregion
 
@@ -740,10 +740,13 @@ def graphing_M_setup(flux, n):
     #     unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
     return unitCellgraph, A_pi_here, unitcellCoord
 
-def xi_wo_field(n, n1, n2, unitcellcoord, xi0, *args):
+def xi_wo_field(n, n1, n2, unitcellcoord, xi0, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
-    nS, = args
+    try:
+        nS, = args
+    except:
+        nS = 0
     for i in range(len(unitcellcoord)):
         mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
     return mult
@@ -782,7 +785,7 @@ def chi_wo_field(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
                                [chi02A, chi12A, chi00A, chi23A],
                                [chi03A, chi13A, chi23A, chi00A]])
     return mult
-def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, *args):
+def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
@@ -794,7 +797,7 @@ def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi0, *args):
             mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[0]])
     return mult
 
-def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
+def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, args):
 
     mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
 
@@ -878,7 +881,7 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
                                [chi03A, chi13A, chi23A, chi00A]])
     return mult
 
-def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0, *args):
+def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
@@ -890,7 +893,7 @@ def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi0, *args):
             mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[0]])
     return mult
 
-def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
+def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, args):
 
     mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
 
@@ -975,7 +978,8 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
 #endregion
 class piFluxSolver:
-    def __init__(self, Jxx, Jyy, Jzz, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4), intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, nS=0):
+    def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
@@ -990,8 +994,7 @@ class piFluxSolver:
         self.kappa = kappa
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
-        self.nS = nS
-
+        self.PSGparams = args
         if h == 0:
             self.xi_field = xi_wo_field
             self.chi_field = chi_wo_field
@@ -1031,8 +1034,8 @@ class piFluxSolver:
         self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
         self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             self.A_pi_here)
-        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.nS)
-        self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.nS)
+        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.PSGparams)
+        self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.PSGparams)
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
@@ -1068,19 +1071,19 @@ class piFluxSolver:
     def calmeanfield(self):
         E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*E)
-        chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.chi_field, self.nS)
+        chi, xi = calmeanfield(E, V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.chi_field, self.PSGparams)
         return chi, xi
 
     def solvexifield(self):
         # E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
-        xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
+        xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         return xi
 
     def solvechifield(self):
         # E, V = self.LV_zero(self.pts)
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
-        chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return chi
 
     def updateMF(self):
@@ -1242,14 +1245,14 @@ class piFluxSolver:
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
     def E_pi_reduced(self, k):
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            A_pi_here)
-        xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
+        # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
+        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+        #     A_pi_here)
+        # self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.PSGparams)
+        # self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.PSGparams)
         return np.sqrt(2 * self.Jzz *
-                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
-                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)[0])
+                       E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)[0])
 
 
     def dispersion(self, k):
@@ -1284,14 +1287,14 @@ class piFluxSolver:
 
 
     def minCal(self, K):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
                       xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
     def maxCal(self, K):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
                       xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
 
@@ -1312,8 +1315,8 @@ class piFluxSolver:
         B = genBZ(searchGrid)
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         q = np.sqrt(2 * self.Jzz *
                        E_pi(B, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
                             A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)[0])
@@ -1322,8 +1325,8 @@ class piFluxSolver:
         return 2*mins, 2*maxs
 
     def graph_loweredge(self, show, ax=plt):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
         if show:
@@ -1331,8 +1334,8 @@ class piFluxSolver:
         return min
 
     def graph_upperedge(self, show, ax=plt):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
         if show:
@@ -1341,15 +1344,15 @@ class piFluxSolver:
 
 
     def loweredge(self):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         return min
 
     def upperedge(self):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.nS)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.nS)
+        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                   self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         return max
