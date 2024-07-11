@@ -878,11 +878,15 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], *args, kappa=kappa, BZres=BZres, flux=flux)
-        py0s.solvemeanfield()
-        sendtemp[i] = py0s.condensed
-        sendtemp2[i] = py0s.MFE()
-        sendtemp3[i] = (py0s.xi<=1e-6).all()
-
+        try:
+            py0s.solvemeanfield()
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = py0s.MFE()
+            sendtemp3[i] = (py0s.xi<=1e-6).all()
+        except:
+            sendtemp[i] = np.nan
+            sendtemp2[i] = np.nan
+            sendtemp3[i] = np.nan
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
@@ -914,6 +918,43 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_xi')
         # graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
 
+
+def conclude_XYZ_0_field(filename):
+    A1 = filename+"_0_flux"
+    A2 = filename+"_0_flux_nS=1"
+    A3 = filename+"_pi_flux"
+    A4 = filename+"_pi_flux_nS=1"
+
+    D1 = np.loadtxt(A1+"_MFE.txt")
+    D2 = np.loadtxt(A2+"_MFE.txt")
+    D3 = np.loadtxt(A3+"_MFE.txt")
+    D4 = np.loadtxt(A4+"_MFE.txt")
+
+    D = np.array([D1,D2,D3,D4])
+
+    X1 = np.loadtxt(A1+"_xi.txt")
+    X2 = np.loadtxt(A2+"_xi.txt")
+    X3 = np.loadtxt(A3+"_xi.txt")
+    X4 = np.loadtxt(A4+"_xi.txt")
+
+    X = np.array([X1,X2,X3,X4])
+
+    C1 = np.loadtxt(A1+".txt")
+    C2 = np.loadtxt(A2+".txt")
+    C3 = np.loadtxt(A3+".txt")
+    C4 = np.loadtxt(A4+".txt")
+
+    C = np.array([C1,C2,C3,C4])
+    
+    phase = np.zeros((len(D1), len(D1)))
+    
+    for i in range(len(D1)):
+        for j in range(D1.shape):
+            tempD = D1[:,i,j]
+            a = np.argmin(tempD)
+            phase[i,j] = a*3 + X[a,i,j] + C[a,i,j]
+    plt.colorbar()
+    plt.savefig(filename+".pdf")
 #endregion
 
 #region Phase for Magnetic Field - Exclusive Boson
