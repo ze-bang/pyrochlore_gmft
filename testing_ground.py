@@ -509,4 +509,8 @@ def plot_truncated_octahedron():
     plt.show()
 
 
-plot_truncated_octahedron()
+# plot_truncated_octahedron()
+A = np.arange(25).reshape(5,5)
+
+B = np.array([A,A,A,A])
+print(B.shape)

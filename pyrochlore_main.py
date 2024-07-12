@@ -827,13 +827,18 @@ def phaseExGraph(filename):
 # print(ffact, zmag)
 # print('\n')
 # print(np.exp(1j*A_pi_here))
-Jxx, Jyy, Jzz = -0.34210526,  1.,         -0.18421053
+Jpm = -0.3
+Jpmpm = 0.2
+
+Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.ones(4) * np.pi, h=0, n=h110)
 a.solvemeanfield()
 a.graph(axs)
 print(a.condensed, a.chi, a.xi, a.MFE())
 plt.show()
+
+# conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):

@@ -1092,7 +1092,7 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.M)
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 2
+            limit = 10
         else:
             limit = 10
         print("Begin Xi Subroutine")
@@ -1116,7 +1116,7 @@ class piFluxSolver:
 
     def chiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 2
+            limit = 10
         else:
             limit = 10
         print("Begin Chi Subroutine")
@@ -1175,8 +1175,8 @@ class piFluxSolver:
                 GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
                 print("Iteration #"+str(count))
                 count = count + 1
-                if pconxi or pconChi:
-                    limit = 2
+                # if pconxi or pconChi:
+                #     limit = 2
                 if ((abs(GS-GSlast) < tol).all()) or count > limit:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
