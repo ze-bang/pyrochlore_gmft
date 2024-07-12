@@ -1027,11 +1027,11 @@ class piFluxSolver:
 
         # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         # self.unitCellgraph = piunitcell
-        self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+        self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
         self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             self.A_pi_here)
-        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.ones(4), self.PSGparams)
-        self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.PSGparams)
+        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.random.rand(len(self.A_pi_here),4), self.PSGparams)
+        self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.random.rand(len(self.A_pi_here),4,4), 0.05*np.random.rand(len(self.A_pi_here),4,4), self.PSGparams)
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
@@ -1049,12 +1049,12 @@ class piFluxSolver:
     def findminLam(self):
         searchGrid=34
         B = genBZ(searchGrid)
-        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
-        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, A_pi_here,
-                 A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)
+        # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
+        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
+        M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
         minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, self.chi, self.xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph,
+                                        self.theta, self.chi, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph,
                                         searchGrid, self.kappa)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
