@@ -41,7 +41,7 @@ def M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunit
 def M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
-    tempchi0 = chi[0, :,0,0]
+    tempchi0 = np.conj(chi[0, :,0,0])
     M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
                   unitcell)
     return M2
@@ -749,7 +749,7 @@ def xi_wo_field(n, n1, n2, unitcellcoord, xi0, args):
         nS = 0
     for i in range(len(unitcellcoord)):
         mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
-    return mult
+    return np.real(mult)
 
 def chi_wo_field(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
 
@@ -1104,10 +1104,10 @@ class piFluxSolver:
             self.updateMF()
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
-            if np.abs(GS) > 1e1 or diverge:
-                self.xi=xilast
-                print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                return GSlast, True
+            # if np.abs(GS) > 1e1 or diverge:
+            #     self.xi=xilast
+            #     print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+            #     return GSlast, True
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
@@ -1128,10 +1128,10 @@ class piFluxSolver:
             self.updateMF()
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
-            if np.abs(GS) > 1e1 or diverge:
-                self.chi=chilast
-                print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                return GSlast, True
+            # if np.abs(GS) > 1e1 or diverge:
+            #     self.chi=chilast
+            #     print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+            #     return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
@@ -1159,7 +1159,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 5
+            limit = 10
             # self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
