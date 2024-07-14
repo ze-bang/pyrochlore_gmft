@@ -27,22 +27,22 @@ def M_pi_sub_intrahopping_AA(k, alpha, Jpm, A_pi_rs_traced_here, unitcell=piunit
 def M_pi_sub_interhopping_AB(k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
-    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
-    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
+    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 2 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
+    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 2 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
     return M1a + M1b
 
 
 def M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
     di = np.identity(unitcell.shape[1])
-    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi[1], d, di)
+    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 4, chi[1], d, di)
     return M1
 
 def M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     ffact = contract('ik, jlk->ijl', k, NNminus)
     ffact = np.exp(-1j * ffact)
     tempchi0 = np.conj(chi[0, :,0,0])
-    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 4, ffact, tempchi0, unitcell,
                   unitcell)
     return M2
 
