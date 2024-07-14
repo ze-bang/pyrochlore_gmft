@@ -1144,6 +1144,7 @@ class piFluxSolver:
 
     def solvemeanfield(self, tol=1e-8):
         tstart = time.time()
+        warnings.filterwarnings("error")
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
@@ -1154,7 +1155,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 10
+            limit = 5
             # self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
@@ -1168,7 +1169,7 @@ class piFluxSolver:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 GS, pconxi = self.xiSubrountine(tol, GS, pconxi)
                 GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
-                print("Iteration #"+str(count))
+                print("Iteration #"+str(count), self.chi, self.xi)
                 count = count + 1
                 # if pconxi or pconChi:
                 #     limit = 2
@@ -1180,6 +1181,7 @@ class piFluxSolver:
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
             print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
+        warnings.resetwarnings()
         tend = time.time()
         print("This run took "+ str(tend-tstart))
         return 0

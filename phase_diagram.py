@@ -1034,7 +1034,9 @@ def conclude_XYZ_0_field(filename):
         for j in range(D1.shape[0]):
             tempD = D[:,i,j]
             a = np.argmin(tempD)
-            phase[i,j] = a + 5*C[a,i,j]
+            phase[i,j] = a//2 + 5*C[a,i,j]
+            if np.isnan(phase[i,j]):
+                phase[i,j] = 5
             Jxx = -0.5+(1.5/80*(i+1))
             Jyy = -0.5+(1.5/80*(j+1))
             Jpm[i,j] = -(Jxx+Jyy)/4
