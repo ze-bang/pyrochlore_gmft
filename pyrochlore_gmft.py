@@ -46,6 +46,12 @@ def M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitce
                   unitcell)
     return M2
 
+def M_pi_fictitious_Z2_AA(k, alpha, A_pi_rs_traced_pp_here, g, unitcell=piunitcell):
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(neta(alpha)* 1j * ffact)
+    M2 = contract('jl, kjl, ijl, jka, lkb->iba', notrace, g * A_pi_rs_traced_pp_here / 4, ffact, unitcell,
+                  unitcell)
+    return M2
 
 def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
          unitcell=piunitcell):
@@ -972,7 +978,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
-                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False):
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
@@ -985,6 +991,7 @@ class piFluxSolver:
         self.Jpmpm = (J[xx] - J[yy]) / 4
         self.theta = theta
         self.kappa = kappa
+        self.g = 0
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.PSGparams = args
