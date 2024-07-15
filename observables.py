@@ -774,7 +774,7 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gup, f1+"unpolarized", Hr, Lr)
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
-def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5):
+def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, args, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
