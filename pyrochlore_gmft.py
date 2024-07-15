@@ -53,7 +53,7 @@ def M_pi_fictitious_Z2_AA(k, alpha, A_pi_rs_traced_pp_here, g, unitcell=piunitce
                   unitcell)
     return M2
 
-def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
          unitcell=piunitcell):
 
     k = contract('ij,jk->ik', k, BasisBZA)
@@ -82,8 +82,8 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
         MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell) + M_pi_sub_interhopping_AB(-k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
         MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
-        MAdkAdnk = M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
-        MBnkBk = M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell)
+        MAdkAdnk = M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + np.conj(np.transpose(M_pi_fictitious_Z2_AA(k, 0, A_pi_rs_traced_pp_here, g, unitcell),(0,2,1)))
+        MBnkBk = M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + M_pi_fictitious_Z2_AA(k, 1, A_pi_rs_traced_pp_here, g, unitcell)
         MBdkBdnk = np.conj(np.transpose(MBnkBk, (0, 2, 1)))
         MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
 
@@ -104,9 +104,9 @@ def E_pi_fixed(lams, M):
     return E, V
 
 
-def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
          unitcell=piunitcell):
-    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell)
     M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
     return [E, V]
@@ -138,139 +138,138 @@ def rho_true_site(weights, E, V, lams, Jzz):
 #endregion
 
 #region gradient find minLam
-def Emin(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell):
+def Emin(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
+         unitcell):
     k = k.reshape((1,3))
-    return E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell)[0][0,0]
-
-def Emins(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    return E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here)[0][:, 0]
+    return E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
+                unitcell)[0][0,0]
 
 
 
-def gradient(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    kx, ky, kz = k
-    step = 1e-8
-    fx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-               A_pi_rs_traced_pp_here, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-                                                          xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-                                                          piunitcell)) / step
-    fy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-               A_pi_rs_traced_pp_here, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-                                                          xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-                                                          piunitcell)) / step
-    fz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-               A_pi_rs_traced_pp_here, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-                                                          xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-                                                          piunitcell)) / step
-    return np.array([fx, fy, fz])
-
-def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-    kx, ky, kz = k
-    step = 1e-8
-
-    fxx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    fxy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    fxz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    fyy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    fyz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    fzz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-                                                               chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                                               A_pi_rs_traced_pp_here, piunitcell)
-           + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, piunitcell)) / step ** 2
-    return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
-
-def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-               BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
-    if Jpm==0 and Jpmpm == 0 and h == 0:
-        return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
-    warnings.filterwarnings("error")
-    E, V = np.linalg.eigh(M)
-    E = E[:,0]
-    Em = E.min()
-    dex = np.where(np.abs(E-Em)<5e-16)
-    Know = K[dex]
-    Know = symmetry_equivalence(Know, equi_class_flux)
-    Know = symmetry_equivalence(Know, equi_class_field)
-
-    if Know.shape == (3,):
-        Know = Know.reshape(1,3)
-
-    if len(Know) >= 8:
-        Know = Know[0:8]
-    step = 1
-    Enow = Em*np.ones(len(Know))
-    for i in range(len(Know)):
-        stuff = True
-        init = True
-        while stuff:
-            if not init:
-                gradlen = gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
-                                   A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - gradient(Klast, np.zeros(2), Jpm,
-                                                                                           Jpmpm, h, n, theta, chi, xi,
-                                                                                           A_pi_here,
-                                                                                           A_pi_rs_traced_here,
-                                                                                           A_pi_rs_traced_pp_here)
-                try:
-                    step = abs(np.dot(Know[i] - Klast, gradlen)) / np.linalg.norm(gradlen) ** 2
-                except:
-                    step = 0
-
-            Klast = np.copy(Know[i])
-            Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
-                                                A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-            Elast = np.copy(Enow[i])
-            Enow[i] = Emin(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                           A_pi_rs_traced_pp_here, piunitcell)
-            init = False
-            if abs(Elast-Enow[i])<1e-14:
-                stuff = False
-    warnings.resetwarnings()
-
-    Enowm = Enow.min()
-    dex = np.where(abs(Enow-Enowm)<5e-16)
-    Know = Know[dex]
-    if Know.shape == (3,):
-        Know = Know.reshape(1,3)
-    KnowF = gen_equi_class_field(Know)
-    KnowF = gen_equi_class_flux(KnowF)
-
-    KnowF = np.unique(np.mod(KnowF, 1),axis=0)
-    Know = np.unique(np.mod(Know, 1),axis=0)
-    if KnowF.shape == (3,):
-        KnowF = KnowF.reshape(1,3)
-    return -Enowm, KnowF, Know
+# def gradient(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+#     kx, ky, kz = k
+#     step = 1e-8
+#     fx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
+#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+#                                                              0, piunitcell)) / step
+#     fy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
+#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+#                                                              0, piunitcell)) / step
+#     fz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
+#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+#                                                              0, piunitcell)) / step
+#     return np.array([fx, fy, fz])
+#
+# def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
+#     kx, ky, kz = k
+#     step = 1e-8
+#
+#     fxx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     fxy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     fxz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     fyy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     fyz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     fzz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
+#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
+#            + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
+#     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
+#
+# def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+#                BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
+#     if Jpm==0 and Jpmpm == 0 and h == 0:
+#         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
+#     warnings.filterwarnings("error")
+#     E, V = np.linalg.eigh(M)
+#     E = E[:,0]
+#     Em = E.min()
+#     dex = np.where(np.abs(E-Em)<5e-16)
+#     Know = K[dex]
+#     Know = symmetry_equivalence(Know, equi_class_flux)
+#     Know = symmetry_equivalence(Know, equi_class_field)
+#
+#     if Know.shape == (3,):
+#         Know = Know.reshape(1,3)
+#
+#     if len(Know) >= 8:
+#         Know = Know[0:8]
+#     step = 1
+#     Enow = Em*np.ones(len(Know))
+#     for i in range(len(Know)):
+#         stuff = True
+#         init = True
+#         while stuff:
+#             if not init:
+#                 gradlen = gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
+#                                    A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - gradient(Klast, np.zeros(2), Jpm,
+#                                                                                            Jpmpm, h, n, theta, chi, xi,
+#                                                                                            A_pi_here,
+#                                                                                            A_pi_rs_traced_here,
+#                                                                                            A_pi_rs_traced_pp_here)
+#                 try:
+#                     step = abs(np.dot(Know[i] - Klast, gradlen)) / np.linalg.norm(gradlen) ** 2
+#                 except:
+#                     step = 0
+#
+#             Klast = np.copy(Know[i])
+#             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
+#                                                 A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
+#             Elast = np.copy(Enow[i])
+#             Enow[i] = Emin(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+#                            A_pi_rs_traced_pp_here, 0, piunitcell)
+#             init = False
+#             if abs(Elast-Enow[i])<1e-14:
+#                 stuff = False
+#     warnings.resetwarnings()
+#
+#     Enowm = Enow.min()
+#     dex = np.where(abs(Enow-Enowm)<5e-16)
+#     Know = Know[dex]
+#     if Know.shape == (3,):
+#         Know = Know.reshape(1,3)
+#     KnowF = gen_equi_class_field(Know)
+#     KnowF = gen_equi_class_flux(KnowF)
+#
+#     KnowF = np.unique(np.mod(KnowF, 1),axis=0)
+#     Know = np.unique(np.mod(Know, 1),axis=0)
+#     if KnowF.shape == (3,):
+#         KnowF = KnowF.reshape(1,3)
+#     return -Enowm, KnowF, Know
 
 #endregion
 
 #region find minlam scipy
-def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell, BZres, kappa):
+def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
 
@@ -289,7 +288,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
     Enow = np.zeros(len(Know))
     for i in range(len(Know)):
         res = minimize(Emin, x0=Know[i], args=(np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
-                                               A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitcell),
+                                               A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell),
                        method='Nelder-Mead', bounds=((Know[i,0]-1/BZres, Know[i,0]+1/BZres), (Know[i,1]-1/BZres,Know[i,1]+1/BZres), (Know[i,2]-1/BZres,Know[i,2]+1/BZres)))
         Know[i] = np.array(res.x)
         Enow[i] = res.fun
@@ -370,32 +369,32 @@ def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGrap
 #region graphing BZ
 
 def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here, unitcell):
+                  A_pi_rs_traced_pp_here, g, unitcell):
     temp = np.sqrt(2 * Jzz * E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                  A_pi_rs_traced_pp_here, unitcell)[0])
+                                  A_pi_rs_traced_pp_here, g, unitcell)[0])
     return temp
 
 
-def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,axes,
-                  unitcell=piunitcell):
+def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+                  axes, g, unitcell=piunitcell):
     dGammaX = dispersion_pi(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                            A_pi_rs_traced_pp_here, unitcell)
+                            A_pi_rs_traced_pp_here, g, unitcell)
     dXW = dispersion_pi(lams, XW, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                        A_pi_rs_traced_pp_here, g, unitcell)
     dWK = dispersion_pi(lams, WK, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                        A_pi_rs_traced_pp_here, g, unitcell)
     dKGamma = dispersion_pi(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                            A_pi_rs_traced_pp_here, unitcell)
+                            A_pi_rs_traced_pp_here, g, unitcell)
     dGammaL = dispersion_pi(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                            A_pi_rs_traced_pp_here, unitcell)
+                            A_pi_rs_traced_pp_here, g, unitcell)
     dLU = dispersion_pi(lams, LU, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                        A_pi_rs_traced_pp_here, g, unitcell)
     dUW1 = dispersion_pi(lams, UW1, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                         A_pi_rs_traced_pp_here, g, unitcell)
     dW1X1 = dispersion_pi(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                          A_pi_rs_traced_pp_here, g, unitcell)
     dX1Gamma = dispersion_pi(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                        A_pi_rs_traced_pp_here, unitcell)
+                             A_pi_rs_traced_pp_here, g, unitcell)
 
     for i in range(dGammaX.shape[1]):
         axes.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX[:, i], 'b')
@@ -430,91 +429,91 @@ def calDispersion(lams, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_r
 
 #region lower and upper edges
 # @nb.njit(parallel=True, cache=True)
-def minCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+def minCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
            unitcell):
     temp = np.zeros(len(q))
     mins = dispersion_pi(lams, K, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                         A_pi_rs_traced_pp_here, unitcell)[:, 0]
+                         A_pi_rs_traced_pp_here, g, unitcell)[:, 0]
     for i in range(len(q)):
         temp[i] = np.min(
             dispersion_pi(lams, K - q[i], Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                          A_pi_rs_traced_pp_here, unitcell)[:, 0]
+                          A_pi_rs_traced_pp_here, g, unitcell)[:, 0]
             + mins)
     return temp
 
 
 # @nb.njit(parallel=True, cache=True)
-def maxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
+def maxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
            unitcell):
     temp = np.zeros(len(q))
     maxs = dispersion_pi(lams, K, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                         A_pi_rs_traced_pp_here, unitcell)[:, -1]
+                         A_pi_rs_traced_pp_here, g, unitcell)[:, -1]
     for i in range(len(q)):
         temp[i] = np.max(
             dispersion_pi(lams, K - q[i], Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                          A_pi_rs_traced_pp_here, unitcell)[:, -1]
+                          A_pi_rs_traced_pp_here, g, unitcell)[:, -1]
             + maxs)
     return temp
 
 
 def minMaxCal(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-              unitcell):
+              g, unitcell):
     temp = np.zeros((len(q), 2))
     Ek = dispersion_pi(lams, K, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                       A_pi_rs_traced_pp_here, unitcell)
+                       A_pi_rs_traced_pp_here, g, unitcell)
     mins = Ek[:,0]
     maxs = Ek[:,-1]
     for i in range(len(q)):
         tt = dispersion_pi(lams, K - q[i], Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                           A_pi_rs_traced_pp_here, unitcell)
+                           A_pi_rs_traced_pp_here, g, unitcell)
         temp[i, 0] = np.min(tt[:, 0] + mins)
         temp[i, 1] = np.max(tt[:, -1] + maxs)
     return temp
 
 def DSSF_E_Low(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-               A_pi_rs_traced_pp_here):
+               A_pi_rs_traced_pp_here, g):
     Eq = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                A_pi_rs_traced_pp_here)[0])
+                                A_pi_rs_traced_pp_here, g)[0])
     Ek = np.sqrt(2 * Jzz * E_pi(K - q, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                A_pi_rs_traced_pp_here)[0])
+                                A_pi_rs_traced_pp_here, g)[0])
     return min(Eq[:,0]+Ek[:,0])
 
 def DSSF_E_High(lams, q, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                A_pi_rs_traced_pp_here):
+                A_pi_rs_traced_pp_here, g):
     Eq = np.sqrt(2 * Jzz * E_pi(K, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                A_pi_rs_traced_pp_here)[0])
+                                A_pi_rs_traced_pp_here, g)[0])
     Ek = np.sqrt(2 * Jzz * E_pi(K - q, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                A_pi_rs_traced_pp_here)[0])
+                                A_pi_rs_traced_pp_here, g)[0])
     return max(Eq[:,-1]+Ek[:,-1])
 
 def DSSF_E_DOMAIN(lams, qmin, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                  A_pi_rs_traced_pp_here):
+                  A_pi_rs_traced_pp_here, g):
     return DSSF_E_Low(lams, qmin, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                      A_pi_rs_traced_pp_here) \
+                      A_pi_rs_traced_pp_here, g) \
         , DSSF_E_High(lams, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                      A_pi_rs_traced_pp_here)
+                      A_pi_rs_traced_pp_here, g)
 
 
-def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-              unitcell ,ax):
+def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
+              unitcell, ax):
     dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dWK = minCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dKGamma = minCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dGammaL = minCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dLU = minCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dUW1 = minCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                  A_pi_rs_traced_pp_here, g, unitcell)
     dW1X1 = minCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                   A_pi_rs_traced_pp_here, g, unitcell)
     dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                      A_pi_rs_traced_pp_here, g, unitcell)
 
     ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
     ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
@@ -544,26 +543,26 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
 
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
 
-def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-              unitcell ,ax):
+def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
+              unitcell, ax):
     dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dWK = maxCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dKGamma = maxCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dGammaL = maxCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dLU = maxCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dUW1 = maxCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                  A_pi_rs_traced_pp_here, g, unitcell)
     dW1X1 = maxCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                   A_pi_rs_traced_pp_here, g, unitcell)
     dX1Gamma = maxCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                      A_pi_rs_traced_pp_here, g, unitcell)
 
 
     ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
@@ -593,49 +592,49 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     ax.set_xlim([0,gGamma3])
 
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
-def loweredge_data(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-              unitcell):
+def loweredge_data(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                   A_pi_rs_traced_pp_here, g, unitcell):
     dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dWK = minCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dKGamma = minCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dGammaL = minCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dLU = minCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dUW1 = minCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                  A_pi_rs_traced_pp_here, g, unitcell)
     dW1X1 = minCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                   A_pi_rs_traced_pp_here, g, unitcell)
     dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                      A_pi_rs_traced_pp_here, g, unitcell)
 
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
 
-def upperedge_data(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-              unitcell):
+def upperedge_data(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
+                   A_pi_rs_traced_pp_here, g, unitcell):
     dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dWK = maxCal(lams, WK, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dKGamma = maxCal(lams, KGamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dGammaL = maxCal(lams, GammaL, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                     A_pi_rs_traced_pp_here, unitcell)
+                     A_pi_rs_traced_pp_here, g, unitcell)
     dLU = maxCal(lams, LU, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                 A_pi_rs_traced_pp_here, g, unitcell)
     dUW1 = maxCal(lams, UW1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                  A_pi_rs_traced_pp_here, g, unitcell)
     dW1X1 = maxCal(lams, W1X1, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                   A_pi_rs_traced_pp_here, g, unitcell)
     dX1Gamma = maxCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                 A_pi_rs_traced_pp_here, unitcell)
+                      A_pi_rs_traced_pp_here, g, unitcell)
 
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
 
@@ -991,7 +990,7 @@ class piFluxSolver:
         self.Jpmpm = (J[xx] - J[yy]) / 4
         self.theta = theta
         self.kappa = kappa
-        self.g = 0
+        self.g = g
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.PSGparams = args
@@ -1040,7 +1039,7 @@ class piFluxSolver:
         self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.random.rand(len(self.A_pi_here),4), self.PSGparams)
         self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.random.rand(len(self.A_pi_here),4,4), 0.05*np.random.rand(len(self.A_pi_here),4,4), self.PSGparams)
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
 
     def findLambda(self, a=False):
@@ -1059,10 +1058,10 @@ class piFluxSolver:
         # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
         M = M_pi(B, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         minLams, self.qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
-                                        self.theta, self.chi, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph,
-                                        searchGrid, self.kappa)
+                                        self.theta, self.chi, self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here,
+                                        self.g, self.unitCellgraph, searchGrid, self.kappa)
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         self.minLams = np.ones(2) * minLams
         return minLams
@@ -1091,7 +1090,7 @@ class piFluxSolver:
 
     def updateMF(self):
         self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                 self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                      self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.M)
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
@@ -1183,8 +1182,7 @@ class piFluxSolver:
                 if ((abs(GS-GSlast) < tol).all()) or count > limit:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                           self.A_pi_here,
-                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                           self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
             print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
@@ -1237,17 +1235,18 @@ class piFluxSolver:
 
     def M_true(self, k):
         return M_pi(k, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
+                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def E_pi_mean(self, k):
         return np.mean(np.sqrt(2 * self.Jzz *
                                E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                                    self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)[0]), axis=1)
+                                    self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                                    self.unitCellgraph)[0]), axis=1)
 
     def E_pi(self, k):
         return np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)[0])
+                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)[0])
     def E_pi_reduced(self, k):
         # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
@@ -1256,16 +1255,18 @@ class piFluxSolver:
         # self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.02*np.ones((4,4)), 0.05*np.ones((4,4)), self.PSGparams)
         return np.sqrt(2 * self.Jzz *
                        E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)[0])
+                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                            self.unitCellgraph)[0])
 
 
     def dispersion(self, k):
         return dispersion_pi(self.lams, k, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi,
-                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                             self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                             self.unitCellgraph)
 
     def LV_zero(self, k):
         return E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def GS(self):
         return np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
@@ -1275,36 +1276,28 @@ class piFluxSolver:
         Ep = self.GS()
         return Ep
 
-    def graph_raw(self, show):
-        calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here)
-        if show:
-            plt.show()
-
     def graph(self, axes):
-        # unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux)
-        # A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        # xi = xi_mean_field(self.n, self.xi, self.n1, self.n2, self.n4, self.n5, unitcellCoord)
-        # chi = chi_mean_field(self.n, self.chi[0], self.n1, self.n2, self.n3, self.n4, self.n5, unitcellCoord)
         calDispersion(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
-                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, axes, self.unitCellgraph)
+                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, axes, self.g,
+                      self.unitCellgraph)
 
 
     def minCal(self, K):
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
-                      xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+        return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def maxCal(self, K):
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi,
-                      xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+        return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+                      self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def minMaxCal(self, K):
         return minMaxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi,
-                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                         self.xi, self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                         self.unitCellgraph)
 
     def EMAX(self):
         return np.sqrt(2 * self.Jzz * EMAX(self.MF, self.lams))
@@ -1322,8 +1315,8 @@ class piFluxSolver:
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         q = np.sqrt(2 * self.Jzz *
-                       E_pi(B, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi,
-                            A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, unitCellgraph)[0])
+                    E_pi(B, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+                         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, self.g, unitCellgraph)[0])
         mins = np.min(q[:,0])
         maxs = np.max(q[:,-1])
         return 2*mins, 2*maxs
@@ -1332,7 +1325,8 @@ class piFluxSolver:
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
+                        self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
+                        ax)
         if show:
             plt.show()
         return min
@@ -1341,7 +1335,8 @@ class piFluxSolver:
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph, ax)
+                        self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
+                        ax)
         if show:
             plt.show()
         return max
@@ -1351,14 +1346,16 @@ class piFluxSolver:
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                             self.unitCellgraph)
         return min
 
     def upperedge(self):
         xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
-                  self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                             self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                             self.unitCellgraph)
         return max
 
     def green_pi(self, k, lam=np.zeros(2)):
@@ -1373,13 +1370,13 @@ class piFluxSolver:
 
     def green_pi_reduced(self, k):
         E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
     def green_pi_branch_reduced(self, k):
         E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here, self.unitCellgraph
 
