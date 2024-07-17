@@ -54,9 +54,9 @@ def M_pi_fictitious_Z2_AA(k, alpha, A_pi_rs_traced_pp_here, g, unitcell=piunitce
     return M2
 
 def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-         unitcell=piunitcell):
-
-    k = contract('ij,jk->ik', k, BasisBZA)
+         unitcell=piunitcell, cartesian=False):
+    if not cartesian:
+        k = contract('ij,jk->ik', k, BasisBZA)
     size = len(A_pi_here)
 
 
@@ -105,8 +105,8 @@ def E_pi_fixed(lams, M):
 
 
 def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-         unitcell=piunitcell):
-    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell)
+         unitcell=piunitcell, cartesian=False):
+    M = M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell, cartesian)
     M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
     E, V = np.linalg.eigh(M)
     return [E, V]
@@ -1171,12 +1171,12 @@ class piFluxSolver:
         warnings.filterwarnings('error')
         tstart = time.time()
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
-            self.chi = np.zeros((len(self.unitcellCoord),4,4))
-            self.xi = np.zeros((4,4))
+            self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
+            self.xi = np.zeros((len(self.unitcellCoord),4))
             self.condensation_check()
         elif self.Jpmpm == 0:
-            self.chi = np.zeros((len(self.unitcellCoord),4,4))
-            self.xi = np.zeros((4,4))
+            self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
+            self.xi = np.zeros((len(self.unitcellCoord),4))
             self.condensation_check()
         else:
             print("Initialization Routine")
@@ -1344,9 +1344,7 @@ class piFluxSolver:
         return 2*mins, 2*maxs
 
     def graph_loweredge(self, show, ax=plt):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax)
         if show:
@@ -1354,9 +1352,7 @@ class piFluxSolver:
         return min
 
     def graph_upperedge(self, show, ax=plt):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax)
         if show:
@@ -1365,17 +1361,13 @@ class piFluxSolver:
 
 
     def loweredge(self):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return min
 
     def upperedge(self):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
+        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return max

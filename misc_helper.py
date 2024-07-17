@@ -35,13 +35,15 @@ chi_A = np.array([[[0,1,1,1],
                   ])
 
 xipicell = np.array([[[1,1,1,1],[1,-1,1,1],[1,-1,-1,1],[1,1,-1,1]],[[1,-1,-1,-1],[1,1,-1,-1],[1,1,1,-1],[1,-1,1,-1]]])
-
-@nb.njit
+BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 def magnitude(vector):
-    temp = 0
-    for i in vector:
-        temp = temp + i**2
-    return np.sqrt(temp)
+    temp = np.einsum('i,ik->k', vector, BasisBZA)
+    return np.linalg.norm(temp)
+
+def magnitude_bi(vector1, vector2):
+    temp1 = np.einsum('i,ik->k', vector1, BasisBZA)
+    temp2 = np.einsum('i,ik->k', vector2, BasisBZA)
+    return np.linalg.norm(temp1-temp2)
 
 e0 = np.array([0,0,0])
 e1 = np.array([0,1,1])/2
@@ -87,10 +89,8 @@ U = np.array([0.625, 0.625, 0.25])
 W1 = np.array([0.75, 0.5, 0.25])
 X1 = np.array([0.5,0.5, 0])
 
-
-stepN = magnitude(np.abs(U-W1))/graphres
-
-
+stepN = magnitude_bi(U, W1)/graphres
+# print(np.einsum('i,ik->k',W,BasisBZA),np.einsum('i,ik->k',K,BasisBZA))
 @nb.njit
 def repcoord(a, b, c):
     return a*b1+b*b2+c*b3
@@ -104,17 +104,6 @@ def realcoord(r):
 
 z = np.array([np.array([1,1,1])/np.sqrt(3), np.array([1,-1,-1])/np.sqrt(3), np.array([-1,1,-1])/np.sqrt(3), np.array([-1,-1,1])/np.sqrt(3)])
 x = np.array([[-2,1,1],[-2,-1,-1],[2,1,-1], [2,-1,1]])/np.sqrt(6)
-
-@nb.njit
-def BasisBZ(mu):
-    if mu == 0:
-        return 2*np.pi*np.array([-1,1,1])
-    if mu == 1:
-        return 2*np.pi*np.array([1,-1,1])
-    if mu == 2:
-        return 2*np.pi*np.array([1,1,-1])
-
-BasisBZA = np.array([2*np.pi*np.array([-1,1,1]),2*np.pi*np.array([1,-1,1]),2*np.pi*np.array([1,1,-1])])
 
 @nb.njit
 def neta(alpha):
@@ -402,7 +391,7 @@ def obliqueProj(W):
 # W1 = np.array([0.75, 0.5, 0.25])
 # X1 = np.array([0.5,0.5, 0])
 
-#Path to 1-1
+#Path to 1-10
 GammaX = drawLine(Gamma, X, stepN)
 XW = drawLine(X, W, stepN)
 WK = drawLine(W, K, stepN)
@@ -416,16 +405,16 @@ W1X1 = drawLine(W1, X1, stepN)
 X1Gamma = drawLine(X1, Gamma, stepN)
 
 gGamma1 = 0
-gX = magnitude(np.abs(Gamma-X))
-gW = gX + magnitude(np.abs(X-W))
-gK = gW + magnitude(np.abs(W-K))
+gX = magnitude_bi(Gamma, X)
+gW = gX + magnitude_bi(X, W)
+gK = gW + magnitude_bi(W, K)
 
-gGamma2 = gK + magnitude(np.abs(K-Gamma))
-gL = gGamma2 + magnitude(np.abs(Gamma-L))
-gU = gL + magnitude(np.abs(L-U))
-gW1 = gU + magnitude(np.abs(U-W1))
-gX1 = gW1 + magnitude(np.abs(X1-W1))
-gGamma3 = gX1 + magnitude(np.abs(Gamma-X1))
+gGamma2 = gK + magnitude_bi(K, Gamma)
+gL = gGamma2 + magnitude_bi(Gamma, L)
+gU = gL + magnitude_bi(L, U)
+gW1 = gU + magnitude_bi(U, W1)
+gX1 = gW1 + magnitude_bi(W1, X1)
+gGamma3 = gX1 + magnitude_bi(X1, Gamma)
 
 graphGammaX = np.linspace(gGamma1, gX, len(GammaX))
 graphXW = np.linspace(gX, gW, len(XW))
