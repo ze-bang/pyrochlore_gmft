@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
-
+import warnings
 from misc_helper import *
 import pyrochlore_gmft as pycon
 import pyrochlore_exclusive_boson as pyex
@@ -860,10 +860,17 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux)
-        py0s.solvemeanfield()
-        sendtemp[i] = py0s.condensed
-        sendtemp2[i] = py0s.MFE()
-        sendtemp3[i] = (py0s.xi<=1e-6).all()
+        warnings.filterwarnings('error')
+        try:
+            py0s.solvemeanfield()
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = py0s.MFE()
+            sendtemp3[i] = (py0s.xi<=1e-6).all()
+        except:
+            sendtemp[i] = np.nan
+            sendtemp2[i] = np.nan
+            sendtemp3[i] = np.nan
+        warnings.resetwarnings()
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
@@ -894,7 +901,6 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         graphColorMesh(JP, JP1, rectemp2,'Files/' + filename + '_MFE')
         graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_xi')
         # graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
-
 def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename):
     # totaltask = nK*nH
     # increment = totaltask/50
@@ -933,6 +939,7 @@ def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kap
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux, unconstrained=True)
+        warnings.filterwarnings('error')
         try:
             py0s.solvemeanfield()
             sendtemp[i] = py0s.condensed
@@ -942,6 +949,8 @@ def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kap
             sendtemp[i] = np.nan
             sendtemp2[i] = np.nan
             sendtemp3[i] = np.nan
+        warnings.resetwarnings()
+
     
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))

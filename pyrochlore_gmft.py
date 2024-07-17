@@ -1183,7 +1183,7 @@ class piFluxSolver:
                 try:
                     GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
                 except:
-                    GS, pconchi = np.copy(GSlast), True
+                    GS, pconChi = np.copy(GSlast), True
                 print("Iteration #"+str(count))
                 count = count + 1
                 if ((abs(GS-GSlast) < tol).all()) or count > limit:
