@@ -720,7 +720,6 @@ def graphing_M_setup_full(flux, n):
                               [0, np.pi, 0, 0]
                               ])
     elif (flux == np.array([0, 0, np.pi, np.pi])).all():
-
         A_pi_here = np.array([[0,0,0,0],
                               [0, 0, 0, 0],
                               [0,np.pi,np.pi,0],
@@ -977,7 +976,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
-                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0):
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=False):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
@@ -1033,7 +1032,10 @@ class piFluxSolver:
 
         # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         # self.unitCellgraph = piunitcell
-        self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
+        if simplified:
+            self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+        else:
+            self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
         self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
             self.A_pi_here)
         self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.05*np.random.rand(len(self.A_pi_here),4), self.PSGparams)
@@ -1046,7 +1048,9 @@ class piFluxSolver:
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
         else:
-            return findlambda_pi(self.kappa, self.tol,np.min(self.E)*0.9*np.ones(2), self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+            A = -np.min(self.E)*np.ones(2)
+            lams, d = findlambda_pi(self.kappa, self.tol, A+5e-16, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+            return lams, d
 
     def findLambda_unconstrained(self):
         return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
@@ -1149,8 +1153,8 @@ class piFluxSolver:
 
 
     def solvemeanfield(self, tol=1e-8):
+        warnings.filterwarnings('error')
         tstart = time.time()
-        warnings.filterwarnings("error")
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
             self.chi = np.zeros((len(self.unitcellCoord),4,4))
             self.xi = np.zeros((4,4))
@@ -1162,7 +1166,6 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 5
-            # self.findminLam()
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
             self.updateMF()
@@ -1173,12 +1176,16 @@ class piFluxSolver:
             pconChi = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
-                GS, pconxi = self.xiSubrountine(tol, GS, pconxi)
-                GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
+                try:
+                    GS, pconxi = self.xiSubrountine(tol, GS, pconxi)
+                except:
+                    GS, pconxi = np.copy(GSlast), True
+                try:
+                    GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
+                except:
+                    GS, pconchi = np.copy(GSlast), True
                 print("Iteration #"+str(count))
                 count = count + 1
-                # if pconxi or pconChi:
-                #     limit = 2
                 if ((abs(GS-GSlast) < tol).all()) or count > limit:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
@@ -1186,9 +1193,9 @@ class piFluxSolver:
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
             print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
-        warnings.resetwarnings()
         tend = time.time()
         print("This run took "+ str(tend-tstart))
+        warnings.resetwarnings()
         return 0
 
     def ifcondense(self):

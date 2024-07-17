@@ -859,16 +859,11 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         # rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
-        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], *args, kappa=kappa, BZres=BZres, flux=flux)
-        try:
-            py0s.solvemeanfield()
-            sendtemp[i] = py0s.condensed
-            sendtemp2[i] = py0s.MFE()
-            sendtemp3[i] = (py0s.xi<=1e-6).all()
-        except:
-            sendtemp[i] = np.nan
-            sendtemp2[i] = np.nan
-            sendtemp3[i] = np.nan
+        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux)
+        py0s.solvemeanfield()
+        sendtemp[i] = py0s.condensed
+        sendtemp2[i] = py0s.MFE()
+        sendtemp3[i] = (py0s.xi<=1e-6).all()
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))

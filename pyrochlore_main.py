@@ -831,10 +831,10 @@ Jpm = -0.3
 Jpmpm = 0
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = 0.5,  1.,         0.2
+Jxx, Jyy, Jzz =-0.5,         1.,         -0.48101266
 # Jxx, Jyy, Jzz = 1,  0.5,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.1, n=h110, g=0.02)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), BZres=30, kappa=2)
 a.solvemeanfield()
 a.graph(axs)
 A = a.MFE()
