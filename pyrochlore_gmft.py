@@ -1118,6 +1118,7 @@ class piFluxSolver:
             limit = 10
         print("Begin Xi Subroutine")
         count = 0
+        pb = False
         while True:
             xilast, GSlast = np.copy(self.xi), GS
             # print("Xi Mean Field Compute")
@@ -1125,15 +1126,15 @@ class piFluxSolver:
             self.updateMF()
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
-            # if np.abs(GS) > 1e1 or diverge:
-            #     self.xi=xilast
-            #     print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-            #     return GSlast, True
+            if np.abs(GS) > 1e1 or diverge:
+                # self.xi=xilast
+                # print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
+                pb = True
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, False
+        return GS, pb
 
     def chiSubrountine(self, tol, GS, pcon=False):
         if pcon:
@@ -1142,6 +1143,7 @@ class piFluxSolver:
             limit = 10
         print("Begin Chi Subroutine")
         count = 0
+        pb = False
         while True:
             chilast, GSlast = np.copy(self.chi), GS
             # print("Chi Mean Field Compute")
@@ -1149,16 +1151,14 @@ class piFluxSolver:
             self.updateMF()
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
-            # if np.abs(GS) > 1e1 or diverge:
-            #     self.chi=chilast
-            #     print("Chi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-            #     return GSlast, True
+            if np.abs(GS) > 1e1 or diverge:
+                pb = True
             # print(self.chi[0,0], GS)
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, False
+        return GS, pb
 
     def solvemufield(self, a=False):
         if a:
