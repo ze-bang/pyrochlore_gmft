@@ -43,6 +43,8 @@ def magnitude(vector):
 def magnitude_bi(vector1, vector2):
     temp1 = np.einsum('i,ik->k', vector1, BasisBZA)
     temp2 = np.einsum('i,ik->k', vector2, BasisBZA)
+    # temp1 = vector1
+    # temp2 = vector2
     return np.linalg.norm(temp1-temp2)
 
 e0 = np.array([0,0,0])
@@ -75,10 +77,11 @@ b3 = np.pi * np.array([1, 1, -1])
 # K = 2 * np.pi * np.array([3/4, -3/4, 0])
 # W = 2 * np.pi * np.array([1, -1/2, 0])
 # X = 2 * np.pi * np.array([1, 0, 0])
-
+#
 # L = np.pi * np.array([1, 1, 1])
 # U = 2 * np.pi * np.array([1/4, 1/4, 1])
-# W = 2 * np.pi * np.array([0, 1/2, 1])
+# W1 = 2 * np.pi * np.array([0, 1/2, 1])
+# X1 = 2 * np.pi * np.array([0, 0, 1])
 
 Gamma = np.array([0, 0, 0])
 K = np.array([-0.375, 0.375, 0])
@@ -342,7 +345,7 @@ def unitCell(mu):
 
 
 def drawLine(A, B, stepN):
-    N = magnitude(np.abs(A-B))
+    N = magnitude_bi(A, B)
     num = int(N/stepN)
     temp = np.linspace(A, B, num)
     return temp
