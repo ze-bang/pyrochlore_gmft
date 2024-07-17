@@ -934,9 +934,9 @@ def phaseExGraph(filename):
 # axs.set_ylabel(r"$(k,k,-2k)$")
 # plt.savefig("h111_example.pdf")
 # DSSFgraphGen_0(h110,"Misc/DSSF_0_field.pdf")
-DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.NaN,h110,"h110_DSSF.pdf")
-DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.NaN,h001,"h001_DSSF.pdf")
-DSSFgraphGen(0.35,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.NaN, h111,"h111_DSSF.pdf")
+# DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.NaN,h110,"h110_DSSF.pdf")
+# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.NaN,h001,"h001_DSSF.pdf")
+# DSSFgraphGen(0.35,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.NaN, h111,"h111_DSSF.pdf")
 
 # SSSFgraphGen(np.array([0,0.18,0.42]),np.array([0,0.18,0.42]), np.array(["pi","pi","00pp"]),np.array([0,0.18]),h110,"Szzglobal.txt", "h110_SSSF.pdf", np.array(['w','b','b','w','b','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.16,0.32]),np.array([0,0.2,0.32]), np.array(["pi","pi","pi"]),np.array([0,0.2,0.32]),h111,"Szzglobal.txt", "h111_SSSF.pdf", np.array(['w','w','w','w','w','w','w','w','w','w']))
