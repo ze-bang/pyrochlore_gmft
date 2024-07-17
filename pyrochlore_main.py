@@ -830,10 +830,10 @@ def phaseExGraph(filename):
 # Jpmpm = 0.2
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz =0.4,         1.,         0.4
+Jxx, Jyy, Jzz = 0.3,         1.,         0.3
 # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, BZres=30, kappa=2, h=0, n=h110)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, simplified=True)
 a.solvemeanfield()
 a.graph(axs)
 A = a.MFE()

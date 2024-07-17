@@ -371,7 +371,7 @@ def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGrap
 def dispersion_pi(lams, k, Jzz, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                   A_pi_rs_traced_pp_here, g, unitcell):
     temp = np.sqrt(2 * Jzz * E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-                                  A_pi_rs_traced_pp_here, g, unitcell)[0])
+                                  A_pi_rs_traced_pp_here, g, unitcell, True)[0])
     return temp
 
 
