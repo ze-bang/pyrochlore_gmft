@@ -37,6 +37,6 @@ from observables import *
 # DSSF(300, -2*Jpm, -2*Jpm, 1, 0.12, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.12")
 
 
-findPhaseMag110(-0.3, 0.1, 250, 0, 2.2, 200, h110, 30, 2, "phase_110_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
-findPhaseMag111(-0.3, 0.1, 250, 0, 0.7, 200, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
-findPhaseMag111(-0.3, 0.1, 250, 0, 0.5, 200, h001, 30, 2, "phase_001_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
+findPhaseMag110(-0.3, 0.1, 200, 0, 2.2, 100, h110, 30, 2, "phase_110_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
+findPhaseMag111(-0.3, 0.1, 200, 0, 0.7, 100, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
+findPhaseMag111(-0.3, 0.1, 200, 0, 0.5, 100, h001, 30, 2, "phase_001_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
