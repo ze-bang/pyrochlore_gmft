@@ -338,7 +338,6 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
         axs[1,1].text(.01, .95, r"$(\mathrm{e})$", ha='left', va='top', transform=axs[1,1].transAxes, color='w', zorder=10)
         axs[1,2].text(.01, .95, r"$(\mathrm{f})$", ha='left', va='top', transform=axs[1,2].transAxes, color='w', zorder=10)
     else:
-        print("yes")
         fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(16, 8), layout="constrained", sharex=True)
         axs[0, 0].text(.01, .99, r"$(\mathrm{a})\; 0$-$\mathrm{flux}$", ha='left', va='top', transform=axs[0, 0].transAxes,
                        zorder=10)
@@ -827,14 +826,14 @@ def phaseExGraph(filename):
 # print(ffact, zmag)
 # print('\n')
 # print(np.exp(1j*A_pi_here))
-Jpm = -0.3
-Jpmpm = 0
+# Jpm = -0.3
+# Jpmpm = 0.2
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz =-0.5,         1.,         -0.48101266
-# Jxx, Jyy, Jzz = 1,  0.5,         0.2
+Jxx, Jyy, Jzz = 0.3,         1.,         0.3
+# Jxx, Jyy, Jzz = 1,  0.4,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, BZres=30, kappa=2, h=0.1)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, simplified=True)
 a.solvemeanfield()
 a.graph(axs)
 A = a.MFE()
@@ -879,15 +878,6 @@ plt.show()
 # 0.5811437155148994
 # [0.64571524 0.64571524] True
 # 0.7300161999813554
-# Initialization Routine Ends. Starting Parameters: GS=nan xi0= [-0.16887209+0.38810882j -0.16887209+0.38810882j -0.16887209+0.38810882j
-#  -0.16887209+0.38810882j] chi0= [[-1.06030718+1.16904288e-18j -0.81826966-4.47020503e-01j
-#   -0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j]
-#  [-0.81826966-4.47020503e-01j -1.06030718+1.16904288e-18j
-#   -0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j]
-#  [-0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j
-#   -1.06030718+1.16904288e-18j -0.81826966-4.47020503e-01j]
-#  [-0.81826966-4.47020503e-01j -0.81826966-4.47020503e-01j
-#   -0.81826966-4.47020503e-01j -1.06030718+1.16904288e-18j]]
 # emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
 #
 # d0 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/10.txt")
