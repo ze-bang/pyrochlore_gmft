@@ -43,8 +43,8 @@ def deltas_pairing(Ek, omega, tol):
 # region DSSF
 
 def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
-    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks)
-    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs)
+    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks, True)
+    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs, True)
 
     if pyp0.Jpmpm ==0:
         size = int(tempE.shape[1]/2)
@@ -71,6 +71,7 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                        ffactpm) / size**2
     return Spm, Spp
+
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q

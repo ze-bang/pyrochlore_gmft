@@ -1382,17 +1382,27 @@ class piFluxSolver:
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E
 
-    def green_pi_reduced(self, k):
-        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+    def green_pi_reduced(self, k, cartesian=False):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = self.xi_field(self.n, self.n1, self.n2, unitcellCoord, self.xi, self.PSGparams)
+        chi = self.chi_field(self.n, self.n1, self.n2, unitcellCoord, self.chi[1], self.chi[0], self.PSGparams)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+                    A_pi_rs_traced_here, A_pi_rs_traced_pp_here, self.g, unitCellgraph, cartesian)
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi(E, V, self.Jzz)
 
-    def green_pi_branch_reduced(self, k):
-        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                    self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+    def green_pi_branch_reduced(self, k, cartesian=False):
+        unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
+        A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+            A_pi_here)
+        xi = self.xi_field(self.n, self.n1, self.n2, unitcellCoord, self.xi, self.PSGparams)
+        chi = self.chi_field(self.n, self.n1, self.n2, unitcellCoord, self.chi[1], self.chi[0], self.PSGparams)
+        E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
+                    A_pi_rs_traced_here, A_pi_rs_traced_pp_here, self.g, unitCellgraph, cartesian)
         E = np.sqrt(2 * self.Jzz * E)
-        return green_pi_branch(E, V, self.Jzz), E, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here, self.unitCellgraph
+        return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
 
     def mag_integrand(self, k):
         # E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
