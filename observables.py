@@ -59,15 +59,15 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     ffactpm = np.exp(1j * ffact)
     ffact = contract('ik, jlk->ijl', Kreal, NNplus)
     ffactpp = np.exp(1j * ffact)
-    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
                    ffactpm) / size**2
 
-    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / size**2
     if not pyp0.Jpmpm == 0:
-        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wiab', greenpK[:, :, 0:size, 2*size:3*size],
+        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
                        greenpQ[:, :, 3*size:4*size, size:2*size],
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                        ffactpm) / size**2
