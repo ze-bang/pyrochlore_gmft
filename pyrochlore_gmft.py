@@ -795,7 +795,7 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
     chi0 = chi[0]
     chi0A = chiA[0]
     mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
-
+    warnings.filterwarnings('error')
     for i in range(len(unitcellCoord)):
         r2 = unitcellCoord[i,1]
         r3 = unitcellCoord[i,2]
@@ -831,7 +831,6 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
 
         elif (n==h111).all():
             try:
-                # psiC6, = args
                 psiC6 = chi0[0,0]/chi0A[0,0]
             except:
                 psiC6 = 1
@@ -882,6 +881,7 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
                                [chi01A, chi00A, chi12A, chi13A],
                                [chi02A, chi12A, chi00A, chi23A],
                                [chi03A, chi13A, chi23A, chi00A]])
+    warnings.resetwarnings()
     return mult
 
 def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi, args):
@@ -901,7 +901,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
     chi0 = chi[0]
     chi0A = chiA[0]
     mult = np.zeros((2, len(unitcellCoord),4, 4),dtype=np.complex128)
-
+    warnings.filterwarnings('error')
     for i in range(len(unitcellCoord)):
         r2 = unitcellCoord[i,1]
         r3 = unitcellCoord[i,2]
@@ -986,6 +986,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
                                [chi01A, chi00A, chi12A, chi13A],
                                [chi02A, chi12A, chi00A, chi23A],
                                [chi03A, chi13A, chi23A, chi00A]])
+    warnings.resetwarnings()
     return mult
 
 #endregion
