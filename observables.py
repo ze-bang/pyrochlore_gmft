@@ -51,7 +51,8 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     else:
         size = int(tempE.shape[1]/4)
 
-    Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
+    # Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
+    Kreal = Ks-q/2
     deltapm = deltas(tempE, tempQ, omega, tol)
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
@@ -248,6 +249,7 @@ def graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol):
 
 def DSSF_core_pedantic(q, omega, pyp0, tol):
     Ks = pyp0.pts
+    Ks = contract('ia,ak->ik', Ks, BasisBZA)
     Qs = Ks - q
     Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
 
