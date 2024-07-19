@@ -1187,18 +1187,19 @@ class piFluxSolver:
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
-            pconxi = False
-            pconChi = False
+            pcon = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 try:
-                    GS, pconxi = self.xiSubrountine(tol, GS, pconxi)
+                    GS, pcon = self.xiSubrountine(tol, GS, pcon)
                 except:
-                    GS, pconxi = np.copy(GSlast), True
+                    GS, pcon = np.copy(GSlast), True
                 try:
-                    GS, pconChi = self.chiSubrountine(tol, GS, pconChi)
+                    GS, pcon = self.chiSubrountine(tol, GS, pcon)
                 except:
-                    GS, pconChi = np.copy(GSlast), True
+                    GS, pcon = np.copy(GSlast), True
+                if pcon:
+                    limit = 2
                 print("Iteration #"+str(count))
                 count = count + 1
                 if ((abs(GS-GSlast) < tol).all()) or count > limit:
