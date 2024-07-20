@@ -835,7 +835,8 @@ Jxx, Jyy, Jzz = 0.3,         1.,         0.3
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, simplified=True)
 a.solvemeanfield()
-a.graph(axs)
+a.graph_loweredge(False,axs,'b')
+a.graph_upperedge(True,axs,'b')
 A = a.MFE()
 print(a.chi, a.xi, a.magnetization())
 a.graph(axs)
@@ -933,10 +934,10 @@ plt.show()
 # axs.set_xlabel(r"$(h,-h,0)$")
 # axs.set_ylabel(r"$(k,k,-2k)$")
 # plt.savefig("h111_example.pdf")
-# DSSFgraphGen_0(h110,"Misc/DSSF_0_field.pdf")
-# DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.NaN,h110,"h110_DSSF.pdf")
-# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.NaN,h001,"h001_DSSF.pdf")
-# DSSFgraphGen(0.35,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.NaN, h111,"h111_DSSF.pdf")
+DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
+DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.nan,h110,"h110_DSSF.pdf")
+DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
+DSSFgraphGen(0.35,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
 
 # SSSFgraphGen(np.array([0,0.18,0.42]),np.array([0,0.18,0.42]), np.array(["pi","pi","00pp"]),np.array([0,0.18]),h110,"Szzglobal.txt", "h110_SSSF.pdf", np.array(['w','b','b','w','b','w','w','w','w','w']))
 # SSSFgraphGen(np.array([0,0.16,0.32]),np.array([0,0.2,0.32]), np.array(["pi","pi","pi"]),np.array([0,0.2,0.32]),h111,"Szzglobal.txt", "h111_SSSF.pdf", np.array(['w','w','w','w','w','w','w','w','w','w']))
@@ -1143,44 +1144,44 @@ plt.show()
 # plt.savefig("synopsis2.pdf")
 # plt.clf()
 # #
-# mpl.rcParams.update({'font.size': 25})
-# fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(22,5), layout='tight')
-# a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.1, n=h110)
-# a.solvemeanfield()
+mpl.rcParams.update({'font.size': 25})
+fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(22,5), layout='tight')
+a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.1, n=h110)
+a.solvemeanfield()
+
+emin, emax = a.graph_loweredge(False, axs[0]), a.graph_upperedge(False, axs[0])
+d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szzglobal.txt")
+emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
+d = DSSFparse(emin, emax, d)
+
+c = axs[0].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
+                     aspect='auto', cmap='gnuplot2')
+fig.colorbar(c, ax=axs[0])
+
+a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.1, n=h111)
+a.solvemeanfield()
+
+emin, emax = a.graph_loweredge(False, axs[1]), a.graph_upperedge(False, axs[1])
+d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_111/h=0.1/Szzglobal.txt")
+emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
+d = DSSFparse(emin, emax, d)
+
+c = axs[1].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
+                     aspect='auto', cmap='gnuplot2')
+
+fig.colorbar(c, ax=axs[1])
 #
-# emin, emax = a.graph_loweredge(False, axs[0]), a.graph_upperedge(False, axs[0])
-# d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szzglobal.txt")
-# emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
-# d = DSSFparse(emin, emax, d)
-#
-# c = axs[0].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
-#                      aspect='auto', cmap='gnuplot2')
-# fig.colorbar(c, ax=axs[0])
-#
-# a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.1, n=h111)
-# a.solvemeanfield()
-#
-# emin, emax = a.graph_loweredge(False, axs[1]), a.graph_upperedge(False, axs[1])
-# d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_111/h=0.1/Szzglobal.txt")
-# emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
-# d = DSSFparse(emin, emax, d)
-#
-# c = axs[1].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
-#                      aspect='auto', cmap='gnuplot2')
-#
-# fig.colorbar(c, ax=axs[1])
-#
-# a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.075, n=h001)
-# a.solvemeanfield()
-#
-# emin, emax = a.graph_loweredge(False, axs[2]), a.graph_upperedge(False, axs[2])
-# d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_001/h=0.07500000000000001/Szzglobal.txt")
-# emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
-# d = DSSFparse(emin, emax, d)
-# c = axs[2].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
-#                      aspect='auto', cmap='gnuplot2')
-# fig.colorbar(c, ax=axs[2])
-#
+a = pycon.piFluxSolver(0.289 * 2, 0.289 * 2, 1, flux=np.ones(4) * np.pi, h=0.075, n=h001)
+a.solvemeanfield()
+
+emin, emax = a.graph_loweredge(False, axs[2]), a.graph_upperedge(False, axs[2])
+d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_001/h=0.07500000000000001/Szzglobal.txt")
+emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
+d = DSSFparse(emin, emax, d)
+c = axs[2].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax],
+                     aspect='auto', cmap='gnuplot2')
+fig.colorbar(c, ax=axs[2])
+
 # # a = np.loadtxt("Misc/two_spinon_DOS_110_Jpm=-0.3.pdf.txt")
 # # c = axs[1,0].imshow(a.T, interpolation="gaussian", origin='lower', extent=[0, 0.23, 0, 3], aspect='auto', cmap='gnuplot')
 # # cb = fig.colorbar(c, ax=axs[1,0])
@@ -1200,14 +1201,14 @@ plt.show()
 # # fig.text(1, 0.75, r'$J_\pm/J_{yy}=-0.03$', ha='right', va='center', rotation=270)
 # # fig.text(1, 0.3, r'$J_\pm/J_{yy}=-0.3$', ha='right', va='center', rotation=270)
 #
-# axs[0].text(.01, .99, r"$(3\mathrm{a})$", ha='left', va='top',transform=axs[0].transAxes, color='w')
-# axs[1].text(.01, .99, r"$(3\mathrm{b})$", ha='left', va='top',transform=axs[1].transAxes, color='w')
-# axs[2].text(.01, .99, r"$(3\mathrm{c})$", ha='left', va='top',transform=axs[2].transAxes, color='w')
+axs[0].text(.01, .99, r"$(3\mathrm{a})$", ha='left', va='top',transform=axs[0].transAxes, color='w')
+axs[1].text(.01, .99, r"$(3\mathrm{b})$", ha='left', va='top',transform=axs[1].transAxes, color='w')
+axs[2].text(.01, .99, r"$(3\mathrm{c})$", ha='left', va='top',transform=axs[2].transAxes, color='w')
 # # axs[1,0].text(.01, .99, r"$(3\mathrm{d})$", ha='left', va='top',transform=axs[1,0].transAxes, color='w')
 # # axs[1,1].text(.01, .99, r"$(3\mathrm{e})$", ha='left', va='top',transform=axs[1,1].transAxes, color='w')
 # # axs[1,2].text(.01, .99, r"$(3\mathrm{f})$", ha='left', va='top',transform=axs[1,2].transAxes, color='w')
 # #
-# plt.savefig("synopsis3.pdf")
+plt.savefig("synopsis3.pdf")
 # mpl.rcParams.update({'font.size': 20})
 # fig,axs = plt.subplots(layout='tight',figsize=(6,5))
 # d1 = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.0/Szzglobal.txt")
