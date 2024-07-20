@@ -495,7 +495,7 @@ def DSSF_E_DOMAIN(lams, qmin, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_
 
 
 def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-              unitcell, ax):
+              unitcell, ax, color='w'):
     dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                      A_pi_rs_traced_pp_here, g, unitcell)
     dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
@@ -515,15 +515,15 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                       A_pi_rs_traced_pp_here, g, unitcell)
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, color,zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, color,zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, color,zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, color,zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, color,zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, color,zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, color,zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, color,zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, color,zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -544,7 +544,7 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
 
 def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-              unitcell, ax):
+              unitcell, ax, color='w'):
     dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                      A_pi_rs_traced_pp_here, g, unitcell)
     dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
@@ -565,15 +565,15 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
                       A_pi_rs_traced_pp_here, g, unitcell)
 
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, color,zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, color,zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, color,zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, color,zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, color,zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, color,zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, color,zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, color,zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, color,zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -1345,31 +1345,32 @@ class piFluxSolver:
         maxs = np.max(q[:,-1])
         return 2*mins, 2*maxs
 
-    def graph_loweredge(self, show, ax=plt):
-        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+
+    def graph_loweredge(self, show, ax=plt, color='w'):
+        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
-                        ax)
+                        ax, color)
         if show:
             plt.show()
         return min
 
-    def graph_upperedge(self, show, ax=plt):
-        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+    def graph_upperedge(self, show, ax=plt, color='w'):
+        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
-                        ax)
+                        ax, color)
         if show:
             plt.show()
         return max
 
 
     def loweredge(self):
-        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return min
 
     def upperedge(self):
-        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return max
