@@ -1346,7 +1346,7 @@ class piFluxSolver:
         return 2*mins, 2*maxs
 
     def graph_loweredge(self, show, ax=plt):
-        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax)
         if show:
@@ -1354,7 +1354,7 @@ class piFluxSolver:
         return min
 
     def graph_upperedge(self, show, ax=plt):
-        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax)
         if show:
@@ -1363,13 +1363,13 @@ class piFluxSolver:
 
 
     def loweredge(self):
-        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return min
 
     def upperedge(self):
-        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return max
