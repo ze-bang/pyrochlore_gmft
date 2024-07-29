@@ -834,33 +834,33 @@ def phaseExGraph(filename):
 # Jpmpm = 0.2
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = -0.3,         1.,         1
+Jxx, Jyy, Jzz = 0,         1.,         1
 # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, simplified=False)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, unconstrained=False, simplified=False)
 a.solvemeanfield()
 # a.graph_loweredge(False,axs,'b')
 # a.graph_upperedge(True,axs,'b')
 A = a.MFE()
-print(a.chi, a.xi, a.magnetization(), a.gap())
-a.graph(axs)
-plt.show()
+print(a.chi, a.xi, a.magnetization(),a.magnetization(), a.gap(), a.MFE())
+# a.graph(axs)
+# plt.show()
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=False)
 a.solvemeanfield()
-a.graph(axs)
+# a.graph(axs)
 B = a.MFE()
-plt.show()
-print(a.gap())
+# plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.ones(4) * np.pi, h=0, n=h110)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0, n=h110, unconstrained=False)
 a.solvemeanfield()
-a.graph(axs)
-print(a.chi, a.xi, a.magnetization(), a.MFE(), a.gap())
+# a.graph(axs)
+print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 C = a.MFE()
 #
 #
@@ -869,14 +869,14 @@ C = a.MFE()
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0, n=h110)
 a.solvemeanfield()
-a.graph(axs)
+# a.graph(axs)
 D = a.MFE()
-a.graph(axs)
-print(a.chi, a.xi, a.magnetization(), a.MFE(), a.gap())
+# a.graph(axs)
+print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 
 # plt.show()
 print(A, B, C, D)
-# conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
+conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 conclude_XYZ_0_field("Misc/phase_XYZ/phase_XYZ_0_field")
 
 

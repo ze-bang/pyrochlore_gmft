@@ -729,7 +729,7 @@ def graphing_M_setup_full(flux, n):
 
 def xi_unconstrained(n, n1, n2, unitcellcoord, xi0, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
-    return np.real(xi0)
+    return xi0
 def chi_unconstrained(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
     return np.array([chi0, chi0A])
 def xi_wo_field(n, n1, n2, unitcellcoord, xi, args):
@@ -1115,7 +1115,7 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.M)
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 3
+            limit = 5
         else:
             limit = 10
         print("Begin Xi Subroutine")
@@ -1129,18 +1129,19 @@ class piFluxSolver:
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
+                pb = True
                 # self.xi=xilast
                 # print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                return GSlast, True
+                # return GSlast, True
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count > limit:
+            if ((abs(self.xi - xilast) < tol).all()) or count > limit:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, False
+        return GS, pb
 
     def chiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 3
+            limit = 5
         else:
             limit = 10
         print("Begin Chi Subroutine")
@@ -1154,13 +1155,14 @@ class piFluxSolver:
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
-                return GSlast, True
+                pb = True
+                # return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
-            if ((abs(GS - GSlast) < tol).all()) or count > limit:
+            if ((abs(self.chi - chilast) < tol).all()) or count > limit:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, False
+        return GS, pb
 
     def solvemufield(self, a=False):
         if a:
@@ -1169,7 +1171,7 @@ class piFluxSolver:
         return self.GS(), diverge
 
 
-    def solvemeanfield(self, tol=1e-8):
+    def solvemeanfield(self, tol=1e-13):
         warnings.filterwarnings('error')
         tstart = time.time()
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
@@ -1182,7 +1184,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 5
+            limit = 10
             self.lams, d = self.findLambda()
             self.chi, self.xi = self.calmeanfield()
             self.updateMF()
@@ -1201,10 +1203,13 @@ class piFluxSolver:
                 except:
                     GS, pcon = np.copy(GSlast), True
                 if pcon:
-                    limit = 2
+                    limit = 5
                 print("Iteration #"+str(count))
+                print("Condensed = "+str(pcon))
                 count = count + 1
-                if ((abs(GS-GSlast) < tol).all()) or count > limit:
+                # if ((abs(GS-GSlast) < tol).all()) or count > limit:
+                #     break
+                if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
                     break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)

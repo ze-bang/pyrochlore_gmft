@@ -1017,25 +1017,29 @@ def conclude_XYZ_0_field(filename):
     Jpm = np.zeros((len(D1), len(D1)))
     Jpmpm = np.zeros((len(D1), len(D1)))
     for i in range(len(D1)):
-        for j in range(D1.shape[0]):
+        for j in range(D1.shape[1]):
             tempD = D[:,i,j]
             a = np.argmin(tempD)
             phase[i,j] = a//2 + 5*C[a,i,j]
             if np.isnan(phase[i,j]):
                 phase[i,j] = 5
-            Jxx = -0.5+(1.5/80*(i+1))
-            Jyy = -0.5+(1.5/80*(j+1))
+            Jxx = -0.5+(1.5/D1.shape[0]*(i+1))
+            Jyy = -0.5+(1.5/D1.shape[1]*(j+1))
             Jpm[i,j] = -(Jxx+Jyy)/4
             Jpmpm[i,j] = (Jxx-Jyy)/4
             # if not C[a,i,j]:
             #     phase[i,j] = phase[i,j] + 5*X[a,i,j]
     plt.pcolormesh(Jpm, Jpmpm, phase)
     plt.ylim([0,0.5])
-    plt.colorbar()
+    # plt.colorbar()
+    plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
     plt.savefig(filename+"Jpm_Jpmpm.pdf")
     plt.clf()
     plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
-    plt.colorbar()
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+".pdf")
     plt.clf()
 
