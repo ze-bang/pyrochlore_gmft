@@ -1114,7 +1114,7 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.M)
     def xiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 5
+            limit = 3
         else:
             limit = 10
         print("Begin Xi Subroutine")
@@ -1130,16 +1130,16 @@ class piFluxSolver:
             if np.abs(GS) > 1e1 or diverge:
                 # self.xi=xilast
                 # print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                pb = True
+                return GSlast, True
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, pb
+        return GS, False
 
     def chiSubrountine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 5
+            limit = 3
         else:
             limit = 10
         print("Begin Chi Subroutine")
@@ -1153,13 +1153,13 @@ class piFluxSolver:
             # print("Solve mu field")
             GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
-                pb = True
+                return GSlast, True
             # print(self.chi[0,0], GS)
             count = count + 1
             if ((abs(GS - GSlast) < tol).all()) or count > limit:
                 break
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
-        return GS, pb
+        return GS, False
 
     def solvemufield(self, a=False):
         if a:
