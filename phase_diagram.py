@@ -1039,6 +1039,53 @@ def conclude_XYZ_0_field(filename):
     plt.savefig(filename+".pdf")
     plt.clf()
 
+
+def conclude_XYZ_0_field_unconstrained(filename):
+    A1 = filename+"_0_flux_unconstrained"
+    A2 = filename+"_pi_flux_unconstrained"
+
+
+    D1 = np.loadtxt(A1+"_MFE.txt")
+    D2 = np.loadtxt(A2+"_MFE.txt")
+
+    D = np.array([D1,D2])
+
+    X1 = np.loadtxt(A1+"_xi.txt")
+    X2 = np.loadtxt(A2+"_xi.txt")
+
+    X = np.array([X1,X2])
+
+    C1 = np.loadtxt(A1+".txt")
+    C2 = np.loadtxt(A2+".txt")
+
+    C = np.array([C1,C2])
+
+    phase = np.zeros((len(D1), len(D1)))
+    Jpm = np.zeros((len(D1), len(D1)))
+    Jpmpm = np.zeros((len(D1), len(D1)))
+    for i in range(len(D1)):
+        for j in range(D1.shape[0]):
+            tempD = D[:,i,j]
+            a = np.argmin(tempD)
+            phase[i,j] = a//2 + 5*C[a,i,j]
+            if np.isnan(phase[i,j]):
+                phase[i,j] = 5
+            Jxx = -0.5+(1.5/80*(i+1))
+            Jyy = -0.5+(1.5/80*(j+1))
+            Jpm[i,j] = -(Jxx+Jyy)/4
+            Jpmpm[i,j] = (Jxx-Jyy)/4
+            # if not C[a,i,j]:
+            #     phase[i,j] = phase[i,j] + 5*X[a,i,j]
+    plt.pcolormesh(Jpm, Jpmpm, phase)
+    plt.ylim([0,0.5])
+    plt.colorbar()
+    plt.savefig(filename+"Jpm_Jpmpm.pdf")
+    plt.clf()
+    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
+    plt.colorbar()
+    plt.savefig(filename+".pdf")
+    plt.clf()
+
 #endregion
 
 #region Phase for Magnetic Field - Exclusive Boson
