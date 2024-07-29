@@ -262,6 +262,7 @@ def DSSF_core_pedantic(q, omega, pyp0, tol):
     Sglobalxx = contract('wijk,jk, i->wjk', Sxx, gx(q), pyp0.weights)
     Sxx = contract('wijk, i->wjk', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
+
 def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
     n = len(K) / size

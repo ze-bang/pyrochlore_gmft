@@ -495,7 +495,7 @@ def DSSF_E_DOMAIN(lams, qmin, qmax, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_
 
 
 def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-              unitcell, ax):
+              unitcell, ax, color='w'):
     dGammaX = minCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                      A_pi_rs_traced_pp_here, g, unitcell)
     dXW = minCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
@@ -515,15 +515,15 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     dX1Gamma = minCal(lams, X1Gamma, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                       A_pi_rs_traced_pp_here, g, unitcell)
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, color,zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, color,zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, color,zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, color,zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, color,zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, color,zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, color,zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, color,zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, color,zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -544,7 +544,7 @@ def loweredge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
     return np.concatenate((dGammaX, dXW, dWK, dKGamma, dGammaL, dLU, dUW1, dW1X1, dX1Gamma))
 
 def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g,
-              unitcell, ax):
+              unitcell, ax, color='w'):
     dGammaX = maxCal(lams, GammaX, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
                      A_pi_rs_traced_pp_here, g, unitcell)
     dXW = maxCal(lams, XW, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
@@ -565,15 +565,15 @@ def upperedge(lams, Jzz, Jpm, Jpmpm, h, n, K, theta, chi, xi, A_pi_here, A_pi_rs
                       A_pi_rs_traced_pp_here, g, unitcell)
 
 
-    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, 'w',zorder=8)
-    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, 'w',zorder=8)
-    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, 'w',zorder=8)
-    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, 'w',zorder=8)
-    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, 'w',zorder=8)
-    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, 'w',zorder=8)
-    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, 'w',zorder=8)
-    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, 'w',zorder=8)
-    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, 'w',zorder=8)
+    ax.plot(np.linspace(gGamma1, gX, len(dGammaX)), dGammaX, color,zorder=8)
+    ax.plot(np.linspace(gX, gW, len(dXW)), dXW, color,zorder=8)
+    ax.plot(np.linspace(gW, gK, len(dWK)), dWK, color,zorder=8)
+    ax.plot(np.linspace(gK, gGamma2, len(dKGamma)), dKGamma, color,zorder=8)
+    ax.plot(np.linspace(gGamma2, gL, len(dGammaL)), dGammaL, color,zorder=8)
+    ax.plot(np.linspace(gL, gU, len(dLU)), dLU, color,zorder=8)
+    ax.plot(np.linspace(gU, gW1, len(dUW1)), dUW1, color,zorder=8)
+    ax.plot(np.linspace(gW1, gX1, len(dW1X1)), dW1X1, color,zorder=8)
+    ax.plot(np.linspace(gX1, gGamma3, len(dX1Gamma)), dX1Gamma, color,zorder=8)
 
     ax.axvline(x=gGamma1, color='w', label='axvline - full height', linestyle='dashed')
     ax.axvline(x=gX, color='w', label='axvline - full height', linestyle='dashed')
@@ -741,8 +741,9 @@ def xi_wo_field(n, n1, n2, unitcellcoord, xi, args):
     except:
         nS = 0
     for i in range(len(unitcellcoord)):
-        mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi0[0]*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi0[0]*np.exp(1j*np.pi*nS)])
-    return np.real(mult)
+        xi00 = np.real(xi0[0])
+        mult[i] = np.array([xi00, xi00*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi00*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi00*np.exp(1j*np.pi*nS)])
+    return mult
 def chi_wo_field(n, n1, n2, unitcellCoord, chi, chiA, *args):
     chi0 = chi[0]
     chi0A = chiA[0]
@@ -1307,14 +1308,16 @@ class piFluxSolver:
 
 
     def minCal(self, K):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+        xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return minCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                       self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def maxCal(self, K):
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+        xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return maxCal(self.lams, K, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, chi, xi,
                       self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
@@ -1336,8 +1339,9 @@ class piFluxSolver:
         B = genBZ(searchGrid)
         unitCellgraph, A_pi_here, unitcellCoord = graphing_M_setup(self.flux, self.n)
         A_pi_rs_traced_here, A_pi_rs_traced_pp_here, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here = gen_gauge_configurations(A_pi_here)
-        xi = xiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        chi = chiCal(self.E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+        xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         q = np.sqrt(2 * self.Jzz *
                     E_pi(B, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, chi, xi, A_pi_here,
                          A_pi_rs_traced_here, A_pi_rs_traced_pp_here, self.g, unitCellgraph)[0])
@@ -1345,31 +1349,32 @@ class piFluxSolver:
         maxs = np.max(q[:,-1])
         return 2*mins, 2*maxs
 
-    def graph_loweredge(self, show, ax=plt):
-        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+
+    def graph_loweredge(self, show, ax=plt, color='w'):
+        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
-                        ax)
+                        ax, color)
         if show:
             plt.show()
         return min
 
-    def graph_upperedge(self, show, ax=plt):
-        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+    def graph_upperedge(self, show, ax=plt, color='w'):
+        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
-                        ax)
+                        ax, color)
         if show:
             plt.show()
         return max
 
 
     def loweredge(self):
-        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return min
 
     def upperedge(self):
-        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, self.pts, self.theta, self.chi, self.xi,
+        max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                              self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
                              self.unitCellgraph)
         return max
@@ -1428,6 +1433,8 @@ class piFluxSolver:
         # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
         return mag
 
+    def gap(self):
+        return np.sqrt(2*self.Jzz*(np.min(self.E)+self.lams[0]))
 
     def magnetization(self):
         sz = np.einsum('k,k->',self.mag_integrand(self.pts), self.weights)
