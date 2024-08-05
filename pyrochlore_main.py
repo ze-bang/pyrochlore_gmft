@@ -827,31 +827,33 @@ def phaseExGraph(filename):
 # zmag = contract('k,ik->i', h110, z)
 # A_pi_here = np.array([[0, 0, 0, 0],
 #                       [0, np.pi, np.pi, 0]])
-# print(ffact, zmag)
+# print(ffact, zmag)z
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 # Jpm = -0.3
 # Jpmpm = 0.2
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = 0,         1.,         1
+Jxx, Jyy, Jzz = 0.,         1,         1
 # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, BZres=30, kappa=2, h=0, n=h111, unconstrained=False, simplified=False)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h111, simplified=True)
 a.solvemeanfield()
 # a.graph_loweredge(False,axs,'b')
 # a.graph_upperedge(True,axs,'b')
 A = a.MFE()
+AC = a.condensed
 print(a.chi, a.xi, a.magnetization(),a.magnetization(), a.gap(), a.MFE())
 # a.graph(axs)
 # plt.show()
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=False)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=True)
 a.solvemeanfield()
 # a.graph(axs)
 B = a.MFE()
+BC = a.condensed
 # plt.show()
 print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
@@ -862,22 +864,27 @@ a.solvemeanfield()
 # a.graph(axs)
 print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 C = a.MFE()
-#
-#
+CC = a.condensed
+
+
 # Jpmpm=0.2
-# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0, n=h110)
 a.solvemeanfield()
 # a.graph(axs)
 D = a.MFE()
+DC = a.condensed
+
 # a.graph(axs)
 print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 
 # plt.show()
 print(A, B, C, D)
-conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
-conclude_XYZ_0_field("Misc/phase_XYZ/phase_XYZ_0_field")
+print(AC, BC, CC, DC)
+# print(A, C)
+# conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
+# conclude_XYZ_0_field("Misc/phase_XYZ_1/phase_XYZ_0_field")
 
 
 
@@ -1213,14 +1220,14 @@ conclude_XYZ_0_field("Misc/phase_XYZ/phase_XYZ_0_field")
 # # fig.text(1, 0.75, r'$J_\pm/J_{yy}=-0.03$', ha='right', va='center', rotation=270)
 # # fig.text(1, 0.3, r'$J_\pm/J_{yy}=-0.3$', ha='right', va='center', rotation=270)
 #
-axs[0].text(.01, .99, r"$(3\mathrm{a})$", ha='left', va='top',transform=axs[0].transAxes, color='w')
-axs[1].text(.01, .99, r"$(3\mathrm{b})$", ha='left', va='top',transform=axs[1].transAxes, color='w')
-axs[2].text(.01, .99, r"$(3\mathrm{c})$", ha='left', va='top',transform=axs[2].transAxes, color='w')
-# # axs[1,0].text(.01, .99, r"$(3\mathrm{d})$", ha='left', va='top',transform=axs[1,0].transAxes, color='w')
-# # axs[1,1].text(.01, .99, r"$(3\mathrm{e})$", ha='left', va='top',transform=axs[1,1].transAxes, color='w')
-# # axs[1,2].text(.01, .99, r"$(3\mathrm{f})$", ha='left', va='top',transform=axs[1,2].transAxes, color='w')
-# #
-plt.savefig("synopsis3.pdf")
+# axs[0].text(.01, .99, r"$(3\mathrm{a})$", ha='left', va='top',transform=axs[0].transAxes, color='w')
+# axs[1].text(.01, .99, r"$(3\mathrm{b})$", ha='left', va='top',transform=axs[1].transAxes, color='w')
+# axs[2].text(.01, .99, r"$(3\mathrm{c})$", ha='left', va='top',transform=axs[2].transAxes, color='w')
+# # # axs[1,0].text(.01, .99, r"$(3\mathrm{d})$", ha='left', va='top',transform=axs[1,0].transAxes, color='w')
+# # # axs[1,1].text(.01, .99, r"$(3\mathrm{e})$", ha='left', va='top',transform=axs[1,1].transAxes, color='w')
+# # # axs[1,2].text(.01, .99, r"$(3\mathrm{f})$", ha='left', va='top',transform=axs[1,2].transAxes, color='w')
+# # #
+# plt.savefig("synopsis3.pdf")
 # mpl.rcParams.update({'font.size': 20})
 # fig,axs = plt.subplots(layout='tight',figsize=(6,5))
 # d1 = np.loadtxt("../Data/Final_SSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.0/Szzglobal.txt")

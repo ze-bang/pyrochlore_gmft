@@ -68,8 +68,6 @@ def bogoliubov(M):
     E = contract('ab,ibc->iac',J,L)
     P = contract('iab, ibc, icd->iad',np.linalg.inv(Upper),U,np.sqrt(E))
     E = np.diagonal(E, 0,1,2)
-    # test1 = contract('iab, ibc, icd -> iad', np.transpose(np.conj(P),(0,2,1)), M, P)
-    # test2 = contract('iab, bc, icd -> iad', np.transpose(np.conj(P),(0,2,1)), J, P)
     return E, P
 
 
