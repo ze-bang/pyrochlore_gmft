@@ -1015,7 +1015,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
-                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=False):
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=True):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
