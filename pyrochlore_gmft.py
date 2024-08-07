@@ -1227,6 +1227,8 @@ class piFluxSolver:
         self.lams, diverge = self.findLambda(a)
         if a:
             self.set_delta()
+        else:
+            self.rhos[:] = 0
         return self.GS(), diverge
 
 
@@ -1259,7 +1261,7 @@ class piFluxSolver:
                 #     limit = 5
                 print("Iteration #"+str(count))
                 # print(self.gap(), self.lams, self.minLams)
-                # print(self.chi[0, 0, 0, 0], self.chi[0, 0, 0, 1], self.xi[0, 0])
+                print(self.chi[0, 0, 0, 0], self.chi[0, 0, 0, 1], self.xi[0, 0])
                 count = count + 1
                 # if ((abs(GS-GSlast) < tol).all()) or count > limit:
                 #     break
