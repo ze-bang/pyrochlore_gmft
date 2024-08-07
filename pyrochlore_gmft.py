@@ -1241,7 +1241,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 10
+            limit = 5
             # self.lams, d = self.findLambda(False)
             # self.chi, self.xi = self.calmeanfield()
             # self.updateMF()
