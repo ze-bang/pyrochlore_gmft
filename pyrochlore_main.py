@@ -837,7 +837,7 @@ def phaseExGraph(filename):
 Jxx, Jyy, Jzz = 0.,         1,         1
 # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h111, simplified=True)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h111, simplified=False)
 a.solvemeanfield()
 # a.graph_loweredge(False,axs,'b')
 # a.graph_upperedge(True,axs,'b')
@@ -849,7 +849,7 @@ print(a.chi, a.xi, a.magnetization(),a.magnetization(), a.gap(), a.MFE())
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=True)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=False)
 a.solvemeanfield()
 # a.graph(axs)
 B = a.MFE()
@@ -859,7 +859,7 @@ print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0, n=h110, unconstrained=False)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0, n=h110, unconstrained=True)
 a.solvemeanfield()
 # a.graph(axs)
 print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
