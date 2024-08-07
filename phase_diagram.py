@@ -266,13 +266,13 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
     for i in range(currsizeK):
         if Jxx == True:
             py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.zeros(4), unconstrained=True)
+                                      BZres=BZres, flux=np.zeros(4))
             pyps = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.ones(4) * np.pi, unconstrained=True)
+                                      BZres=BZres, flux=np.ones(4) * np.pi)
             pyp0 = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]), unconstrained=True)
+                                      BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]))
             pyzp = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]), unconstrained=True)
+                                      BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
         else:
             py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4), unconstrained=True)
             pyps = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi, unconstrained=True)
@@ -479,11 +479,11 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
 
     for i in range(currsizeK):
         if Jxx==True:
-            py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4), unconstrained=True)
-            pyps = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi, unconstrained=True)
+            py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+            pyps = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
         else:
-            py0s = pycon.piFluxSolver(-2*currJH[i][0]- 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4), unconstrained=True)
-            pyps = pycon.piFluxSolver(-2*currJH[i][0]- 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi, unconstrained=True)
+            py0s = pycon.piFluxSolver(-2*currJH[i][0]- 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4))
+            pyps = pycon.piFluxSolver(-2*currJH[i][0]- 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi)
 
         py0s.solvemeanfield()
         pyps.solvemeanfield()
@@ -844,18 +844,18 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
     sendtemp = np.zeros(currsizeK, dtype=np.float64)
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.complex128)
-    # sendtemp4 = np.zeros(currsizeK, dtype=np.complex128)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.complex128)
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
-    # rectemp4 = None
+    rectemp4 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.complex128)
-        # rectemp4 = np.zeros(le, dtype=np.complex128)
+        rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
         py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux)
@@ -864,34 +864,35 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
             py0s.solvemeanfield()
             sendtemp[i] = py0s.condensed
             sendtemp2[i] = py0s.MFE()
-            sendtemp3[i] = (py0s.xi<=1e-6).all()
+            sendtemp3[i] = (py0s.xi<=1e-12).all()
+            sendtemp4[i] = (py0s.chi<=1e-12).all()
         except:
             sendtemp[i] = np.nan
             sendtemp2[i] = np.nan
-            sendtemp3[i] = np.nan
+            sendtemp3[i] = (py0s.xi<=1e-12).all()
+            sendtemp4[i] = (py0s.chi<=1e-12).all()
         warnings.resetwarnings()
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 =  np.array(comm.gather(sendtemp3.shape[0], 0))
-    # sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
-    # comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
 
     if rank == 0:
         rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK/2),nK+1)))
         rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK/2),nK+1)))
         rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK/2),nK+1)))
+        rectemp4 = inverseXYZparambuilder(rectemp4.reshape((int(nK/2),nK+1)))
 
-
-        # rectemp4 = rectemp4.reshape((nK,nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
         np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
-        # np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
+        np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
 
         JP = np.linspace(JPm, JPmax, nK)
         JP1 = np.linspace(JP1m, JP1max, nK)
@@ -899,7 +900,8 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         graphMagPhase(JP, JP1, rectemp, 'Files/' + filename)
         graphColorMesh(JP, JP1, rectemp2,'Files/' + filename + '_MFE')
         graphColorMesh(JP, JP1, rectemp3,'Files/' + filename + '_xi')
-        # graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
+        graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
+        
 def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename):
     # totaltask = nK*nH
     # increment = totaltask/50

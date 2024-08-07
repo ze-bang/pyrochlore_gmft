@@ -1037,7 +1037,7 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
-                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=True):
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=False):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
@@ -1170,9 +1170,9 @@ class piFluxSolver:
         self.E, self.V = np.linalg.eigh(self.M)
     def xiSubroutine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 10
+            limit = 5
         else:
-            limit = 10
+            limit = 5
         print("Begin Xi Subroutine")
         count = 0
         pb = False
@@ -1197,9 +1197,9 @@ class piFluxSolver:
 
     def chiSubroutine(self, tol, GS, pcon=False):
         if pcon:
-            limit = 10
+            limit = 5
         else:
-            limit = 10
+            limit = 5
         print("Begin Chi Subroutine")
         count = 0
         pb = False
@@ -1241,7 +1241,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 5
+            limit = 20
             # self.lams, d = self.findLambda(False)
             # self.chi, self.xi = self.calmeanfield()
             # self.updateMF()
