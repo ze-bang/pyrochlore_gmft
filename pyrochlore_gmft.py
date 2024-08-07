@@ -406,9 +406,9 @@ def chiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, chi_fie
     size = int(len(rhos)/4)
     ffact = contract('ik,jlk->ijl', k, NNminus)
     ffactB = np.exp(-1j * ffact)
-    B = contract('iab, ijl,jka, lkb->ikjl', rhos[3*size:4*size], rhos[size:2*size], ffactB, unitcellGraph, unitcellGraph)/size
+    B = contract('a, b, ijl,jka, lkb->kjl', rhos[3*size:4*size], rhos[size:2*size], ffactB, unitcellGraph, unitcellGraph)/size/len(qmin)
     ffactA = np.exp(1j * ffact)
-    A = contract('iab, ijl,jka, lkb->ikjl', rhos[2*size:3*size], rhos[0:size], ffactA, unitcellGraph, unitcellGraph)/size
+    A = contract('a, b, ijl,jka, lkb->kjl', rhos[2*size:3*size], rhos[0:size], ffactA, unitcellGraph, unitcellGraph)/size/len(qmin)
     M1 = chi_field(n, n1, n2, unitcellCoord, B, A, *args)
     return M1
 
@@ -1152,7 +1152,8 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
         # xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, np.concatenate((self.pts,self.qmin)), np.concatenate((self.weights, self.qminWeight)), self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        return xi
+        xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        return xi + xiC
 
     def solvechifield(self):
         # E, V = self.LV_zero(np.concatenate((self.pts,self.qmin)))
@@ -1160,7 +1161,8 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
         # chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, np.concatenate((self.pts,self.qmin)), np.concatenate((self.weights, self.qminWeight)), self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        return chi
+        chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        return chi + chiC
 
     def updateMF(self):
         self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
@@ -1239,17 +1241,10 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-<<<<<<< HEAD
-            limit = 5
-            self.lams, d = self.findLambda()
-            self.chi, self.xi = self.calmeanfield()
-            self.updateMF()
-=======
             limit = 10
             # self.lams, d = self.findLambda(False)
             # self.chi, self.xi = self.calmeanfield()
             # self.updateMF()
->>>>>>> cf220c60eb83e6edfb5ac7b6c0f36bb84d78b127
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
@@ -1297,7 +1292,8 @@ class piFluxSolver:
     def set_condensed(self):
         # A = self.rho(self.minLams+1e-14)
         # self.condensed = A < self.kappa
-        A = np.min(self.E) + self.lams[0]
+        A = -self.minLams[0] + self.lams[0]
+        print(self.lams[0], self.minLams[0], -np.min(self.E))
         if A < (deltamin /(self.BZres**3)) ** 2:
             self.condensed = True
         else:
