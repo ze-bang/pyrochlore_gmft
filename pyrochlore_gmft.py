@@ -1219,17 +1219,10 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-<<<<<<< HEAD
-            limit = 5
-            self.lams, d = self.findLambda()
-            self.chi, self.xi = self.calmeanfield()
-            self.updateMF()
-=======
             limit = 10
             # self.lams, d = self.findLambda(False)
             # self.chi, self.xi = self.calmeanfield()
             # self.updateMF()
->>>>>>> cf220c60eb83e6edfb5ac7b6c0f36bb84d78b127
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
