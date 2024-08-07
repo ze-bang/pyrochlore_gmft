@@ -27,13 +27,13 @@ def M_pi_sub_intrahopping_AA(k, alpha, Jpm, A_pi_rs_traced_here, unitcell=piunit
 def M_pi_sub_interhopping_AB(k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     ffact = contract('ik, jk->ij', k, NN)
     ffact = np.exp(1j * ffact)
-    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 2 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
-    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 2 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
+    M1a = contract('jl, kjl, ij, kl, jkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
+    M1b = contract('jl, kjl, il, kj, lkx->ikx', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, xi, unitcell)
 
-    # M2a = contract('jl, kjl, ij, kl, jkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi), unitcell)
-    # M2b = contract('jl, kjl, il, kj, lkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi), unitcell)
-    # return M1a + M1b + M2a + M2b
-    return M1a + M1b
+    M2a = contract('jl, kjl, ij, kl, jkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi), unitcell)
+    M2b = contract('jl, kjl, il, kj, lkx->ixk', notrace, Jpmpm / 4 * A_pi_rs_traced_pp_here, ffact, np.conj(xi), unitcell)
+    return M1a + M1b + M2a + M2b
+    # return M1a + M1b
 
 
 def M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
@@ -42,13 +42,13 @@ def M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunit
     M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 4, chi[1], d, di)
 
 
-    # ffact = contract('ik, jlk->ijl', k, NNminus)
-    # ffact = np.exp(-1j * ffact)
-    # tempchi0 = chi[1, :,0,0]
-    # M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 4, ffact, tempchi0, unitcell,
-    #               unitcell)
-    # return M1 + M2
-    return M1
+    ffact = contract('ik, jlk->ijl', k, NNminus)
+    ffact = np.exp(-1j * ffact)
+    tempchi0 = chi[1, :,0,0]
+    M2 = contract('jl, kjl, ijl, k, jka, lkb->iba', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, ffact, tempchi0, unitcell,
+                  unitcell)
+    return M1 + M2
+    # return M1
 
 def M_pi_sub_pairing_BdBd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
@@ -107,11 +107,11 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
         MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
         MAdkAdnk = M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + np.conj(np.transpose(M_pi_fictitious_Z2_AA(k, 0, A_pi_rs_traced_pp_here, g, unitcell),(0,2,1)))
-        # MBdkBdnk = M_pi_sub_pairing_BdBd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + M_pi_fictitious_Z2_AA(k, 1, A_pi_rs_traced_pp_here, g, unitcell)
-        # MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
+        MBdkBdnk = M_pi_sub_pairing_BdBd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + M_pi_fictitious_Z2_AA(k, 1, A_pi_rs_traced_pp_here, g, unitcell)
+        MBnkBk = np.conj(np.transpose(MBdkBdnk, (0, 2, 1)))
         MAnkAk = np.conj(np.transpose(MAdkAdnk, (0, 2, 1)))
-        MBnkBk = M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + np.conj(np.transpose(M_pi_fictitious_Z2_AA(k, 1, A_pi_rs_traced_pp_here, g, unitcell),(0,2,1)))
-        MBdkBdnk = np.conj(np.transpose(MBnkBk,(0,2,1)))
+        # MBnkBk = M_pi_sub_pairing_BB(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + np.conj(np.transpose(M_pi_fictitious_Z2_AA(k, 1, A_pi_rs_traced_pp_here, g, unitcell),(0,2,1)))
+        # MBdkBdnk = np.conj(np.transpose(MBnkBk,(0,2,1)))
 
         # print(MAk.shape[1], MagAkBk.shape[1],MAdkAdnk.shape[1],dummy.shape[1])
         FM = np.block([[MAk, MagAkBk, MAdkAdnk, dummy],
@@ -154,7 +154,7 @@ def I3_integrand_site(E, V, lams, Jzz):
     return Ep
 
 
-def rho_true(weights, E, lams, Jzz, xyz):
+def rho_true(weights, E, lams, Jzz):
     A = integrate_fixed(I3_integrand, weights, E, lams, Jzz)
     return np.real(A)
 
@@ -335,7 +335,7 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
         try:
-            rhoguess = rho_true(weights, E, lams, Jzz, xyz)
+            rhoguess = rho_true(weights, E, lams, Jzz)
             error = rhoguess-kappa
             if error > 0:
                 lamMin = lams
@@ -367,7 +367,8 @@ def chi_integrand(k, E, V, Jzz, unitcell):
     return A, B
 
 def chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, *args):
-    A, B = chi_integrand(pts, E, V, Jzz, unitcellGraph)
+    k = contract('ij,jk->ik', pts, BasisBZA)
+    A, B = chi_integrand(k, E, V, Jzz, unitcellGraph)
     A = contract('ikjl,i->kjl', A, weights)
     B = contract('ikjl,i->kjl', B, weights)
     M1 = chi_field(n, n1, n2, unitcellCoord, B, A, *args)
@@ -381,7 +382,8 @@ def xi_integrand(k, E, V, Jzz, unitcellGraph):
     A = contract('ika, ij,jka->ikj', green[:, 0:size, size:2*size], ffactA, unitcellGraph)/size
     return A
 def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, *args):
-    M = contract('ikj, i->kj', xi_integrand(pts,E,V,Jzz,unitcellGraph), weights)
+    k = contract('ij,jk->ik', pts, BasisBZA)
+    M = contract('ikj, i->kj', xi_integrand(k,E,V,Jzz,unitcellGraph), weights)
     M1 = xi_field(n, n1, n2, unitcellCoord, M, *args)
     return M1
 
@@ -389,6 +391,26 @@ def calmeanfield(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGrap
     chi = chiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, chi_field, params)
     # chi = np.zeros((len(unitcellCoord),4,4))
     return chi, xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, params)
+
+def xiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, xi_field, *args):
+    k = contract('ij,jk->ik', qmin, BasisBZA)
+    ffact = contract('ik,jk->ij', k, NN)
+    ffactA = np.exp(1j * ffact)
+    size = int(len(rhos)/4)
+    A = contract('k, a, ij,jka->kj', rhos[0:size], rhos[size:2*size], ffactA, unitcellGraph)/size/len(qmin)
+    M1 = xi_field(n, n1, n2, unitcellCoord, A, *args)
+    return M1
+
+def chiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, chi_field, *args):
+    k = contract('ij,jk->ik', qmin, BasisBZA)
+    size = int(len(rhos)/4)
+    ffact = contract('ik,jlk->ijl', k, NNminus)
+    ffactB = np.exp(-1j * ffact)
+    B = contract('iab, ijl,jka, lkb->ikjl', rhos[3*size:4*size], rhos[size:2*size], ffactB, unitcellGraph, unitcellGraph)/size
+    ffactA = np.exp(1j * ffact)
+    A = contract('iab, ijl,jka, lkb->ikjl', rhos[2*size:3*size], rhos[0:size], ffactA, unitcellGraph, unitcellGraph)/size
+    M1 = chi_field(n, n1, n2, unitcellCoord, B, A, *args)
+    return M1
 
 # endregion
 
@@ -1067,8 +1089,7 @@ class piFluxSolver:
         self.qminWeight = np.zeros((1,))
         self.qminB = np.copy(self.qmin)
         self.condensed = False
-        self.delta = np.zeros(16)
-        self.rhos = np.zeros(16)
+
 
         # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
         # self.unitCellgraph = piunitcell
@@ -1083,7 +1104,8 @@ class piFluxSolver:
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         self.E, self.V = np.linalg.eigh(self.MF)
-
+        self.delta = np.zeros(self.E.shape[1])
+        self.rhos = np.zeros(self.E.shape[1])
     def findLambda(self, a=False):
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
@@ -1117,9 +1139,7 @@ class piFluxSolver:
         return minLams
 
     def rho(self,lam):
-        A = np.delete(self.weights, self.toignore)
-        B = np.delete(self.E, self.toignore, axis=0)
-        return rho_true(A, B, lam,self.Jzz)
+        return rho_true(self.weights, self.E, lam,self.Jzz)
     def calmeanfield(self):
         E, V = self.LV_zero(np.concatenate((self.pts,self.qmin)))
         E = np.sqrt(2*self.Jzz*E)
@@ -1279,11 +1299,11 @@ class piFluxSolver:
     def set_delta(self):
         warnings.filterwarnings('error')
         try:
-            self.rhos = np.sqrt(self.kappa - self.rho(self.minLams))*np.ones(16)
+            self.rhos = np.sqrt(self.kappa - self.rho(self.minLams))*np.ones(self.E.shape[1])
             self.delta = np.sqrt(self.Jzz/2)/self.rhos**2
         except:
-            self.rhos = np.zeros(16)
-            self.delta = np.zeros(16)
+            self.rhos = np.zeros(self.E.shape[1])
+            self.delta = np.zeros(self.E.shape[1])
         warnings.resetwarnings()
 
     def condensation_check(self):
@@ -1291,7 +1311,7 @@ class piFluxSolver:
         self.lams, d = self.findLambda(True)
         self.set_condensed()
         # self.ifcondense()
-        # self.set_delta()
+        self.set_delta()
 
 
     def M_true(self, k):
