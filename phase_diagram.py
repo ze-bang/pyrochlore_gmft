@@ -858,7 +858,7 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         rectemp4 = np.zeros(le, dtype=np.complex128)
 
     for i in range (currsizeK):
-        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], kappa=kappa, BZres=BZres, flux=flux)
+        py0s = pycon.piFluxSolver(currJH[i][0], 1, currJH[i][1], *args, kappa=kappa, BZres=BZres, flux=flux)
         warnings.filterwarnings('error')
         try:
             py0s.solvemeanfield()
@@ -1021,11 +1021,12 @@ def conclude_XYZ_0_field(filename):
         for j in range(D1.shape[1]):
             tempD = D[:,i,j]
             a = np.argmin(tempD)
-            phase[i,j] = a//2 + 5*C[a,i,j]
-            if np.isnan(phase[i,j]):
-                phase[i,j] = 5
-            Jxx = -0.5+(1.5/D1.shape[0]*(i+1))
-            Jyy = -0.5+(1.5/D1.shape[1]*(j+1))
+            if not C[a,i,j]:
+                phase[i,j] = a//2
+            else:
+                phase[i,j] = np.nan
+            Jxx = -1+(2/D1.shape[0]*(i+1))
+            Jyy = -1+(2/D1.shape[1]*(j+1))
             Jpm[i,j] = -(Jxx+Jyy)/4
             Jpmpm[i,j] = (Jxx-Jyy)/4
             # if not C[a,i,j]:

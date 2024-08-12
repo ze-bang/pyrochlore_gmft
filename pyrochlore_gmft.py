@@ -6,6 +6,7 @@ import numpy as np
 from misc_helper import *
 from flux_stuff import *
 import time
+from scipy.optimize import minimize
 
 #region Hamiltonian Construction
 def M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell=piunitcell):
@@ -726,7 +727,7 @@ def graphing_M_setup(flux, n):
         unitCellgraph = piunitcell
         A_pi_here = A_pi
         unitcellCoord = np.array([[0, 0, 0],[0,1,0],[0,0,1],[0,1,1]])
-    elif (flux == np.array([np.pi,np.pi,0,0])).all():
+    elif (flux == np.array([np.pi,0,0,np.pi])).all():
         unitCellgraph = np.array([[[1,0],
                                     [0,1]],
                                     [[1,0],
@@ -739,7 +740,7 @@ def graphing_M_setup(flux, n):
         A_pi_here = np.array([[0,0,0,0],
                                 [0,np.pi,0,0]])
         unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
-    elif (flux == np.array([0, 0, np.pi, np.pi])).all():
+    elif (flux == np.array([0,np.pi,np.pi,0])).all():
         unitCellgraph = np.array([[[1,0],
                                     [0,1]],
                                     [[1,0],
@@ -761,13 +762,13 @@ def graphing_M_setup_full(flux, n):
         A_pi_here = np.zeros((4,4))
     elif (flux == np.pi*np.ones(4)).all():
         A_pi_here = A_pi
-    elif (flux == np.array([np.pi,np.pi,0,0])).all():
+    elif (flux == np.array([np.pi,0,0,np.pi])).all():
         A_pi_here = np.array([[0,0,0,0],
                               [0,np.pi,0,0],
                               [0, 0, 0, 0],
                               [0, np.pi, 0, 0]
                               ])
-    elif (flux == np.array([0, 0, np.pi, np.pi])).all():
+    elif (flux == np.array([0,np.pi,np.pi,0])).all():
         A_pi_here = np.array([[0,0,0,0],
                               [0, 0, 0, 0],
                               [0,np.pi,np.pi,0],

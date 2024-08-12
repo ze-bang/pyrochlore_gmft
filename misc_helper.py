@@ -6,7 +6,6 @@ import numba as nb
 from opt_einsum import contract
 import math
 from flux_stuff import *
-from scipy.optimize import minimize
 # import pyrochlore_exclusive_boson as pyeb
 # import matplotlib.pyplot as plt
 def factors(n, nK):
@@ -57,6 +56,9 @@ b0 = np.pi * np.array([1, 1, 1])
 b1 = np.pi * np.array([-1, 1, 1])
 b2 = np.pi * np.array([1, -1, 1])
 b3 = np.pi * np.array([1, 1, -1])
+
+zppz = np.array([0, np.pi, np.pi, 0])
+pzzp = np.array([np.pi, 0, 0, np.pi])
 
 # Gamma = np.array([0, 0, 0])
 # L = np.pi * np.array([1, 1, 1])
@@ -910,7 +912,7 @@ def non_h_unique(A):
             B = B + [A[i]]
     return B
 
-deltamin= 25
+deltamin= 10
 minLamK = 2
 
 def gauss_quadrature_1D_pts(a, b, n):
