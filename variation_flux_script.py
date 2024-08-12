@@ -16,5 +16,6 @@ Jpm = 0.03
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.zeros(4),30, "Files/DSSF/Jpm=5e-3_0")
 # DSSF_line(5e-3, -2*Jpm, -2*Jpm, 1, 0, 0.5, 10, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=5e-3_pi")
 
-DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.03_0")
-DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.03_pi")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h001, np.zeros(4), 30, "Files/DSSF/Jpm=0.03_0")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.4, 5, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.03_pi")
+SSSF_pedantic(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 0.05, h001, np.ones(4)*np.pi, 30, "Files/XYZ/Ce2Zr2O7_h001=0.05", "hk0")

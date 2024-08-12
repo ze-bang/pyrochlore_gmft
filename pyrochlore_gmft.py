@@ -1183,7 +1183,7 @@ class piFluxSolver:
             # print(self.xi)
             self.updateMF()
             # print("Solve mu field")
-            GS, diverge = self.solvemufield(pcon)
+            GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
                 pb = True
                 # self.xi=xilast
@@ -1210,7 +1210,7 @@ class piFluxSolver:
             # print(self.chi[0,0,0,0], self.chi[0,0,0,1])
             self.updateMF()
             # print("Solve mu field")
-            GS, diverge = self.solvemufield(pcon)
+            GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
                 pb = True
                 # return GSlast, True
@@ -1261,7 +1261,7 @@ class piFluxSolver:
                 #     limit = 5
                 print("Iteration #"+str(count))
                 # print(self.gap(), self.lams, self.minLams)
-                print(self.chi[0, 0, 0, 0], self.chi[0, 0, 0, 1], self.xi[0, 0])
+                # print(self.chi[0, 0, 0, 0], self.chi[0, 0, 0, 1], self.xi[0, 0])
                 count = count + 1
                 # if ((abs(GS-GSlast) < tol).all()) or count > limit:
                 #     break

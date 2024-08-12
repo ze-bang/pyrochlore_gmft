@@ -23,4 +23,4 @@ Jpm = 0.03
 
 # SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.05_hhl', "hhl")
 # SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.15_hhl', "hhl")
-findXYZPhase_separate_unconstrained(-1, 1, -1, 1, 40, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_unconstrained")
+findXYZPhase_separate_unconstrained(-1, 1, -1, 1, 100, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_unconstrained")

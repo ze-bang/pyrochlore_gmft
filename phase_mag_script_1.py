@@ -63,4 +63,4 @@ Jpm = 0.03
 
 # SSSF_pedantic(100, 0.5, 1, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_octupolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
 # SSSF_pedantic(100, 1, 0.5, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_dipolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
-findPhaseMag111(-0.3, 0.1, 50, 0, 0.5, 40, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
+findPhaseMag111(-0.3, 0.1, 50, 0, 0.5, 50, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
