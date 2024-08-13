@@ -113,48 +113,14 @@ def totalFlux(unitCell, A_pi):
         # print('--------------------------------')
     return np.mod(A,2*np.pi)
 
-def constructA_pi_0(flux, A01 = 0):
-    A, B, C, D = flux
-
-    A00 = (A - 2 * B + C + D) / 6
-    A02 = -A01 + (2 * A + 2 * B - C - D) / 6
-    A03 = (-2 * A + B + C + D) / 6
-    A10 = (A - 2 * B + C + D) / 6
-    A11 = A01
-    A12 = -A01 + (2 * A + 2 * B - C - D) / 6
-    A13 = (-2 * A + B + C + D) / 6
-    A20 = (A - 2 * B + C + D) / 6
-    A21 = -A01 + (A + B - 2 * C + D) / 3
-    A22 = A01 + (C - D) / 2
-    A23 = (-2 * A + B + C + D) / 6
-    A30 = (A - 2 * B + C + D) / 6
-    A31 = -A01 + (A + B - 2 * C + D) / 3
-    A32 = A01 + (C - D) / 2
-    A33 = (-2 * A + B + C + D) / 6
-
-    M = np.array([[A00, A01, A02, A03],
-                 [A10, A11, A12, A13],
-                 [A20, A21, A22, A23],
-                 [A30, A31, A32, A33]])
-    return M
 
 
-def Ainit(Fluxs, A00=0, A01=0, A02=0, A10=0):
-    Fluxs = np.mod(Fluxs, 2*np.pi)
-    Fluxs = np.where(Fluxs>np.pi, Fluxs-2*np.pi, Fluxs)
-    A, B, C, D = Fluxs
-    A03 = -A00 - A01 - A02 + (A+B+C+D)/6
-    A11 = A - A00 - A01 - 2*A02 - A10
-    A20 = -A10 + (A-2*B+C+D)/3
-    A21 = A00 + A01 + 2*A02 + A10 + (-2*A+B-2*C+D)/3
-    return np.array([A00, A01, A02, A03, A10, A11, A20, A21])
 
-
+#Order of 123, 023, 013, 012
 def constructA_pi_110(Fluxs):
-    n4 = 0
     A00, A01, A02, n1, n2 = A_init110(Fluxs)
 
-    A03 = A00+n2*np.pi
+    A03 = A00
 
     A10 = A00
     A20 = A00
@@ -183,7 +149,7 @@ def A_init110(Fluxs):
     A01 = 0
     A02 = 0
     n1 = int(A / np.pi)
-    n2 = int(C / np.pi)
+    n2 = int(B / np.pi)
     return np.array([A00, A01, A02, n1,n2])
 
 def constructA_pi_001(Fluxs):
@@ -194,7 +160,7 @@ def constructA_pi_001(Fluxs):
         return -1
 
     A01 = A00
-    A02 = A00 + n1*np.pi
+    A02 = A00
     A03 = A00
 
     A10 = A00
@@ -227,11 +193,7 @@ def A_init001(Fluxs):
     return np.array([A00, n1])
 
 def constructA_pi_111(Fluxs):
-    n5 = 0
-    try:
-        A00, A01, n1 = A_init111(Fluxs)
-    except:
-        return -1
+    A00, A01, n1 = A_init111(Fluxs)
 
     A02 = A01
     A03 = A01

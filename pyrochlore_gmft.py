@@ -1298,7 +1298,7 @@ class piFluxSolver:
         # A = self.rho(self.minLams+1e-14)
         # self.condensed = A < self.kappa
         A = -self.minLams[0] + self.lams[0]
-        print(self.lams[0], self.minLams[0], -np.min(self.E))
+        # print(self.lams[0], self.minLams[0], -np.min(self.E))
         if A < (deltamin /(self.BZres**3)) ** 2:
             self.condensed = True
         else:
@@ -1352,7 +1352,7 @@ class piFluxSolver:
                              self.unitCellgraph)
 
     def LV_zero(self, k):
-        print(self.lams, self.minLams, self.lams-self.minLams, np.abs(np.min(self.E)))
+        # print(self.lams, self.minLams, self.lams-self.minLams, np.abs(np.min(self.E)))
         return E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                     self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
