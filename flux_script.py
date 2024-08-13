@@ -10,4 +10,5 @@ Jpm = -0.289
 
 # DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.1, 5, h001, np.zeros(4), 30, "Files/DSSF/Jpm=-0.289_0")
 # DSSF_line_pedantic(250,-2*Jpm, -2*Jpm, 1, 0, 0.1, 5, h001, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=-0.289_pi")
-SSSF_pedantic(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 0.1, h111, np.ones(4)*np.pi, 30, "Files/XYZ/Ce2Zr2O7_h111=0.1", "hh2k")
+# SSSF_pedantic(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 0.1, h111, np.ones(4)*np.pi, 30, "Files/XYZ/Ce2Zr2O7_h111=0.1", "hh2k")
+findXYZPhase_separate(-1, 1, -1, 1, 40, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux_nS=1", 1)

@@ -13,4 +13,5 @@ from observables import *
 # SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.2, 11, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi", "hk0", 0)
 
 
-SSSF_pedantic(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Ce2Zr2O7_h110=0.1", "hnhl")
+# SSSF_pedantic(100, 0.062/0.063, 0.063/0.063, 0.011/0.063, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Ce2Zr2O7_h110=0.1", "hnhl")
+findXYZPhase_separate(-1, 1, -1, 1, 40, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_nS=1",1)
