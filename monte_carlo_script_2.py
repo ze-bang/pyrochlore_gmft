@@ -27,4 +27,4 @@ from observables import *
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.2, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.2_pi_flux", "hhl")
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.3, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.3_pi_flux", "hhl")
 # SSSF(100, -2*Jpm, -2*Jpm, 1, 0.4, h110, np.ones(4)*np.pi, 30, "Files/Jpm=0_h110=0.4_pi_flux", "hhl")
-findXYZPhase_separate(-1, 1, -1, 1, 80, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux_nS=1_detailed", 1)
+findXYZPhase_separate(-0.5, 1, -0.5, 1, 80, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux_nS=1_detailed", 1)

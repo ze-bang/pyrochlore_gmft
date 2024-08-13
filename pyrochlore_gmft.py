@@ -719,6 +719,9 @@ def EMAX(M, lams):
     return temp
 
 def graphing_M_setup(flux, n):
+    unitCellgraph = np.array([[[1]],[[1]],[[1]],[[1]]])
+    A_pi_here = np.array([[0,0,0,0]])
+    unitcellCoord = np.array([[0,0,0]])
     if (flux == np.zeros(4)).all():
         unitCellgraph = np.array([[[1]],[[1]],[[1]],[[1]]])
         A_pi_here = np.array([[0,0,0,0]])
@@ -727,7 +730,7 @@ def graphing_M_setup(flux, n):
         unitCellgraph = piunitcell
         A_pi_here = A_pi
         unitcellCoord = np.array([[0, 0, 0],[0,1,0],[0,0,1],[0,1,1]])
-    elif (flux == np.array([np.pi,0,0,np.pi])).all():
+    elif (flux == pzzp).all():
         unitCellgraph = np.array([[[1,0],
                                     [0,1]],
                                     [[1,0],
@@ -740,7 +743,7 @@ def graphing_M_setup(flux, n):
         A_pi_here = np.array([[0,0,0,0],
                                 [0,np.pi,0,0]])
         unitcellCoord = np.array([[0, 0, 0],[0,1,0]])
-    elif (flux == np.array([0,np.pi,np.pi,0])).all():
+    elif (flux == zppz).all():
         unitCellgraph = np.array([[[1,0],
                                     [0,1]],
                                     [[1,0],
@@ -755,20 +758,22 @@ def graphing_M_setup(flux, n):
         unitcellCoord = np.array([[0, 0, 0],[0,0,1]])
 
     return unitCellgraph, A_pi_here, unitcellCoord
+
 def graphing_M_setup_full(flux, n):
     unitCellgraph = piunitcell
     unitcellCoord = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 1], [0, 1, 1]])
+    A_pi_here = np.zeros((4,4))
     if (flux == np.zeros(4)).all():
         A_pi_here = np.zeros((4,4))
     elif (flux == np.pi*np.ones(4)).all():
         A_pi_here = A_pi
-    elif (flux == np.array([np.pi,0,0,np.pi])).all():
+    elif (flux == pzzp).all():
         A_pi_here = np.array([[0,0,0,0],
                               [0,np.pi,0,0],
                               [0, 0, 0, 0],
                               [0, np.pi, 0, 0]
                               ])
-    elif (flux == np.array([0,np.pi,np.pi,0])).all():
+    elif (flux == zppz).all():
         A_pi_here = np.array([[0,0,0,0],
                               [0, 0, 0, 0],
                               [0,np.pi,np.pi,0],
