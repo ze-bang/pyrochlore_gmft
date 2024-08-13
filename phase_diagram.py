@@ -270,9 +270,9 @@ def findPhaseMag110(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
             pyps = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
                                       BZres=BZres, flux=np.ones(4) * np.pi)
             pyp0 = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.array([np.pi, np.pi, 0, 0]))
+                                      BZres=BZres, flux=pzzp)
             pyzp = pycon.piFluxSolver(1, -2 * currJH[i][0]+ 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=np.array([0, 0, np.pi, np.pi]))
+                                      BZres=BZres, flux=zppz)
         else:
             py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.zeros(4), unconstrained=True)
             pyps = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=np.ones(4)*np.pi, unconstrained=True)
