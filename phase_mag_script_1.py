@@ -12,7 +12,7 @@ from observables import *
 # findPhaseMag111(-0.5, 0.1, 100, 0, 1, 100, h111, 30, 2, "phase_111_kappa=2")
 
 # plotLinefromnetCDF(h111, "h111=0.1_largeN.pdf", h=0.1, diff=True)
-# plotLinefromnetCDF(h111, "h111=0.2_largeN.pdf", h=0.2, diff=True)
+# plotLinefromnetCDF(h111, "h111=0.2_largeN.pdf", h=0.2, diff=True
 # plotLinefromnetCDF(h111, "h111=0.3_largeN.pdf", h=0.3, diff=True)
 #
 # plotLinefromnetCDF(h110, "h110=0.1_largeN.pdf", h=0.1, diff=True)
