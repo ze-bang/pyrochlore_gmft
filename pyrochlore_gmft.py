@@ -385,6 +385,7 @@ def xi_integrand(k, E, V, Jzz, unitcellGraph):
 def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, *args):
     k = contract('ij,jk->ik', pts, BasisBZA)
     M = contract('ikj, i->kj', xi_integrand(k,E,V,Jzz,unitcellGraph), weights)
+    print(M)
     M1 = xi_field(n, n1, n2, unitcellCoord, M, *args)
     return M1
 
@@ -1043,10 +1044,9 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 #endregion
 class piFluxSolver:
     def __init__(self, Jxx, Jyy, Jzz, *args, theta=0, h=0, n=h110, kappa=2, lam=2, BZres=20, graphres=20, tol=1e-10, flux=np.zeros(4),
-                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=False):
+                 intmethod=gauss_quadrature_3D_pts, gzz=2.24, Breal=False, unconstrained=False, g=0, simplified=False, FF=False):
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
-        print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
         a = np.argmax(J)
         xx = np.mod(a-2,3)
         yy = np.mod(a-1,3)
@@ -1060,6 +1060,7 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.PSGparams = args
+        print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
         if unconstrained:
             self.xi_field = xi_unconstrained
             self.chi_field = chi_unconstrained
@@ -1079,39 +1080,59 @@ class piFluxSolver:
             self.h = h
         if a == 0:
             self.h = -1j*self.h
-        self.n = n
-        self.flux = flux
-        self.A_pi_here, self.n1, self.n2, self.equi_class_field, self.equi_class_flux, self.gen_equi_class_field, self.gen_equi_class_flux = determineEquivalence(n, flux)
+
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
         self.graphres = graphres
 
-        self.toignore = np.array([],dtype=int)
+        self.toignore = np.array([], dtype=int)
         self.q = np.nan
-        self.qmin = np.empty((1,3))
+        self.qmin = np.empty((1, 3))
         self.qmin[:] = 0
         self.qminWeight = np.zeros((1,))
         self.qminB = np.copy(self.qmin)
         self.condensed = False
 
+        if not FF:
+            self.n = n
+            self.flux = flux
+            self.A_pi_here, self.n1, self.n2 = determineEquivalence(n, flux)
 
-        # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
-        # self.unitCellgraph = piunitcell
-        if simplified:
-            self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+
+            # self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(self.A_pi_here)
+            # self.unitCellgraph = piunitcell
+            if simplified:
+                self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup(self.flux, self.n)
+            else:
+                self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
+            self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
+                self.A_pi_here)
+            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.1*np.ones((len(self.A_pi_here),4)), self.PSGparams)
+            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.1*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+            self.E, self.V = np.linalg.eigh(self.MF)
+            self.delta = np.zeros(self.E.shape[1])
+            self.rhos = np.zeros(self.E.shape[1])
         else:
-            self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
-        self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
-            self.A_pi_here)
-        self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.1*np.ones((len(self.A_pi_here),4)), self.PSGparams)
-        self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.1*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
-        self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
-        self.E, self.V = np.linalg.eigh(self.MF)
-        self.delta = np.zeros(self.E.shape[1])
-        self.rhos = np.zeros(self.E.shape[1])
+            self.n = h111
+            self.flux = flux
+            self.unitCellgraph, self.A_pi_here, self.unitcellCoord, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = \
+            FFphase_setup(flux[1])
+            self.n1, self.n2 = 0, 0
+            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.0 * np.ones((len(self.A_pi_here), 4)),
+                                    self.PSGparams)
+            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord,
+                                      0.0 * np.ones((len(self.A_pi_here), 4, 4)),
+                                      0.0 * np.ones((len(self.A_pi_here), 4, 4)), self.PSGparams)
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                           self.A_pi_here,
+                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+            self.E, self.V = np.linalg.eigh(self.MF)
+            self.delta = np.zeros(self.E.shape[1])
+            self.rhos = np.zeros(self.E.shape[1])
     def findLambda(self, a=False):
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))

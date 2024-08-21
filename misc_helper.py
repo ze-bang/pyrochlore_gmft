@@ -290,7 +290,77 @@ piunitcell = np.array([
      [0,1,0,0]]
 ])
 
+def FFphase_setup(Flux):
+    dim = int(2*np.pi/np.abs(Flux))
+    pi3unitcellCoord = np.zeros((dim**2,3))
+
+    for i in range(dim):
+        for j in range(dim):
+            pi3unitcellCoord[dim*i+j] = [0, i, j]
+
+    pi3unitcellCoord_r2_shifted = np.mod(pi3unitcellCoord + [0, 1, 0], dim)
+    pi3unitcellCoord_r3_shifted = np.mod(pi3unitcellCoord + [0, 0, 1], dim)
+
+    p3unitcell_r2 = np.zeros((dim**2,dim**2))
+    p3unitcell_r3 = np.zeros((dim**2,dim**2))
+
+    for i in range(dim**2):
+        for j in range(dim**2):
+            p3unitcell_r2[i,j] = (pi3unitcellCoord_r2_shifted[j] == pi3unitcellCoord[i]).all()
+            p3unitcell_r3[i,j] = (pi3unitcellCoord_r3_shifted[j] == pi3unitcellCoord[i]).all()
+
+    pi3unitcell = np.array([
+        np.eye(dim**2),
+        np.eye(dim**2),
+        p3unitcell_r2,
+        p3unitcell_r3
+    ])
+
+
+    A_pi_p3 = np.zeros((dim**2,4))
+    A_pi_p3[:,0] = 0
+    A_pi_p3[:,3] = 0
+    for i in range(dim**2):
+        A_pi_p3[i, 1] = -Flux*(pi3unitcellCoord[i,1]-pi3unitcellCoord[i,2])
+        A_pi_p3[i, 2] = -Flux*pi3unitcellCoord[i,2]
+
+    A_pi_rs_traced_p3 = np.zeros((dim**2,4,4))
+    for i in range(dim**2):
+        for j in range(4):
+            for k in range(4):
+                A_pi_rs_traced_p3[i,j,k] = np.real(np.exp(1j * (A_pi_p3[i,j] - A_pi_p3[i,k])))
+
+    A_pi_rs_traced_pp_p3 = np.zeros((dim**2,4,4))
+
+
+    for i in range(dim**2):
+        for j in range(4):
+            for k in range(4):
+                A_pi_rs_traced_pp_p3[i,j,k] = np.real(np.exp(1j * (A_pi_p3[i,j] + A_pi_p3[i,k])))
+
+
+    A_pi_rs_rsp_p3 = np.zeros((dim**2,dim**2,4,4))
+
+    for i in range(dim**2):
+        for j in range(dim**2):
+            for k in range(4):
+                for l in range(4):
+                    A_pi_rs_rsp_p3[i,j,k,l] = np.real(np.exp(1j * (A_pi_p3[i,k] - A_pi_p3[j,l])))
+
+
+    A_pi_rs_rsp_pp_p3 = np.zeros((dim**2,dim**2,4,4))
+
+    for i in range(dim**2):
+        for j in range(dim**2):
+            for k in range(4):
+                for l in range(4):
+                    A_pi_rs_rsp_pp_p3[i,j,k,l] = np.real(np.exp(1j * (A_pi_p3[i,k] + A_pi_p3[j,l])))
+    return pi3unitcell, A_pi_p3, pi3unitcellCoord, A_pi_rs_traced_p3, A_pi_rs_traced_pp_p3, A_pi_rs_rsp_p3, A_pi_rs_rsp_pp_p3
+
+
 piunitcellCoord = np.array([[0,0,0],[0,1,0],[0,0,1],[0,1,1]])
+
+
 
 number = 8
 notrace = np.ones((4,4))-np.diag([1,1,1,1])
@@ -733,47 +803,11 @@ def symmetry_equivalence(K, equi_relation):
 def determineEquivalence(n, flux):
     if (n == h110).all():
         A_pi_here, n1, n2 = constructA_pi_110(flux)
-        equi_class_field = equi_class_110
-        gen_equi_class_field = gen_equi_class_110
-        if (flux == np.zeros(4)).all():
-            equi_class_flux = equi_class_0_flux
-            gen_equi_class_flux = gen_equi_class_0_flux
-        elif (flux == np.pi*np.ones(4)).all():
-            equi_class_flux = equi_class_pi_flux
-            gen_equi_class_flux = gen_equi_class_pi_flux
-        elif (flux == np.array([np.pi,np.pi,0,0])).all():
-            equi_class_flux = equi_class_pp00_flux
-            gen_equi_class_flux = gen_equi_class_pp00_flux
-        else:
-            equi_class_flux = equi_class_00pp_flux
-            gen_equi_class_flux = gen_equi_class_00pp_flux
     elif (n == h111).all():
         A_pi_here, n1, n2 = constructA_pi_111(flux)
-        equi_class_field = equi_class_111
-        gen_equi_class_field = gen_equi_class_111
-        if (flux == np.zeros(4)).all():
-            equi_class_flux = equi_class_0_flux
-            gen_equi_class_flux = gen_equi_class_0_flux
-        else:
-            equi_class_flux = equi_class_pi_flux
-            gen_equi_class_flux = gen_equi_class_pi_flux
     elif (n == h001).all():
         A_pi_here, n1, n2 = constructA_pi_001(flux)
-        equi_class_field = equi_class_100
-        gen_equi_class_field = gen_equi_class_100
-        if (flux == np.zeros(4)).all():
-            equi_class_flux = equi_class_0_flux
-            gen_equi_class_flux = gen_equi_class_0_flux
-        elif (flux == np.pi*np.ones(4)).all():
-            equi_class_flux = equi_class_pi_flux
-            gen_equi_class_flux = gen_equi_class_pi_flux
-        elif (flux == np.array([np.pi,0,0,np.pi])).all():
-            equi_class_flux = equi_class_p00p_flux
-            gen_equi_class_flux = gen_equi_class_p00p_flux
-        else:
-            equi_class_flux = equi_class_0pp0_flux
-            gen_equi_class_flux = gen_equi_class_0pp0_flux
-    return A_pi_here, n1, n2, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux
+    return A_pi_here, n1, n2
 
 def genALLSymPoints():
     d = 9 * 1j

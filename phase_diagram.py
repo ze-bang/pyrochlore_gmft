@@ -1014,7 +1014,18 @@ def conclude_XYZ_0_field(filename):
 
     C = np.array([C1,C2,C3,C4])
 
+    Ch1 = np.loadtxt(A1+"_chi.txt")
+    Ch2 = np.loadtxt(A2+"_chi.txt")
+    Ch3 = np.loadtxt(A3+"_chi.txt")
+    Ch4 = np.loadtxt(A4+"_chi.txt")
+
+    Ch = np.array([Ch1,Ch2,Ch3,Ch4])
+
     phase = np.zeros((len(D1), len(D1)))
+    xi = np.zeros((len(D1), len(D1)))
+    chi = np.zeros((len(D1), len(D1)))
+    MFE = np.zeros((len(D1), len(D1)))
+
     Jpm = np.zeros((len(D1), len(D1)))
     Jpmpm = np.zeros((len(D1), len(D1)))
     for i in range(len(D1)):
@@ -1023,6 +1034,9 @@ def conclude_XYZ_0_field(filename):
             a = np.argmin(tempD)
             if not C[a,i,j]:
                 phase[i,j] = a//2
+                xi[i,j] = X[a, i, j]
+                chi[i,j] = Ch[a, i, j]
+                MFE[i, j] = D[a, i, j]
             else:
                 phase[i,j] = np.nan
             Jxx = -1+(2/D1.shape[0]*(i+1))
@@ -1038,11 +1052,32 @@ def conclude_XYZ_0_field(filename):
     plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
     plt.savefig(filename+"Jpm_Jpmpm.pdf")
     plt.clf()
-    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
+    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+".pdf")
+    plt.clf()
+
+    plt.imshow(xi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_xi.pdf")
+    plt.clf()
+
+    plt.imshow(chi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_chi.pdf")
+    plt.clf()
+
+    plt.imshow(MFE.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_MFE.pdf")
     plt.clf()
 
 

@@ -1,6 +1,5 @@
 import os
 import matplotlib as mpl
-from matplotlib import rc
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 plt.rcParams['text.usetex'] = True
@@ -290,7 +289,7 @@ def regraphDSSF(dir):
                 temp = foldname+'/'+files
                 d = np.loadtxt(temp)
                 d = d/np.max(d)
-                a = pycon.piFluxSolver(-0.04, -0.04, 1, flux=np.zeros(4), h=h0, n=n)
+                a = pycon.piFluxSolver(-0.04, -0.04, 1, flux=np.zeros(4), h=0, n=h110)
                 a.solvemeanfield()
                 emin, emax = a.graph_loweredge(False, axs), a.graph_upperedge(False, axs)
                 c = axs.imshow(d.T / np.max(d), interpolation="lanczos", origin='lower',
@@ -830,22 +829,34 @@ def phaseExGraph(filename):
 # print(ffact, zmag)z
 # print('\n')
 # print(np.exp(1j*A_pi_here))
-# Jpm = -0.04
-# Jpmpm = 0
-# #
+
+A = np.loadtxt("phase_111_kappa=2_Jpmpm=0.2.txt")
+A = np.where(A==1, np.nan, A)
+A = np.where(A==6, np.nan, A)
+plt.imshow(A.T, origin='lower', aspect='auto', extent=[-0.3,0.1,0,0.5])
+
+plt.xlabel(r'$J_\pm/J_{y}$')
+plt.ylabel(r'$h/J_{y}$')
+plt.savefig('phase_111_kappa=2_Jpmpm=0.2.png')
+plt.clf()
+
+Jpm = 0.0
+Jpmpm = 0
+# # #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# # Jxx, Jyy, Jzz = 0.5,     1,         0
-# # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
+# # # Jxx, Jyy, Jzz = 0.5,     1,         0
+# # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 # fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=zppz, h=0, n=h110, simplified=True)
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=np.zeros(4), h=0.1, n=h001, simplified=True)
 # a.solvemeanfield()
 # # a.graph_loweredge(False,axs,'b')
 # # a.graph_upperedge(True,axs,'b')
 # A = a.MFE()
 # AC = a.condensed
 # print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=pzzp, h=0, n=h110, simplified=True)
+# # fig, axs = plt.subplots()
+# #2420158631264392
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=np.ones(4)*np.pi, h=0.1, n=h001, simplified=True)
 # a.solvemeanfield()
 # # a.graph_loweredge(False,axs,'b')
 # # a.graph_upperedge(True,axs,'b')
@@ -856,15 +867,43 @@ def phaseExGraph(filename):
 # axs.set_ylim([0,0.7])
 # plt.show()
 #
-# # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0, n=h110,simplified=False)
-# a.solvemeanfield()
-# # a.graph(axs)
-# B = a.MFE()
-# BC = a.condensed
-# # plt.show()
-# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+
+Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=False)
+a.solvemeanfield()
+# a.graph(axs)
+A = a.MFE()
+AC = a.condensed
+# plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+
+Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.2, n=h111,simplified=False)
+a.solvemeanfield()
+# a.graph(axs)
+B = a.MFE()
+BC = a.condensed
+# plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+
+def FFFluxGen(flux):
+    return np.array([3*flux, flux, flux, flux])
+
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/3), h=0.2, n=h111,FF=True)
+a.solvemeanfield()
+a.graph(axs)
+C = a.MFE()
+CC = a.condensed
+plt.show()
+print(a.MFE())
+
+print(A, B, C)
+print(AC, BC, CC)
+#
+
 #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # fig, axs = plt.subplots()
@@ -893,7 +932,7 @@ def phaseExGraph(filename):
 # print(AC, BC, CC, DC)
 # print(A, C)
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
-conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
+# conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
 
 
 
