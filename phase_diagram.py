@@ -721,7 +721,7 @@ def findXYZPhase(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, filename):
         graphColorMesh(JP, JP1, rectemp4,'Files/' + filename + '_chi')
 
 
-def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename, *args):
+def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, filename, *args, symmetrized=True):
     # totaltask = nK*nH
     # increment = totaltask/50
     # count = 0
@@ -729,8 +729,11 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
+    if symmetrized:
+        JH = XYZparambuilder(JPm, JPmax, JP1m, JP1max, nK)
+    else:
+        JH = np.mgrid[JPm:JPmax:1j * nK, JP1m:JP1max:1j * nK].reshape(2,-1).T
 
-    JH = XYZparambuilder(JPm, JPmax, JP1m, JP1max, nK)
     le = len(JH)
     nb = le/size
 
@@ -783,11 +786,16 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
 
     if rank == 0:
-        rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK/2),nK+1)))
-        rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK/2),nK+1)))
-        rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK/2),nK+1)))
-        rectemp4 = inverseXYZparambuilder(rectemp4.reshape((int(nK/2),nK+1)))
-
+        if symmetrized:
+            rectemp = inverseXYZparambuilder(rectemp.reshape((int(nK/2),nK+1)))
+            rectemp2 = inverseXYZparambuilder(rectemp2.reshape((int(nK/2),nK+1)))
+            rectemp3 = inverseXYZparambuilder(rectemp3.reshape((int(nK/2),nK+1)))
+            rectemp4 = inverseXYZparambuilder(rectemp4.reshape((int(nK/2),nK+1)))
+        else:
+            rectemp = rectemp.reshape((nK, nK))
+            rectemp2 = rectemp2.reshape((nK, nK))
+            rectemp3 = rectemp3.reshape((nK, nK))
+            rectemp4 = rectemp4.reshape((nK, nK))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
