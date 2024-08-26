@@ -385,7 +385,6 @@ def xi_integrand(k, E, V, Jzz, unitcellGraph):
 def xiCal(E, V, Jzz, n, n1, n2, pts, weights, unitcellCoord, unitcellGraph, xi_field, *args):
     k = contract('ij,jk->ik', pts, BasisBZA)
     M = contract('ikj, i->kj', xi_integrand(k,E,V,Jzz,unitcellGraph), weights)
-    print(M)
     M1 = xi_field(n, n1, n2, unitcellCoord, M, *args)
     return M1
 
@@ -789,14 +788,13 @@ def chi_unconstrained(n, n1, n2, unitcellCoord, chi0, chi0A, *args):
     return np.array([chi0, chi0A])
 def xi_wo_field(n, n1, n2, unitcellcoord, xi, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
-    xi0 = xi[0]
+    xi00 = np.real(np.mean(np.abs(xi)))
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     try:
         nS, = args
     except:
         nS = 0
     for i in range(len(unitcellcoord)):
-        xi00 = np.real(xi0[0])
         mult[i] = np.array([xi00, xi00*np.exp(1j*np.pi*(nS+n1*(unitcellcoord[i,1]+unitcellcoord[i,2]))), xi00*np.exp(1j*np.pi*(nS+n1*unitcellcoord[i,2])), xi00*np.exp(1j*np.pi*nS)])
     return mult
 def chi_wo_field(n, n1, n2, unitcellCoord, chi, chiA, *args):

@@ -98,4 +98,4 @@ from phase_diagram import *
 # TwoSpinonDOS_111_a(50, 20, "h=0.3_2SPINONS")
 
 #findXYZPhase_separate(-0.5, 1, -0.5, 1, 40, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0)
-findXYZPhase_separate(-1,1,-1,1, 20, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_nS=1", 1)
+findXYZPhase_separate(-0.5,1,-0.5,1, 20, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0)

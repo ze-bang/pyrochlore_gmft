@@ -938,19 +938,29 @@ def conclude_XYZ_0_field(filename):
     Jpmpm = np.zeros((len(D1), len(D1)))
     for i in range(len(D1)):
         for j in range(D1.shape[1]):
+            Jxx = -0.5+(1.5/D1.shape[0]*(i+1))
+            Jyy = -0.5+(1.5/D1.shape[1]*(j+1))
+
+            nSdexi = int((Jxx+1)/2*40-1)
+            nSdexj = int((Jyy+1)/2*40-1)
+
+            Jpm[i,j] = -(Jxx+Jyy)/4
+            Jpmpm[i,j] = (Jxx-Jyy)/4
+
             tempD = D[:,i,j]
+            # tempD = np.array([D[0,i,j],D[1,nSdexi,nSdexj],D[2,i,j],D[3,i,j]])
             a = np.argmin(tempD)
+
             if not C[a,i,j]:
-                phase[i,j] = a//2
+                if a == 1 and abs(Jpm[i,j])>0.25:
+                    phase[i, j] = np.nan
+                else:
+                    phase[i,j] = a//2
                 xi[i,j] = X[a, i, j]
                 chi[i,j] = Ch[a, i, j]
                 MFE[i, j] = D[a, i, j]
             else:
                 phase[i,j] = np.nan
-            Jxx = -1+(2/D1.shape[0]*(i+1))
-            Jyy = -1+(2/D1.shape[1]*(j+1))
-            Jpm[i,j] = -(Jxx+Jyy)/4
-            Jpmpm[i,j] = (Jxx-Jyy)/4
             # if not C[a,i,j]:
             #     phase[i,j] = phase[i,j] + 5*X[a,i,j]
     plt.pcolormesh(Jpm, Jpmpm, phase)
@@ -960,28 +970,28 @@ def conclude_XYZ_0_field(filename):
     plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
     plt.savefig(filename+"Jpm_Jpmpm.pdf")
     plt.clf()
-    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
-    # plt.colorbar()
+    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
+    plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+".pdf")
     plt.clf()
 
-    plt.imshow(xi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(xi.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+"_xi.pdf")
     plt.clf()
 
-    plt.imshow(chi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(chi.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+"_chi.pdf")
     plt.clf()
 
-    plt.imshow(MFE.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(MFE.T, origin='lower', interpolation='bilinear', extent=[-0.5, 1, -0.5, 1], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
