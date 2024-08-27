@@ -925,14 +925,14 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 #
 # nS1helper(dir+"_-10-10", dir+"_0101", dir+"_01-10", dir)
 #
-fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/3), h=0.2, n=h111,FF=True)
-a.solvemeanfield()
-a.graph(axs)
-E = a.MFE()
-EC = a.condensed
-plt.show()
-print(a.MFE())
+# fig, axs = plt.subplots()
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/3), h=0.2, n=h111,FF=True)
+# a.solvemeanfield()
+# a.graph(axs)
+# E = a.MFE()
+# EC = a.condensed
+# plt.show()
+# print(a.MFE())
 
 # print(A, B, C)
 # print(AC, BC, CC)
@@ -941,22 +941,22 @@ print(a.MFE())
 #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111)
-a.solvemeanfield()
-# a.graph(axs)
-print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
-C = a.MFE()
-CC = a.condensed
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111)
+# a.solvemeanfield()
+# # a.graph(axs)
+# print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
+# C = a.MFE()
+# CC = a.condensed
 #
 #
 # # Jpmpm=0.2
 # # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0.2, n=h111)
-a.solvemeanfield()
-# a.graph(axs)
-D = a.MFE()
-DC = a.condensed
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0.2, n=h111)
+# a.solvemeanfield()
+# # a.graph(axs)
+# D = a.MFE()
+# DC = a.condensed
 #
 # # a.graph(axs)
 # print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
@@ -964,13 +964,12 @@ DC = a.condensed
 # # plt.show()
 # print(A, B, C, D)
 # print(AC, BC, CC, DC)
-print(C,D,E)
-print(CC,DC,EC)
+# print(C,D,E)
+# print(CC,DC,EC)
 # print(A, C)
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
-# conclude_XYZ_0_field("../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field")
-# conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field")
+conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_low_res/phase_XYZ_0_field")
 
 
 

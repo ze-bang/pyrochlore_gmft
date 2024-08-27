@@ -1,4 +1,5 @@
 import os
+import sys
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 # import monte_carlo
 # from monte_carlo import *
@@ -98,4 +99,7 @@ from phase_diagram import *
 # TwoSpinonDOS_111_a(50, 20, "h=0.3_2SPINONS")
 
 #findXYZPhase_separate(-0.5, 1, -0.5, 1, 40, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0)
-findXYZPhase_separate(-0.5,1,-0.5,1, 20, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0)
+
+# Jpm, Jpmax, Jpm1, Jpm1max, nK = sys.argv[1:]
+Jpm, Jpmax, Jpm1, Jpm1max, nK = -0.5, 1, -0.5, 1, 20
+findXYZPhase_separate(Jpm, Jpmax, Jpm1, Jpm1max, nK, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0, False)

@@ -1,9 +1,0 @@
-numpy
-scipy
-sympy
-matplotlib
-opt_einsum
-numba
-netCDF4
-h5py
-mpi4py
