@@ -830,15 +830,18 @@ def phaseExGraph(filename):
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 
-# A = np.loadtxt("phase_111_kappa=2_Jpmpm=0.2.txt")
-# A = np.where(A==1, np.nan, A)
-# A = np.where(A==6, np.nan, A)
-# plt.imshow(A.T, origin='lower', aspect='auto', extent=[-0.3,0.1,0,0.5])
-#
-# plt.xlabel(r'$J_\pm/J_{y}$')
-# plt.ylabel(r'$h/J_{y}$')
-# plt.savefig('phase_111_kappa=2_Jpmpm=0.2.png')
-# plt.clf()
+A = np.loadtxt("../../Data_Archive/phase_110/phase_110_kappa=2_Jpmpm=0.2.txt")
+A = np.where(A==1, np.nan, A)
+A = np.where(A==6, np.nan, A)
+A = np.where(A==11, np.nan, A)
+A = np.where(A==16, np.nan, A)
+C = plt.imshow(A.T, origin='lower', aspect='auto', extent=[-0.3,0.1,0,0.5])
+plt.colorbar(C)
+plt.xlabel(r'$J_\pm/J_{y}$')
+plt.ylabel(r'$h/J_{y}$')
+# plt.show()
+plt.savefig('phase_110_kappa=2_Jpmpm=0.2.png')
+plt.clf()
 
 Jpm = -0.02
 Jpmpm = 0
@@ -969,7 +972,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # print(A, C)
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
-conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_low_res/phase_XYZ_0_field")
+# conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_low_res/phase_XYZ_0_field")
 
 
 

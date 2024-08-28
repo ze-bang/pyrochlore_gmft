@@ -838,7 +838,8 @@ def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi, args):
         elif (n==h111).all():
             mult[i] = np.array([xi0[0], xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[1]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[1]])
         else:
-            mult[i] = np.array([xi0[0], xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi0[0]*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi0[0]])
+            xi00 = np.real(np.mean(np.abs(xi)))
+            mult[i] = np.array([xi00, xi00*np.exp(1j*(n1*np.pi*unitcellcoord[i,1]+n1*np.pi*unitcellcoord[i,2])), xi00*np.exp(1j*(n1*np.pi*unitcellcoord[i,2])), xi00])
     return mult
 
 def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
@@ -853,10 +854,6 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
         chi00 = chi0[0,0]
 
         if (n==h110).all():
-            # try:
-            #     psiIT1, psiIT2, psiI = args
-            # except:
-            #     psiIT1, psiIT2, psiI = 1,1,1
             try:
                 psiI = chi0[0,0]/chi0A[0,0]
                 psiIT1 = chi0A[0,1]/chi0[0,1]*psiI
@@ -959,7 +956,6 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
         chi00 = chi0[0,0]
         if (n==h110).all():
             try:
-                # psisigmaT1, psisigmaT2, psiI, nI = args
                 psiI = chi0[0,0]/chi0A[0,0]
                 nI = (-np.sign(chi0[0,1]/chi0A[0,1]*psiI)+1)/2
                 psisigmaT1 = chi0[1,3]/chi0[0,1]
@@ -1007,7 +1003,6 @@ def chi_w_field_Diu(n, n1, n2, unitcellCoord, chi, chiA, args):
 
         else:
             try:
-                # psiS, nI = args
                 psiS = chi0[2,3]/chi0A[0,1]
                 nI = 0
             except:
