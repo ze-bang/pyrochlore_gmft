@@ -1167,19 +1167,13 @@ class piFluxSolver:
         return chi, xi
 
     def solvexifield(self):
-        # E, V = self.LV_zero(np.concatenate((self.pts,self.qmin)))
-        # E = np.sqrt(2*self.Jzz*E)
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
-        # xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, np.concatenate((self.pts,self.qmin)), np.concatenate((self.weights, self.qminWeight)), self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         return xi + xiC
 
     def solvechifield(self):
-        # E, V = self.LV_zero(np.concatenate((self.pts,self.qmin)))
-        # E = np.sqrt(2*self.Jzz*E)
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
-        # chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, np.concatenate((self.pts,self.qmin)), np.concatenate((self.weights, self.qminWeight)), self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         return chi + chiC
@@ -1206,15 +1200,11 @@ class piFluxSolver:
             GS, diverge = self.solvemufield()
             if np.abs(GS) > 1e1 or diverge:
                 pb = True
-                # self.xi=xilast
-                # print("Xi Subrountine ends. Possible Condensed Phase. Exiting Energy is: " + str(GSlast) + " Took " + str(count) + " cycles.")
-                # return GSlast, True
             count = count + 1
             if ((abs(self.xi - xilast) < tol).all()) or count > limit:
                 break
         print("Xi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, pb
-
     def chiSubroutine(self, tol, GS, pcon=False):
         if pcon:
             limit = 5
@@ -1251,8 +1241,12 @@ class piFluxSolver:
             self.rhos[:] = 0
         return self.GS(), diverge
 
-
-    def solvemeanfield(self, tol=1e-13):
+    def solvemeanfield(self, all=True):
+        if all:
+            return self.solvemeanfield_all()
+        else:
+            return self.solvemeanfield_seq()
+    def solvemeanfield_seq(self, tol=1e-13):
         warnings.filterwarnings('error')
         tstart = time.time()
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
@@ -1266,9 +1260,6 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 10
-            # self.lams, d = self.findLambda(False)
-            # self.chi, self.xi = self.calmeanfield()
-            # self.updateMF()
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
@@ -1277,17 +1268,50 @@ class piFluxSolver:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 GS, pcon = self.xiSubroutine(tol, GS, pcon)
                 GS, pcon = self.chiSubroutine(tol, GS, pcon)
-                # if pcon:
-                #     limit = 5
                 print("Iteration #"+str(count))
-                # print(self.gap(), self.lams, self.minLams)
-                # print(self.chi[0, 0, 0, 0], self.chi[0, 0, 0, 1], self.xi[0, 0])
                 count = count + 1
-                # if ((abs(GS-GSlast) < tol).all()) or count > limit:
-                #     break
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
                     break
-            # print(self.chi[0,0,0,0], self.chi[0,0,0,1], self.xi[0,0])
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                           self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+            self.E, self.V = np.linalg.eigh(self.MF)
+            self.condensation_check()
+            print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
+        tend = time.time()
+        print("This run took "+ str(tend-tstart))
+        warnings.resetwarnings()
+        return 0
+    def solvemeanfield_all(self, tol=1e-13):
+        warnings.filterwarnings('error')
+        tstart = time.time()
+        if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
+            self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
+            self.xi = np.zeros((len(self.unitcellCoord),4))
+            self.condensation_check()
+        elif self.Jpmpm == 0:
+            self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
+            self.xi = np.zeros((len(self.unitcellCoord),4))
+            self.condensation_check()
+        else:
+            print("Initialization Routine")
+            limit = 10
+            GS, d = self.solvemufield()
+            print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
+            count = 0
+            pcon = False
+            while True:
+                chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
+                E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+                self.xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord,
+                           self.unitCellgraph, self.xi_field, self.PSGparams)
+                self.chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord,
+                             self.unitCellgraph, self.chi_field, self.PSGparams)
+                self.updateMF()
+                GS, diverge = self.solvemufield()
+                print("Iteration #"+str(count))
+                count = count + 1
+                if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
+                    break
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)

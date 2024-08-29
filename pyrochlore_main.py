@@ -830,18 +830,18 @@ def phaseExGraph(filename):
 # print('\n')
 # print(np.exp(1j*A_pi_here))
 
-A = np.loadtxt("../../Data_Archive/phase_110/phase_110_kappa=2_Jpmpm=0.2.txt")
-A = np.where(A==1, np.nan, A)
-A = np.where(A==6, np.nan, A)
-A = np.where(A==11, np.nan, A)
-A = np.where(A==16, np.nan, A)
-C = plt.imshow(A.T, origin='lower', aspect='auto', extent=[-0.3,0.1,0,0.5])
-plt.colorbar(C)
-plt.xlabel(r'$J_\pm/J_{y}$')
-plt.ylabel(r'$h/J_{y}$')
-# plt.show()
-plt.savefig('phase_110_kappa=2_Jpmpm=0.2.png')
-plt.clf()
+# A = np.loadtxt("../../Data_Archive/phase_110/phase_110_kappa=2_Jpmpm=0.2.txt")
+# A = np.where(A==1, np.nan, A)
+# A = np.where(A==6, np.nan, A)
+# A = np.where(A==11, np.nan, A)
+# A = np.where(A==16, np.nan, A)
+# C = plt.imshow(A.T, origin='lower', aspect='auto', extent=[-0.3,0.1,0,0.5])
+# plt.colorbar(C)
+# plt.xlabel(r'$J_\pm/J_{y}$')
+# plt.ylabel(r'$h/J_{y}$')
+# # plt.show()
+# plt.savefig('phase_110_kappa=2_Jpmpm=0.2.png')
+# plt.clf()
 
 Jpm = -0.02
 Jpmpm = 0
@@ -872,15 +872,15 @@ Jpmpm = 0
 #
 
 Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = 0, 1, 1
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-# a.solvemeanfield()
-# a.graph(axs)
-# A = a.MFE()
-# AC = a.condensed
-# plt.show()
-# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+Jxx, Jyy, Jzz = 0, 1, 1
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
+a.solvemeanfield()
+a.graph(axs)
+A = a.MFE()
+AC = a.condensed
+plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # # fig, axs = plt.subplots()
