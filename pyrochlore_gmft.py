@@ -1281,7 +1281,7 @@ class piFluxSolver:
         print("This run took "+ str(tend-tstart))
         warnings.resetwarnings()
         return 0
-    def solvemeanfield_all(self, tol=1e-13):
+    def solvemeanfield_all(self, tol=1e-8):
         warnings.filterwarnings('error')
         tstart = time.time()
         if self.Jpmpm == 0 and self.Jpm==0 and self.h==0:
@@ -1308,7 +1308,7 @@ class piFluxSolver:
                              self.unitCellgraph, self.chi_field, self.PSGparams)
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                print("Iteration #"+str(count))
+                print("Iteration #"+str(count), GS)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
                     break
