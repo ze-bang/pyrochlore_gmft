@@ -875,7 +875,7 @@ Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 Jxx, Jyy, Jzz = 0, 1, 1
 fig, axs = plt.subplots()
 a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-a.solvemeanfield()
+a.solvemeanfield(False)
 a.graph(axs)
 A = a.MFE()
 AC = a.condensed
