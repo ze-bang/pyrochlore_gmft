@@ -725,7 +725,8 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
     # totaltask = nK*nH
     # increment = totaltask/50
     # count = 0
-    #
+
+    print(symmetrized)
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()

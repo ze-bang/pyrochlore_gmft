@@ -102,4 +102,4 @@ from phase_diagram import *
 
 # Jpm, Jpmax, Jpm1, Jpm1max, nK = sys.argv[1:]
 Jpm, Jpmax, Jpm1, Jpm1max, nK = -0.5, 1, -0.5, 1, 40
-findXYZPhase_separate(Jpm, Jpmax, Jpm1, Jpm1max, nK, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0, False)
+findXYZPhase_separate(Jpm, Jpmax, Jpm1, Jpm1max, nK, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0, symmetrized=False)
