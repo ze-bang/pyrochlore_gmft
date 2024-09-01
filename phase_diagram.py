@@ -894,7 +894,7 @@ def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kap
 
 
 
-def conclude_XYZ_0_field(filename):
+def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
     A1 = filename+"_0_flux"
     A2 = filename+"_0_flux_nS=1"
     A3 = filename+"_pi_flux"
@@ -938,8 +938,8 @@ def conclude_XYZ_0_field(filename):
     Jpmpm = np.zeros((len(D1), len(D1)))
     for i in range(len(D1)):
         for j in range(D1.shape[1]):
-            Jxx = -1+(2/D1.shape[0]*(i+1))
-            Jyy = -1+(2/D1.shape[1]*(j+1))
+            Jxx = Jpmin+((Jpmax-Jpmin)/D1.shape[0]*(i+1))
+            Jyy = Jpmin+((Jpmax-Jpmin)/D1.shape[1]*(j+1))
 
             nSdexi = int((Jxx+1)/2*40-1)
             nSdexj = int((Jyy+1)/2*40-1)
@@ -970,28 +970,28 @@ def conclude_XYZ_0_field(filename):
     plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
     plt.savefig(filename+"Jpm_Jpmpm.pdf")
     plt.clf()
-    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(phase.T, origin='lower', interpolation='bilinear', extent=[Jpmin, Jpmax, Jpmin, Jpmax], aspect='auto')
     plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+".pdf")
     plt.clf()
 
-    plt.imshow(xi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(xi.T, origin='lower', interpolation='bilinear', extent=[Jpmin, Jpmax, Jpmin, Jpmax], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+"_xi.pdf")
     plt.clf()
 
-    plt.imshow(chi.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(chi.T, origin='lower', interpolation='bilinear', extent=[Jpmin, Jpmax, Jpmin, Jpmax], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+"_chi.pdf")
     plt.clf()
 
-    plt.imshow(MFE.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='auto')
+    plt.imshow(MFE.T, origin='lower', interpolation='bilinear', extent=[Jpmin, Jpmax, Jpmin, Jpmax], aspect='auto')
     # plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
