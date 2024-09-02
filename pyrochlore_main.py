@@ -847,7 +847,7 @@ Jpm = -0.02
 Jpmpm = 0
 # # #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# # # Jxx, Jyy, Jzz = 0.5,     1,         0
+Jxx, Jyy, Jzz = 1,     1,         -0.5
 # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 # fig, axs = plt.subplots()
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=np.zeros(4), h=0.1, n=h001, simplified=True)
@@ -857,9 +857,9 @@ Jpmpm = 0
 # A = a.MFE()
 # AC = a.condensed
 # print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
-# # fig, axs = plt.subplots()
-# #2420158631264392
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=np.ones(4)*np.pi, h=0.1, n=h001, simplified=True)
+# fig, axs = plt.subplots()
+#2420158631264392
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=False)
 # a.solvemeanfield()
 # # a.graph_loweredge(False,axs,'b')
 # # a.graph_upperedge(True,axs,'b')
@@ -869,17 +869,17 @@ Jpmpm = 0
 # a.graph(axs)
 # axs.set_ylim([0,0.7])
 # plt.show()
-#
+
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = 0.2, 1, 1
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
+# Jxx, Jyy, Jzz = -0.5,     1,         1
+# # fig, axs = plt.subplots()
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
 # a.solvemeanfield()
-# a.graph(axs)
+# # a.graph(axs)
 # A = a.MFE()
 # AC = a.condensed
-# plt.show()
+# # plt.show()
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
@@ -972,7 +972,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # print(A, C)
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
-conclude_XYZ_0_field("../../Data_Archive/phase_XYZ_better_MF/phase_XYZ_0_field", -0.5, 1)
+conclude_XYZ_0_field("../../Data_Archive/phase_XYZ_not_symm/phase_XYZ_0_field", -0.5, 1)
 
 
 

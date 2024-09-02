@@ -793,8 +793,8 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         else:
             rectemp = rectemp.reshape((nK, nK))
             rectemp2 = rectemp2.reshape((nK, nK))
-            rectemp3 = rectemp3.reshape((nK, nK))
-            rectemp4 = rectemp4.reshape((nK, nK))
+            rectemp3 = np.real(rectemp3.reshape((nK, nK)))
+            rectemp4 = np.real(rectemp4.reshape((nK, nK)))
 
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
@@ -907,10 +907,10 @@ def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
 
     D = np.array([D1,D2,D3,D4])
 
-    X1 = np.loadtxt(A1+"_xi.txt")
-    X2 = np.loadtxt(A2+"_xi.txt")
-    X3 = np.loadtxt(A3+"_xi.txt")
-    X4 = np.loadtxt(A4+"_xi.txt")
+    X1 = np.loadtxt(A1+"_xi.txt", dtype=np.complex128)
+    X2 = np.loadtxt(A2+"_xi.txt", dtype=np.complex128)
+    X3 = np.loadtxt(A3+"_xi.txt", dtype=np.complex128)
+    X4 = np.loadtxt(A4+"_xi.txt", dtype=np.complex128)
 
     X = np.array([X1,X2,X3,X4])
 
@@ -921,10 +921,10 @@ def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
 
     C = np.array([C1,C2,C3,C4])
 
-    Ch1 = np.loadtxt(A1+"_chi.txt")
-    Ch2 = np.loadtxt(A2+"_chi.txt")
-    Ch3 = np.loadtxt(A3+"_chi.txt")
-    Ch4 = np.loadtxt(A4+"_chi.txt")
+    Ch1 = np.loadtxt(A1+"_chi.txt", dtype=np.complex128)
+    Ch2 = np.loadtxt(A2+"_chi.txt", dtype=np.complex128)
+    Ch3 = np.loadtxt(A3+"_chi.txt", dtype=np.complex128)
+    Ch4 = np.loadtxt(A4+"_chi.txt", dtype=np.complex128)
 
     Ch = np.array([Ch1,Ch2,Ch3,Ch4])
 

@@ -45,5 +45,5 @@ from observables import *
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.1, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.1_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.2, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.2_HK0_pi_flux")
 # SSSF_HK0_L_integrated(100, -2*Jpm, -2*Jpm, 1, 0.3, h001, np.ones(4)*np.pi, -0.1, 0.1, 25, 30, "Files/Jpm=-0.03_h001=0.3_HK0_pi_flux")
-findXYZPhase_separate(-0.5, 1, -0.5, 1, 40, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux", 0, symmetrized=False)
+findXYZPhase_separate(-0.5, 1, -0.5, 1, 100, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux", 0, symmetrized=False)
 # findXYZPhase_separate(-0.5,1,-1,0,20,30,2,np.zeros(4), "phase_XYZ_0_field_0_flux_nS=1_01-10", 1, False)
