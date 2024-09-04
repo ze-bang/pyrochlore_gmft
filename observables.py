@@ -356,8 +356,8 @@ def SSSF_core_pedantic(q, v, pyp0):
 
     Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
     Sxxglobal = contract('ijk, jk,i->jk', Sxx, gx(qreal), pyp0.weights)
-    SNSFzz= contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
-    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
+    SNSFzz= contract('ijk,jk,i->', Szz, gNSF(qreal, v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(qreal, v), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
     Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
 
@@ -437,11 +437,11 @@ def SSSF_core(q, v, pyp0):
     G, TV = gTransverse(qreal)
     Sglobalzz = contract('ijk,jk,i->', Szz, G, pyp0.weights)
     SglobalzzT = contract('ijk,jk,i->', Szz, TV, pyp0.weights)
-    SNSFzz = contract('ijk,jk,i->', Szz, gNSF(v), pyp0.weights)
+    SNSFzz = contract('ijk,jk,i->', Szz, gNSF(qreal, v), pyp0.weights)
     Szz = contract('ijk,i->', Szz, pyp0.weights)
     Sglobalxx = contract('ijk,jk,i->', Sxx, G, pyp0.weights)
     SglobalxxT = contract('ijk,jk,i->', Sxx, TV, pyp0.weights)
-    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(qreal, v), pyp0.weights)
     Sxx = contract('ijk,i->', Sxx, pyp0.weights)
     return Szz, Sglobalzz, SglobalzzT, SNSFzz, Sxx, Sglobalxx, SglobalxxT, SNSFxx
 
@@ -779,7 +779,7 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0):
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, args, BZres=BZres, h=h, n=n, flux=flux)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
     L = np.linspace(-Lr, Lr, nK)
@@ -1536,7 +1536,7 @@ def SSSF_line_pedantic(nK, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirnam
     for i in range(nH):
         filename = dirname+"/h_" + dirString + "/h=" + str(hs[i]) + "/"
         pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane, K, Hr, Lr)
+        SSSF_pedantic(nK, Jxx, Jyy, Jzz, hs[i], n, flux, BZres, filename, scatplane, K=K, Hr=Hr, Lr=Lr)
 
 def DSSF_line(nE, Jxx, Jyy, Jzz, hmin, hmax, nH, n, flux, BZres, dirname):
     hs = np.linspace(hmin, hmax, nH)

@@ -1053,7 +1053,7 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.PSGparams = args
-        print("Instance Created with parameters " + str(J) + " with flux " + str(flux))
+        print("Instance Created with parameters " + str(J) + " with flux " + str(flux) + " with external field strength " + str(h))
         if unconstrained:
             self.xi_field = xi_unconstrained
             self.chi_field = chi_unconstrained
@@ -1294,7 +1294,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 50
+            limit = 100
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
@@ -1316,7 +1316,7 @@ class piFluxSolver:
                            self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)
             self.condensation_check()
-            print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; condensed="+str(self.condensed))
+            print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; h="+str(self.h)+"; condensed="+str(self.condensed))
         tend = time.time()
         print("This run took "+ str(tend-tstart))
         warnings.resetwarnings()

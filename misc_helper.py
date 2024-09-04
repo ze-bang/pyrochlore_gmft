@@ -178,7 +178,16 @@ def gTransverse(q):
     return M, Transverse
 
 
-def gNSF(v):
+def gSF(q, v):
+    M = np.zeros((4,4))
+    a = np.cross(q, v)
+    a = a/np.linalg.norm(a)
+    for i in range(4):
+        for j in range(4):
+            M[i,j] = contract('a,a, b, b->',z[i], a, z[j], a)
+    return M
+
+def gNSF(q, v):
     M = np.zeros((4,4))
     for i in range(4):
         for j in range(4):
