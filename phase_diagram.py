@@ -928,13 +928,18 @@ def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
 
     Ch = np.array([Ch1,Ch2,Ch3,Ch4])
 
-    phase = np.zeros((len(D1), len(D1)))
+    phase = np.zeros((int(len(D1)/3*4), int(len(D1)/3*4)))
+    phase[:] = np.nan
+
     xi = np.zeros((len(D1), len(D1)))
     chi = np.zeros((len(D1), len(D1)))
     MFE = np.zeros((len(D1), len(D1)))
 
     Jpm = np.zeros((len(D1), len(D1)))
     Jpmpm = np.zeros((len(D1), len(D1)))
+
+    offset = len(phase)-len(D1)
+
     for i in range(len(D1)):
         for j in range(D1.shape[1]):
             Jxx = Jpmin+((Jpmax-Jpmin)/D1.shape[0]*(i+1))
@@ -951,21 +956,22 @@ def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
             a = np.argmin(tempD)
 
             if not C[a,i,j]:
-                phase[i,j] = a//2
+                phase[i+offset,j+offset] = a//2
                 xi[i,j] = X[a, i, j]
                 chi[i,j] = Ch[a, i, j]
                 MFE[i, j] = D[a, i, j]
             else:
-                phase[i,j] = np.nan
+                phase[i+offset,j+offset] = np.nan
             # if not C[a,i,j]:
             #     phase[i,j] = phase[i,j] + 5*X[a,i,j]
-    plt.pcolormesh(Jpm, Jpmpm, phase)
-    plt.ylim([0,0.5])
-    # plt.colorbar()
-    plt.xlabel(r"$J_{\pm}/J_{yy}$")
-    plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
-    plt.savefig(filename+"Jpm_Jpmpm.pdf")
-    plt.clf()
+    phase[13+offset,13+offset] = 0
+    # plt.pcolormesh(Jpm, Jpmpm, phase)
+    # plt.ylim([0,0.5])
+    # # plt.colorbar()
+    # plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    # plt.ylabel(r"$J_{\pm\pm}/J_{yy}$")
+    # plt.savefig(filename+"Jpm_Jpmpm.pdf")
+    # plt.clf()
     plt.imshow(phase.T, origin='lower', extent=[Jpmin, Jpmax, Jpmin, Jpmax], aspect='equal')
     plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")

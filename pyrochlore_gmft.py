@@ -1102,8 +1102,8 @@ class piFluxSolver:
                 self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
                 self.A_pi_here)
-            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.5*np.ones((len(self.A_pi_here),4)), self.PSGparams)
-            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.5*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
+            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 1*np.ones((len(self.A_pi_here),4)), self.PSGparams)
+            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 1*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                            self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)

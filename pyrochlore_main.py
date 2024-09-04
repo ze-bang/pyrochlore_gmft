@@ -973,7 +973,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # print(A, C)
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
-# conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -0.5, 1)
+conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 
 
 
