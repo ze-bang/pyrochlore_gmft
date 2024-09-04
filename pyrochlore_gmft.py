@@ -1253,6 +1253,7 @@ class piFluxSolver:
             self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
             self.xi = np.zeros((len(self.unitcellCoord),4))
             self.condensation_check()
+            self.condensed = False
         elif self.Jpmpm == 0:
             self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
             self.xi = np.zeros((len(self.unitcellCoord),4))
