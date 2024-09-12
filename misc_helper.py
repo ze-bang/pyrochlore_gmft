@@ -463,7 +463,7 @@ def obliqueProj(W):
     M = np.zeros((3, 3))
     for i in range(3):
         for j in range(3):
-            M[i][j] = np.dot(BasisBZA[i], BasisBZA[j])
+            M[i][j] = np.dot([i], BasisBZA[j])
 
     y = contract('j,ij->i', W, BasisBZA)
     A = np.array(np.matmul(np.linalg.inv(M), y))

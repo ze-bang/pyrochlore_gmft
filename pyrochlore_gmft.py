@@ -40,7 +40,7 @@ def M_pi_sub_interhopping_AB(k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell=piun
 def M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell=piunitcell):
     d = np.ones(len(k))
     di = np.identity(unitcell.shape[1])
-    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 4, chi[1], d, di)
+    M1 = contract('jl, kjl, kjl, i, km->ikm', notrace, Jpmpm * A_pi_rs_traced_pp_here / 8, chi[1], d, di)
 
 
     ffact = contract('ik, jlk->ijl', k, NNminus)
@@ -1295,7 +1295,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 100
+            limit = 50
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0

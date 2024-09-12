@@ -848,7 +848,7 @@ Jpm = -0.02
 Jpmpm = 0
 # # #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = 1,     1,         -0.5
+Jxx, Jyy, Jzz = 0,     1,         1
 # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
 # fig, axs = plt.subplots()
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0.1, flux=np.zeros(4), h=0.1, n=h001, simplified=True)
@@ -860,13 +860,13 @@ Jxx, Jyy, Jzz = 1,     1,         -0.5
 # print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 # fig, axs = plt.subplots()
 #2420158631264392
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=False)
-# a.solvemeanfield()
-# # a.graph_loweredge(False,axs,'b')
-# # a.graph_upperedge(True,axs,'b')
-# A = a.MFE()
-# AC = a.condensed
-# print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=True)
+a.solvemeanfield()
+# a.graph_loweredge(False,axs,'b')
+# a.graph_upperedge(True,axs,'b')
+A = a.MFE()
+AC = a.condensed
+print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
 # a.graph(axs)
 # axs.set_ylim([0,0.7])
 # plt.show()
