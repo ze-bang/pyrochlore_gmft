@@ -6,8 +6,8 @@ from observables import *
 
 Jpm = 0.03
 
-# SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hk0", 0)
-# SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hk0", 0)
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hk0", 0)
+SSSF_line_pedantic(100, 1, -2*Jpm, -2*Jpm, 0, 0.4, 11, h001, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hk0", 0)
 
 
 # SSSF_line(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 10, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0")

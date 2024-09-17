@@ -141,9 +141,6 @@ def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol):
     A = contract('iwk->w',cauchy(omegaenlarged-Ekenlarged, tol))
     A = np.convolve(A, A)
     A = A/np.linalg.norm(A)
-    # plt.plot(A)
-    # plt.yscale("log")
-    # plt.show()
     return A
 def graph_2S_rho_dumb(E, Jpm, h, hn, flux, BZres, tol, rank, size):
     comm = MPI.COMM_WORLD

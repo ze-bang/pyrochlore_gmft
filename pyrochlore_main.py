@@ -1092,7 +1092,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # from scipy.ndimage.filters import gaussian_filter
 #
 
-# TwoSpinonDOS_111(50, 30, "two_spinon_DOS_111_Jpm=-0.03.pdf")
+TwoSpinonDOS_111(50, 30, "two_spinon_DOS_111_Jpm=-0.03.pdf")
 # plt.clf()
 # #
 # TwoSpinonDOS_001(50, 30, "two_spinon_DOS_001_Jpm=-0.03.pdf")

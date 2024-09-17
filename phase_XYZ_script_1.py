@@ -5,9 +5,9 @@ import time
 from observables import *
 
 Jpm = -0.03
-# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0", "hnhl")
-# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi", "hnhl")
-# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=-0.03_00pp", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=-0.03_0", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=-0.03_pi", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, zppz, 30, "Files/SSSF/Jpm=-0.03_00pp", "hnhl")
 
 # DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.zeros(4), 30, "Files/DSSF/Jpm=-0.03_0")
 # DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03_00pp")
@@ -27,4 +27,4 @@ Jpm = -0.03
 #findXYZPhase_separate_unconstrained(-1, 1, -1, 1, 100, 30, 2, np.ones(4)*np.pi, "phase_XYZ_0_field_pi_flux_unconstrained")
 
 # findXYZPhase_separate(0, 1, 0, 1, 20, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_nS=1_0101", 1)
-findPhaseMag110(-0.3125, 0.1, 40, 0, 0.35, 20, h110, 30, 2, "phase_110_kappa=2_Jpmpm=0.2", Jpmpm=0.1875)
+# findPhaseMag110(-0.3125, 0.1, 40, 0, 0.35, 20, h110, 30, 2, "phase_110_kappa=2_Jpmpm=0.2", Jpmpm=0.1875)

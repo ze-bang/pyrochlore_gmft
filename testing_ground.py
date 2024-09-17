@@ -510,7 +510,11 @@ def plot_truncated_octahedron():
 
 
 # plot_truncated_octahedron()
-A = np.arange(25).reshape(5,5)
+# A = np.arange(25).reshape(5,5)
+#
+# B = np.array([A,A,A,A])
+# print(B.shape)
 
-B = np.array([A,A,A,A])
-print(B.shape)
+
+points1 = np.array([0.01, 0.02, 0.03, 0.04, 0.05, -0.01, -0.01, -0.02, -0.02, -0.03, -0.03, -0.04, -0.04])
+points2 = np.array([0.01, 0.02, 0.03, 0.04, 0.05, -0.01, -0.01, -0.02, -0.02, -0.03, -0.03, -0.04, -0.04])
