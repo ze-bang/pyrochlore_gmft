@@ -1047,6 +1047,27 @@ def conclude_XYZ_0_field_unconstrained(filename):
     plt.savefig(filename+".pdf")
     plt.clf()
 
+def conclude_XYZ_finite_field(filename, Jpmin, Jpmax, hmin, hmax):
+    A = np.loadtxt(filename+'.txt')
+    A = np.where(A==1, np.nan, A)
+    A = np.where(A==6, np.nan, A)
+    A = np.where(A==11, np.nan, A)
+    A = np.where(A==16, np.nan, A)
+
+
+    # plt.show()
+
+    for i in range(len(A)):
+        for j in range(A.shape[1]):
+            JP = Jpmin+((Jpmax-Jpmin)/A.shape[0]*(i+1))
+            if JP>0:
+                A[i,j] = np.nan
+    C = plt.imshow(A.T, origin='lower', aspect='auto', extent=[Jpmin, Jpmax, hmin, hmax])
+    plt.xlabel(r'$J_\pm/J_{y}$')
+    plt.ylabel(r'$h/J_{y}$')
+    plt.savefig(filename+'.pdf')
+    plt.clf()
+
 #endregion
 
 #region Phase for Magnetic Field - Exclusive Boson

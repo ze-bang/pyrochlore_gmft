@@ -344,10 +344,10 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
                 lamMax = lams
             if ((np.absolute(rhoguess - kappa) <= tol).all()):
                 break
-            # print(rhoguess, lams, lamMin, lamMax)
+            # print(rhoguess, lams, lamMin, lamMax, abs(lamMin - lamMax))
         except:
             lamMin = lams
-        if (abs(lamMin - lamMax) < 1e-15).all():
+        if (abs(lamMin - lamMax) < 5e-15).all():
             diverge=True
             break
     warnings.resetwarnings()
@@ -1102,8 +1102,8 @@ class piFluxSolver:
                 self.unitCellgraph, self.A_pi_here, self.unitcellCoord = graphing_M_setup_full(self.flux, self.n)
             self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.A_pi_rs_rsp_here, self.A_pi_rs_rsp_pp_here = gen_gauge_configurations(
                 self.A_pi_here)
-            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 1*np.ones((len(self.A_pi_here),4)), self.PSGparams)
-            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 1*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
+            self.xi = self.xi_field(n, self.n1, self.n2, self.unitcellCoord, 0.5*np.ones((len(self.A_pi_here),4)), self.PSGparams)
+            self.chi = self.chi_field(n, self.n1, self.n2, self.unitcellCoord, 0.5*np.ones((len(self.A_pi_here),4,4)), 0.1*np.ones((len(self.A_pi_here),4,4)), self.PSGparams)
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                            self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
             self.E, self.V = np.linalg.eigh(self.MF)
@@ -1152,8 +1152,8 @@ class piFluxSolver:
         minLams, qmin = findminLam_scipy(M, B, self.tol, self.Jpm, self.Jpmpm, self.h, self.n,
                                         self.theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
                                         self.g, unitCellgraph, searchGrid, self.kappa)
-        # self.qmin = qmin
-        # self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
+        self.qmin = qmin
+        self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         # self.qminWeight = np.ones((len(self.qmin),))/(len(self.pts)+len(self.qmin))
         self.minLams = np.ones(2) * (minLams+2e-16)
         return minLams
@@ -1231,12 +1231,16 @@ class piFluxSolver:
         print("Chi Subrountine ends. Exiting Energy is: "+ str(GS) + " Took " + str(count) + " cycles.")
         return GS, pb
 
-    def solvemufield(self, a=False):
+    def solvemufield(self, a=True):
         if a:
             self.findminLam()
         self.lams, diverge = self.findLambda(a)
         if a:
-            self.set_delta()
+            self.set_condensed()
+            if self.condensed:
+                self.set_delta()
+            else:
+                self.rhos[:] = 0
         else:
             self.rhos[:] = 0
         return self.GS(), diverge
@@ -1302,14 +1306,12 @@ class piFluxSolver:
             pcon = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
-                E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
-                self.xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord,
-                           self.unitCellgraph, self.xi_field, self.PSGparams)
-                self.chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord,
-                             self.unitCellgraph, self.chi_field, self.PSGparams)
+                # E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+                self.xi = self.solvexifield()
+                self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                print("Iteration #"+str(count), GS)
+                print("Iteration #"+str(count), GS, self.condensed, self.rhos, self.qminB)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
                     break
@@ -1349,14 +1351,17 @@ class piFluxSolver:
             self.condensed = False
 
     def set_delta(self):
-        warnings.filterwarnings('error')
-        try:
-            self.rhos = np.sqrt(self.kappa - self.rho(self.lams))*np.ones(self.E.shape[1])
-            self.delta = np.sqrt(self.Jzz/2)/self.rhos**2
-        except:
-            self.rhos = np.zeros(self.E.shape[1])
-            self.delta = np.zeros(self.E.shape[1])
-        warnings.resetwarnings()
+        rho = np.sqrt(self.kappa - self.rho(self.lams))
+        self.delta = np.sqrt(self.Jzz/2)/self.rhos**2
+        from scipy.linalg import null_space
+        M_kc = M_pi(self.qmin, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                       self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
+        M_kc = M_kc.reshape((M_kc.shape[1], M_kc.shape[2]))
+        form = null_space(M_kc)
+        if not form.size == 0:
+            self.rhos = rho*form[:,0]
+        else:
+            self.rhos = rho * np.ones(M_kc.shape[1])
 
     def condensation_check(self):
         self.findminLam()
