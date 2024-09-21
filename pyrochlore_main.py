@@ -849,21 +849,41 @@ def phaseExGraph(filename):
 # conclude_XYZ_finite_field("../../Data_Archive/Files/phase_111_kappa=2_Jpmpm=0.2",-0.3,0.1,0,0.4)
 
 
+N=10
+Jpm = -0.1
+Jpmpm = np.linspace(0.35, 0.4, N)
+E = np.zeros(N)
+cond = np.zeros(N)
+phi = np.zeros(N)
+order = np.zeros(N, dtype= np.complex128)
+for i in range(N):
+    Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm[i]),  1.,        2*(Jpmpm[i]-Jpm)
+    # Jxx, Jyy, Jzz = -0.5,     1,         1
+    # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
+    fig, axs = plt.subplots()
+    a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+    a.solvemeanfield()
+    E[i] = a.MFE()
+    cond[i] = a.condensed
+    phi[i] = np.linalg.norm(a.rhos)
+    order[i] = a.order()
+plt.plot(Jpmpm, E)
+plt.savefig("MFE_Jpm=-0.1.pdf")
+plt.clf()
+plt.plot(Jpmpm, cond)
+plt.savefig("Condensed_Jpm=-0.1.pdf")
+plt.clf()
+plt.plot(Jpmpm, phi)
+plt.savefig("Condensed_Jpm=-0.1.pdf")
+plt.clf()
+print(order)
 
-Jpm = -0.02
-Jpmpm = 0
-# # #
-# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = -0.1,     1,         1
-# # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
-fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
-a.solvemeanfield()
+
 # # a.graph_loweredge(False,axs,'b')
 # # a.graph_upperedge(True,axs,'b')
 # A = a.MFE()
 # AC = a.condensed
-print(a.rhos, a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
+# print(a.rhos, a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 # fig, axs = plt.subplots()
 #2420158631264392
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=True)
