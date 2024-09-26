@@ -401,8 +401,8 @@ def xiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, xi_field
     ffactA = np.exp(1j * ffact)
     size = int(len(rhos)/4)
     A = contract('k, a, ij,jka->kj', np.conj(rhos[0:size]), rhos[size:2*size], ffactA, unitcellGraph)/size
-    M1 = xi_field(n, n1, n2, unitcellCoord, A, *args)
-    return M1
+    # M1 = xi_field(n, n1, n2, unitcellCoord, A, *args)
+    return A
 
 def chiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, chi_field, *args):
     k = contract('ij,jk->ik', qmin, BasisBZA)
@@ -412,7 +412,10 @@ def chiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, chi_fie
     B = contract('a, b, ijl,jka, lkb->kjl', rhos[3*size:4*size], rhos[size:2*size], ffactB, unitcellGraph, unitcellGraph)/size
     ffactA = np.exp(1j * ffact)
     A = contract('a, b, ijl,jka, lkb->kjl', rhos[2*size:3*size], rhos[0:size], ffactA, unitcellGraph, unitcellGraph)/size
-    M1 = chi_field(n, n1, n2, unitcellCoord, B, A, *args)
+    # M1 = chi_field(n, n1, n2, unitcellCoord, B, A, *args)
+    M1 = np.zeros((2, B.shape[0], B.shape[1], B.shape[2]), dtype=np.complex128)
+    M1[0] = A
+    M1[1] = B
     return M1
 
 # endregion
@@ -1308,7 +1311,7 @@ class piFluxSolver:
         else:
             print("Initialization Routine")
             limit = 100
-            hascondensedcount = 8
+            # hascondensedcount = 8
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
@@ -1320,10 +1323,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                if diverge:
-                    hascondensedcount = hascondensedcount - 1
-                if hascondensedcount == 0:
-                    break
+                # if diverge:
+                #     hascondensedcount = hascondensedcount - 1
+                # if hascondensedcount == 0:
+                #     break
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
@@ -1414,7 +1417,7 @@ class piFluxSolver:
                        self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         M_kc = M_kc + np.diag(np.repeat(self.lams, int(M_kc.shape[1]/2)))
         E, V = np.linalg.eigh(M_kc)
-        self.rhos = rho[0] * V[0,:,0]
+        self.rhos = np.linalg.norm(rho) * V[0,:,0]
         self.rhos = self.rhos
     def condensation_check(self):
         self.findminLam()

@@ -893,13 +893,17 @@ def phaseExGraph(filename):
 # print(a.rhos, a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
 # fig, axs = plt.subplots()
 #2420158631264392
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=True)
-# a.solvemeanfield()
-# # a.graph_loweredge(False,axs,'b')
-# # a.graph_upperedge(True,axs,'b')
-# A = a.MFE()
-# AC = a.condensed
-# print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
+
+Jpm = 0.1
+Jpmpm = 0.3
+Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=False)
+a.solvemeanfield()
+# a.graph_loweredge(False,axs,'b')
+# a.graph_upperedge(True,axs,'b')
+A = a.MFE()
+AC = a.condensed
+print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
 # a.graph(axs)
 # axs.set_ylim([0,0.7])
 # plt.show()
@@ -1007,7 +1011,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
-conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
+# conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
 
 
