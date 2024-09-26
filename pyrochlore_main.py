@@ -906,25 +906,25 @@ def phaseExGraph(filename):
 
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = -0.05,     1,         0.8
-fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-a.solvemeanfield()
-a.graph(axs)
-A = a.MFE()
-AC = a.condensed
-plt.show()
-print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
-# #
-# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# Jxx, Jyy, Jzz = -0.05,     1,         0.8
 # fig, axs = plt.subplots()
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.0, n=h111,simplified=False)
-a.solvemeanfield()
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
+# a.solvemeanfield()
 # a.graph(axs)
-B = a.MFE()
-BC = a.condensed
+# A = a.MFE()
+# AC = a.condensed
 # plt.show()
-print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+# # #
+# # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# # fig, axs = plt.subplots()
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.0, n=h111,simplified=False)
+# a.solvemeanfield()
+# # a.graph(axs)
+# B = a.MFE()
+# BC = a.condensed
+# # plt.show()
+# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
 
 
@@ -1007,7 +1007,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
-# conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
+conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
 
 
