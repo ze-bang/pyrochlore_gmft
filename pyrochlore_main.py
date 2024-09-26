@@ -849,41 +849,41 @@ def phaseExGraph(filename):
 # conclude_XYZ_finite_field("../../Data_Archive/Files/phase_111_kappa=2_Jpmpm=0.2",-0.3,0.1,0,0.4)
 
 
-N=10
-Jpm = 0.1
-Jpmpm = np.linspace(0.3, 0.4, N)
-E = np.zeros(N)
-cond = np.zeros(N)
-phi = np.zeros(N)
-order = np.zeros(N, dtype= np.complex128)
-
-Jxx, Jyy, Jzz = -2 * (Jpm ), 1., 2 * ( - Jpm)
-ref = pycon.piFluxSolver(Jxx, Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
-ref.solvemeanfield()
-ref_energy = ref.GS()
-
-for i in range(N):
-    Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm[i]),  1.,        2*(Jpmpm[i]-Jpm)
-    # Jxx, Jyy, Jzz = -0.5,     1,         1
-    # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
-    fig, axs = plt.subplots()
-    a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
-    # a.solvemeanfield(Fast=True, ref_energy=ref_energy)
-    a.solvemeanfield()
-    E[i] = a.MFE()
-    cond[i] = a.condensed
-    phi[i] = np.linalg.norm(a.rhos)
-    order[i] = a.order()
-plt.plot(Jpmpm, E)
-plt.savefig("MFE_Jpm=-0.1.pdf")
-plt.clf()
-plt.plot(Jpmpm, cond)
-plt.savefig("Condensed_Jpm=-0.1.pdf")
-plt.clf()
-plt.plot(Jpmpm, phi)
-plt.savefig("Condensed_Jpm=-0.1.pdf")
-plt.clf()
-print(order)
+# N=1
+# Jpm = 0.1
+# Jpmpm = np.linspace(0.3, 0.4, N)
+# E = np.zeros(N)
+# cond = np.zeros(N)
+# phi = np.zeros(N)
+# order = np.zeros(N, dtype= np.complex128)
+#
+# Jxx, Jyy, Jzz = -2 * (Jpm ), 1., 2 * ( - Jpm)
+# ref = pycon.piFluxSolver(Jxx, Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+# ref.solvemeanfield()
+# ref_energy = ref.GS()
+#
+# for i in range(N):
+#     Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm[i]),  1.,        2*(Jpmpm[i]-Jpm)
+#     # Jxx, Jyy, Jzz = -0.5,     1,         1
+#     # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
+#     fig, axs = plt.subplots()
+#     a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+#     # a.solvemeanfield(Fast=True, ref_energy=ref_energy)
+#     a.solvemeanfield()
+#     E[i] = a.MFE()
+#     cond[i] = a.condensed
+#     phi[i] = np.linalg.norm(a.rhos)
+#     order[i] = a.order()
+# plt.plot(Jpmpm, E)
+# plt.savefig("MFE_Jpm=-0.1.pdf")
+# plt.clf()
+# plt.plot(Jpmpm, cond)
+# plt.savefig("Condensed_Jpm=-0.1.pdf")
+# plt.clf()
+# plt.plot(Jpmpm, phi)
+# plt.savefig("Condensed_Jpm=-0.1.pdf")
+# plt.clf()
+# print(order)
 
 
 # # a.graph_loweredge(False,axs,'b')
@@ -906,25 +906,25 @@ print(order)
 
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = 0,     1,         0
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-# a.solvemeanfield()
-# a.graph(axs)
-# A = a.MFE()
-# AC = a.condensed
-# plt.show()
-# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+Jxx, Jyy, Jzz = -0.05,     1,         0.8
+fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
+a.solvemeanfield()
+a.graph(axs)
+A = a.MFE()
+AC = a.condensed
+plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # #
-# # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# # fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-# a.solvemeanfield()
-# # a.graph(axs)
-# B = a.MFE()
-# BC = a.condensed
-# # plt.show()
-# print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
+# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# fig, axs = plt.subplots()
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.0, n=h111,simplified=False)
+a.solvemeanfield()
+# a.graph(axs)
+B = a.MFE()
+BC = a.condensed
+# plt.show()
+print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
 
 
@@ -1007,6 +1007,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../Data/phase_diagrams/phase_XYZ_0_field")
 # conclude_XYZ_0_field("Misc/New folder/phase_XYZ_0_field")
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
+# conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
 
 
