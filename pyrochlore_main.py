@@ -850,18 +850,25 @@ def phaseExGraph(filename):
 
 
 N=10
-Jpm = -0.1
-Jpmpm = np.linspace(0.35, 0.4, N)
+Jpm = 0.1
+Jpmpm = np.linspace(0.3, 0.4, N)
 E = np.zeros(N)
 cond = np.zeros(N)
 phi = np.zeros(N)
 order = np.zeros(N, dtype= np.complex128)
+
+Jxx, Jyy, Jzz = -2 * (Jpm ), 1., 2 * ( - Jpm)
+ref = pycon.piFluxSolver(Jxx, Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+ref.solvemeanfield()
+ref_energy = ref.GS()
+
 for i in range(N):
     Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm[i]),  1.,        2*(Jpmpm[i]-Jpm)
     # Jxx, Jyy, Jzz = -0.5,     1,         1
     # # # # Jxx, Jyy, Jzz = 1,  0.4,         0.2
     fig, axs = plt.subplots()
     a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+    # a.solvemeanfield(Fast=True, ref_energy=ref_energy)
     a.solvemeanfield()
     E[i] = a.MFE()
     cond[i] = a.condensed

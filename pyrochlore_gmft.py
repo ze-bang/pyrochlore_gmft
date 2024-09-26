@@ -345,11 +345,11 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
                 lamMax = lams
             if ((np.absolute(rhoguess - kappa) <= tol).all()):
                 break
-            # print(rhoguess, lams, lamMin, lamMax, abs(lamMin - lamMax))
+            # print(rhoguess, lams, lamMin, lamMax, abs(lamMin - lamMax), count)
         except:
             lamMin = lams
         count = count + 1
-        if (abs(lamMin - lamMax) < 5e-15).all() or count > 1e3:
+        if (abs(lamMin - lamMax) < 5e-15).all() or count > 1e2:
             diverge=True
             break
     warnings.resetwarnings()
@@ -400,7 +400,6 @@ def xiCalCondensed(rhos, qmin, n, n1, n2, unitcellCoord, unitcellGraph, xi_field
     ffact = contract('ik,jk->ij', k, NN)
     ffactA = np.exp(1j * ffact)
     size = int(len(rhos)/4)
-    print(size, rhos.shape, unitcellGraph.shape)
     A = contract('k, a, ij,jka->kj', np.conj(rhos[0:size]), rhos[size:2*size], ffactA, unitcellGraph)/size
     M1 = xi_field(n, n1, n2, unitcellCoord, A, *args)
     return M1
@@ -1090,7 +1089,6 @@ class piFluxSolver:
         self.qminWeight = np.zeros((1,))
         self.qminB = np.copy(self.qmin)
         self.condensed = False
-
         if not FF:
             self.n = n
             self.flux = flux
@@ -1252,11 +1250,14 @@ class piFluxSolver:
             self.rhos[:] = 0
         return self.MFE(), diverge
 
-    def solvemeanfield(self, all=True):
-        if all:
-            return self.solvemeanfield_all()
+    def solvemeanfield(self, all=True, Fast=False, ref_energy=0):
+        if Fast:
+            self.solvemeanfield_fast(ref_energy)
         else:
-            return self.solvemeanfield_seq()
+            if all:
+                return self.solvemeanfield_all()
+            else:
+                return self.solvemeanfield_seq()
     def solvemeanfield_seq(self, tol=1e-13):
         warnings.filterwarnings('error')
         tstart = time.time()
@@ -1323,7 +1324,7 @@ class piFluxSolver:
                     hascondensedcount = hascondensedcount - 1
                 if hascondensedcount == 0:
                     break
-                print("Iteration #"+str(count), GS, self.condensed,np.linalg.norm(self.chi-chilast), np.linalg.norm(self.xi-xilast), self.chi[0,0,0,0], self.chi[0,0,0,1], self.xi[0,0])
+                print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
                     break
@@ -1334,6 +1335,49 @@ class piFluxSolver:
             print("Finished Solving. Parameters: Jzz=" + str(self. Jzz) + "; Jpm="+str(self.Jpm)+"; Jpmpm="+str(self.Jpmpm)+"; h="+str(self.h)+"; condensed="+str(self.condensed))
         tend = time.time()
         print("This run took "+ str(tend-tstart))
+        warnings.resetwarnings()
+        return 0
+
+    def solvemeanfield_fast(self, ref_energy, tol=1e-8):
+        warnings.filterwarnings('error')
+        tstart = time.time()
+        if self.Jpmpm == 0 and self.Jpm == 0 and self.h == 0:
+            self.chi = np.zeros((2, len(self.unitcellCoord), 4, 4))
+            self.xi = np.zeros((len(self.unitcellCoord), 4))
+            self.condensation_check()
+        elif self.Jpmpm == 0:
+            self.chi = np.zeros((2, len(self.unitcellCoord), 4, 4))
+            self.xi = np.zeros((len(self.unitcellCoord), 4))
+            self.condensation_check()
+        else:
+            print("Initialization Routine")
+            limit = 100
+            GS, d = self.solvemufield(False)
+            print("Initialization Routine Ends. Starting Parameters: GS=" + str(GS) + " xi0= " + str(
+                self.xi[0]) + " chi0= " + str(self.chi[0, 0]))
+            count = 0
+            while True:
+                chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
+                # E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
+                self.xi = self.solvexifield()
+                self.chi = self.solvechifield()
+                self.updateMF()
+                GS, diverge = self.solvemufield(False)
+                print("Iteration #" + str(count), GS, self.condensed)
+                count = count + 1
+                if (((abs(self.chi - chilast) < tol).all()) and ((abs(self.xi - xilast) < tol).all())) or count > limit:
+                    break
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi,
+                           self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g,
+                           self.unitCellgraph)
+            self.E, self.V = np.linalg.eigh(self.MF)
+            self.condensation_check()
+            if ref_energy - self.GS() > 5e-15:
+                self.condensed = True
+            print("Finished Solving. Parameters: Jzz=" + str(self.Jzz) + "; Jpm=" + str(self.Jpm) + "; Jpmpm=" + str(
+                self.Jpmpm) + "; h=" + str(self.h) + "; condensed=" + str(self.condensed))
+        tend = time.time()
+        print("This run took " + str(tend - tstart))
         warnings.resetwarnings()
         return 0
 
