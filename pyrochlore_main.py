@@ -344,7 +344,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
             axs[0, 1].text(.01, .99, r"$(\mathrm{b})\; (0,\pi,\pi,0)$", ha='left', va='top', transform=axs[0, 1].transAxes,
                            zorder=10)
         else:
-            axs[0, 1].text(.01, .99, r"$(\mathrm{a})\; \pi$-$\mathrm{flux}$", ha='left', va='top', transform=axs[0, 1].transAxes,
+            axs[0, 1].text(.01, .99, r"$(\mathrm{b})\; \pi$-$\mathrm{flux}$", ha='left', va='top', transform=axs[0, 1].transAxes,
                            zorder=10)
         axs[1, 0].text(.01, .95, r"$(\mathrm{c})$", ha='left', va='top', transform=axs[1, 0].transAxes, color='w',
                        zorder=10)
@@ -377,7 +377,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     a.graph(axs[0,0])
 
     emin, emax = a.graph_loweredge(False, axs[1,0]), a.graph_upperedge(False, axs[1,0])
-    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h="+str(h0)+"/Szzglobal.txt")
+    d = np.loadtxt("../../Data_Archive/pyrochlore_gmft/Data/Final_DSSF_pedantic/Jpm=0.03_0/h_"+dirString+"/h="+str(h0)+"/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
     d = DSSFparse(emin, emax, d)
     c = axs[1,0].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax], aspect='auto', cmap='gnuplot2')
@@ -388,7 +388,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
     a.graph(axs[0,1])
 
     emin, emax = a.graph_loweredge(False, axs[1,1]), a.graph_upperedge(False, axs[1,1])
-    d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.03_"+fluxString+"/h_"+dirString+"/h="+str(hmid)+"/Szzglobal.txt")
+    d = np.loadtxt("../../Data_Archive/pyrochlore_gmft/Data/Final_DSSF_pedantic/Jpm=-0.03_"+fluxString+"/h_"+dirString+"/h="+str(hmid)+"/Szzglobal.txt")
     emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
     d = DSSFparse(emin, emax, d)
     c = axs[1,1].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, 0, emax], aspect='auto', cmap='gnuplot2')
@@ -400,7 +400,7 @@ def DSSFgraphGen(h0, hmid, mid, hpi, n, filename):
         a.graph(axs[0,2])
 
         emin, emax = a.graph_loweredge(False, axs[1,2]), a.graph_upperedge(False, axs[1,2])
-        d = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_"+dirString+"/h="+str(hpi)+"/Szzglobal.txt")
+        d = np.loadtxt("../../Data_Archive/pyrochlore_gmft/Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_"+dirString+"/h="+str(hpi)+"/Szzglobal.txt")
         emin, emax = np.min(emin) * 0.95, np.max(emax)*1.02
         c = axs[1,2].imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
         fig.colorbar(c, ax=axs[1,2])
@@ -850,17 +850,17 @@ def phaseExGraph(filename):
 
 
 # N=1
-# Jpm = 0.1
-# Jpmpm = np.linspace(0.3, 0.4, N)
+# Jpm = 0.03
+# Jpmpm = np.linspace(0.0, 0.47, N)
 # E = np.zeros(N)
 # cond = np.zeros(N)
 # phi = np.zeros(N)
 # order = np.zeros(N, dtype= np.complex128)
 #
-# Jxx, Jyy, Jzz = -2 * (Jpm ), 1., 2 * ( - Jpm)
-# ref = pycon.piFluxSolver(Jxx, Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
-# ref.solvemeanfield()
-# ref_energy = ref.GS()
+# # Jxx, Jyy, Jzz = -2 * (Jpm ), 1., 2 * ( - Jpm)
+# # ref = pycon.piFluxSolver(Jxx, Jyy, Jzz, flux=np.zeros(4), h=0.0, n=h001, simplified=False)
+# # ref.solvemeanfield()
+# # ref_energy = ref.GS()
 #
 # for i in range(N):
 #     Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm[i]),  1.,        2*(Jpmpm[i]-Jpm)
@@ -894,16 +894,16 @@ def phaseExGraph(filename):
 # fig, axs = plt.subplots()
 #2420158631264392
 
-Jpm = 0.1
-Jpmpm = 0.3
-Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=False)
-a.solvemeanfield()
-# a.graph_loweredge(False,axs,'b')
-# a.graph_upperedge(True,axs,'b')
-A = a.MFE()
-AC = a.condensed
-print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
+# Jpm = 0.02
+# Jpmpm = 0.3
+# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.zeros(4)*np.pi, h=0, n=h001, simplified=False)
+# a.solvemeanfield()
+# # a.graph_loweredge(False,axs,'b')
+# # a.graph_upperedge(True,axs,'b')
+# A = a.MFE()
+# AC = a.condensed
+# print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
 # a.graph(axs)
 # axs.set_ylim([0,0.7])
 # plt.show()
@@ -1080,8 +1080,8 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # plt.savefig("h111_example.pdf")
 # DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
 # DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.nan,h110,"h110_DSSF.pdf")
-# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
-# DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
+DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
+DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
 
 
 

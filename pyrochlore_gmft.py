@@ -1315,7 +1315,7 @@ class piFluxSolver:
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
-            pcon = False
+            # pcon = False
             while True:
                 chilast, xilast, GSlast = np.copy(self.chi), np.copy(self.xi), np.copy(GS)
                 # E = np.sqrt(2 * self.Jzz * (self.E + np.repeat(self.lams, int(self.E.shape[1] / 2))))
