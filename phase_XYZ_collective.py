@@ -28,4 +28,4 @@ else:
     flux = zppz
 print(Jpm_length_start, Jpm_length_end, Jpm_width, Jpm_width, flux, nS)
 filename_here = "pyrochlore_xyz_" + flux_string + "_" + nS + "_" + SLURM_ID + "_out_of_" + SLURM_SECTIONS
-findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), int(nK), 30, 2, flux, filename_here, int(nS), symmetrized=False)
+# findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), int(nK), 30, 2, flux, filename_here, int(nS), symmetrized=False)
