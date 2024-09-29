@@ -6,7 +6,8 @@ import sys
 
 SLURM_ID, SLURM_SECTIONS = sys.argv[1:]
 
-flux_ind_ns_ind = int(SLURM_ID) // (int(SLURM_SECTIONS)/4)
+JPM_PARAM_SIZE = int(SLURM_SECTIONS) / 4
+flux_ind_ns_ind = int(SLURM_ID) // JPM_PARAM_SIZE
 flux_ind = flux_ind_ns_ind//2
 nS = flux_ind_ns_ind % 2
 
@@ -17,8 +18,7 @@ else:
     flux = np.ones(4)*np.pi
     flux_string = "pi_flux"
 
-JPM_PARAM_SIZE = int(SLURM_SECTIONS) / 4
-Jpm_section = int(np.sqrt(int(SLURM_SECTIONS)))
+Jpm_section = int(np.sqrt(JPM_PARAM_SIZE))
 Jpm_length = int(SLURM_ID) // Jpm_section
 Jpm_width = int(SLURM_ID) % Jpm_section
 
