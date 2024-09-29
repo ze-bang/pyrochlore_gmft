@@ -4,9 +4,9 @@ os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 from phase_diagram import *
 import sys
 
-SLURM_ID, SLURM_SECTIONS = sys.argv[1:]
+SLURM_ID, SLURM_SIZE = sys.argv[1:]
 
-JPM_PARAM_SIZE = int(SLURM_SECTIONS) / 4
+JPM_PARAM_SIZE = int(SLURM_SIZE) / 4
 flux_ind_ns_ind = int(SLURM_ID) // JPM_PARAM_SIZE
 flux_ind = flux_ind_ns_ind//2
 nS = flux_ind_ns_ind % 2
@@ -29,8 +29,6 @@ Jpm_length_end = -1 + (Jpm_length+1) * Jpm_unit
 Jpm_width_start = -1 + Jpm_width * Jpm_unit
 Jpm_width_end = -1 + (Jpm_width+1) * Jpm_unit
 
-
-
-print(Jpm_length_start, Jpm_length_end, Jpm_width, Jpm_width, flux, nS)
-filename_here = "pyrochlore_xyz_" + flux_string + "_" + nS + "_" + SLURM_ID + "_out_of_" + SLURM_SECTIONS
+# print(Jpm_length_start, Jpm_length_end, Jpm_width, Jpm_width, flux, nS)
+filename_here = "pyrochlore_xyz_" + flux_string + "_" + nS + "_" + SLURM_ID + "_out_of_" + SLURM_SIZE
 findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), 20, 30, 2, flux, filename_here, int(nS), symmetrized=False)
