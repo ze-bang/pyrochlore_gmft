@@ -4,7 +4,7 @@ from phase_diagram import *
 from observables import *
 import sys
 
-hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE = sys.argv[1:]
+hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
 
 hmin = float(hmin)
 hmax = float(hmax)
@@ -32,7 +32,9 @@ elif field_dir == "111":
 else:
     h_dir = h001
 
+nK = int(np.sqrt(int(mpi_size)))
+
 if field_dir == "110":
-    findPhaseMag110(Jpm_length_start, Jpm_length_end, 20, h_length_start, h_length_end, 20, h_dir, 30, 2, filename, Jpmpm=0.2)
+    findPhaseMag110(Jpm_length_start, Jpm_length_end, nK, h_length_start, h_length_end, nK, h_dir, 30, 2, filename, Jpmpm=Jpmpm)
 else:
-    findPhaseMag111(Jpm_length_start, Jpm_length_end, 20, h_length_start, h_length_end, 20, h_dir, 30, 2, filename, Jpmpm=0.2)
+    findPhaseMag111(Jpm_length_start, Jpm_length_end, nK, h_length_start, h_length_end, nK, h_dir, 30, 2, filename, Jpmpm=Jpmpm)
