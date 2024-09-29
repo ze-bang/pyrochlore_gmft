@@ -33,4 +33,4 @@ Jpm_width_end = -1 + (Jpm_width+1) * Jpm_unit
 
 print(Jpm_length_start, Jpm_length_end, Jpm_width, Jpm_width, flux, nS)
 filename_here = "pyrochlore_xyz_" + flux_string + "_" + nS + "_" + SLURM_ID + "_out_of_" + SLURM_SECTIONS
-# findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), 20, 30, 2, flux, filename_here, int(nS), symmetrized=False)
+findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), 20, 30, 2, flux, filename_here, int(nS), symmetrized=False)
