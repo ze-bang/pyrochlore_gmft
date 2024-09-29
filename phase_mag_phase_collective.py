@@ -6,6 +6,10 @@ import sys
 
 hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE = sys.argv[1:]
 
+hmin = float(hmin)
+hmax = float(hmax)
+Jpmpm = float(Jpmpm)
+
 Jpm_min = -0.5 + abs(float(Jpmpm))
 Jpm_section = int(np.sqrt(SLURM_SIZE))
 Jpm_length = int(SLURM_ID) // Jpm_section
