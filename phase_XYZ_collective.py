@@ -19,8 +19,10 @@ else:
     flux_string = "pi_flux"
 
 Jpm_section = int(np.sqrt(JPM_PARAM_SIZE))
-Jpm_length = int(SLURM_ID) // Jpm_section
-Jpm_width = int(SLURM_ID) % Jpm_section
+JPM_SECTION_ID = int(SLURM_ID) % JPM_PARAM_SIZE
+
+Jpm_length = int(JPM_SECTION_ID) // Jpm_section
+Jpm_width = int(JPM_SECTION_ID) % Jpm_section
 
 Jpm_unit = 2/Jpm_section
 
