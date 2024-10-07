@@ -5,7 +5,6 @@ import warnings
 from misc_helper import *
 import pyrochlore_gmft as pycon
 import pyrochlore_exclusive_boson as pyex
-import netCDF4 as nc
 from mpi4py import MPI
 
 def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
@@ -894,6 +893,7 @@ def findXYZPhase_separate_unconstrained(JPm, JPmax, JP1m, JP1max, nK, BZres, kap
 
 
 def conclude_XYZ_0_field(filename, Jpmin, Jpmax):
+
     A1 = filename+"_0_flux"
     A2 = filename+"_0_flux_nS=1"
     A3 = filename+"_pi_flux"
@@ -1066,6 +1066,119 @@ def conclude_XYZ_finite_field(filename, Jpmin, Jpmax, hmin, hmax):
     plt.xlabel(r'$J_\pm/J_{y}$')
     plt.ylabel(r'$h/J_{y}$')
     plt.savefig(filename+'.pdf')
+    plt.clf()
+
+
+def conclude_XYZ_0_field_job_array(filename):
+    import os
+
+    num_grids = 0
+    grid_reso = 0
+
+    for files in os.listdir(filename):
+        if files.endswith("MFE.txt"):
+            dump, dump1, flux_string, flux_string1, nS, job_id, dump2, dump3, total_job, dump4 = files.split("_")
+            d0 = np.loadtxt(filename+"/"+files)
+            num_grids = int(np.sqrt(int(total_job)/4))
+            grid_reso = len(d0)
+            break
+    
+    phase = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    MFEs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    print(num_grids, grid_reso)
+    mult = int(total_job)/4
+    for files in os.listdir(filename):
+        if files.endswith("MFE.txt"):
+            dump, dump1, flux_string, flux_string1, nS, job_id, dump2, dump3, total_job, dump4 = files.split("_")
+
+            if int(job_id) <= mult:
+                temp = filename+'/'+dump+"_"+dump1+"_0_flux_0.0_"+str(int(job_id))+"_out_of_"+total_job+".txt"
+                temp1 = filename+'/'+dump+"_"+dump1+"_0_flux_1.0_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+".txt"
+                temp2 = filename+'/'+dump+"_"+dump1+"_pi_flux_0.0_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+".txt"
+                temp3 = filename+'/'+dump+"_"+dump1+"_pi_flux_1.0_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+".txt"
+
+                d0 = np.loadtxt(temp)
+                d1 = np.loadtxt(temp1)
+                d2 = np.loadtxt(temp2)
+                d3 = np.loadtxt(temp3)
+
+                D = np.array([d0,d1,d2,d3])
+
+                temp = filename+'/'+dump+"_"+dump1+"_0_flux_0.0_"+str(int(job_id))+"_out_of_"+total_job+"_MFE.txt"
+                temp1 = filename+'/'+dump+"_"+dump1+"_0_flux_1.0_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_MFE.txt"
+                temp2 = filename+'/'+dump+"_"+dump1+"_pi_flux_0.0_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_MFE.txt"
+                temp3 = filename+'/'+dump+"_"+dump1+"_pi_flux_1.0_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_MFE.txt"
+
+                MFE0 = np.loadtxt(temp)
+                MFE1 = np.loadtxt(temp1)
+                MFE2 = np.loadtxt(temp2)
+                MFE3 = np.loadtxt(temp3)
+
+                MFE = np.array([MFE0, MFE1, MFE2, MFE3])
+
+                JPM_PARAM_SIZE = int(total_job) / 4
+                SlURM_ID = int(job_id) - 1
+                flux_ind_ns_ind = SlURM_ID // JPM_PARAM_SIZE
+                flux_ind = flux_ind_ns_ind//2
+                nS = flux_ind_ns_ind % 2
+
+                Jpm_section = int(np.sqrt(JPM_PARAM_SIZE))
+                JPM_SECTION_ID = int(SlURM_ID) % JPM_PARAM_SIZE
+
+                Jpm_length = int(JPM_SECTION_ID) // Jpm_section
+                Jpm_width = int(JPM_SECTION_ID) % Jpm_section
+
+                Jpm_unit = 2/Jpm_section
+
+                Jpm_length_start = -1 + Jpm_length * Jpm_unit
+                Jpm_length_end = -1 + (Jpm_length+1) * Jpm_unit
+                Jpm_width_start = -1 + Jpm_width * Jpm_unit
+                Jpm_width_end = -1 + (Jpm_width+1) * Jpm_unit
+                offset_x = Jpm_length * grid_reso
+                offset_y = Jpm_width * grid_reso
+
+                print(Jpm_length_start, Jpm_length_end, Jpm_width_start, Jpm_width_end)
+
+                for i in range(len(d0)):
+                    for j in range(d0.shape[1]):
+                        Jxx = Jpm_length_start+((Jpm_length_end-Jpm_length_start)/d0.shape[0]*(i+1))
+                        Jyy = Jpm_width_start+((Jpm_width_end-Jpm_width_start)/d0.shape[1]*(j+1))
+                        Jpm = -(Jxx+Jyy)/4
+                        Jpmpm = (Jxx-Jyy)/4
+                        tempD = MFE[:,i,j]
+                        a = np.argmin(tempD)
+
+                        if not D[a,i,j]:
+                            phase[i+offset_x,j+offset_y] = a//2
+                            MFEs[i+offset_x, j+offset_y] = MFE[a, i, j]
+                        else:
+                            phase[i+offset_x,j+offset_y] = np.nan
+                        
+                        if Jpm > 0 and phase[i+offset_x,j+offset_y] == 1:
+                            phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if (Jxx < -0.35 or Jyy < -0.35) and phase[i+offset_x,j+offset_y] == 0:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if (Jxx < -0.35 or Jyy < -0.35) and phase[i+offset_x,j+offset_y] == 1 and np.abs(Jpmpm) > 0.15:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
+                        
+                        # if Jpm == 0:
+                        #     phase[i+offset_x,j+offset_y] = 0
+
+
+    plt.imshow(phase.T, origin='lower', extent=[-1, 1, -1, 1], aspect='equal')
+    plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+".pdf")
+    plt.clf()
+
+    plt.imshow(MFEs.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='equal')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_MFE.pdf")
     plt.clf()
 
 #endregion

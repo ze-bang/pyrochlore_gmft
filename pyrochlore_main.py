@@ -1013,7 +1013,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
-
+conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):
@@ -1080,8 +1080,8 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # plt.savefig("h111_example.pdf")
 # DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
 # DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.nan,h110,"h110_DSSF.pdf")
-DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
-DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
+# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
+# DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
 
 
 
