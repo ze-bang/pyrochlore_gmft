@@ -1013,7 +1013,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
-conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field")
+conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):

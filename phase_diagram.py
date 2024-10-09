@@ -404,8 +404,6 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
             # sendtemp5[i] = np.array2string(pyps.qmin)
         # end = time.time()
         # print("This iteration costs " + str(end - start))
-#
-
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
@@ -439,6 +437,84 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
         graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
+def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, filename, Jxx=False, Jpmpm=0):
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    JH = np.mgrid[JPm:JPmax:1j*nK, hm:hmax:1j*nH].reshape(2,-1).T
+    le = nK*nH
+    nb = le/size
+
+    leftK = int(rank*nb)
+    rightK = int((rank+1)*nb)
+    currsizeK = rightK-leftK
+
+
+    currJH = JH[leftK:rightK]
+
+
+    sendtemp = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
+    sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
+
+
+    rectemp = None
+    rectemp2 = None
+    rectemp3 = None
+    rectemp4 = None
+
+    if rank == 0:
+        rectemp = np.zeros(le, dtype=np.float64)
+        rectemp2 = np.zeros(le, dtype=np.float64)
+        rectemp3 = np.zeros(le, dtype=np.float64)
+        rectemp4 = np.zeros(le, dtype=np.float64)
+
+    for i in range(currsizeK):
+        if Jxx == True:
+            py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
+                                      BZres=BZres, flux=flux)
+        else:
+            py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+        py0s.solvemeanfield()
+        sendtemp[i] = py0s.condensed
+        sendtemp2[i] = GS[a]
+        sendtemp3[i] = py0s.lams[0]
+        sendtemp4[i] = py0s.magnetization()
+
+    sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
+    sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
+    sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
+    sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
+    # sendcounts5 = np.array(comm.gather(sendtemp5.shape[0], 0))
+
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
+    comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
+    comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
+    # comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+
+
+    if rank == 0:
+        rectemp = rectemp.reshape((nK, nH))
+        rectemp2 = rectemp2.reshape((nK, nH))
+        rectemp3 = rectemp3.reshape((nK, nH))
+        rectemp4 = rectemp4.reshape((nK, nH))
+        # rectemp5 = rectemp5.reshape((nK, nH))
+        np.savetxt('Files/' + filename+'.txt', rectemp)
+        np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
+        np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
+        np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
+
+        JP = np.linspace(JPm, JPmax, nK)
+        h = np.linspace(hm, hmax, nH)
+        graphMagPhase(JP, h, rectemp, 'Files/' + filename)
+        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
+        # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
+
 
 def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename, observables=False):
     comm = MPI.COMM_WORLD
@@ -1085,6 +1161,7 @@ def conclude_XYZ_0_field_job_array(filename):
     
     phase = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
     MFEs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    XIs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
     print(num_grids, grid_reso)
     mult = int(total_job)/4
     for files in os.listdir(filename):
@@ -1115,6 +1192,18 @@ def conclude_XYZ_0_field_job_array(filename):
                 MFE3 = np.loadtxt(temp3)
 
                 MFE = np.array([MFE0, MFE1, MFE2, MFE3])
+
+                temp = filename+'/'+dump+"_"+dump1+"_0_flux_0.0_"+str(int(job_id))+"_out_of_"+total_job+"_xi.txt"
+                temp1 = filename+'/'+dump+"_"+dump1+"_0_flux_1.0_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_xi.txt"
+                temp2 = filename+'/'+dump+"_"+dump1+"_pi_flux_0.0_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_xi.txt"
+                temp3 = filename+'/'+dump+"_"+dump1+"_pi_flux_1.0_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_xi.txt"
+
+                XI0 = np.loadtxt(temp)
+                XI1 = np.loadtxt(temp1)
+                XI2 = np.loadtxt(temp2)
+                XI3 = np.loadtxt(temp3)
+
+                XI = np.array([XI0, XI1, XI2, XI3])
 
                 JPM_PARAM_SIZE = int(total_job) / 4
                 SlURM_ID = int(job_id) - 1
@@ -1151,11 +1240,15 @@ def conclude_XYZ_0_field_job_array(filename):
                         if not D[a,i,j]:
                             phase[i+offset_x,j+offset_y] = a//2
                             MFEs[i+offset_x, j+offset_y] = MFE[a, i, j]
+                            XIs[i+offset_x, j+offset_y] = XI[a, i, j]
                         else:
                             phase[i+offset_x,j+offset_y] = np.nan
                         
-                        if Jpm > 0 and phase[i+offset_x,j+offset_y] == 1:
-                            phase[i+offset_x,j+offset_y] = np.nan
+                        # if  XI[a, i, j] == 0:
+                            # phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if Jpm > 0 and phase[i+offset_x,j+offset_y] == 1:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
 
                         # if (Jxx < -0.35 or Jyy < -0.35) and phase[i+offset_x,j+offset_y] == 0:
                         #     phase[i+offset_x,j+offset_y] = np.nan
@@ -1171,7 +1264,7 @@ def conclude_XYZ_0_field_job_array(filename):
     plt.colorbar()
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
-    plt.savefig(filename+".pdf")
+    plt.savefig(filename+"_1.pdf")
     plt.clf()
 
     plt.imshow(MFEs.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='equal')
@@ -1179,6 +1272,13 @@ def conclude_XYZ_0_field_job_array(filename):
     plt.xlabel(r"$J_{xx}/J_{yy}$")
     plt.ylabel(r"$J_{zz}/J_{yy}$")
     plt.savefig(filename+"_MFE.pdf")
+    plt.clf()
+
+    plt.imshow(XIs.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='equal')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_xi.pdf")
     plt.clf()
 
 #endregion
