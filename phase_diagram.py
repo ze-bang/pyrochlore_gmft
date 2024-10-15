@@ -437,7 +437,7 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
         graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
-def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, filename, Jxx=False, Jpmpm=0):
+def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, filename, Jxx=False, Jpmpm=0, FF=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -474,12 +474,12 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
     for i in range(currsizeK):
         if Jxx == True:
             py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=flux)
+                                      BZres=BZres, flux=flux, FF=FF)
         else:
-            py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux)
+            py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux, FF=FF)
         py0s.solvemeanfield()
         sendtemp[i] = py0s.condensed
-        sendtemp2[i] = GS[a]
+        sendtemp2[i] = py0s.MFE()
         sendtemp3[i] = py0s.lams[0]
         sendtemp4[i] = py0s.magnetization()
 

@@ -1159,7 +1159,7 @@ class piFluxSolver:
         self.qmin = qmin
         self.qminB = contract('ij,jk->ik', self.qmin, BasisBZA)
         # self.qminWeight = np.ones((len(self.qmin),))/(len(self.pts)+len(self.qmin))
-        self.minLams = np.ones(2) * (minLams+2e-16)
+        self.minLams = np.ones(2) * (minLams)
         return minLams
 
     def rho(self,lam):
@@ -1316,7 +1316,7 @@ class piFluxSolver:
             self.condensation_check()
         else:
             print("Initialization Routine")
-            limit = 100
+            limit = 50
             # hascondensedcount = 8
             GS, d = self.solvemufield()
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
@@ -1468,7 +1468,11 @@ class piFluxSolver:
                     self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def GS(self):
-        E = np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
+        try:
+            E = np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
+        except:
+            self.lams = (self.E+2e-16)*np.ones(2)
+            E = np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
         # print(self.lams, self.minLams, self.lams-self.minLams, E)
         return E
 

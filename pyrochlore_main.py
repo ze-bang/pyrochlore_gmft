@@ -932,8 +932,7 @@ def phaseExGraph(filename):
 
 
 
-def FFFluxGen(flux):
-    return np.array([3*flux, flux, flux, flux])
+
 
 def nS1helper(filename1, filename2, filename3, fileout):
     nznzMFE = np.loadtxt(filename1+"_MFE.txt")

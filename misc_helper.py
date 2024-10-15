@@ -1301,7 +1301,8 @@ def inverseXYZparambuilder(M):
                 orig[i,j] = orig[j,i]
     return orig
 
-
+def FFFluxGen(flux):
+    return np.array([3*flux, flux, flux, flux])
 # JH = np.arange(100).reshape((10,10))
 # nK = 10
 # split = int(nK/2)
