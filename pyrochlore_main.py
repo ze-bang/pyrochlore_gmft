@@ -805,6 +805,37 @@ def phaseExGraph(filename):
     axs[1,1].text(.01, .99, r"$(\mathrm{e})$", ha='left', va='top',transform=axs[1,1].transAxes, color='black')
     axs[1,2].text(.01, .99, r"$(\mathrm{f})$", ha='left', va='top',transform=axs[1,2].transAxes, color='black')
     plt.savefig(filename)
+
+
+def FFFluxGen(flux):
+    return np.array([3*flux, flux, flux, flux])
+
+def nS1helper(filename1, filename2, filename3, fileout):
+    nznzMFE = np.loadtxt(filename1+"_MFE.txt")
+    z1z1MFE = np.loadtxt(filename2+"_MFE.txt")
+    nzz1MFE = np.loadtxt(filename3+"_MFE.txt")
+    # nzz1MFE = np.flip(nzz1MFE, axis=0)
+    z1nzMFE = np.transpose(nzz1MFE)
+
+    MFE = np.block([[nznzMFE, z1nzMFE],
+                    [nzz1MFE, z1z1MFE]])
+    np.savetxt(fileout+"_MFE.txt",MFE)
+    plt.pcolormesh(MFE)
+    plt.savefig(fileout+"_MFE.png")
+    plt.clf()
+
+    nznzMFE = np.loadtxt(filename1+".txt")
+    z1z1MFE = np.loadtxt(filename2+".txt")
+    nzz1MFE = np.loadtxt(filename3+".txt")
+    # nzz1MFE = np.flip(nzz1MFE, axis=0)
+    z1nzMFE = np.transpose(nzz1MFE)
+    MFE = np.block([[nznzMFE, z1nzMFE],
+                    [nzz1MFE, z1z1MFE]])
+    np.savetxt(fileout+".txt",MFE)
+    plt.pcolormesh(MFE)
+    plt.savefig(fileout+".png")
+    plt.clf()
+
 # phaseExGraph("phase_diagrams_exb.pdf")
 # mpl.rcParams.update({'font.size': 15})
 # fig, ax = plt.subplots(layout='tight')
@@ -1012,7 +1043,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
-conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
+
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):
@@ -1079,8 +1110,8 @@ conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_n
 # plt.savefig("h111_example.pdf")
 # DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
 # DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.nan,h110,"h110_DSSF.pdf")
-# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
-# DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
+DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
+DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
 
 
 
