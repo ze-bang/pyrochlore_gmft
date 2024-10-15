@@ -1195,7 +1195,12 @@ class piFluxSolver:
     def updateMF(self):
         self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
-        self.E, self.V = np.linalg.eigh(self.M)
+        try:
+            self.E, self.V = np.linalg.eigh(self.M)
+        except:
+            self.lams = (-np.min(self.E)+1e-16)*np.ones(2)
+            self.xi = self.solvexifield()
+            self.chi = self.solvechifield()
     def xiSubroutine(self, tol, GS, pcon=False):
         if pcon:
             limit = 5
@@ -1471,7 +1476,7 @@ class piFluxSolver:
         try:
             E = np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
         except:
-            self.lams = (self.E+2e-16)*np.ones(2)
+            self.lams = (-np.min(self.E)+1e-16)*np.ones(2)
             E = np.dot(self.E_pi_mean(self.pts), self.weights) - self.kappa*self.lams[0]
         # print(self.lams, self.minLams, self.lams-self.minLams, E)
         return E

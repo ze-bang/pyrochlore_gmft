@@ -915,6 +915,71 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
+N = 30
+Jpm = np.linspace(-0.1, 0.1, N)
+h = np.linspace(0.0, 0.5, N)
+E = np.zeros((N,N))
+Epi = np.zeros((N,N))
+E_3 = np.zeros((N,N))
+E_4 = np.zeros((N,N))
+
+C = np.zeros((N,N))
+Cpi = np.zeros((N,N))
+C_3 = np.zeros((N,N))
+C_4 = np.zeros((N,N))
+
+phase = np.zeros((N,N))
+
+fig, axs = plt.subplots()
+
+for i in range(N):
+    for j in range(N):
+        Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
+        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
+        a.solvemeanfield()
+        E[i,j] = a.MFE()
+        C[i,j] = a.condensed
+
+        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
+        a.solvemeanfield()
+        Epi[i,j] = a.MFE()
+        Cpi[i,j] = a.condensed
+
+        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
+        a.solvemeanfield()
+        E_3[i,j] = a.MFE()
+        C_3[i,j] = a.condensed
+
+        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
+        a.solvemeanfield()
+        E_4[i,j] = a.MFE()
+        C_4[i,j] = a.condensed
+
+
+        temp = np.array([E[i,j], Epi[i,j], E_3[i,j], E_4[i,j]])
+        tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j], C_4[i,j]])
+        min = np.argmin(temp)
+        if tempC[min] == 0:
+            phase[i,j] = min
+        else:
+            phase[i,j] = np.nan
+    # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
+    # a.solvemeanfield()
+    # E_6[i] = a.MFE()
+np.savetxt("FFvsPi_energy_0.txt", E)
+np.savetxt("FFvsPi_energy_pi.txt", Epi)
+np.savetxt("FFvsPi_energy_pi3.txt", E_3)
+np.savetxt("FFvsPi_energy_pi4.txt", E_4)
+
+
+np.savetxt("FFvsPi_condensed_0.txt", C)
+np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
+np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
+np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
+
+plt.imshow(phase.T, origin='lower', extent=[-0.03, 0.03, 0, 0.5], aspect='auto')
+plt.savefig("phase_w_FF.pdf")
+plt.clf()
 
 
 # # a.graph_loweredge(False,axs,'b')
@@ -963,7 +1028,8 @@ def nS1helper(filename1, filename2, filename3, fileout):
 
 
 
-
+def FFFluxGen(flux):
+    return np.array([3*flux, flux, flux, flux])
 
 def nS1helper(filename1, filename2, filename3, fileout):
     nznzMFE = np.loadtxt(filename1+"_MFE.txt")
