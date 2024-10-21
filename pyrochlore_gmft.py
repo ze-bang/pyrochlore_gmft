@@ -169,7 +169,7 @@ def rho_true(weights, E, V, lams, Jzz, xyz):
         Ep = I3_integrand_site(E, V, lams, Jzz)
         lamAl1, lamBl1 = np.mean(Ep[:, 0:size], axis=1), np.mean(Ep[:, size:2 * size], axis=1)
         lamAl2, lamBl2 = np.mean(Ep[:, 2*size:3*size], axis=1), np.mean(Ep[:, 3*size:4 * size], axis=1)
-        return np.array([np.real(np.dot(weights, lamAl1)+np.dot(weights, lamAl2)), np.real(np.dot(weights, lamBl1)+np.dot(weights, lamBl2))])/2
+        return np.array([np.real(np.dot(weights, lamAl1)+np.dot(weights, lamAl2)), np.real(np.dot(weights, lamBl1)+np.dot(weights, lamBl2))])
 
 
 def rho_true_site(weights, E, V, lams, Jzz):
@@ -1101,7 +1101,9 @@ class piFluxSolver:
             self.h = h
         if a == 0:
             self.h = -1j*self.h
-
+        self.inversion = True
+        if FF == True:
+            self.inversion = False
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -1155,10 +1157,10 @@ class piFluxSolver:
             self.rhos = np.zeros(self.E.shape[1])
     def findLambda(self, a=False):
         if a:
-            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0))
+            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0), self.inversion)
         else:
             A = -np.min(self.E)*np.ones(2)
-            lams, d = findlambda_pi(self.kappa, self.tol, A+1e-16, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0))
+            lams, d = findlambda_pi(self.kappa, self.tol, A+1e-16, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0), self.inversion)
             return lams, d
 
     def findLambda_unconstrained(self):
@@ -1362,10 +1364,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                # if diverge:
-                #     hascondensedcount = hascondensedcount - 1
-                # if hascondensedcount == 0:
-                #     break
+                if diverge:
+                    self.inversion = False
+                else:
+                    self.inversion = True
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
