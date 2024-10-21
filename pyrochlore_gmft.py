@@ -353,7 +353,7 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, M, xyz=False, inversion=Tru
             if not xyz:
                 M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
             else:
-                M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/2)),2))
+                M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)),2))
             E, V = np.linalg.eigh(M)
         try:
             if inversion:
