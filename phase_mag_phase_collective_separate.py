@@ -5,7 +5,10 @@ from phase_diagram import *
 from observables import *
 import sys
 
-hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
+# hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
+
+hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = 0, 0.5, "111", 0.3, 2, 144, 441
+
 
 hmin = float(hmin)
 hmax = float(hmax)
@@ -31,17 +34,17 @@ FF = False
 
 if Jpmpm == 0 and field_dir == "111":
     if flux_ind_ns_ind == 0:
-        flux = np.ones(4)*np.pi
-    elif flux_ind_ns_ind == 1:
         flux = np.zeros(4)
+    elif flux_ind_ns_ind == 1:
+        flux = np.ones(4)*np.pi
     elif flux_ind_ns_ind == 2:
         flux = FFFluxGen(np.pi/6)
         FF = True
 else:
     if flux_ind_ns_ind == 0:
-        flux = np.ones(4)*np.pi
-    elif flux_ind_ns_ind == 1:
         flux = np.zeros(4)
+    elif flux_ind_ns_ind == 1:
+        flux = np.ones(4)*np.pi
     elif flux_ind_ns_ind == 2:
         flux = zppz
     else:

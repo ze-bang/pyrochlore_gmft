@@ -1198,7 +1198,7 @@ class piFluxSolver:
         return chi, xi
 
     def solvexifield(self):
-        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4))),2))
+        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         # if self.Jpm > -0.175:
         xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
@@ -1207,7 +1207,7 @@ class piFluxSolver:
         # return xi
     
     def solvechifield(self):
-        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4))),2))
+        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         # if self.Jpm > -0.175:
         chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
