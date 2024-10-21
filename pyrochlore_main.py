@@ -915,25 +915,26 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
-N = 30
-Jpm = np.linspace(-0.1, 0.1, N)
-h = np.linspace(0.0, 0.5, N)
-E = np.zeros((N,N))
-Epi = np.zeros((N,N))
-E_3 = np.zeros((N,N))
-E_4 = np.zeros((N,N))
+NJpm = 30
+NH = 30
+Jpm = np.linspace(-0.1, 0.1, NJpm)
+h = np.linspace(0.0, 0.5, NH)
+E = np.zeros((NJpm,NH))
+Epi = np.zeros((NJpm,NH))
+E_3 = np.zeros((NJpm,NH))
+E_4 = np.zeros((NJpm,NH))
 
-C = np.zeros((N,N))
-Cpi = np.zeros((N,N))
-C_3 = np.zeros((N,N))
-C_4 = np.zeros((N,N))
+C = np.zeros((NJpm,NH))
+Cpi = np.zeros((NJpm,NH))
+C_3 = np.zeros((NJpm,NH))
+C_4 = np.zeros((NJpm,NH))
 
-phase = np.zeros((N,N))
+phase = np.zeros((NJpm,NH))
 
 fig, axs = plt.subplots()
 
-for i in range(N):
-    for j in range(N):
+for i in range(NJpm):
+    for j in range(NH):
         Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
         a.solvemeanfield()
@@ -945,19 +946,20 @@ for i in range(N):
         Epi[i,j] = a.MFE()
         Cpi[i,j] = a.condensed
 
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
+        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(-np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
         a.solvemeanfield()
         E_3[i,j] = a.MFE()
         C_3[i,j] = a.condensed
 
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
-        a.solvemeanfield()
-        E_4[i,j] = a.MFE()
-        C_4[i,j] = a.condensed
+        # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
+        # a.solvemeanfield()
+        # E_4[i,j] = a.MFE()
+        # C_4[i,j] = a.condensed
 
 
-        temp = np.array([E[i,j], Epi[i,j], E_3[i,j], E_4[i,j]])
-        tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j], C_4[i,j]])
+        temp = np.array([E[i,j], Epi[i,j], E_3[i,j]])
+        tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j]])
+        print(temp)
         min = np.argmin(temp)
         if tempC[min] == 0:
             phase[i,j] = min
@@ -977,7 +979,7 @@ np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
 np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
 np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
 
-plt.imshow(phase.T, origin='lower', extent=[-0.03, 0.03, 0, 0.5], aspect='auto')
+plt.imshow(phase.T, origin='lower', extent=[-0.1, 0.1, 0, 0.5], aspect='auto')
 plt.savefig("phase_w_FF.pdf")
 plt.clf()
 
@@ -1176,8 +1178,8 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # plt.savefig("h111_example.pdf")
 # DSSFgraphGen_0(h110,"DSSF_0_field.pdf")
 # DSSFgraphGen(0.39999999999999997,0.39999999999999997,np.array([0,0,np.pi,np.pi]), np.nan,h110,"h110_DSSF.pdf")
-DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
-DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
+# DSSFgraphGen(0.2,0.1,np.array([np.pi,np.pi,np.pi,np.pi]),np.nan,h001,"h001_DSSF.pdf")
+# DSSFgraphGen(0.3,0.2,np.array([np.pi,np.pi,np.pi,np.pi]), np.nan, h111,"h111_DSSF.pdf")
 
 
 

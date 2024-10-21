@@ -145,19 +145,32 @@ def E_pi(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_he
 
 
 def I3_integrand(E, lams, Jzz):
-    E = np.sqrt(2*Jzz*(E+lams[0]))
+    size = int(E.shape[1]/2)
+    E = np.sqrt(2*Jzz*(E+np.repeat(lams, size)))
     Ep = Jzz / E
     return np.mean(Ep,axis=1)
 
 def I3_integrand_site(E, V, lams, Jzz):
-    E = np.sqrt(2*Jzz*(E+lams[0]))
+    E = np.sqrt(2*Jzz*(E+np.repeat(lams, int(E.shape[1]/2))))
     Ep = contract('ijk, ijk, ik->ij', V, np.conj(V), Jzz/E)
     return Ep
 
 
-def rho_true(weights, E, lams, Jzz):
-    A = integrate_fixed(I3_integrand, weights, E, lams, Jzz)
-    return np.real(A)
+def rho_true_fast(weights, E, lams, Jzz, xyz):
+    return integrate_fixed(I3_integrand, weights, E, lams, Jzz)*np.ones(2)
+def rho_true(weights, E, V, lams, Jzz, xyz):
+    if not xyz:
+        size = int(E.shape[1]/2)
+        Ep = I3_integrand_site(E, V, lams, Jzz)
+        lamAl, lamBl = np.mean(Ep[:, 0:size], axis=1), np.mean(Ep[:, size:2 * size], axis=1)
+        return np.array([np.real(np.dot(weights, lamAl)), np.real(np.dot(weights, lamBl))])
+    else:
+        size = int(E.shape[1]/4)
+        Ep = I3_integrand_site(E, V, lams, Jzz)
+        lamAl1, lamBl1 = np.mean(Ep[:, 0:size], axis=1), np.mean(Ep[:, size:2 * size], axis=1)
+        lamAl2, lamBl2 = np.mean(Ep[:, 2*size:3*size], axis=1), np.mean(Ep[:, 3*size:4 * size], axis=1)
+        return np.array([np.real(np.dot(weights, lamAl1)+np.dot(weights, lamAl2)), np.real(np.dot(weights, lamBl1)+np.dot(weights, lamBl2))])/2
+
 
 def rho_true_site(weights, E, V, lams, Jzz):
     return integrate_fixed(I3_integrand_site, weights, E, V, lams, Jzz)
@@ -326,7 +339,7 @@ def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_p
     if Know.shape == (3,):
         Know = Know.reshape(1,3)
     return -Enowm, Know
-def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
+def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, M, xyz=False, inversion=True):
     warnings.filterwarnings("error")
     lamMin = np.copy(lamM)
     lamMax = max(50, 10*lamM[0])*np.ones(2)
@@ -336,16 +349,26 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, xyz=False):
     while True:
         lamlast = np.copy(lams)
         lams = (lamMax+lamMin)/2
-        try:
-            rhoguess = rho_true(weights, E, lams, Jzz)
-            error = rhoguess-kappa
-            if error > 0:
-                lamMin = lams
+        if not inversion:
+            if not xyz:
+                M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
             else:
-                lamMax = lams
+                M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/2)),2))
+            E, V = np.linalg.eigh(M)
+        try:
+            if inversion:
+                rhoguess = rho_true_fast(weights, E, lams, Jzz, xyz)
+            else:
+                rhoguess = rho_true(weights, E, V, lams, Jzz, xyz)
+            error = rhoguess-kappa
+            for i in range(2):
+                if error[i] > 0:
+                    lamMin[i] = lams[i]
+                else:
+                    lamMax[i] = lams[i]
             if ((np.absolute(rhoguess - kappa) <= tol).all()):
                 break
-            # print(rhoguess, lams, lamMin, lamMax, abs(lamMin - lamMax), count)
+                # print(rhoguess, lams, lamMin, lamMax, abs(lamMin - lamMax), count)
         except:
             lamMin = lams
         count = count + 1
@@ -1132,14 +1155,14 @@ class piFluxSolver:
             self.rhos = np.zeros(self.E.shape[1])
     def findLambda(self, a=False):
         if a:
-            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+            return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0))
         else:
             A = -np.min(self.E)*np.ones(2)
-            lams, d = findlambda_pi(self.kappa, self.tol, A+1e-16, self.Jzz, self.weights, self.E, (not self.Jpmpm==0))
+            lams, d = findlambda_pi(self.kappa, self.tol, A+1e-16, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0))
             return lams, d
 
     def findLambda_unconstrained(self):
-        return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E)
+        return findlambda_pi(self.kappa,self.tol, np.zeros(2), self.Jzz, self.weights, self.E, self.MF)
 
 
     def findminLam(self):
@@ -1175,7 +1198,7 @@ class piFluxSolver:
         return chi, xi
 
     def solvexifield(self):
-        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
+        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4))),2))
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         # if self.Jpm > -0.175:
         xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
@@ -1184,7 +1207,7 @@ class piFluxSolver:
         # return xi
     
     def solvechifield(self):
-        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(self.lams,int(self.E.shape[1]/2))))
+        E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4))),2))
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         # if self.Jpm > -0.175:
         chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
@@ -1193,17 +1216,17 @@ class piFluxSolver:
         # return chi
     
     def updateMF(self):
-        self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+        self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                       self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         try:
-            self.E, self.V = np.linalg.eigh(self.M)
+            self.E, self.V = np.linalg.eigh(self.MF)
         except:
             self.lams = (-np.min(self.E)+1e-16)*np.ones(2)
             self.xi = self.solvexifield()
             self.chi = self.solvechifield()
-            self.M = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+            self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
                           self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
-            self.E, self.V = np.linalg.eigh(self.M)
+            self.E, self.V = np.linalg.eigh(self.MF)
     def xiSubroutine(self, tol, GS, pcon=False):
         if pcon:
             limit = 5
@@ -1322,11 +1345,13 @@ class piFluxSolver:
             self.chi = np.zeros((2,len(self.unitcellCoord),4,4))
             self.xi = np.zeros((len(self.unitcellCoord),4))
             self.condensation_check()
+            print(self.lams)
         else:
             print("Initialization Routine")
             limit = 50
             # hascondensedcount = 8
             GS, d = self.solvemufield()
+
             print("Initialization Routine Ends. Starting Parameters: GS="+ str(GS) + " xi0= " + str(self.xi[0]) + " chi0= " + str(self.chi[0,0]))
             count = 0
             # pcon = False

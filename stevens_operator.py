@@ -179,7 +179,6 @@ H = B20*construct_matrix(O20) + B22*construct_matrix(O22) + B2n2*construct_matri
     + B62 * construct_matrix(O62) + B6n2 * construct_matrix(O6n2) + B64 * construct_matrix(O64) \
     + B6n4 * construct_matrix(O6n4) + B66 * construct_matrix(O66) + B6n6 * construct_matrix(O6n6)
 
-H = construct_matrix(O4n2)
 
 Z = H - np.transpose(H)
 
@@ -192,4 +191,16 @@ E1 = V[:, 1]
 E2 = V[:, 2]
 Vabs = np.abs(V)
 Vangle = np.angle(V)
-print(V[:,0], V[:, 1], V[:, 2])
+T = np.zeros((13,3))
+for i in range(3):
+    if i == 2:
+        Angle = (Vangle[1,i]+Vangle[11,i])/2
+        rot = np.exp(-1j*(Angle-Vangle[1,i]))
+    else:
+        Angle = (Vangle[0, i] + Vangle[12, i]) / 2
+        rot = np.exp(-1j * (Angle - Vangle[0, i]))
+    T[:,i] = rot*V[:,i]
+
+# print(V[:,0], V[:, 1], V[:, 2])
+print(E_adj)
+print(T)
