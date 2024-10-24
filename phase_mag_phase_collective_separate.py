@@ -5,9 +5,9 @@ from phase_diagram import *
 from observables import *
 import sys
 
-# hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
+hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
 
-hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = 0, 0.5, "111", 0.3, 2, 144, 441
+# hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = 0, 0.5, "111", 0.3, 2, 144, 441
 
 
 hmin = float(hmin)

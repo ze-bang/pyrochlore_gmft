@@ -915,73 +915,73 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
-NJpm = 30
-NH = 30
-Jpm = np.linspace(-0.1, 0.1, NJpm)
-h = np.linspace(0.0, 0.5, NH)
-E = np.zeros((NJpm,NH))
-Epi = np.zeros((NJpm,NH))
-E_3 = np.zeros((NJpm,NH))
-E_4 = np.zeros((NJpm,NH))
+# NJpm = 30
+# NH = 30
+# Jpm = np.linspace(-0.1, 0.1, NJpm)
+# h = np.linspace(0.0, 0.5, NH)
+# E = np.zeros((NJpm,NH))
+# Epi = np.zeros((NJpm,NH))
+# E_3 = np.zeros((NJpm,NH))
+# E_4 = np.zeros((NJpm,NH))
 
-C = np.zeros((NJpm,NH))
-Cpi = np.zeros((NJpm,NH))
-C_3 = np.zeros((NJpm,NH))
-C_4 = np.zeros((NJpm,NH))
+# C = np.zeros((NJpm,NH))
+# Cpi = np.zeros((NJpm,NH))
+# C_3 = np.zeros((NJpm,NH))
+# C_4 = np.zeros((NJpm,NH))
 
-phase = np.zeros((NJpm,NH))
+# phase = np.zeros((NJpm,NH))
 
-fig, axs = plt.subplots()
+# fig, axs = plt.subplots()
 
-for i in range(NJpm):
-    for j in range(NH):
-        Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
-        a.solvemeanfield()
-        E[i,j] = a.MFE()
-        C[i,j] = a.condensed
+# for i in range(NJpm):
+#     for j in range(NH):
+#         Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
+#         a.solvemeanfield()
+#         E[i,j] = a.MFE()
+#         C[i,j] = a.condensed
 
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
-        a.solvemeanfield()
-        Epi[i,j] = a.MFE()
-        Cpi[i,j] = a.condensed
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
+#         a.solvemeanfield()
+#         Epi[i,j] = a.MFE()
+#         Cpi[i,j] = a.condensed
 
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(-np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
-        a.solvemeanfield()
-        E_3[i,j] = a.MFE()
-        C_3[i,j] = a.condensed
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(-np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
+#         a.solvemeanfield()
+#         E_3[i,j] = a.MFE()
+#         C_3[i,j] = a.condensed
 
-        # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
-        # a.solvemeanfield()
-        # E_4[i,j] = a.MFE()
-        # C_4[i,j] = a.condensed
-
-
-        temp = np.array([E[i,j], Epi[i,j], E_3[i,j]])
-        tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j]])
-        print(temp)
-        min = np.argmin(temp)
-        if tempC[min] == 0:
-            phase[i,j] = min
-        else:
-            phase[i,j] = np.nan
-    # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
-    # a.solvemeanfield()
-    # E_6[i] = a.MFE()
-np.savetxt("FFvsPi_energy_0.txt", E)
-np.savetxt("FFvsPi_energy_pi.txt", Epi)
-np.savetxt("FFvsPi_energy_pi3.txt", E_3)
-np.savetxt("FFvsPi_energy_pi4.txt", E_4)
+#         # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
+#         # a.solvemeanfield()
+#         # E_4[i,j] = a.MFE()
+#         # C_4[i,j] = a.condensed
 
 
-np.savetxt("FFvsPi_condensed_0.txt", C)
-np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
-np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
-np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
+#         temp = np.array([E[i,j], Epi[i,j], E_3[i,j]])
+#         tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j]])
+#         print(temp)
+#         min = np.argmin(temp)
+#         if tempC[min] == 0:
+#             phase[i,j] = min
+#         else:
+#             phase[i,j] = np.nan
+#     # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
+#     # a.solvemeanfield()
+#     # E_6[i] = a.MFE()
+# np.savetxt("FFvsPi_energy_0.txt", E)
+# np.savetxt("FFvsPi_energy_pi.txt", Epi)
+# np.savetxt("FFvsPi_energy_pi3.txt", E_3)
+# np.savetxt("FFvsPi_energy_pi4.txt", E_4)
 
-plt.imshow(phase.T, origin='lower', extent=[-0.1, 0.1, 0, 0.5], aspect='auto')
-plt.savefig("phase_w_FF.pdf")
-plt.clf()
+
+# np.savetxt("FFvsPi_condensed_0.txt", C)
+# np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
+# np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
+# np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
+
+# plt.imshow(phase.T, origin='lower', extent=[-0.1, 0.1, 0, 0.5], aspect='auto')
+# plt.savefig("phase_w_FF.pdf")
+# plt.clf()
 
 
 # # a.graph_loweredge(False,axs,'b')
@@ -1027,37 +1027,6 @@ plt.clf()
 # BC = a.condensed
 # # plt.show()
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
-
-
-
-def FFFluxGen(flux):
-    return np.array([3*flux, flux, flux, flux])
-
-def nS1helper(filename1, filename2, filename3, fileout):
-    nznzMFE = np.loadtxt(filename1+"_MFE.txt")
-    z1z1MFE = np.loadtxt(filename2+"_MFE.txt")
-    nzz1MFE = np.loadtxt(filename3+"_MFE.txt")
-    # nzz1MFE = np.flip(nzz1MFE, axis=0)
-    z1nzMFE = np.transpose(nzz1MFE)
-
-    MFE = np.block([[nznzMFE, z1nzMFE],
-                    [nzz1MFE, z1z1MFE]])
-    np.savetxt(fileout+"_MFE.txt",MFE)
-    plt.pcolormesh(MFE)
-    plt.savefig(fileout+"_MFE.png")
-    plt.clf()
-
-    nznzMFE = np.loadtxt(filename1+".txt")
-    z1z1MFE = np.loadtxt(filename2+".txt")
-    nzz1MFE = np.loadtxt(filename3+".txt")
-    # nzz1MFE = np.flip(nzz1MFE, axis=0)
-    z1nzMFE = np.transpose(nzz1MFE)
-    MFE = np.block([[nznzMFE, z1nzMFE],
-                    [nzz1MFE, z1z1MFE]])
-    np.savetxt(fileout+".txt",MFE)
-    plt.pcolormesh(MFE)
-    plt.savefig(fileout+".png")
-    plt.clf()
 
 dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1"
 # dir1 = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_ns=1"
@@ -1111,7 +1080,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
-
+conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):
