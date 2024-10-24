@@ -150,8 +150,11 @@ def I3_integrand(E, lams, Jzz):
     Ep = Jzz / E
     return np.mean(Ep,axis=1)
 
-def I3_integrand_site(E, V, lams, Jzz):
-    E = np.sqrt(2*Jzz*(E+np.repeat(lams, int(E.shape[1]/2))))
+def I3_integrand_site(E, V, lams, Jzz, xyz):
+    if not xyz:
+        E = np.sqrt(2*Jzz*(E+np.repeat(lams, int(E.shape[1]/2))))
+    else:
+        E = np.sqrt(2*Jzz*(E+np.repeat(np.repeat(lams, int(E.shape[1]/4)),2)))
     Ep = contract('ijk, ijk, ik->ij', V, np.conj(V), Jzz/E)
     return Ep
 
@@ -161,19 +164,19 @@ def rho_true_fast(weights, E, lams, Jzz, xyz):
 def rho_true(weights, E, V, lams, Jzz, xyz):
     if not xyz:
         size = int(E.shape[1]/2)
-        Ep = I3_integrand_site(E, V, lams, Jzz)
+        Ep = I3_integrand_site(E, V, lams, Jzz, xyz)
         lamAl, lamBl = np.mean(Ep[:, 0:size], axis=1), np.mean(Ep[:, size:2 * size], axis=1)
         return np.array([np.real(np.dot(weights, lamAl)), np.real(np.dot(weights, lamBl))])
     else:
         size = int(E.shape[1]/4)
-        Ep = I3_integrand_site(E, V, lams, Jzz)
+        Ep = I3_integrand_site(E, V, lams, Jzz, xyz)
         lamAl1, lamBl1 = np.mean(Ep[:, 0:size], axis=1), np.mean(Ep[:, size:2 * size], axis=1)
         lamAl2, lamBl2 = np.mean(Ep[:, 2*size:3*size], axis=1), np.mean(Ep[:, 3*size:4 * size], axis=1)
         return np.array([np.real(np.dot(weights, lamAl1)+np.dot(weights, lamAl2)), np.real(np.dot(weights, lamBl1)+np.dot(weights, lamBl2))])
 
 
-def rho_true_site(weights, E, V, lams, Jzz):
-    return integrate_fixed(I3_integrand_site, weights, E, V, lams, Jzz)
+def rho_true_site(weights, E, V, lams, Jzz, xyz):
+    return integrate_fixed(I3_integrand_site, weights, E, V, lams, Jzz, xyz)
 
 #endregion
 
@@ -1102,8 +1105,8 @@ class piFluxSolver:
         if a == 0:
             self.h = -1j*self.h
         self.inversion = True
-        if FF == True:
-            self.inversion = False
+        # if FF == True:
+        #     self.inversion = False
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -1191,7 +1194,7 @@ class piFluxSolver:
         return rho_true(self.weights, self.E, lam,self.Jzz)
 
     def rho_site(self):
-        return rho_true_site(self.weights, self.E, self.V, self.lams,self.Jzz)
+        return rho_true_site(self.weights, self.E, self.V, self.lams,self.Jzz, (not self.Jpmpm==0))
 
     def calmeanfield(self):
         E, V = self.LV_zero(np.concatenate((self.pts,self.qmin)))
@@ -1203,19 +1206,19 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        return xi + xiC
+        # xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        # return xi + xiC
         # else:
-        # return xi
+        return xi
     
     def solvechifield(self):
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        return chi + chiC
+        # chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        # return chi + chiC
         # else:
-        # return chi
+        return chi
     
     def updateMF(self):
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
@@ -1364,10 +1367,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                if diverge:
-                    self.inversion = False
-                else:
-                    self.inversion = True
+                # if diverge:
+                #     self.inversion = False
+                # else:
+                #     self.inversion = True
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
@@ -1473,7 +1476,10 @@ class piFluxSolver:
                     self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
 
     def E_pi_mean(self, k):
-        E = np.mean(np.sqrt(2 * self.Jzz *(self.E+self.lams[0])), axis=1)
+        if self.Jpmpm == 0:
+            E = np.mean(np.sqrt(2 * self.Jzz *(self.E+np.repeat(self.lams, int(self.E.shape[1]/2)))), axis=1)
+        else:
+            E = np.mean(np.sqrt(2 * self.Jzz *(self.E+np.repeat(np.repeat(self.lams, int(self.E.shape[1]/4)),2))), axis=1)
         return E
 
     def E_pi(self, k):
