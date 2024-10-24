@@ -1105,8 +1105,8 @@ class piFluxSolver:
         if a == 0:
             self.h = -1j*self.h
         self.inversion = True
-        # if FF == True:
-        #     self.inversion = False
+        if FF == True:
+            self.inversion = False
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -1206,19 +1206,19 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        return xi + xiC
+        # xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        # return xi + xiC
         # else:
-        # return xi
+        return xi
     
     def solvechifield(self):
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        return chi + chiC
+        # chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        # return chi + chiC
         # else:
-        # return chi
+        return chi
     
     def updateMF(self):
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
@@ -1367,10 +1367,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                # if diverge:
-                #     self.inversion = False
-                # else:
-                #     self.inversion = True
+                if diverge:
+                    self.inversion = False
+                else:
+                    self.inversion = True
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
