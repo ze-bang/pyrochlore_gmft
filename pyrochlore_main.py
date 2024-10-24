@@ -915,8 +915,8 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
-NJpm = 30
-NH = 30
+NJpm = 20
+NH = 20
 Jpm = np.linspace(-0.1, 0.1, NJpm)
 h = np.linspace(0.0, 0.5, NH)
 E = np.zeros((NJpm,NH))
