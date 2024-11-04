@@ -915,74 +915,133 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
-NJpm = 20
-NH = 20
-Jpm = np.linspace(-0.1, 0.1, NJpm)
-h = np.linspace(0.0, 0.5, NH)
-E = np.zeros((NJpm,NH))
-Epi = np.zeros((NJpm,NH))
-E_3 = np.zeros((NJpm,NH))
-E_4 = np.zeros((NJpm,NH))
+# NJpm = 15
+# NH = 15
+# Jpm = np.linspace(-0.1, 0.1, NJpm)
+# h = np.linspace(0.0, 0.5, NH)
+# E = np.zeros((NJpm,NH))
+# Epi = np.zeros((NJpm,NH))
+# E_3 = np.zeros((NJpm,NH))
+# E_4 = np.zeros((NJpm,NH))
+#
+# C = np.zeros((NJpm,NH))
+# Cpi = np.zeros((NJpm,NH))
+# C_3 = np.zeros((NJpm,NH))
+# C_4 = np.zeros((NJpm,NH))
+# #
+# phase = np.zeros((NJpm,NH))
+# #
+# E = np.loadtxt("FFvsPi_energy_0.txt")
+# Epi = np.loadtxt("FFvsPi_energy_pi.txt")
+# E_3 = np.loadtxt("FFvsPi_energy_pi3.txt")
+#
+# C = np.loadtxt("FFvsPi_condensed_0.txt")
+# Cpi = np.loadtxt("FFvsPi_condensed_pi.txt")
+# C_3 = np.loadtxt("FFvsPi_condensed_pi3.txt")
 
-C = np.zeros((NJpm,NH))
-Cpi = np.zeros((NJpm,NH))
-C_3 = np.zeros((NJpm,NH))
-C_4 = np.zeros((NJpm,NH))
-
-phase = np.zeros((NJpm,NH))
-
-fig, axs = plt.subplots()
-
-for i in range(NJpm):
-    for j in range(NH):
-        Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
-        a.solvemeanfield()
-        E[i,j] = a.MFE()
-        C[i,j] = a.condensed
-
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
-        a.solvemeanfield()
-        Epi[i,j] = a.MFE()
-        Cpi[i,j] = a.condensed
-
-        a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(-np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
-        a.solvemeanfield()
-        E_3[i,j] = a.MFE()
-        C_3[i,j] = a.condensed
-
-        # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
-        # a.solvemeanfield()
-        # E_4[i,j] = a.MFE()
-        # C_4[i,j] = a.condensed
-
-
-        temp = np.array([E[i,j], Epi[i,j], E_3[i,j]])
-        tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j]])
-        print(temp)
-        min = np.argmin(temp)
-        if tempC[min] == 0:
-            phase[i,j] = min
-        else:
-            phase[i,j] = np.nan
-    # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
-    # a.solvemeanfield()
-    # E_6[i] = a.MFE()
-np.savetxt("FFvsPi_energy_0.txt", E)
-np.savetxt("FFvsPi_energy_pi.txt", Epi)
-np.savetxt("FFvsPi_energy_pi3.txt", E_3)
-np.savetxt("FFvsPi_energy_pi4.txt", E_4)
-
-
-np.savetxt("FFvsPi_condensed_0.txt", C)
-np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
-np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
-np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
-
-plt.imshow(phase.T, origin='lower', extent=[-0.1, 0.1, 0, 0.5], aspect='auto')
-plt.savefig("phase_w_FF.pdf")
-plt.clf()
-
+# fig, axs = plt.subplots()
+#
+# for i in range(NJpm):
+#     for j in range(NH):
+#         Jxx, Jyy, Jzz = -2*(Jpm[i]),  1.,        2*(-Jpm[i])
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4)*np.pi, h=h[j], n=h111, simplified=False)
+#         a.solvemeanfield()
+#         E[i,j] = a.MFE()
+#         C[i,j] = a.condensed
+#
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
+#         a.solvemeanfield()
+#         Epi[i,j] = a.MFE()
+#         Cpi[i,j] = a.condensed
+#
+#         a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(-np.pi/3), h=h[j], n=h111, simplified=False, FF=True)
+#         a.solvemeanfield()
+#         E_3[i,j] = a.MFE()
+#         C_3[i,j] = a.condensed
+#
+#         # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/4), h=h[j], n=h111, simplified=False, FF=True)
+#         # a.solvemeanfield()
+#         # E_4[i,j] = a.MFE()
+#         # C_4[i,j] = a.condensed
+#
+#
+#         temp = np.array([E[i,j], Epi[i,j], E_3[i,j]])
+#         tempC = np.array([C[i,j], Cpi[i,j], C_3[i,j]])
+#         min = np.argmin(temp)
+#         print(temp, tempC, min)
+#         if not tempC[min]:
+#             phase[i,j] = min
+#         else:
+#             phase[i,j] = np.nan
+#     # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
+#     # a.solvemeanfield()
+#     # E_6[i] = a.MFE()
+# np.savetxt("FFvsPi_energy_0.txt", E)
+# np.savetxt("FFvsPi_energy_pi.txt", Epi)
+# np.savetxt("FFvsPi_energy_pi3.txt", E_3)
+# # np.savetxt("FFvsPi_energy_pi4.txt", E_4)
+# #
+# #
+# np.savetxt("FFvsPi_condensed_0.txt", C)
+# np.savetxt("FFvsPi_condensed_pi.txt", Cpi)
+# np.savetxt("FFvsPi_condensed_pi3.txt", C_3)
+# # np.savetxt("FFvsPi_condensed_pi4.txt", C_4)
+#
+#
+#
+# plt.imshow(phase.T, origin='lower', extent=[-0.1, 0.1, 0, 0.5], aspect='auto')
+# plt.savefig("phase_w_FF.pdf")
+# plt.clf()
+#
+# Jpmpm = 0.2
+# NJpm = 1
+# NH = 50
+# # Jpm = np.linspace(-0.1, 0.1, NJpm)
+# h = np.linspace(0.0, 0.03, NH)
+# E_1 = np.zeros((NJpm,NH))
+# E_2 = np.zeros((NJpm,NH))
+# E_3 = np.zeros((NJpm,NH))
+#
+# C_1 = np.zeros((NJpm,NH))
+# C_2 = np.zeros((NJpm,NH))
+# C_3 = np.zeros((NJpm,NH))
+# #
+# phase = np.zeros((NJpm,NH))
+#
+#
+# fig, axs = plt.subplots()
+#
+# for j in range(NH):
+#     Jxx, Jyy, Jzz = -2*(0.3 + Jpmpm),  1.,        2*(-0.3 + Jpmpm)
+#     a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h111, simplified=False)
+#     a.solvemeanfield()
+#     E_1[i,j] = a.MFE()
+#     C_1[i,j] = a.condensed
+#
+#     a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h110, simplified=False)
+#     a.solvemeanfield()
+#     E_2[i,j] = a.MFE()
+#     C_2[i,j] = a.condensed
+#
+#     a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4)*np.pi, h=h[j], n=h001, simplified=False, FF=True)
+#     a.solvemeanfield()
+#     E_3[i,j] = a.MFE()
+#     C_3[i,j] = a.condensed
+#
+#     # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=FFFluxGen(np.pi/6), h=h[i], n=h111, simplified=False, FF=True)
+#     # a.solvemeanfield()
+#     # E_6[i] = a.MFE()
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_111_MFE.txt", E_1)
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_110_MFE.txt", E_2)
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_001_MFE.txt", E_3)
+# #
+# #
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_111txt", C_1)
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_110.txt", C_2)
+# np.savetxt("Jpmpm=0.2_Jpm=0.3_001.txt", C_3)
+#
+# plt.plot(h, C_1, h, C_2, h, C_3)
+# plt.savefig("Jpmpm=0.2_Jpm=0.3.pdf")
 
 # # a.graph_loweredge(False,axs,'b')
 # # a.graph_upperedge(True,axs,'b')
@@ -1008,14 +1067,17 @@ plt.clf()
 
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = -0.05,     1,         0.8
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-# a.solvemeanfield()
+Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=False)
+a.solvemeanfield()
 # a.graph(axs)
-# A = a.MFE()
-# AC = a.condensed
-# plt.show()
+print(a.magnetization())
+
+Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=True)
+a.solvemeanfield()
+# a.graph(axs)
+print(a.magnetization())
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)

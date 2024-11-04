@@ -354,10 +354,10 @@ def findlambda_pi(kappa, tol, lamM, Jzz, weights, E, M, xyz=False, inversion=Tru
         lams = (lamMax+lamMin)/2
         if not inversion:
             if not xyz:
-                M = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
+                tempM = M + np.diag(np.repeat(lams, int(M.shape[1]/2)))
             else:
-                M = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)),2))
-            E, V = np.linalg.eigh(M)
+                tempM = M + np.diag(np.repeat(np.repeat(lams, int(M.shape[1]/4)),2))
+            E, V = np.linalg.eigh(tempM)
         try:
             if inversion:
                 rhoguess = rho_true_fast(weights, E, lams, Jzz, xyz)
@@ -1105,8 +1105,8 @@ class piFluxSolver:
         if a == 0:
             self.h = -1j*self.h
         self.inversion = True
-        if FF == True:
-            self.inversion = False
+        # if FF == True:
+        #     self.inversion = False
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -1206,19 +1206,19 @@ class piFluxSolver:
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         xi = xiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        # xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
-        # return xi + xiC
+        xiC = xiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.xi_field, self.PSGparams)
+        return xi + xiC
         # else:
-        return xi
+        # return xi
     
     def solvechifield(self):
         E = np.sqrt(2*self.Jzz*(self.E+np.repeat(np.repeat(self.lams,int(self.E.shape[1]/4)),2)))
         chi = chiCal(E, self.V, self.Jzz, self.n, self.n1, self.n2, self.pts, self.weights, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
         # if self.Jpm > -0.175:
-        # chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
-        # return chi + chiC
+        chiC = chiCalCondensed(self.rhos, self.qmin, self.n, self.n1, self.n2, self.unitcellCoord, self.unitCellgraph, self.chi_field, self.PSGparams)
+        return chi + chiC
         # else:
-        return chi
+        # return chi
     
     def updateMF(self):
         self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
@@ -1367,10 +1367,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                if diverge:
-                    self.inversion = False
-                else:
-                    self.inversion = True
+                # if diverge:
+                #     self.inversion = False
+                # else:
+                #     self.inversion = True
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
@@ -1638,27 +1638,6 @@ class piFluxSolver:
         E = np.sqrt(2 * self.Jzz * E)
         return green_pi_branch(E, V, self.Jzz), E, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitCellgraph
 
-    def mag_integrand(self, k):
-        # E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
-        #      self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
-        E = np.sqrt(2 * self.Jzz * (self.E+self.lams[0]))
-        green = green_pi(E, self.V, self.Jzz)
-
-        ffact = contract('ik, jk->ij', k, NN)
-        ffact = np.exp(1j * ffact)
-        l = len(self.A_pi_here)
-        zmag = contract('k,ik->i', self.n, z)
-
-        # magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
-        #              np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
-        # magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
-        #              np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
-        # mag = (magp + magn)/2
-
-        mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l))
-
-        # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
-        return mag
 
     def order(self):
         if self.condensed and not self.Jpmpm == 0:
@@ -1669,12 +1648,29 @@ class piFluxSolver:
     def gap(self):
         return np.sqrt(2*self.Jzz*(np.min(self.E)+self.lams[0]))
 
+    def mag_integrand(self, k):
+        # E, V = E_pi(k, self.lams, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
+        #      self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.unitCellgraph)
+        E = np.sqrt(2 * self.Jzz * (self.E+self.lams[0]))
+        green = green_pi(E, self.V, self.Jzz)
+
+        ffact = contract('ik, jk->ij', k, NN)
+        ffact = np.exp(1j * ffact)
+        l = len(self.A_pi_here)
+        zmag = contract('k,ik->i', self.n, z)
+        magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
+                     np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
+        magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
+                     np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
+        mag = (magp + magn)/2
+
+        # mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l))
+
+        # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
+        return mag
     def magnetization(self):
         sz = np.einsum('k,k->',self.mag_integrand(self.pts), self.weights)
-        # zmag = contract('k,ik->i', self.n, z)
         mag = sz
-        # mag = contract('ua, ru,a->r', z, sz, self.n)
-        # print(sz)
         if self.condensed:
             mag = np.nan
         return np.real(mag)
