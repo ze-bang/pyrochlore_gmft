@@ -776,6 +776,7 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
 def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0):
+    pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
@@ -1432,6 +1433,7 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
 
 def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
+    pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW1, W1X1, X1Gamma))
