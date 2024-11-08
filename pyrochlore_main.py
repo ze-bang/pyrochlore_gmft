@@ -1008,14 +1008,17 @@ E_4 = np.zeros((NJpm,NH))
 
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = -0.05,     1,         0.8
-# fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.0, n=h111,simplified=False)
-# a.solvemeanfield()
+Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=False)
+a.solvemeanfield()
 # a.graph(axs)
-# A = a.MFE()
-# AC = a.condensed
-# plt.show()
+print(a.magnetization())
+
+Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=True)
+a.solvemeanfield()
+# a.graph(axs)
+print(a.magnetization())
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
