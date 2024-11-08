@@ -38,7 +38,7 @@ if Jpmpm == 0 and field_dir == "111":
     elif flux_ind_ns_ind == 1:
         flux = np.ones(4)*np.pi
     elif flux_ind_ns_ind == 2:
-        flux = FFFluxGen(np.pi/6)
+        flux = FFFluxGen(np.pi/3)
         FF = True
 else:
     if flux_ind_ns_ind == 0:
@@ -67,9 +67,9 @@ h_length_end = hmin + (h_length+1) * h_unit
 if Jpmpm == 0:
     filename = "pyrochlore_mag_phase_" + str(field_dir) + "_Jpmpm=0/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
 else:
-    filename = "pyrochlore_mag_phase_" + str(field_dir) + "/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
+    filename = "pyrochlore_mag_phase_" + str(field_dir) + "_no_condensate/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
 
 
 nK = int(np.sqrt(int(mpi_size)))
-
+print(filename)
 findPhaseMag_separate(Jpm_length_start, Jpm_length_end, nK, h_length_start, h_length_end, nK, h_dir, flux, 30, 2, filename, Jpmpm=Jpmpm, FF=FF)

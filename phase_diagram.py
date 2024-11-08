@@ -458,18 +458,20 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
     sendtemp2 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp3 = np.zeros(currsizeK, dtype=np.float64)
     sendtemp4 = np.zeros(currsizeK, dtype=np.float64)
-
+    sendtemp5 = np.zeros(currsizeK, dtype=np.float64)
 
     rectemp = None
     rectemp2 = None
     rectemp3 = None
     rectemp4 = None
+    rectemp5 = None
 
     if rank == 0:
         rectemp = np.zeros(le, dtype=np.float64)
         rectemp2 = np.zeros(le, dtype=np.float64)
         rectemp3 = np.zeros(le, dtype=np.float64)
         rectemp4 = np.zeros(le, dtype=np.float64)
+        rectemp5 = np.zeros(le, dtype=np.float64)
 
     for i in range(currsizeK):
         if Jxx == True:
@@ -477,23 +479,33 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
                                       BZres=BZres, flux=flux, FF=FF)
         else:
             py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux, FF=FF)
-        py0s.solvemeanfield()
-        sendtemp[i] = py0s.condensed
-        sendtemp2[i] = py0s.MFE()
-        sendtemp3[i] = py0s.lams[0]
-        sendtemp4[i] = py0s.magnetization()
+        warnings.filterwarnings('error')
+        try:
+            py0s.solvemeanfield()
+            sendtemp[i] = py0s.condensed
+            sendtemp2[i] = py0s.MFE()
+            sendtemp3[i] = (py0s.xi<=1e-8).all()
+            sendtemp4[i] = (py0s.chi<=1e-8).all()
+            sendtemp5[i] = py0s.magnetization()
+        except:
+            sendtemp[i] = True
+            sendtemp2[i] = np.nan
+            sendtemp3[i] = np.nan
+            sendtemp4[i] = np.nan
+            sendtemp5[i] = np.nan
+        warnings.resetwarnings()
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0], 0))
     sendcounts4 = np.array(comm.gather(sendtemp4.shape[0], 0))
-    # sendcounts5 = np.array(comm.gather(sendtemp5.shape[0], 0))
+    sendcounts5 = np.array(comm.gather(sendtemp5.shape[0], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
     comm.Gatherv(sendbuf=sendtemp4, recvbuf=(rectemp4, sendcounts4), root=0)
-    # comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
+    comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
 
     if rank == 0:
@@ -501,18 +513,19 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
-        # rectemp5 = rectemp5.reshape((nK, nH))
+        rectemp5 = rectemp5.reshape((nK, nH))
         np.savetxt('Files/' + filename+'.txt', rectemp)
         np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
-        np.savetxt('Files/' + filename + '_lam.txt', rectemp3)
-        np.savetxt('Files/' + filename + '_mag.txt', rectemp4)
+        np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
+        np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
+        np.savetxt('Files/' + filename + '_mag.txt', rectemp5)
 
-        JP = np.linspace(JPm, JPmax, nK)
-        h = np.linspace(hm, hmax, nH)
-        graphMagPhase(JP, h, rectemp, 'Files/' + filename)
-        graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
-        graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
-        graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
+        # JP = np.linspace(JPm, JPmax, nK)
+        # h = np.linspace(hm, hmax, nH)
+        # graphMagPhase(JP, h, rectemp, 'Files/' + filename)
+        # graphColorMesh(JP, h, rectemp2,'Files/' + filename + '_MFE')
+        # graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
+        # graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5,fmt="%s")
 
 
@@ -846,8 +859,8 @@ def findXYZPhase_separate(JPm, JPmax, JP1m, JP1max, nK, BZres, kappa, flux, file
         except:
             sendtemp[i] = np.nan
             sendtemp2[i] = np.nan
-            sendtemp3[i] = (py0s.xi<=1e-8).all()
-            sendtemp4[i] = (py0s.chi<=1e-8).all()
+            sendtemp3[i] = np.nan
+            sendtemp4[i] = np.nan
         warnings.resetwarnings()
     sendcounts = np.array(comm.gather(sendtemp.shape[0], 0))
     sendcounts2 = np.array(comm.gather(sendtemp2.shape[0], 0))
@@ -1146,6 +1159,7 @@ def conclude_XYZ_finite_field(filename, Jpmin, Jpmax, hmin, hmax):
 
 
 def conclude_XYZ_0_field_job_array(filename):
+
     import os
 
     num_grids = 0
@@ -1162,6 +1176,7 @@ def conclude_XYZ_0_field_job_array(filename):
     phase = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
     MFEs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
     XIs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    CHIs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
     print(num_grids, grid_reso)
     mult = int(total_job)/4
     for files in os.listdir(filename):
@@ -1205,6 +1220,18 @@ def conclude_XYZ_0_field_job_array(filename):
 
                 XI = np.array([XI0, XI1, XI2, XI3])
 
+                temp = filename+'/'+dump+"_"+dump1+"_0_flux_0.0_"+str(int(job_id))+"_out_of_"+total_job+"_chi.txt"
+                temp1 = filename+'/'+dump+"_"+dump1+"_0_flux_1.0_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_chi.txt"
+                temp2 = filename+'/'+dump+"_"+dump1+"_pi_flux_0.0_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_chi.txt"
+                temp3 = filename+'/'+dump+"_"+dump1+"_pi_flux_1.0_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_chi.txt"
+
+                CHI0 = np.loadtxt(temp)
+                CHI1 = np.loadtxt(temp1)
+                CHI2 = np.loadtxt(temp2)
+                CHI3 = np.loadtxt(temp3)
+
+                CHI = np.array([CHI0, CHI1, CHI2, CHI3])
+
                 JPM_PARAM_SIZE = int(total_job) / 4
                 SlURM_ID = int(job_id) - 1
                 flux_ind_ns_ind = SlURM_ID // JPM_PARAM_SIZE
@@ -1241,6 +1268,7 @@ def conclude_XYZ_0_field_job_array(filename):
                             phase[i+offset_x,j+offset_y] = a//2
                             MFEs[i+offset_x, j+offset_y] = MFE[a, i, j]
                             XIs[i+offset_x, j+offset_y] = XI[a, i, j]
+                            CHIs[i+offset_x, j+offset_y] = CHI[a, i, j]
                         else:
                             phase[i+offset_x,j+offset_y] = np.nan
                         
@@ -1281,6 +1309,237 @@ def conclude_XYZ_0_field_job_array(filename):
     plt.savefig(filename+"_xi.pdf")
     plt.clf()
 
+    plt.imshow(CHIs.T, origin='lower', interpolation='bilinear', extent=[-1, 1, -1, 1], aspect='equal')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_chi.pdf")
+    plt.clf()
+def conclude_XYZ_finite_field_job_array(filename):
+
+    import os
+
+    num_grids = 0
+    grid_reso = 0
+
+    stuff = filename.split("_")
+    Jpmpm = 0.2
+
+    for i in stuff:
+        if i == "Jpmpm=0":
+            Jpmpm = 0
+
+    field_dir = stuff[3]
+    Jstart = -0.5 + Jpmpm
+    Jend = 0.1
+    Hstart = 0
+    Hend = 0.5
+
+    if field_dir == "110":
+        num_sec = 4
+    else:
+        num_sec = 2
+
+    for files in os.listdir(filename):
+        if files.endswith("MFE.txt"):
+            dump, Jpm_start, Jpm_end, dump1, h_start, h_end, job_id, dump2, dump3, total_job, dump4 = files.split("_")
+            d0 = np.loadtxt(filename+"/"+files)
+            num_grids = int(np.sqrt(int(total_job)/num_sec))
+            grid_reso = len(d0)
+            break
+    
+    phase = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    MFEs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    XIs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    CHIs = np.zeros((num_grids*grid_reso, num_grids*grid_reso))
+    print(num_grids, grid_reso)
+    mult = int(total_job)/num_sec
+    print(mult)
+    for files in os.listdir(filename):
+        if files.endswith("MFE.txt"):
+            dump, Jpm_start, Jpm_end, dump1, h_start, h_end, job_id, dump2, dump3, total_job, dump4 = files.split("_")
+
+            if int(job_id) <= mult:
+                if num_sec == 4:
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+".txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+".txt"
+                    temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+".txt"
+                    temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+".txt"
+
+                    d0 = np.loadtxt(temp)
+                    d1 = np.loadtxt(temp1)
+                    d2 = np.loadtxt(temp2)
+                    d3 = np.loadtxt(temp3)
+
+                    D = np.array([d0,d1,d2,d3])
+
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_MFE.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_MFE.txt"
+                    temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_MFE.txt"
+                    temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_MFE.txt"
+
+                    MFE0 = np.loadtxt(temp)
+                    MFE1 = np.loadtxt(temp1)
+                    MFE2 = np.loadtxt(temp2)
+                    MFE3 = np.loadtxt(temp3)
+
+                    MFE = np.array([MFE0, MFE1, MFE2, MFE3])
+
+
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_xi.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_xi.txt"
+                    temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_xi.txt"
+                    temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_xi.txt"
+
+                    
+                    XI0 = np.loadtxt(temp)
+                    XI1 = np.loadtxt(temp1)
+                    XI2 = np.loadtxt(temp2)
+                    XI3 = np.loadtxt(temp3)
+
+                    XI = np.array([XI0, XI1, XI2, XI3])
+
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_chi.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_chi.txt"
+                    temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_chi.txt"
+                    temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_chi.txt"
+
+                    
+                    CHI0 = np.loadtxt(temp)
+                    CHI1 = np.loadtxt(temp1)
+                    CHI2 = np.loadtxt(temp2)
+                    CHI3 = np.loadtxt(temp3)
+
+                    CHI = np.array([CHI0, CHI1, CHI2, CHI3])
+                else:
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+".txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+".txt"
+
+                    d0 = np.loadtxt(temp)
+                    d1 = np.loadtxt(temp1)
+
+                    D = np.array([d0,d1])
+
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_MFE.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_MFE.txt"
+
+                    MFE0 = np.loadtxt(temp)
+                    MFE1 = np.loadtxt(temp1)
+
+
+                    MFE = np.array([MFE0, MFE1])
+
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_xi.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_xi.txt"
+
+                    XI0 = np.loadtxt(temp)
+                    XI1 = np.loadtxt(temp1)
+
+
+                    XI = np.array([XI0, XI1])
+
+    
+                    temp = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(job_id))+"_out_of_"+total_job+"_chi.txt"
+                    temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_chi.txt"
+                    
+                    CHI0 = np.loadtxt(temp)
+                    CHI1 = np.loadtxt(temp1)
+
+                    CHI = np.array([CHI0, CHI1])
+                JPM_PARAM_SIZE = int(total_job) / num_sec
+                SlURM_ID = int(job_id) - 1
+                flux_ind_ns_ind = SlURM_ID // JPM_PARAM_SIZE
+
+                if Jpmpm == 0 and field_dir == "111":
+                    if flux_ind_ns_ind == 0:
+                        flux = np.zeros(4)
+                    elif flux_ind_ns_ind == 1:
+                        flux = np.ones(4)*np.pi
+                    elif flux_ind_ns_ind == 2:
+                        flux = FFFluxGen(np.pi/3)
+                        FF = True
+                else:
+                    if flux_ind_ns_ind == 0:
+                        flux = np.zeros(4)
+                    elif flux_ind_ns_ind == 1:
+                        flux = np.ones(4)*np.pi
+                    elif flux_ind_ns_ind == 2:
+                        flux = zppz
+                    else:
+                        flux = pzzp
+
+                Jpm_section = int(np.sqrt(JPM_PARAM_SIZE))
+                JPM_SECTION_ID = int(SlURM_ID) % JPM_PARAM_SIZE
+
+                Jpm_length = int(JPM_SECTION_ID) // Jpm_section
+                Jpm_width = int(JPM_SECTION_ID) % Jpm_section
+
+                # Jpm_unit = np.abs(Jend-Jstart)/Jpm_section
+                # h_unit = np.abs(Hend-Hstart)/Jpm_section
+
+                offset_x = Jpm_length * grid_reso
+                offset_y = Jpm_width * grid_reso
+
+                for i in range(len(d0)):
+                    for j in range(d0.shape[1]):
+                        # Jxx = Jpm_length_start+((Jpm_length_end-Jpm_length_start)/d0.shape[0]*(i+1))
+                        # Jyy = Jpm_width_start+((Jpm_width_end-Jpm_width_start)/d0.shape[1]*(j+1))
+                        # Jpm = -(Jxx+Jyy)/4
+                        # Jpmpm = (Jxx-Jyy)/4
+                        tempD = MFE[:,i,j]
+                        a = np.argmin(tempD)
+
+                        if not D[a,i,j] and CHI[a, i, j]:
+                            phase[i+offset_x,j+offset_y] = a
+                            MFEs[i+offset_x, j+offset_y] = MFE[a, i, j]
+                            XIs[i+offset_x, j+offset_y] = XI[a, i, j]
+                            CHIs[i+offset_x, j+offset_y] = CHI[a, i, j]
+                        else:
+                            phase[i+offset_x,j+offset_y] = np.nan
+                        
+                        # if  XI[a, i, j] == 0:
+                            # phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if Jpm > 0 and phase[i+offset_x,j+offset_y] == 1:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if (Jxx < -0.35 or Jyy < -0.35) and phase[i+offset_x,j+offset_y] == 0:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
+
+                        # if (Jxx < -0.35 or Jyy < -0.35) and phase[i+offset_x,j+offset_y] == 1 and np.abs(Jpmpm) > 0.15:
+                        #     phase[i+offset_x,j+offset_y] = np.nan
+                        
+                        # if Jpm == 0:
+                        #     phase[i+offset_x,j+offset_y] = 0
+
+
+    plt.imshow(phase.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto', vmin=0, vmax=3)
+    plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+".pdf")
+    plt.clf()
+
+    plt.imshow(MFEs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_MFE.pdf")
+    plt.clf()
+
+    plt.imshow(XIs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_xi.pdf")
+    plt.clf()
+
+    plt.imshow(CHIs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
+    # plt.colorbar()
+    plt.xlabel(r"$J_{xx}/J_{yy}$")
+    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.savefig(filename+"_chi.pdf")
+    plt.clf()
 #endregion
 
 #region Phase for Magnetic Field - Exclusive Boson

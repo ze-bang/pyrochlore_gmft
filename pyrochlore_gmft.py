@@ -1105,8 +1105,8 @@ class piFluxSolver:
         if a == 0:
             self.h = -1j*self.h
         self.inversion = True
-        if FF == True:
-            self.inversion = False
+        # if FF == True:
+        #     self.inversion = False
         self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
@@ -1367,10 +1367,10 @@ class piFluxSolver:
                 self.chi = self.solvechifield()
                 self.updateMF()
                 GS, diverge = self.solvemufield()
-                if diverge:
-                    self.inversion = False
-                else:
-                    self.inversion = True
+                # if diverge:
+                #     self.inversion = False
+                # else:
+                #     self.inversion = True
                 print("Iteration #"+str(count), GS, self.condensed)
                 count = count + 1
                 if (((abs(self.chi-chilast) < tol).all()) and ((abs(self.xi-xilast) < tol).all())) or count > limit:
