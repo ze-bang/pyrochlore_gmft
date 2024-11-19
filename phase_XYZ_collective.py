@@ -33,6 +33,6 @@ Jpm_width_start = -1 + Jpm_width * Jpm_unit
 Jpm_width_end = -1 + (Jpm_width+1) * Jpm_unit
 
 # print(Jpm_length_start, Jpm_length_end, Jpm_width, Jpm_width, flux, nS, SLURM_ID, SLURM_SIZE, MPI_SIZE)
-filename_here = "pyrochlore_XYZ_0_field_no_condensate/pyrochlore_xyz_" + flux_string + "_" + str(nS) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
+filename_here = "pyrochlore_XYZ_0_field_full_con/pyrochlore_xyz_" + flux_string + "_" + str(nS) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
 print(filename_here)
 findXYZPhase_separate(float(Jpm_length_start), float(Jpm_length_end), float(Jpm_width_start), float(Jpm_width_end), int(np.sqrt(int(MPI_SIZE))), 30, 2, flux, filename_here, int(nS), symmetrized=False)
