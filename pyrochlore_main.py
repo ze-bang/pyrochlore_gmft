@@ -1068,13 +1068,13 @@ def nS1helper(filename1, filename2, filename3, fileout):
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=False)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=False)
 a.solvemeanfield()
 # a.graph(axs)
 print(a.magnetization())
 
 Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=True)
+a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=True)
 a.solvemeanfield()
 # a.graph(axs)
 print(a.magnetization())
