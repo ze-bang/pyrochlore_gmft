@@ -1658,13 +1658,13 @@ class piFluxSolver:
         ffact = np.exp(1j * ffact)
         l = len(self.A_pi_here)
         zmag = contract('k,ik->i', self.n, z)
-        magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
-                     np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
-        magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
-                     np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
-        mag = (magp + magn)/2
+        # magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
+        #              np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
+        # magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
+        #              np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
+        # mag = (magp + magn)/2
 
-        # mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l))
+        mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l))
 
         # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
         return mag

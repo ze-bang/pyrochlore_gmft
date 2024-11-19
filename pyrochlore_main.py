@@ -1140,12 +1140,12 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 #
 
 #
-# # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# fig, axs = plt.subplots()
+# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+fig, axs = plt.subplots()
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111)
 # a.solvemeanfield()
 # # a.graph(axs)
-# print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
+# print(a.magnetization())
 # C = a.MFE()
 # CC = a.condensed
 #
@@ -1153,15 +1153,15 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # # Jpmpm=0.2
 # # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.ones(4) * np.pi, h=0.2, n=h111)
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 1, flux=np.zeros(4) * np.pi, h=0.2, n=h111, simplified=True)
 # a.solvemeanfield()
 # # a.graph(axs)
 # D = a.MFE()
 # DC = a.condensed
 #
 # # a.graph(axs)
-# print(a.chi, a.xi, a.magnetization(), a.gap(), a.MFE())
-#
+# print(a.magnetization())
+
 # # plt.show()
 # print(A, B, C, D)
 # print(AC, BC, CC, DC)
