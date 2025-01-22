@@ -66,11 +66,11 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / size**2
-    if not pyp0.Jpmpm == 0:
-        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
-                       greenpQ[:, :, 3*size:4*size, size:2*size],
-                       deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                       ffactpm) / size**2
+    # if not pyp0.Jpmpm == 0:
+    #     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
+    #                    greenpQ[:, :, 3*size:4*size, size:2*size],
+    #                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+    #                    ffactpm) / size**2
     return Spm, Spp
 
 def DSSF_core(q, omega, pyp0, tol):
@@ -308,7 +308,7 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-def nbSpmSpp(K, Q, q, pyp0):
+def SpmSpp(K, Q, q, pyp0):
     greenpK = pyp0.green_pi(K)
     greenpQ = pyp0.green_pi(Q)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
@@ -328,12 +328,6 @@ def nbSpmSpp(K, Q, q, pyp0):
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp)/size**2
-
-    if not pyp0.Jpmpm == 0:
-        SppA = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
-                   piunitcell, piunitcell,
-                   ffactpm)/size**2
-        Spp = Spp + SppA
     return Spm, Spp
 
 def SSSF_core_pedantic(q, v, pyp0):
@@ -1469,21 +1463,21 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         Sxx = contract('iwjk->iw', d3)
         Sxxglobal = contract('iwjk->iw', d4)
 
-        np.savetxt(filename+"Szz.txt", Szz)
-        np.savetxt(filename+"Szzglobal.txt", Szzglobal)
-        np.savetxt(filename+"Sxx.txt", Sxx)
-        np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
+        np.savetxt(filename+"/Szz.txt", Szz)
+        np.savetxt(filename+"/Szzglobal.txt", Szzglobal)
+        np.savetxt(filename+"/Sxx.txt", Sxx)
+        np.savetxt(filename+"/Sxxglobal.txt", Sxxglobal)
 
-        DSSFgraph_pedantic(Szz/np.max(Szz), filename+"Szz", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Szz/np.max(Szz)), filename+"/Szz", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Szzglobal/np.max(Szzglobal)), filename+"/Szzglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Sxx/np.max(Sxx)), filename+"/Sxx", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Sxxglobal/np.max(Sxxglobal)), filename+"/Sxxglobal", kline, e, lowedge, upedge)
 
 
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.max(Szz))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.max(Sxx))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, np.abs(d1), f1, kline, e, n, lowedge, upedge, np.max(Szz))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, np.abs(d2), f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, np.abs(d3), f3, kline, e, n, lowedge, upedge, np.max(Sxx))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, np.abs(d3), f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))

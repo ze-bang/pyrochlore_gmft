@@ -63,7 +63,8 @@ Jpm = 0.03
 
 # SSSF_pedantic(100, 0.5, 1, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_octupolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
 # SSSF_pedantic(100, 1, 0.5, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_dipolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
-# findPhaseMag111(-0.3, 0.1, 40, 0, 0.4, 20, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
-PhaseMag110_linescan(-0.3,0,0.05,20,h110,30,2, "Jpmpm=0.2_Jpm=0.3_110",Jpmpm=0.2)
-PhaseMag111_linescan(-0.3,0,0.05,20,h111,30,2, "Jpmpm=0.2_Jpm=0.3_111",Jpmpm=0.2)
-PhaseMag111_linescan(-0.3,0,0.05,20,h001,30,2, "Jpmpm=0.2_Jpm=0.3_001",Jpmpm=0.2)
+# findPhaseMag111(-0.3, 0.1, 40, 0, 0.4, 20, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.0)
+# PhaseMag110_linescan(-0.3,0,0.05,20,h110,30,2, "Jpmpm=0.2_Jpm=0.3_110",Jpmpm=0.2)
+# PhaseMag111_linescan(-0.3,0,0.05,20,h111,30,2, "Jpmpm=0.2_Jpm=0.3_111",Jpmpm=0.2)
+# PhaseMag111_linescan(-0.3,0,0.05,20,h001,30,2, "Jpmpm=0.2_Jpm=0.3_001",Jpmpm=0.2)
+findPhaseMag110(-0.5, 0.1, 300, 0, 2.2, 150, h110, 30, 2, "phase_110_kappa=2_octupolar")

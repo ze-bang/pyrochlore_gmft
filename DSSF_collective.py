@@ -30,4 +30,4 @@ else:
     flux = np.array([0,np.pi,np.pi,0])
 
 
-DSSF_pedantic(200,-2*Jpm - 2*Jpmpm, 1, -2*Jpm + 2*Jpmpm, h, h_dir, flux, 30, filename)
+DSSF_pedantic(200,-2*Jpm - 2*Jpmpm, 1, -2*Jpm + 2*Jpmpm, h, h_dir, flux, 18, filename)
