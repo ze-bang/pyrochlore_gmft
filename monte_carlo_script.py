@@ -56,7 +56,7 @@ from phase_diagram import *
 # graphallgaugebond(downtetrahedron,ax)
 
 # ax.view_init(elev=0, azim=84, roll=45)
-# ax.set_aspect('equal')
+# nb
 # plt.show()
 # plt.savefig('./Misc/0pp0.pdf')
 

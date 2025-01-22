@@ -123,14 +123,15 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
     return rectemp, rectemp1, rectemp2, rectemp3
 
-def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol):
-    pyp0 = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,h=h,n=hn,flux=flux,BZres=BZres)
+def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol, Jpmpm=0):
+    pyp0 = pycon.piFluxSolver(-2*Jpm-2*Jpmpm,1,-2*Jpm+2*Jpmpm,h=h,n=hn,flux=flux,BZres=BZres)
     pyp0.solvemeanfield()
     Ks = pyp0.pts
     Ek = pyp0.E_pi_reduced(Ks)
@@ -182,7 +183,7 @@ def graph_2S_rho_dumb(E, Jpm, h, hn, flux, BZres, tol, rank, size):
         return rectemp
 
 
-def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
+def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol, Jpmpm=0):
     comm = MPI.COMM_WORLD
     n = len(h) / size
 
@@ -193,6 +194,8 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
             change = 0.17
         else:
             change = 0.2
+    else:
+        change = 0
 
     left = int(rank * n)
     right = int((rank + 1) * n)
@@ -204,18 +207,18 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
     if rank == 0:
         rectemp = np.zeros((len(h), 2*len(E)-1), dtype=np.float64)
     for i in range(currsize):
-        if Jpm == -0.3:
-            flux = np.ones(4) * np.pi
-        elif Jpm == 0.03:
-            flux = np.zeros(4)
-        elif currK[i] > change:
-            if (hn==h110).all():
-                flux = np.array([0,0,np.pi,np.pi])
-            else:
-                flux = np.zeros(4)
-        else:
-            flux = np.ones(4) * np.pi
-        sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol)
+        # if Jpm == -0.3:
+        #     flux = np.ones(4) * np.pi
+        # elif Jpm == 0.03:
+        #     flux = np.zeros(4)
+        # elif currK[i] > change:
+        #     if (hn==h110).all():
+        #         flux = np.array([0,0,np.pi,np.pi])
+        #     else:
+        #         flux = np.zeros(4)
+        # else:
+        flux = np.ones(4) * np.pi
+        sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol, Jpmpm)
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     return rectemp
@@ -308,7 +311,7 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-def nbSpmSpp(K, Q, q, pyp0):
+def SpmSpp(K, Q, q, pyp0):
     greenpK = pyp0.green_pi(K)
     greenpQ = pyp0.green_pi(Q)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
@@ -1211,7 +1214,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         DSSFgraph(d4.T, f4, X, Y)
 
 
-def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
+def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename, Jpmpm=0):
     e = np.linspace(emin, emax, nE)
     tol = (emax-emin)/nE*4
     if not MPI.Is_initialized():
@@ -1233,24 +1236,24 @@ def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
             X, Y = np.meshgrid(h, e)
             DSSFgraph(d1.T, f1, X, Y)
 
-def TwoSpinonDOS_111(nH, BZres, filename):
+def TwoSpinonDOS_111(nH, BZres, filename, Jpmpm=0):
     if not MPI.Is_initialized():
         MPI.Init()
     E = np.linspace(0.2, 0.9, 200)
     tol = 1/200
     h = np.linspace(0,0.5,nH)
-    Jpm=-0.03
+    Jpm=-0.1
     hn = h111
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol, Jpmpm)
 
     if rank == 0:
         f1 = filename
         np.savetxt(f1 + ".txt", d1)
-        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0.2, 0.9], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
         plt.savefig(filename)
