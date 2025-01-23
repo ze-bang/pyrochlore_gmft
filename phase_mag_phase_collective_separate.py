@@ -64,11 +64,13 @@ Jpm_length_end = Jpm_min + (Jpm_length+1) * Jpm_unit
 h_length_start = hmin + h_length * h_unit
 h_length_end = hmin + (h_length+1) * h_unit
 
-if Jpmpm == 0:
-    filename = "pyrochlore_mag_phase_" + str(field_dir) + "_Jpmpm=0/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
-else:
-    filename = "pyrochlore_mag_phase_" + str(field_dir) + "_no_condensate/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
 
+filename = "pyrochlore_mag_phase_" + str(field_dir) + "_Jpmpm="+str(Jpmpm)+"/Jpm_" + str(Jpm_length_start) + "_" + str(Jpm_length_end) + "_h_" + str(h_length_start) + "_" + str(h_length_end) + "_" + str(SLURM_ID) + "_out_of_" + str(SLURM_SIZE)
+
+pdir = "pyrochlore_mag_phase_" + str(field_dir) + "_Jpmpm="+str(Jpmpm)
+
+if not os.path.exists(pdir):
+    os.makedirs(pdir)
 
 nK = int(np.sqrt(int(mpi_size)))
 print(filename)

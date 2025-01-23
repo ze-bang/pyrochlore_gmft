@@ -6,6 +6,7 @@ from misc_helper import *
 import pyrochlore_gmft as pycon
 import pyrochlore_exclusive_boson as pyex
 from mpi4py import MPI
+import os
 
 def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
@@ -508,17 +509,17 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
 
-    if rank == 0:
+    if rank == 0:   
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
         rectemp5 = rectemp5.reshape((nK, nH))
-        np.savetxt('Files/' + filename+'.txt', rectemp)
-        np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
-        np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
-        np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
-        np.savetxt('Files/' + filename + '_mag.txt', rectemp5)
+        np.savetxt(filename+'.txt', rectemp)
+        np.savetxt(filename + '_MFE.txt', rectemp2)
+        np.savetxt(filename + '_xi.txt', rectemp3)
+        np.savetxt(filename + '_chi.txt', rectemp4)
+        np.savetxt(filename + '_mag.txt', rectemp5)
 
         # JP = np.linspace(JPm, JPmax, nK)
         # h = np.linspace(hm, hmax, nH)

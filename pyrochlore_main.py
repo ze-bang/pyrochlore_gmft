@@ -915,14 +915,14 @@ def nS1helper(filename1, filename2, filename3, fileout):
 # plt.savefig("Condensed_Jpm=-0.1.pdf")
 # plt.clf()
 # print(order)
-NJpm = 20
-NH = 20
-Jpm = np.linspace(-0.1, 0.1, NJpm)
-h = np.linspace(0.0, 0.5, NH)
-E = np.zeros((NJpm,NH))
-Epi = np.zeros((NJpm,NH))
-E_3 = np.zeros((NJpm,NH))
-E_4 = np.zeros((NJpm,NH))
+# NJpm = 20
+# NH = 20
+# Jpm = np.linspace(-0.1, 0.1, NJpm)
+# h = np.linspace(0.0, 0.5, NH)
+# E = np.zeros((NJpm,NH))
+# Epi = np.zeros((NJpm,NH))
+# E_3 = np.zeros((NJpm,NH))
+# E_4 = np.zeros((NJpm,NH))
 
 # C = np.zeros((NJpm,NH))
 # Cpi = np.zeros((NJpm,NH))
@@ -1008,17 +1008,17 @@ E_4 = np.zeros((NJpm,NH))
 
 
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=False)
-a.solvemeanfield()
-# a.graph(axs)
-print(a.magnetization())
+# Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=False)
+# a.solvemeanfield()
+# # a.graph(axs)
+# print(a.magnetization())
 
-Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=True)
-a.solvemeanfield()
-# a.graph(axs)
-print(a.magnetization())
+# Jxx, Jyy, Jzz = -0.05,     1,         -0.05
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=True)
+# a.solvemeanfield()
+# # a.graph(axs)
+# print(a.magnetization())
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 # # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
@@ -1051,7 +1051,7 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 
 #
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-fig, axs = plt.subplots()
+# fig, axs = plt.subplots()
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111)
 # a.solvemeanfield()
 # # a.graph(axs)
@@ -1083,10 +1083,10 @@ fig, axs = plt.subplots()
 # conclude_XYZ_0_field("../../Data_Archive/pyrochlore_gmft/phase_XYZ_not_symm/phase_XYZ_0_field", -1, 1)
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
-conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_001")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_111")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_110")
+# conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
+conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_001_Jpmpm=0.2")
+conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_111_Jpmpm=0.2")
+conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_110_Jpmpm=0.2")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):

@@ -1474,16 +1474,16 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         np.savetxt(filename+"Sxx.txt", Sxx)
         np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
 
-        DSSFgraph_pedantic(Szz/np.max(Szz), filename+"Szz", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Szz/np.nanmax(Szz), filename+"Szz", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Szzglobal/np.nanmax(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Sxx/np.nanmax(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(Sxxglobal/np.nanmax(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
 
 
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.max(Szz))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.max(Szzglobal))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.max(Sxx))
-        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.max(Sxxglobal))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.nanmax(Szz))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d2, f2, kline, e, n, lowedge, upedge, np.nanmax(Szzglobal))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f3, kline, e, n, lowedge, upedge, np.nanmax(Sxx))
+        pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d3, f4, kline, e, n, lowedge, upedge, np.nanmax(Sxxglobal))
 
 def samplegraph(nK, filenames):
     fig, axs = plt.subplots(3, len(filenames))

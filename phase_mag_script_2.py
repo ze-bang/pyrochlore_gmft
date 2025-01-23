@@ -37,4 +37,4 @@ Jpm = -0.03
 # DSSF(300, -2*Jpm, -2*Jpm, 1, 0.12, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=-0.03/h110=0.12")
 
 
-findPhaseMag110(-0.3, 0.1, 40, 0, 0.35, 20, h110, 30, 2, "phase_110_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
+findPhaseMag110(-0.3, 0.1, 40, 0, 0.35, 20, h110, 30, 2, "phase_110_kappa=2_Jpmpm=-0.2", Jpmpm=-0.2)
