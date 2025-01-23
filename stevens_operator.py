@@ -1,5 +1,5 @@
 import numpy as np
-
+from opt_einsum import contract
 #Stevens Operator:
 
 #X = J(J+1)
@@ -191,16 +191,51 @@ E1 = V[:, 1]
 E2 = V[:, 2]
 Vabs = np.abs(V)
 Vangle = np.angle(V)
-T = np.zeros((13,3))
+T = np.zeros((13,3), dtype=np.complex128)
 for i in range(3):
     if i == 2:
         Angle = (Vangle[1,i]+Vangle[11,i])/2
-        rot = np.exp(-1j*(Angle-Vangle[1,i]))
+        rot = np.exp(-1j*Angle)
     else:
         Angle = (Vangle[0, i] + Vangle[12, i]) / 2
-        rot = np.exp(-1j * (Angle - Vangle[0, i]))
+        rot = np.exp(-1j * Angle)
     T[:,i] = rot*V[:,i]
 
+E0_paper = np.array([-0.565 + 0.130j, 0, 0.029 + 0.322j,0, 0.202 - 0.069j, 0, -(0.135 + 0.103j), 0, -0.013 + 0.213j, 0, 0.318 - 0.058j, 0, -(0.024 - 0.579j)])
+E1_paper = np.array([0.382 - 0.508j, 0, -(0.196 + 0.209j),0,-0.072 + 0.094j, 0, 0.018j, 0, 0.078 + 0.089j, 0, 0.182 - 0.221j, 0, - 0.414 - 0.482j])
+
+
+E0_angle = np.angle(E0_paper)
+Angle = (E0_angle[0] + E0_angle[12]) / 2
+rot = np.exp(-1j * Angle)
+E0_paper = rot*E0_paper
+
+E1_angle = np.angle(E1_paper)
+Angle = (E1_angle[0] + E1_angle[12]) / 2
+rot = np.exp(-1j * Angle)
+E1_paper = rot*E1_paper
+# print(E0_paper)
+# print(T[:,0])
+# print(E0_paper)
+# print(T[:,0])
+# print(np.abs(E0_paper))
+# print(T[:,0])
 # print(V[:,0], V[:, 1], V[:, 2])
-print(E_adj)
-print(T)
+# print(E)
+# print(T[:,0], T[:, 1], T[:, 2])
+# print(contract('ia, a, i->i', H, T[:,2], 1/T[:,2]))
+# print(contract('ia, a, i->i', H, E2, 1/E2))
+# print(E0_paper + T[:,0])
+# print(contract('ia, a, i->i', H, E0_paper, 1/E0_paper))
+A = T[:,0]
+B = T[:,1]
+print(Jz(A))
+print(B)
+# print(Jz(T[:,0]))
+# print(T[:,1])
+
+print(np.abs(np.dot(B, op_add(Jplus, Jminus, A))/2)**2)
+print(np.abs(np.dot(B, (Jplus(A)-Jminus(A)))/2j)**2)
+print(np.abs(np.dot(B, Jz(A)))**2)
+
+

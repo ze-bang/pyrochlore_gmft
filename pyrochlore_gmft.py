@@ -861,7 +861,7 @@ def chi_wo_field(n, n1, n2, unitcellCoord, chi, chiA, *args):
     return mult
 def xi_w_field_Octu(n, n1, n2, unitcellcoord, xi, args):
     #in the case of 110, three xi mf: xi0, xi1, xi3
-    xi0 = xi[0]
+    xi0 = np.real(xi[0])
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
         if (n==h110).all():
@@ -963,7 +963,7 @@ def chi_w_field_Octu(n, n1, n2, unitcellCoord, chi, chiA, *args):
     return mult
 
 def xi_w_field_Diu(n, n1, n2, unitcellcoord, xi, args):
-    xi0 = xi[0]
+    xi0 = np.real(xi[0])
     #in the case of 110, three xi mf: xi0, xi1, xi3
     mult = np.zeros((len(unitcellcoord),4),dtype=np.complex128)
     for i in range(len(unitcellcoord)):
@@ -1657,20 +1657,20 @@ class piFluxSolver:
         ffact = contract('ik, jk->ij', k, NN)
         ffact = np.exp(1j * ffact)
         l = len(self.A_pi_here)
-        zmag = contract('k,ik->i', self.n, z)
-        # magp = contract('ku, u, ru, urx,krx->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag,
-        #              np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(2*l)
-        # magn = contract('ku, u, ru, urx,krx->k', np.conj(ffact) * (np.cos(self.theta) + 1j * np.sin(self.theta)), zmag,
-        #              np.exp(-1j * self.A_pi_here), self.unitCellgraph, green[:,l:2*l,0:l])/(2*l)
-        # mag = (magp + magn)/2
-
-        mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(2*l))
+        # zmag = contract('k,ik->i', self.n, z)
+        zmag = np.ones(4)
+        # magp = contract('ku, u, ru, urx,krx -> kru', ffact, zmag, np.exp(1j * self.A_pi_here), self.unitCellgraph, green[:,0:l,l:2*l])/(l)
+        magp = contract('ika, ij,jka, kj->ika', green[:, 0:l, l:2*l], ffact, self.unitCellgraph, np.exp(1j * self.A_pi_here))/l
+        # print(np.mean(contract('ika, ij,jka, kj->ika', green[:, 0:l, l:2*l], ffact, self.unitCellgraph, np.exp(1j * self.A_pi_here))/l, axis=0))
+        mag = np.real(magp)
+        # mag = np.real(contract('ku, u,k->k', ffact * (np.cos(self.theta) - 1j * np.sin(self.theta)), zmag, np.sum(green[:,0:l,l:2*l],axis=(1,2)))/(l))
 
         # magp = np.real(contract('ku, ru, krx, urx->rku', ffact, np.exp(1j*self.A_pi_here), green[:, 0:l, l:2*l], self.unitCellgraph))
         return mag
     def magnetization(self):
-        sz = np.einsum('k,k->',self.mag_integrand(self.pts), self.weights)
-        mag = sz
+        sz = np.einsum('kru,k->ru',self.mag_integrand(self.pts), self.weights)
+        print(sz)
+        mag = np.mean(sz)
         if self.condensed:
             mag = np.nan
         return np.real(mag)

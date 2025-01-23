@@ -33,4 +33,4 @@ else:
     flux = np.array([0,np.pi,np.pi,0])
 
 
-SSSF_pedantic(100,-2*Jpmpm - 2*Jpmpm, 1, -2*Jpmpm + 2*Jpmpm, h, h_dir, flux, 30, filename, scatplane, 0, rangem, rangem)
+SSSF_pedantic(100,-2*Jpm - 2*Jpmpm, 1, -2*Jpm + 2*Jpmpm, h, h_dir, flux, 30, filename, scatplane, 0, rangem, rangem)
