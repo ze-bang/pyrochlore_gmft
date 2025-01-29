@@ -1226,7 +1226,7 @@ class piFluxSolver:
         try:
             self.E, self.V = np.linalg.eigh(self.MF)
         except:
-            self.lams = (-np.min(self.E)+1e-16)*np.ones(2)
+            self.lams = (-np.min(self.E)+1e-14)*np.ones(2)
             self.xi = self.solvexifield()
             self.chi = self.solvechifield()
             self.MF = M_pi(self.pts, self.Jpm, self.Jpmpm, self.h, self.n, self.theta, self.chi, self.xi, self.A_pi_here,
