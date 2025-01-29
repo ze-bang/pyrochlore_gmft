@@ -194,6 +194,13 @@ def gNSF(q, v):
             M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
     return M
 
+def gNSFx(q, v):
+    M = np.zeros((4,4))
+    for i in range(4):
+        for j in range(4):
+            M[i,j] = contract('a,a, b, b->',x[i], v, x[j], v)
+    return M
+
 NN = -np.array([np.array([1 / 4, 1 / 4, 1 / 4]), np.array([1 / 4, -1 / 4, -1 / 4]), np.array([-1 / 4, 1 / 4, -1 / 4]), np.array([-1 / 4, -1 / 4, 1 / 4])])
 
 

@@ -5,12 +5,13 @@ from observables import *
 import sys
 
 
-Jpm, Jpmpm, h, field_dir, flux_in, filename = sys.argv[1:]
+Jxx, Jyy, Jzz, theta, h, field_dir, flux_in, filename = sys.argv[1:]
 
-Jpm = float(Jpm)
-Jpmpm = float(Jpmpm)
+Jxx = float(Jxx)
+Jyy = float(Jyy)
+Jzz = float(Jzz)
 h = float(h)
-
+theta = float(theta)
 
 if field_dir == "110":
     h_dir = h110
@@ -33,4 +34,4 @@ else:
     flux = np.array([0,np.pi,np.pi,0])
 
 
-SSSF_pedantic(100,-2*Jpm - 2*Jpmpm, 1, -2*Jpm + 2*Jpmpm, h, h_dir, flux, 30, filename, scatplane, 0, rangem, rangem)
+SSSF_pedantic(100, Jxx, Jyy, Jzz, h, h_dir, flux, 30, filename, scatplane, 0, rangem, rangem, theta=theta)

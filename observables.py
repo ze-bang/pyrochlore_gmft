@@ -357,7 +357,7 @@ def SSSF_core_pedantic(q, v, pyp0):
     Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
     Sxxglobal = contract('ijk, jk,i->jk', Sxx, gx(qreal), pyp0.weights)
     SNSFzz= contract('ijk,jk,i->', Szz, gNSF(qreal, v), pyp0.weights)
-    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(qreal, v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSFx(qreal, v), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
     Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
 
@@ -778,9 +778,9 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gup, f1+"unpolarized", Hr, Lr)
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
-def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0):
+def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0, theta=0):
     pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux, theta=theta)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
     L = np.linspace(-Lr, Lr, nK)
@@ -1435,9 +1435,9 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         graphMethod(gup/dmax, f1+"unpolarized", Hr, Lr, lowedge, upedge)
         graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
 
-def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
+def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename,theta=0):
     pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux,theta=theta)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW1, W1X1, X1Gamma))
     lowedge, upedge = py0s.loweredge(), py0s.upperedge()
