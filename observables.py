@@ -11,8 +11,7 @@ import pathlib
 import netCDF4 as nc
 
 
-def delta(Ek, Eq, omega, tol):
-    beta = 0
+def deltas_beta(Ek, Eq, omega, beta, tol):
     size = Ek.shape[1]
     Ekenlarged = contract('ik,j->ikj', Ek, np.ones(size))
     Eqenlarged = contract('ik,j->ijk', Eq, np.ones(size))
@@ -21,6 +20,14 @@ def delta(Ek, Eq, omega, tol):
     B = contract('ia, ib, iab->iab', 1 + bose(beta, Ek), bose(beta, Eq), cauchy(omega - Ekenlarged + Eqenlarged, tol))
     C = contract('ia, ib, iab->iab', bose(beta, Ek), 1 + bose(beta, Eq), cauchy(omega + Ekenlarged - Eqenlarged, tol))
     D = contract('ia, ib, iab->iab', bose(beta, Ek), bose(beta, Eq), cauchy(omega + Ekenlarged + Eqenlarged, tol))
+    return A + B + C + D
+
+def SSSF_finite_temp_factor(Ek, Eq, beta):
+    size = Ek.shape[1]
+    A = contract('ia, ib->iab', 1 + bose(beta, Ek), 1 + bose(beta, Eq))
+    B = contract('ia, ib->iab', 1 + bose(beta, Ek), bose(beta, Eq))
+    C = contract('ia, ib->iab', bose(beta, Ek), 1 + bose(beta, Eq))
+    D = contract('ia, ib->iab', bose(beta, Ek), bose(beta, Eq))
     return A + B + C + D
 
 def deltas(Ek, Eq, omega, tol):
@@ -42,7 +49,7 @@ def deltas_pairing(Ek, omega, tol):
 
 # region DSSF
 
-def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
+def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta=0):
     greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks, True)
     greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs, True)
 
@@ -53,7 +60,10 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
 
     # Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     Kreal = Ks-q/2
-    deltapm = deltas(tempE, tempQ, omega, tol)
+    if beta == 0:
+        deltapm = deltas(tempE, tempQ, omega, tol)
+    else:
+        deltapm = deltas_beta(tempE, tempQ, omega, beta, tol)
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
     ffactpm = np.exp(1j * ffact)
@@ -312,7 +322,14 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-def SpmSpp(K, Q, q, pyp0):
+
+def SpmSpp(K, Q, q, pyp0, beta=0):
+    if beta == 0:
+        return SpmSpp(K,Q,q,pyp0)
+    else:
+        return SpmSpp_finite_temp(K,Q,q,pyp0, beta)
+
+def SpmSpp_zerotemp(K, Q, q, pyp0):
     greenpK = pyp0.green_pi(K)
     greenpQ = pyp0.green_pi(Q)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
@@ -338,6 +355,38 @@ def SpmSpp(K, Q, q, pyp0):
                    ffactpm)/size**2
         Spp = Spp + SppA
     return Spm, Spp
+
+def SpmSpp_finite_temp(K, Q, q, pyp0, beta):
+    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(K, True)
+    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Q, True)
+
+    if pyp0.Jpmpm ==0:
+        size = int(tempE.shape[1]/2)
+    else:
+        size = int(tempE.shape[1]/4)
+
+    # Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
+    Kreal = K-q/2
+    deltapm = SSSF_finite_temp_factor(tempE, tempQ, beta)
+
+    ffact = contract('ik, jlk->ijl', Kreal, NNminus)
+    ffactpm = np.exp(1j * ffact)
+    ffact = contract('ik, jlk->ijl', Kreal, NNplus)
+    ffactpp = np.exp(1j * ffact)
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
+                   deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
+                   ffactpm) / size**2
+
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
+                   deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+                   ffactpp) / size**2
+    if not pyp0.Jpmpm == 0:
+        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
+                       greenpQ[:, :, 3*size:4*size, size:2*size],
+                       deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+                       ffactpm) / size**2
+    return Spm, Spp
+
 
 def SSSF_core_pedantic(q, v, pyp0):
     Ks = pyp0.pts

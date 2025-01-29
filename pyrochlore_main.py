@@ -17,6 +17,7 @@ from phase_diagram import *
 import pyrochlore_exclusive_boson as pyeb
 from observables import *
 import netCDF4 as nc
+mpl.rcParams.update({'font.size': 25})
 
 def ex_vs_gauge_gs_110(h, n, filename, solvemeanfield=False):
     Jpm = np.linspace(-0.05, 0.05, 30)
@@ -1042,6 +1043,8 @@ def smooth(A):
 # E_3 = np.zeros((NJpm,NH))
 # E_4 = np.zeros((NJpm,NH))
 
+
+
 # C = np.zeros((NJpm,NH))
 # Cpi = np.zeros((NJpm,NH))
 # C_3 = np.zeros((NJpm,NH))
@@ -1126,14 +1129,67 @@ fig, axs = plt.subplots()
 # Jpm = -0.1
 # Jpmpm = 0.0
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=False)
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.ones(4)*np.pi, h=0.1, n=h110, simplified=False)
 # a.solvemeanfield()
-# # a.graph(axs)
+# # a.graph_loweredge(False,axs,'b')
+# # a.graph_upperedge(True,axs,'b')
+# A = a.MFE()
+# AC = a.condensed
+# print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
+# a.graph(axs)
+# plt.show()
+
+A = np.loadtxt("spec_heat.txt", unpack=True)
+# plt.imshow(A, origin="lower", aspect="auto")
+# plt.show()
+A = np.flip(A, axis=1)
+A = A[:,10:]
+A[1] = A[1] * 8.6173303e-2
+Cv_integrand = A[1]/A[0]
+S = np.zeros(len(A[1])-1)
+for i in range(1,len(A[1])):
+    S[i-1] = -np.trapezoid(Cv_integrand[i:], A[0][i:]) + np.log(2)
+plt.plot(A[0,:-1],S, A[0], A[1])
+plt.errorbar(A[0], A[1], A[2])
+plt.xscale('log')
+plt.xlabel(r'$T/|J_{yy}|$')
+plt.legend(['entropy', 'specific heat'])
+plt.show()
+# dir = "Classical_Phase_Diagram"
+# directory = os.fsencode(dir)
+# for file in os.listdir(directory):
+#     filename = os.fsdecode(file)
+#     if filename.endswith(".txt"):
+#         print(filename)
+#         A = np.loadtxt(dir+"/"+filename)
+#         plt.imshow(A.T, extent=[-0.3,0.3,0,15], aspect='auto', origin='lower')
+#         plt.xlabel(r'$J_\pm/J_{yy}$')
+#         plt.ylabel(r'$h/J_{yy}$')
+#         plt.colorbar()
+#         plt.savefig(dir+"/"+filename[:-4]+'.pdf')
+#         plt.clf()
+#         if filename.endswith("_global_mag.txt"):
+#             A_x, A_y = np.gradient(A)
+#             plt.imshow(A_x.T, extent=[-0.3,0.3,0,15], aspect='auto', origin='lower')
+#             plt.xlabel(r'$J_\pm/J_{yy}$')
+#             plt.ylabel(r'$h/J_{yy}$')
+#             plt.savefig(dir+"/"+filename[:-4]+'_dH.pdf')
+#             plt.clf()
+#             plt.imshow(A_y.T, extent=[-0.3,0.3,0,15], aspect='auto', origin='lower')
+#             plt.xlabel(r'$J_\pm/J_{yy}$')
+#             plt.ylabel(r'$h/J_{yy}$')
+#             plt.savefig(dir+"/"+filename[:-4]+'_dJpm.pdf')
+#             plt.clf()
+# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
+# Jxx, Jyy, Jzz = -0.06,     1,         -0.06
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.2, n=h111,simplified=False)
+# a.solvemeanfield()
+# a.graph(axs)
+# plt.show()
 # print(a.magnetization())
 
 # Jxx, Jyy, Jzz = -0.05,     1,         -0.05
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h110,simplified=True)
+# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111,simplified=True)
 # a.solvemeanfield()
 # # a.graph(axs)
 # print(a.magnetization())
@@ -1165,11 +1221,82 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 
 # print(A, B, C)
 # print(AC, BC, CC)
+# Jpm = -0.1
+# Jpmpm = -0.2
+#
+# fig, axs = plt.subplots(nrows=2, figsize=(10, 8), layout="constrained", sharex=True)
+# axs[0].text(.01, .99, r"$(\mathrm{a})$", ha='left', va='top', transform=axs[0].transAxes,
+#                zorder=10)
+# axs[1].text(.01, .99, r"$(\mathrm{b})$", ha='left', va='top', transform=axs[1].transAxes,
+#                zorder=10)
+# a = pycon.piFluxSolver(-2*Jpmpm-2*Jpm, 1, 2*Jpmpm-2*Jpm, flux=np.pi*np.ones(4), h=0.15, n=h110, simplified=True)
+# a.solvemeanfield()
+# # a.graph(axs[0])
+#
+# emin, emax = a.graph_loweredge(False, axs[0]), a.graph_upperedge(False, axs[0])
+# d = np.loadtxt("../XYZ_project/Szzglobal_DSSF.txt")
+# emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
+# # d = DSSFparse(emin, emax, d)
+# c = axs[0].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax],
+#                      aspect='auto', cmap='gnuplot2')
+# fig.colorbar(c, ax=axs[0])
+#
+# Jpm = -0.06
+# Jpmpm = -0.2
+#
+# a = pycon.piFluxSolver(-2*Jpmpm-2*Jpm, 1, 2*Jpmpm-2*Jpm, flux=np.pi*np.ones(4), h=0.2, n=h111, simplified=True)
+# a.solvemeanfield()
+# # a.graph(axs[1])
+#
+# emin, emax = a.graph_loweredge(False, axs[1]), a.graph_upperedge(False, axs[1])
+# d = np.loadtxt("../XYZ_project/Szzglobal_DSSF_111.txt")
+# emin, emax = np.min(emin) * 0.95, np.max(emax) * 1.02
+# # d = DSSFparse(emin, emax, d)
+# c = axs[1].imshow(d.T / np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax],
+#                      aspect='auto', cmap='gnuplot2')
+# fig.colorbar(c, ax=axs[1])
+#
+# plt.savefig("DSSF.pdf")
+# plt.clf()
+
+# fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), layout="constrained", sharex=True)
+# mpl.rcParams.update({'font.size': 25})
+# axs[0, 0].text(.01, .99, r"$(\mathrm{a})$", ha='left', va='top', transform=axs[0, 0].transAxes,
+#                zorder=10)
+# axs[0, 1].text(.01, .99, r"$(\mathrm{b})$", ha='left', va='top', transform=axs[0, 1].transAxes,
+#                zorder=10)
+# axs[1, 0].text(.01, .95, r"$(\mathrm{c})$", ha='left', va='top', transform=axs[1, 0].transAxes, zorder=10)
+# axs[1, 1].text(.01, .95, r"$(\mathrm{d})$", ha='left', va='top', transform=axs[1, 1].transAxes, zorder=10)
+# A = np.loadtxt("../XYZ_project/Szzglobal_Jpm=0.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[0,0], fig)
+# A = np.loadtxt("../XYZ_project/Szzglobal.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[0,1], fig)
+# A = np.loadtxt("../XYZ_project/SzzNSF_Jpm=0.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[1,0], fig)
+# A = np.loadtxt("../XYZ_project/SzzNSF.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[1,1], fig)
+# plt.savefig("SSSF.pdf")
 #
 
+
+
+# fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), layout="constrained", sharex=True)
+# mpl.rcParams.update({'font.size': 25})
+# axs[0, 0].text(.01, .99, r"$(\mathrm{a})$", ha='left', va='top', transform=axs[0, 0].transAxes,
+#                zorder=10)
+# axs[0, 1].text(.01, .99, r"$(\mathrm{b})$", ha='left', va='top', transform=axs[0, 1].transAxes,
+#                zorder=10)
+# axs[1, 0].text(.01, .95, r"$(\mathrm{c})$", ha='left', va='top', transform=axs[1, 0].transAxes, zorder=10)
+# axs[1, 1].text(.01, .95, r"$(\mathrm{d})$", ha='left', va='top', transform=axs[1, 1].transAxes, zorder=10)
+# A = np.loadtxt("../XYZ_project/magneto_110_111_CSO_O.txt")
 #
+# A = np.loadtxt("../XYZ_project/magneto_110_111_CSO_D.txt")
+# A = np.loadtxt("../XYZ_project/magneto_110_111_CHO_O.txt")
+# A = np.loadtxt("../XYZ_project/magneto_110_111_CHO_D.txt")
+# plt.savefig("SSSF.pdf")
+
 # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# fig, axs = plt.subplots()
+fig, axs = plt.subplots()
 # a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.zeros(4) * np.pi, h=0.2, n=h111)
 # a.solvemeanfield()
 # # a.graph(axs)
@@ -1202,9 +1329,9 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
 # conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
-conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_001_Jpmpm=0.2")
-conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_111_Jpmpm=0.2")
-conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_110_Jpmpm=0.2")
+# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_001")
+# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_111")
+# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_110")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):
