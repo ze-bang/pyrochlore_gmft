@@ -608,6 +608,64 @@ def PhaseMag111_linescan(JPm, hm, hmax, nH, n, BZres, kappa, filename, Jxx=False
     np.savetxt(filename+"_CHI.txt", CHI)
     return condensed, MFE, XI, CHI
 
+def PhaseMag_linescan(Jxx, Jyy, Jzz, theta, hm, hmax, nH, n, BZres, kappa, filename):
+
+    h = np.linspace(hm, hmax,nH)
+
+    if (n == h110).all():
+        MFE = np.zeros((nH,4))
+        condensed = np.zeros((nH,4))
+        XI = np.zeros((nH,4))
+        CHI = np.zeros((nH,4))
+    else:
+        MFE = np.zeros((nH,2))
+        condensed = np.zeros((nH,2))
+        XI = np.zeros((nH,2))
+        CHI = np.zeros((nH,2))
+    phase_d = np.zeros(nH)
+    print("Starting line scane with parameters", Jxx, Jyy, Jzz, theta)
+    for i in range(nH):
+        print("h = ", h[i])
+        py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                  BZres=BZres, flux=np.zeros(4))
+        pyps = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                  BZres=BZres, flux=np.ones(4) * np.pi)
+        py0s.solvemeanfield()
+        pyps.solvemeanfield()
+        GS = np.array([py0s.MFE(), pyps.MFE()])
+        temppy = np.array([py0s, pyps])
+
+        if (n == h110).all():
+            pyp0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                      BZres = BZres, flux = pzzp)
+            pyzp = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                      BZres = BZres, flux = zppz)
+            pyp0.solvemeanfield()
+            pyzp.solvemeanfield()
+            GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE(), pyzp.MFE()])
+            temppy = np.array([py0s, pyps, pyp0, pyzp])
+
+        a = np.argmin(GS)
+        # MFE[i] = GS[a]
+        # XI[i] = (temppy[a].xi <= 1e-8).all()
+        # CHI[i] = (temppy[a].chi <= 1e-8).all()
+        phase_d[i] = temppy[a].condensed + a*2
+        MFE[i] = GS
+
+        if (n == h110).all():
+            condensed[i] = np.array([py0s.condensed, pyps.condensed, pyp0.condensed, pyzp.condensed])
+        else:
+            condensed[i] = np.array([py0s.condensed, pyps.condensed])
+
+
+    np.savetxt(filename+"_allcon.txt", condensed)
+    np.savetxt(filename+"_MFE.txt", MFE)
+    np.savetxt(filename+".txt", phase_d)
+    # np.savetxt(filename+"_XI.txt", XI)
+    # np.savetxt(filename+"_CHI.txt", CHI)
+    return condensed, MFE, XI, CHI
+
+
 def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename, observables=False):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()

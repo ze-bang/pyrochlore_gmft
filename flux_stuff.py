@@ -190,7 +190,7 @@ def A_init001(Fluxs):
     A, B, C, D = Fluxs
     A00 = 0
     n1 = int(A/ np.pi)
-    return np.array([A00, n1])
+    return A00, n1
 
 def constructA_pi_111(Fluxs):
     A00, A01, n1 = A_init111(Fluxs)
