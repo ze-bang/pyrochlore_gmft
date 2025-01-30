@@ -11,16 +11,62 @@ import pathlib
 import netCDF4 as nc
 
 
-def delta(Ek, Eq, omega, tol):
-    beta = 0
+def quantum_fisher_information(temp, filename, tosave):
+    D = np.loadtxt(filename)
+    size = int(np.sqrt(D.shape[0]))
+    omega = np.linspace(0, 1, D.shape[1])
+    if not temp == 0:
+        beta = 1/(temp)
+        print(beta)
+        factor1 = 4*np.tanh(omega*beta/2)
+        factor2 = 1-np.exp(-beta*omega)
+        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
+        results = np.trapezoid(toint, omega,axis=1)
+
+        results = results.reshape((size, size))
+        np.savetxt(tosave, results)
+    else:
+        results = np.trapezoid(D, omega,axis=1)
+        results = 4 * results.reshape((size,size))/(2*np.pi)
+    plt.imshow(results, extent=[-2.5,2.5,-2.5,2.5], origin='lower')
+    plt.colorbar()
+    plt.show()
+
+
+def quantum_fisher_information_K(D, temp):
+    size = int(np.sqrt(D.shape[0]))
+    omega = np.linspace(0, 10, D.shape[1])
+    if not temp == 0:
+        beta = 1/(temp)
+        factor1 = 4*np.tanh(omega*beta/2)
+        factor2 = 1-np.exp(-beta*omega)
+        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
+        results = np.trapezoid(toint, omega,axis=1)
+    else:
+        results = np.trapezoid(D, omega,axis=1)
+        results = 4 * results.reshape((size,size))/(2*np.pi)
+    return results
+
+
+def deltas_beta(Ek, Eq, omega, beta, tol):
     size = Ek.shape[1]
-    Ekenlarged = contract('ik,j->ikj', Ek, np.ones(size))
-    Eqenlarged = contract('ik,j->ijk', Eq, np.ones(size))
-    A = contract('ia, ib, iab->iab', 1 + bose(beta, Ek), 1 + bose(beta, Eq),
-                 cauchy(omega - Ekenlarged - Eqenlarged, tol))
-    B = contract('ia, ib, iab->iab', 1 + bose(beta, Ek), bose(beta, Eq), cauchy(omega - Ekenlarged + Eqenlarged, tol))
-    C = contract('ia, ib, iab->iab', bose(beta, Ek), 1 + bose(beta, Eq), cauchy(omega + Ekenlarged - Eqenlarged, tol))
-    D = contract('ia, ib, iab->iab', bose(beta, Ek), bose(beta, Eq), cauchy(omega + Ekenlarged + Eqenlarged, tol))
+    omsize = len(omega)
+    Ekenlarged = contract('ik,j,w->iwkj', Ek, np.ones(size),np.ones(omsize))
+    Eqenlarged = contract('ik,j,w->iwjk', Eq, np.ones(size),np.ones(omsize))
+    omegaenlarged = contract('i, w, j, k->iwjk', np.ones(len(Ek)), omega, np.ones(size), np.ones(size))
+    A = contract('ia, ib, iwab->iwab', 1 + bose(beta, Ek), 1 + bose(beta, Eq),
+                 cauchy(omegaenlarged - Ekenlarged - Eqenlarged, tol))
+    B = contract('ia, ib, iwab->iwab', 1 + bose(beta, Ek), bose(beta, Eq), cauchy(omegaenlarged - Ekenlarged + Eqenlarged, tol))
+    C = contract('ia, ib, iwab->iwab', bose(beta, Ek), 1 + bose(beta, Eq), cauchy(omegaenlarged + Ekenlarged - Eqenlarged, tol))
+    D = contract('ia, ib, iwab->iwab', bose(beta, Ek), bose(beta, Eq), cauchy(omegaenlarged + Ekenlarged + Eqenlarged, tol))
+    return A + B + C + D
+
+def SSSF_finite_temp_factor(Ek, Eq, beta):
+    size = Ek.shape[1]
+    A = contract('ia, ib->iab', 1 + bose(beta, Ek), 1 + bose(beta, Eq))
+    B = contract('ia, ib->iab', 1 + bose(beta, Ek), bose(beta, Eq))
+    C = contract('ia, ib->iab', bose(beta, Ek), 1 + bose(beta, Eq))
+    D = contract('ia, ib->iab', bose(beta, Ek), bose(beta, Eq))
     return A + B + C + D
 
 def deltas(Ek, Eq, omega, tol):
@@ -42,7 +88,7 @@ def deltas_pairing(Ek, omega, tol):
 
 # region DSSF
 
-def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
+def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta=0):
     greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Ks, True)
     greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Qs, True)
 
@@ -53,7 +99,10 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
 
     # Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
     Kreal = Ks-q/2
-    deltapm = deltas(tempE, tempQ, omega, tol)
+    if beta == 0:
+        deltapm = deltas(tempE, tempQ, omega, tol)
+    else:
+        deltapm = deltas_beta(tempE, tempQ, omega, 1/beta, tol)
 
     ffact = contract('ik, jlk->ijl', Kreal, NNminus)
     ffactpm = np.exp(1j * ffact)
@@ -67,10 +116,11 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, lam=0):
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                    ffactpp) / size**2
     if not pyp0.Jpmpm == 0:
-        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
+        SppA = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
                        greenpQ[:, :, 3*size:4*size, size:2*size],
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                        ffactpm) / size**2
+        Spp = Spp + SppA
     return Spm, Spp
 
 def DSSF_core(q, omega, pyp0, tol):
@@ -123,14 +173,15 @@ def graph_DSSF(pyp0, E, K, tol, rank, size):
     sendcounts3 = np.array(comm.gather(sendtemp3.shape[0] * sendtemp3.shape[1], 0))
 
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
+    comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     comm.Gatherv(sendbuf=sendtemp1, recvbuf=(rectemp1, sendcounts1), root=0)
     comm.Gatherv(sendbuf=sendtemp2, recvbuf=(rectemp2, sendcounts2), root=0)
     comm.Gatherv(sendbuf=sendtemp3, recvbuf=(rectemp3, sendcounts3), root=0)
 
     return rectemp, rectemp1, rectemp2, rectemp3
 
-def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol):
-    pyp0 = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,h=h,n=hn,flux=flux,BZres=BZres)
+def TWOSPINON_core_dumb(E, Jpm, h, hn, flux, BZres, tol, Jpmpm=0):
+    pyp0 = pycon.piFluxSolver(-2*Jpm-2*Jpmpm,1,-2*Jpm+2*Jpmpm,h=h,n=hn,flux=flux,BZres=BZres)
     pyp0.solvemeanfield()
     Ks = pyp0.pts
     Ek = pyp0.E_pi_reduced(Ks)
@@ -182,7 +233,7 @@ def graph_2S_rho_dumb(E, Jpm, h, hn, flux, BZres, tol, rank, size):
         return rectemp
 
 
-def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
+def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol, Jpmpm=0):
     comm = MPI.COMM_WORLD
     n = len(h) / size
 
@@ -193,6 +244,8 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
             change = 0.17
         else:
             change = 0.2
+    else:
+        change = 0
 
     left = int(rank * n)
     right = int((rank + 1) * n)
@@ -204,18 +257,18 @@ def graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol):
     if rank == 0:
         rectemp = np.zeros((len(h), 2*len(E)-1), dtype=np.float64)
     for i in range(currsize):
-        if Jpm == -0.3:
-            flux = np.ones(4) * np.pi
-        elif Jpm == 0.03:
-            flux = np.zeros(4)
-        elif currK[i] > change:
-            if (hn==h110).all():
-                flux = np.array([0,0,np.pi,np.pi])
-            else:
-                flux = np.zeros(4)
-        else:
-            flux = np.ones(4) * np.pi
-        sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol)
+        # if Jpm == -0.3:
+        #     flux = np.ones(4) * np.pi
+        # elif Jpm == 0.03:
+        #     flux = np.zeros(4)
+        # elif currK[i] > change:
+        #     if (hn==h110).all():
+        #         flux = np.array([0,0,np.pi,np.pi])
+        #     else:
+        #         flux = np.zeros(4)
+        # else:
+        flux = np.ones(4) * np.pi
+        sendtemp[i] = TWOSPINON_core_dumb(E, Jpm, currK[i], hn, flux, BZres, tol, Jpmpm)
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1], 0))
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     return rectemp
@@ -244,11 +297,11 @@ def graph_2S_rho_111_a(E, Jpm, h, hn, BZres, rank, size, tol):
     comm.Gatherv(sendbuf=sendtemp, recvbuf=(rectemp, sendcounts), root=0)
     return rectemp
 
-def DSSF_core_pedantic(q, omega, pyp0, tol):
+def DSSF_core_pedantic(q, omega, pyp0, tol, beta=0):
     Ks = pyp0.pts
     Ks = contract('ia,ak->ik', Ks, BasisBZA)
     Qs = Ks - q
-    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
+    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
@@ -260,7 +313,7 @@ def DSSF_core_pedantic(q, omega, pyp0, tol):
     Sxx = contract('wijk, i->wjk', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
 
-def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
+def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size, beta=0):
     comm = MPI.COMM_WORLD
     n = len(K) / size
 
@@ -288,7 +341,7 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
         rectemp3 = np.zeros((len(K), len(E), 4 ,4), dtype=np.float64)
 
     for i in range(currsize):
-        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol)
+        sendtemp[i], sendtemp1[i], sendtemp2[i], sendtemp3[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol, beta)
         # sendtemp[i] = DSSF_core_pedantic(currK[i], E, pyp0, tol)
 
     sendcounts = np.array(comm.gather(sendtemp.shape[0] * sendtemp.shape[1]*16, 0))
@@ -308,7 +361,14 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 # endregion
 
 # region SSSF
-def nbSpmSpp(K, Q, q, pyp0):
+
+def SpmSpp(K, Q, q, pyp0, beta=0):
+    if beta == 0:
+        return SpmSpp_zerotemp(K,Q,q,pyp0)
+    else:
+        return SpmSpp_finite_temp(K,Q,q,pyp0, beta)
+
+def SpmSpp_zerotemp(K, Q, q, pyp0):
     greenpK = pyp0.green_pi(K)
     greenpQ = pyp0.green_pi(Q)
     Kreal = contract('ij,jk->ik',K-q/2, BasisBZA)
@@ -328,13 +388,44 @@ def nbSpmSpp(K, Q, q, pyp0):
     Spp = contract('iay, ibx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, size:2*size], greenpQ[:, 0:size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpp)/size**2
-
     if not pyp0.Jpmpm == 0:
         SppA = contract('iab, iyx, abjk, jax, kby, ijk->ijk', greenpK[:, 0:size, 2*size:3*size], greenpQ[:, 3*size:4*size, size:2*size], pyp0.A_pi_rs_rsp_pp_here,
                    piunitcell, piunitcell,
                    ffactpm)/size**2
         Spp = Spp + SppA
     return Spm, Spp
+
+def SpmSpp_finite_temp(K, Q, q, pyp0, beta):
+    greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(K, True)
+    greenpQ, tempQ, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(Q, True)
+
+    if pyp0.Jpmpm ==0:
+        size = int(tempE.shape[1]/2)
+    else:
+        size = int(tempE.shape[1]/4)
+
+    # Kreal = contract('ij,jk->ik',Ks-q/2, BasisBZA)
+    Kreal = K-q/2
+    deltapm = SSSF_finite_temp_factor(tempE, tempQ, beta)
+
+    ffact = contract('ik, jlk->ijl', Kreal, NNminus)
+    ffactpm = np.exp(1j * ffact)
+    ffact = contract('ik, jlk->ijl', Kreal, NNplus)
+    ffactpp = np.exp(1j * ffact)
+    Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
+                   deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
+                   ffactpm) / size**2
+
+    Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
+                   deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+                   ffactpp) / size**2
+    if not pyp0.Jpmpm == 0:
+        Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
+                       greenpQ[:, :, 3*size:4*size, size:2*size],
+                       deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
+                       ffactpm) / size**2
+    return Spm, Spp
+
 
 def SSSF_core_pedantic(q, v, pyp0):
     Ks = pyp0.pts
@@ -354,7 +445,7 @@ def SSSF_core_pedantic(q, v, pyp0):
     Szzglobal = contract('ijk, jk,i->jk', Szz, g(qreal), pyp0.weights)
     Sxxglobal = contract('ijk, jk,i->jk', Sxx, gx(qreal), pyp0.weights)
     SNSFzz= contract('ijk,jk,i->', Szz, gNSF(qreal, v), pyp0.weights)
-    SNSFxx = contract('ijk,jk,i->', Sxx, gNSF(qreal, v), pyp0.weights)
+    SNSFxx = contract('ijk,jk,i->', Sxx, gNSFx(qreal, v), pyp0.weights)
     Szz = contract('ijk,i->jk', Szz, pyp0.weights)
     Sxx = contract('ijk,i->jk', Sxx, pyp0.weights)
 
@@ -775,9 +866,9 @@ def pedantic_SSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir):
         graphMethod(gup, f1+"unpolarized", Hr, Lr)
         graphMethod(gcorre, f1+"polar_unpolar", Hr, Lr)
 
-def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0):
+def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0, theta=0):
     pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux, theta=theta)
     py0s.solvemeanfield()
     H = np.linspace(-Hr, Hr, nK)
     L = np.linspace(-Lr, Lr, nK)
@@ -911,6 +1002,114 @@ def SSSF_pedantic(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=
             pedantic_SSSF_graph_helper(SSSFGraphHH2K, d2, f2, Hr, Lr, n)
             pedantic_SSSF_graph_helper(SSSFGraphHH2K, d3, f3, Hr, Lr, n)
             pedantic_SSSF_graph_helper(SSSFGraphHH2K, d4, f4, Hr, Lr, n)
+
+def SSSF_BZ(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, theta):
+    pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux, theta=theta)
+    py0s.solvemeanfield()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d5, d3, d4, d6 = graph_SSSF_pedantic(py0s, py0s.pts, n, rank, size)
+    if rank == 0:
+        pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+        f1 = filename + "/Szz/"
+        f2 = filename + "/Szzglobal/"
+        f3 = filename + "/Sxx/"
+        f4 = filename + "/Sxxglobal/"
+        pathlib.Path(f1).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f2).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f3).mkdir(parents=True, exist_ok=True)
+        pathlib.Path(f4).mkdir(parents=True, exist_ok=True)
+
+        # d1 = d1.reshape((nK, nK, 4, 4))
+        # d2 = d2.reshape((nK, nK, 4, 4))
+        # d3 = d3.reshape((nK, nK, 4, 4))
+        # d4 = d4.reshape((nK, nK, 4, 4))
+        # d5 = d5.reshape((nK, nK))
+        # d6 = d6.reshape((nK, nK))
+
+        Szz = contract('ajk, a->', d1, py0s.weights)
+        Sxx = contract('ajk, a->', d3, py0s.weights)
+        Q_sum = contract('a->', py0s.weights)
+        np.savetxt(filename+'/S' + '.txt', np.array([Szz, Sxx])/Q_sum)    
+
+def SSSF_q_omega_beta(beta, nK, nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, *args, K=0, Hr=2.5, Lr=2.5, g=0, theta=0):
+    pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, *args, BZres=BZres, h=h, n=n, flux=flux, theta=theta)
+    py0s.solvemeanfield()
+    H = np.linspace(-Hr, Hr, nK)
+    L = np.linspace(-Lr, Lr, nK)
+    A, B = np.meshgrid(H, L)
+
+    if hkl == "hk0":
+        K = hkztoK(A, B, K).reshape((nK*nK,3))
+    elif hkl=="hnhl":
+        K = hnhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhl":
+        K = hhltoK(A, B, K).reshape((nK * nK, 3))
+    elif hkl=="hhknk":
+        K = hhknktoK(A, B, K).reshape((nK * nK, 3))
+    else:
+        K = hnhkkn2ktoK(A, B, K).reshape((nK * nK, 3))
+
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    # emin, emax = np.min(py0s.graph_loweredge(False)), np.max(py0s.graph_upperedge(False))
+    # e = np.linspace(max(emin *0.95, 0), emax *1.02, nE)
+    e = np.linspace(0, 10, nE)
+    tol = 1/nE*4
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, K, tol, rank, size, beta)
+
+    if rank == 0:
+        d1 = contract('ijkl->ij', d1)
+        d2 = contract('ijkl->ij', d2)
+        d3 = contract('ijkl->ij', d3)
+        d4 = contract('ijkl->ij', d4)
+
+        f1 = filename + "_Szz_local"
+        f2 = filename + "_Szz_global"
+        f3 = filename + "_Sxx_local"
+        f4 = filename + "_Sxx_global"
+        np.savetxt(f1 + ".txt", d1)
+        np.savetxt(f2 + ".txt", d2)
+        np.savetxt(f3 + ".txt", d3)
+        np.savetxt(f4 + ".txt", d4)
+
+def SSSF_q_omega_beta_at_K(beta, K, nE, Jxx, Jyy, Jzz, h, n, flux, BZres, theta):
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux, theta=theta)
+    py0s.solvemeanfield()
+
+
+    # emin, emax = np.min(py0s.graph_loweredge(False)), np.max(py0s.graph_upperedge(False))
+    # e = np.linspace(max(emin *0.95, 0), emax *1.02, nE)
+    e = np.linspace(0, 10, nE)
+    tol = 1/nE*4
+    if not MPI.Is_initialized():
+        MPI.Init()
+
+    comm = MPI.COMM_WORLD
+    size = comm.Get_size()
+    rank = comm.Get_rank()
+
+    d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, K, tol, rank, size, beta)
+
+    return contract('ijab->ij',d1), contract('ijab->ij',d3)
+
 
 def SSSF(nK, Jxx, Jyy, Jzz, h, n, flux, BZres, filename, hkl, K=0, Hr=2.5, Lr=2.5):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
@@ -1211,7 +1410,7 @@ def DSSF(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         DSSFgraph(d4.T, f4, X, Y)
 
 
-def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
+def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename, Jpmpm=0):
     e = np.linspace(emin, emax, nE)
     tol = (emax-emin)/nE*4
     if not MPI.Is_initialized():
@@ -1233,24 +1432,24 @@ def TwoSpinonDOS(emin, emax, nE, Jpm, h, n, flux, BZres, filename):
             X, Y = np.meshgrid(h, e)
             DSSFgraph(d1.T, f1, X, Y)
 
-def TwoSpinonDOS_111(nH, BZres, filename):
+def TwoSpinonDOS_111(nH, BZres, filename, Jpmpm=0):
     if not MPI.Is_initialized():
         MPI.Init()
     E = np.linspace(0.2, 0.9, 200)
     tol = 1/200
     h = np.linspace(0,0.5,nH)
-    Jpm=-0.03
+    Jpm=-0.1
     hn = h111
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol)
+    d1 = graph_2S_rho(E, Jpm, h, hn, BZres, rank, size, tol, Jpmpm)
 
     if rank == 0:
         f1 = filename
         np.savetxt(f1 + ".txt", d1)
-        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0, 2], aspect='auto', cmap='gnuplot')
+        plt.imshow(d1.T, interpolation="lanczos", origin='lower', extent=[0, 0.5, 0.2, 0.9], aspect='auto', cmap='gnuplot')
         plt.ylabel(r'$\omega/J_{yy}$')
         plt.xlabel(r'$h/J_{yy}$')
         plt.savefig(filename)
@@ -1432,9 +1631,9 @@ def pedantic_DSSF_graph_helper(graphMethod, d1, f1, Hr, Lr, dir, lowedge, upedge
         graphMethod(gup/dmax, f1+"unpolarized", Hr, Lr, lowedge, upedge)
         graphMethod(gcorre/dmax, f1+"polar_unpolar", Hr, Lr, lowedge, upedge)
 
-def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
+def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename,theta=0,beta=0):
     pathlib.Path(filename).mkdir(parents=True, exist_ok=True)
-    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux)
+    py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=BZres, h=h, n=n, flux=flux,theta=theta)
     py0s.solvemeanfield()
     kk = np.concatenate((GammaX, XW, WK, KGamma, GammaL, LU, UW1, W1X1, X1Gamma))
     lowedge, upedge = py0s.loweredge(), py0s.upperedge()
@@ -1448,7 +1647,7 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
     size = comm.Get_size()
     rank = comm.Get_rank()
 
-    d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, kk, tol, rank, size)
+    d1, d2, d3, d4 = graph_DSSF_pedantic(py0s, e, kk, tol, rank, size, bete)
     # d1= graph_DSSF_pedantic(py0s, e, kk, tol, rank, size)
 
     if rank == 0:
@@ -1469,15 +1668,15 @@ def DSSF_pedantic(nE, Jxx, Jyy, Jzz, h, n, flux, BZres, filename):
         Sxx = contract('iwjk->iw', d3)
         Sxxglobal = contract('iwjk->iw', d4)
 
-        np.savetxt(filename+"Szz.txt", Szz)
-        np.savetxt(filename+"Szzglobal.txt", Szzglobal)
-        np.savetxt(filename+"Sxx.txt", Sxx)
-        np.savetxt(filename+"Sxxglobal.txt", Sxxglobal)
+        np.savetxt(filename+"/Szz.txt", Szz)
+        np.savetxt(filename+"/Szzglobal.txt", Szzglobal)
+        np.savetxt(filename+"/Sxx.txt", Sxx)
+        np.savetxt(filename+"/Sxxglobal.txt", Sxxglobal)
 
-        DSSFgraph_pedantic(Szz/np.max(Szz), filename+"Szz", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Szzglobal/np.max(Szzglobal), filename+"Szzglobal", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxx/np.max(Sxx), filename+"Sxx", kline, e, lowedge, upedge)
-        DSSFgraph_pedantic(Sxxglobal/np.max(Sxxglobal), filename+"Sxxglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Szz/np.max(Szz)), filename+"/Szz", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Szzglobal/np.max(Szzglobal)), filename+"/Szzglobal", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Sxx/np.max(Sxx)), filename+"/Sxx", kline, e, lowedge, upedge)
+        DSSFgraph_pedantic(np.abs(Sxxglobal/np.max(Sxxglobal)), filename+"/Sxxglobal", kline, e, lowedge, upedge)
 
 
         pedantic_DSSF_graph_helper(DSSFgraph_pedantic, d1, f1, kline, e, n, lowedge, upedge, np.max(Szz))

@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
-import netCDF4
+# import netCDF4
 import numpy as np
 import warnings
 from misc_helper import *
 import pyrochlore_gmft as pycon
 import pyrochlore_exclusive_boson as pyex
 from mpi4py import MPI
+import os
 
 def generaldispersion(Jxx, Jyy, Jzz, h, n, kappa, graphres, BZres, flux):
     py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, kappa=kappa, graphres=graphres, BZres=BZres, h=h, n=n, flux=flux)
@@ -437,7 +438,7 @@ def findPhaseMag111(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, filename, Jxx
         graphColorMesh(JP, h, rectemp3,'Files/' + filename + '_lam')
         graphColorMesh(JP, h, rectemp4,'Files/' + filename + '_mag')
         # np.savetxt('Files/' + filename + '_q_condensed.txt', rectemp5, fmt="%s")
-def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, filename, Jxx=False, Jpmpm=0, FF=False):
+def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, filename, Jxx=False, Jpmpm=0, FF=False, theta=0):
     comm = MPI.COMM_WORLD
     size = comm.Get_size()
     rank = comm.Get_rank()
@@ -476,9 +477,9 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
     for i in range(currsizeK):
         if Jxx == True:
             py0s = pycon.piFluxSolver(1, -2 * currJH[i][0] + 2*Jpmpm, -2 * currJH[i][0] - 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa,
-                                      BZres=BZres, flux=flux, FF=FF)
+                                      BZres=BZres, flux=flux, FF=FF, theta=theta)
         else:
-            py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux, FF=FF)
+            py0s = pycon.piFluxSolver(-2*currJH[i][0] - 2*Jpmpm, 1, -2*currJH[i][0] + 2*Jpmpm, h=currJH[i][1], n=n, kappa=kappa, BZres=BZres, flux=flux, FF=FF, theta=theta)
         warnings.filterwarnings('error')
         try:
             py0s.solvemeanfield()
@@ -508,17 +509,17 @@ def findPhaseMag_separate(JPm, JPmax, nK, hm, hmax, nH, n, flux, BZres, kappa, f
     comm.Gatherv(sendbuf=sendtemp5, recvbuf=(rectemp5, sendcounts5), root=0)
 
 
-    if rank == 0:
+    if rank == 0:   
         rectemp = rectemp.reshape((nK, nH))
         rectemp2 = rectemp2.reshape((nK, nH))
         rectemp3 = rectemp3.reshape((nK, nH))
         rectemp4 = rectemp4.reshape((nK, nH))
         rectemp5 = rectemp5.reshape((nK, nH))
-        np.savetxt('Files/' + filename+'.txt', rectemp)
-        np.savetxt('Files/' + filename + '_MFE.txt', rectemp2)
-        np.savetxt('Files/' + filename + '_xi.txt', rectemp3)
-        np.savetxt('Files/' + filename + '_chi.txt', rectemp4)
-        np.savetxt('Files/' + filename + '_mag.txt', rectemp5)
+        np.savetxt(filename+'.txt', rectemp)
+        np.savetxt(filename + '_MFE.txt', rectemp2)
+        np.savetxt(filename + '_xi.txt', rectemp3)
+        np.savetxt(filename + '_chi.txt', rectemp4)
+        np.savetxt(filename + '_mag.txt', rectemp5)
 
         # JP = np.linspace(JPm, JPmax, nK)
         # h = np.linspace(hm, hmax, nH)
@@ -606,6 +607,64 @@ def PhaseMag111_linescan(JPm, hm, hmax, nH, n, BZres, kappa, filename, Jxx=False
     np.savetxt(filename+"_XI.txt", XI)
     np.savetxt(filename+"_CHI.txt", CHI)
     return condensed, MFE, XI, CHI
+
+def PhaseMag_linescan(Jxx, Jyy, Jzz, theta, hm, hmax, nH, n, BZres, kappa, filename):
+
+    h = np.linspace(hm, hmax,nH)
+
+    if (n == h110).all():
+        MFE = np.zeros((nH,4))
+        condensed = np.zeros((nH,4))
+        XI = np.zeros((nH,4))
+        CHI = np.zeros((nH,4))
+    else:
+        MFE = np.zeros((nH,2))
+        condensed = np.zeros((nH,2))
+        XI = np.zeros((nH,2))
+        CHI = np.zeros((nH,2))
+    phase_d = np.zeros(nH)
+    print("Starting line scane with parameters", Jxx, Jyy, Jzz, theta)
+    for i in range(nH):
+        print("h = ", h[i])
+        py0s = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                  BZres=BZres, flux=np.zeros(4))
+        pyps = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                  BZres=BZres, flux=np.ones(4) * np.pi)
+        py0s.solvemeanfield()
+        pyps.solvemeanfield()
+        GS = np.array([py0s.MFE(), pyps.MFE()])
+        temppy = np.array([py0s, pyps])
+
+        if (n == h110).all():
+            pyp0 = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                      BZres = BZres, flux = pzzp)
+            pyzp = pycon.piFluxSolver(Jxx, Jyy, Jzz, theta=theta, h=h[i], n=n, kappa=kappa,
+                                      BZres = BZres, flux = zppz)
+            pyp0.solvemeanfield()
+            pyzp.solvemeanfield()
+            GS = np.array([py0s.MFE(), pyps.MFE(), pyp0.MFE(), pyzp.MFE()])
+            temppy = np.array([py0s, pyps, pyp0, pyzp])
+
+        a = np.argmin(GS)
+        # MFE[i] = GS[a]
+        # XI[i] = (temppy[a].xi <= 1e-8).all()
+        # CHI[i] = (temppy[a].chi <= 1e-8).all()
+        phase_d[i] = temppy[a].condensed + a*2
+        MFE[i] = GS
+
+        if (n == h110).all():
+            condensed[i] = np.array([py0s.condensed, pyps.condensed, pyp0.condensed, pyzp.condensed])
+        else:
+            condensed[i] = np.array([py0s.condensed, pyps.condensed])
+
+
+    np.savetxt(filename+"_allcon.txt", condensed)
+    np.savetxt(filename+"_MFE.txt", MFE)
+    np.savetxt(filename+".txt", phase_d)
+    # np.savetxt(filename+"_XI.txt", XI)
+    # np.savetxt(filename+"_CHI.txt", CHI)
+    return condensed, MFE, XI, CHI
+
 
 def completeSpan(JPm, JPmax, nK, hm, hmax, nH, n, BZres, kappa, flux, filename, observables=False):
     comm = MPI.COMM_WORLD

@@ -2,7 +2,7 @@ import os
 import sys
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 # import monte_carlo
-# from monte_carlo import *
+from monte_carlo import *
 from phase_diagram import *
 # from observables import *
 # scan_all(h111, 2)
@@ -10,17 +10,17 @@ from phase_diagram import *
 # scan_all(h001, 2)
 
 
-# downtetrahedron = np.array([[0,0,0],[0,1,0],[1,0,0],[0,0,1],[0,2,0],[2,0,0],[-1,1,1],[1,-1,1], [1,1,-1], [0,1,1], [1,1,0], [1,1,1]])
-# uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0], [1,1,1]])
-# downtetrahedron = np.array([[0,0,0]])
-# uptetrahedron =  np.array([[0,0,0]])
-# ax = plt.axes(projection='3d')
-# ax.set_axis_off()
+downtetrahedron = np.array([[0,0,0],[0,1,0],[1,0,0],[0,0,1],[0,2,0],[2,0,0],[-1,1,1],[1,-1,1], [1,1,-1], [0,1,1], [1,1,0], [1,1,1]])
+uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0], [1,1,1]])
+downtetrahedron = np.array([[0,0,0]])
+uptetrahedron =  np.array([[0,0,0]])
+ax = plt.axes(projection='3d')
+ax.set_axis_off()
 
-# graphdownpyrochlore(downtetrahedron,ax)
-# graphuppyrochlore(uptetrahedron,ax)
-# graphdownpyrochlore_blank(downtetrahedron,ax)
-# graphuppyrochlore_blank(uptetrahedron,ax)
+graphdownpyrochlore(downtetrahedron,ax)
+graphuppyrochlore(uptetrahedron,ax)
+graphdownpyrochlore_blank(downtetrahedron,ax)
+graphuppyrochlore_blank(uptetrahedron,ax)
 # points = np.array([[0,0,0],[]])
 # temp = contract('ia,ar->ir',downtetrahedron,r)
 # # ANN = -NN
@@ -56,9 +56,9 @@ from phase_diagram import *
 # graphallgaugebond(downtetrahedron,ax)
 
 # ax.view_init(elev=0, azim=84, roll=45)
-# ax.set_aspect('equal')
+# nb
 # plt.show()
-# plt.savefig('./Misc/0pp0.pdf')
+# plt.savefig('test.pdf')
 
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.zeros(4),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.ones(4)*np.pi,'HanYan_100_Jpm_-0.3_0.1_h_0_1_pi_flux_ex')
@@ -101,5 +101,5 @@ from phase_diagram import *
 #findXYZPhase_separate(-0.5, 1, -0.5, 1, 40, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux", 0)
 
 # Jpm, Jpmax, Jpm1, Jpm1max, nK = sys.argv[1:]
-Jpm, Jpmax, Jpm1, Jpm1max, nK = -1, 0, -1, 0, 40
-findXYZPhase_separate(Jpm, Jpmax, Jpm1, Jpm1max, nK, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_-1_0_-1_0", 0, symmetrized=False)
+# Jpm, Jpmax, Jpm1, Jpm1max, nK = -1, 0, -1, 0, 40
+# findXYZPhase_separate(Jpm, Jpmax, Jpm1, Jpm1max, nK, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_-1_0_-1_0", 0, symmetrized=False)
