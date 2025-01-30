@@ -87,7 +87,7 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta=0):
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
-    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
+    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
@@ -262,7 +262,7 @@ def DSSF_core_pedantic(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Ks = contract('ia,ak->ik', Ks, BasisBZA)
     Qs = Ks - q
-    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
+    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
@@ -325,7 +325,7 @@ def graph_DSSF_pedantic(pyp0, E, K, tol, rank, size):
 
 def SpmSpp(K, Q, q, pyp0, beta=0):
     if beta == 0:
-        return SpmSpp(K,Q,q,pyp0)
+        return SpmSpp_zerotemp(K,Q,q,pyp0)
     else:
         return SpmSpp_finite_temp(K,Q,q,pyp0, beta)
 
