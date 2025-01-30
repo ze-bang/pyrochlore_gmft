@@ -1126,35 +1126,30 @@ fig, axs = plt.subplots()
 # a.graph(axs)
 # plt.show()
 
-# Jpm = -0.1
-# Jpmpm = 0.0
-# Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, 0, flux=np.ones(4)*np.pi, h=0.1, n=h110, simplified=False)
-# a.solvemeanfield()
-# # a.graph_loweredge(False,axs,'b')
-# # a.graph_upperedge(True,axs,'b')
-# A = a.MFE()
-# AC = a.condensed
-# print(a.chi, a.xi,a.magnetization(), a.gap(), a.MFE())
-# a.graph(axs)
-# plt.show()
+# SSSF_BZ(50, 0.08, 0.08, 1, 0, h110, np.zeros(4),15, "SSSF_BZ", 0)
+SSSF_q_omega_beta(0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
+SSSF_q_omega_beta(0.2, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
+SSSF_q_omega_beta(0.4, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
+SSSF_q_omega_beta(0.6, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
+SSSF_q_omega_beta(0.8, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
+SSSF_q_omega_beta(1.0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
 
-A = np.loadtxt("spec_heat.txt", unpack=True)
-# plt.imshow(A, origin="lower", aspect="auto")
+# A = np.loadtxt("spec_heat.txt", unpack=True)
+# # plt.imshow(A, origin="lower", aspect="auto")
+# # plt.show()
+# A = np.flip(A, axis=1)
+# A = A[:,10:]
+# A[1] = A[1] * 8.6173303e-2
+# Cv_integrand = A[1]/A[0]
+# S = np.zeros(len(A[1])-1)
+# for i in range(1,len(A[1])):
+#     S[i-1] = -np.trapezoid(Cv_integrand[i:], A[0][i:]) + np.log(2)
+# plt.plot(A[0,:-1],S, A[0], A[1])
+# plt.errorbar(A[0], A[1], A[2])
+# plt.xscale('log')
+# plt.xlabel(r'$T/|J_{yy}|$')
+# plt.legend(['entropy', 'specific heat'])
 # plt.show()
-A = np.flip(A, axis=1)
-A = A[:,10:]
-A[1] = A[1] * 8.6173303e-2
-Cv_integrand = A[1]/A[0]
-S = np.zeros(len(A[1])-1)
-for i in range(1,len(A[1])):
-    S[i-1] = -np.trapezoid(Cv_integrand[i:], A[0][i:]) + np.log(2)
-plt.plot(A[0,:-1],S, A[0], A[1])
-plt.errorbar(A[0], A[1], A[2])
-plt.xscale('log')
-plt.xlabel(r'$T/|J_{yy}|$')
-plt.legend(['entropy', 'specific heat'])
-plt.show()
 # dir = "Classical_Phase_Diagram"
 # directory = os.fsencode(dir)
 # for file in os.listdir(directory):

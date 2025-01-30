@@ -1578,19 +1578,25 @@ class piFluxSolver:
 
 
     def graph_loweredge(self, show, ax=plt, color='w'):
-        min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
+        if show:
+            min = loweredge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax, color)
-        if show:
             plt.show()
+        else:
+            min = loweredge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
+                        self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         return min
 
     def graph_upperedge(self, show, ax=plt, color='w'):
-        max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
+        if show:
+            max = upperedge(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
                         self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph,
                         ax, color)
-        if show:
             plt.show()
+        else:
+            max = upperedge_data(self.lams, self.Jzz, self.Jpm, self.Jpmpm, self.h, self.n, contract('ij,jk->ik',self.pts, BasisBZA), self.theta, self.chi, self.xi,
+                        self.A_pi_here, self.A_pi_rs_traced_here, self.A_pi_rs_traced_pp_here, self.g, self.unitCellgraph)
         return max
 
 

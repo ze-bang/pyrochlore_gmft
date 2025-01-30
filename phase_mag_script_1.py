@@ -59,6 +59,14 @@ Jpm = 0.03
 # SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.03_pi", "hh2k", 0, 3, 3)
 # Jxx = np.linspace(0,0.5,1 0)
 # for i in range(10):
+Gamma = np.array([[0,0,0]])
+
+SSSF_q_omega_beta_at_K(0, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
+SSSF_q_omega_beta_at_K(0.2, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
+SSSF_q_omega_beta_at_K(0.4, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
+SSSF_q_omega_beta_at_K(0.6, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
+SSSF_q_omega_beta_at_K(0.8, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
+SSSF_q_omega_beta_at_K(1.0, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
 
 
 # SSSF_pedantic(100, 0.5, 1, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_octupolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
@@ -67,6 +75,10 @@ Jpm = 0.03
 # PhaseMag110_linescan(-0.3,0,0.05,20,h110,30,2, "Jpmpm=0.2_Jpm=0.3_110",Jpmpm=0.2)
 # PhaseMag111_linescan(-0.3,0,0.05,20,h111,30,2, "Jpmpm=0.2_Jpm=0.3_111",Jpmpm=0.2)
 # PhaseMag111_linescan(-0.3,0,0.05,20,h001,30,2, "Jpmpm=0.2_Jpm=0.3_001",Jpmpm=0.2)
-PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h110, 20, 2, "CZO_110")
-PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h111, 20, 2, "CZO_111")
-PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h001, 20, 2, "CZO_001")
+# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h110, 20, 2, "CZO_110")
+# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h111, 20, 2, "CZO_111")
+# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h001, 20, 2, "CZO_001")
+quantum_fisher_information(0, "SSSF_0_flux_T=0_Szz_local.txt", "QFI_test_0.txt")
+# quantum_fisher_information(1, "SSSF_photon1.txt", "QFI_test_0.1.txt")
+# quantum_fisher_information(4, "SSSF_photon4.txt", "QFI_test_0.2.txt")
+# quantum_fisher_information(5, "SSSF_photon5.txt", "QFI_test_0.3.txt")
