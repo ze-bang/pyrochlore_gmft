@@ -14,23 +14,26 @@ import netCDF4 as nc
 def quantum_fisher_information(temp, filename, tosave):
     D = np.loadtxt(filename)
     size = int(np.sqrt(D.shape[0]))
-    omega = np.linspace(0, 1, D.shape[1])
+    omega = np.linspace(0, 10, D.shape[1])
     if not temp == 0:
         beta = 1/(temp)
         print(beta)
         factor1 = 4*np.tanh(omega*beta/2)
         factor2 = 1-np.exp(-beta*omega)
-        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
+        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)*0.51550329757
         results = np.trapezoid(toint, omega,axis=1)
 
         results = results.reshape((size, size))
-        np.savetxt(tosave, results)
+        np.savetxt(tosave+".txt", results)
     else:
         results = np.trapezoid(D, omega,axis=1)
-        results = 4 * results.reshape((size,size))/(2*np.pi)
-    plt.imshow(results, extent=[-2.5,2.5,-2.5,2.5], origin='lower')
+        results = 4 * results.reshape((size,size))/(2*np.pi)*0.51550329757
+    plt.imshow(results, extent=[-2.5,2.5,-2.5,2.5], origin='lower', interpolation="lanczos")
+    plt.xlabel(r"[hh0]")
+    plt.ylabel(r"[00l]")
     plt.colorbar()
-    plt.show()
+    plt.savefig(tosave+".pdf")
+    plt.clf()
 
 def deltas_beta(Ek, Eq, omega, beta, tol):
     size = Ek.shape[1]
@@ -94,16 +97,16 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta=0):
     ffactpp = np.exp(1j * ffact)
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
-                   ffactpm) / size**2
+                   ffactpm) / size**2/4
 
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                   ffactpp) / size**2
+                   ffactpp) / size**2/4
     if not pyp0.Jpmpm == 0:
         SppA = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
                        greenpQ[:, :, 3*size:4*size, size:2*size],
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                       ffactpm) / size**2
+                       ffactpm) / size**2/4
         Spp = Spp + SppA
     return Spm, Spp
 
