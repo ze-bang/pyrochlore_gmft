@@ -61,12 +61,12 @@ Jpm = 0.03
 # for i in range(10):
 Gamma = np.array([[0,0,0]])
 
-SSSF_q_omega_beta_at_K(0, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
-SSSF_q_omega_beta_at_K(0.2, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
-SSSF_q_omega_beta_at_K(0.4, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
-SSSF_q_omega_beta_at_K(0.6, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
-SSSF_q_omega_beta_at_K(0.8, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
-SSSF_q_omega_beta_at_K(1.0, Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
+SSSF_q_omega_beta_at_K(0, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
+SSSF_q_omega_beta_at_K(0.2, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
+SSSF_q_omega_beta_at_K(0.4, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
+SSSF_q_omega_beta_at_K(0.6, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
+SSSF_q_omega_beta_at_K(0.8, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
+SSSF_q_omega_beta_at_K(1.0, Gamma, 200, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
 
 
 # SSSF_pedantic(100, 0.5, 1, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_octupolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
