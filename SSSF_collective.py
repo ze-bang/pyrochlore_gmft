@@ -34,4 +34,4 @@ else:
     flux = np.array([0,np.pi,np.pi,0])
 
 
-SSSF_pedantic(100, Jxx, Jyy, Jzz, h, h_dir, flux, 30, filename, scatplane, K=0, Hr=rangem, Lr=rangem, theta=theta)
+SSSF_pedantic(100, Jxx, Jyy, Jzz, h, h_dir, flux, 30, filename, scatplane, Ki=0, Hr=rangem, Lr=rangem, theta=theta)
