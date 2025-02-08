@@ -7,6 +7,8 @@ plt.rcParams['text.usetex'] = True
 # mpl.rcParams['font.serif'] = ['cm']
 # import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.gridspec as gridspec
+from matplotlib.colorbar import Colorbar
 
 os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
 
@@ -221,12 +223,35 @@ def fmt(x, pos):
     a, b = '{:.1e}'.format(x).split('e')
     b = int(b)
     return r'${} \times 10^{{{}}}$'.format(a, b)
-def SSSFgenhelper(d, hhl, ax, fig):
+def SSSFgenhelper(d, hhl, ax, fig, showBZ=False):
 
     if hhl == "110":
-        c = ax.imshow(d, interpolation="lanczos", origin='lower', extent=[-2.5, 2.5, -2.5, 2.5], aspect='auto')
+        c = ax.imshow(d, interpolation="lanczos", origin='lower', extent=[-2.5, 2.5, -2.5, 2.5], aspect='equal')
         ax.set_xlim([-2.5, 2.5])
         ax.set_ylim([-2.5, 2.5])
+        if showBZ:
+            Gamms = np.array([[0,0],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[0,2],[-2,0],[0,-2],[2,2],[-2,2],[2,-2],[-2,-2]])
+            Ls = np.array([[0.5,0.5]])
+            Xs = np.array([[0,1]])
+            Us = np.array([[0.25,1]])
+            Ks = np.array([[0.75,0]])
+
+
+            Boundary = np.array([[0.25, 1],[-0.25,1],[-0.75,0],[-0.25,-1],[0.25,-1],[0.75,0]])
+
+            plot_BZ_hhl(Gamms[0], Boundary, 'w:',ax)
+
+            ax.scatter(Gamms[0,0], Gamms[0,1],zorder=6)
+            ax.scatter(Ls[:,0], Ls[:,1],zorder=6)
+            ax.scatter(Xs[:, 0], Xs[:, 1],zorder=6)
+            ax.scatter(Ks[:, 0], Ks[:, 1],zorder=6)
+            ax.scatter(Us[:, 0], Us[:, 1],zorder=6)
+            plot_text(Gamms,r'$\Gamma$',ax)
+            plot_text(Ls,r'$L$',ax)
+            plot_text(Xs,r'$X$',ax, offset_adjust=np.array([-0.3,0]))
+            plot_text(Us,r'$U$',ax)
+            plot_text(Ks,r'$K$',ax)
+
     elif hhl == "111":
         c = ax.imshow(d, interpolation="lanczos", origin='lower', extent=[-3, 3, -3, 3], aspect='auto')
         ax.set_xlim([-3, 3])
@@ -235,7 +260,7 @@ def SSSFgenhelper(d, hhl, ax, fig):
         c = ax.imshow(d, interpolation="lanczos", origin='lower', extent=[-2.5, 2.5, -2.5, 2.5], aspect='auto')
         ax.set_xlim([-2.5, 2.5])
         ax.set_ylim([-2.5, 2.5])
-    cb = fig.colorbar(c, ax=ax)
+    return c
 
 def regraphSSSF(dir):
     for jpm in os.listdir(dir):
@@ -548,6 +573,8 @@ def SSSFgraphGen(h0, hmid, fluxmid, hpi, n, tograph, filename, colors=np.array([
 
     plt.savefig(filename)
     plt.clf()
+
+
 
 def sublatticeSSSFgraphGen(n, tograph, h, JP, flux, filename):
     mpl.rcParams.update({'font.size': 30})
@@ -1127,12 +1154,12 @@ fig, axs = plt.subplots()
 # plt.show()
 
 # SSSF_BZ(50, 0.08, 0.08, 1, 0, h110, np.zeros(4),15, "SSSF_BZ", 0)
-SSSF_q_omega_beta(0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
-SSSF_q_omega_beta(0.2, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
-SSSF_q_omega_beta(0.4, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
-SSSF_q_omega_beta(0.6, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
-SSSF_q_omega_beta(0.8, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
-SSSF_q_omega_beta(1.0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
+# SSSF_q_omega_beta(0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0", "hhl" )
+# SSSF_q_omega_beta(0.2, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.2", "hhl" )
+# SSSF_q_omega_beta(0.4, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.4", "hhl" )
+# SSSF_q_omega_beta(0.6, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.6", "hhl" )
+# SSSF_q_omega_beta(0.8, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=0.8", "hhl" )
+# SSSF_q_omega_beta(1.0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0_flux_T=1.0", "hhl" )
 
 # A = np.loadtxt("spec_heat.txt", unpack=True)
 # # plt.imshow(A, origin="lower", aspect="auto")
@@ -1192,12 +1219,13 @@ SSSF_q_omega_beta(1.0, 200, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, "SSSF_0
 # # #
 # # Jxx, Jyy, Jzz = -2*(Jpm+Jpmpm),  1.,        2*(Jpmpm-Jpm)
 # # fig, axs = plt.subplots()
-# a = pycon.piFluxSolver(Jxx,Jyy, Jzz, flux=np.ones(4) * np.pi, h=0.0, n=h111,simplified=False)
+# a = pycon.piFluxSolver(0.234338, 1.0, 0.379298, theta=-0.334922, flux=np.zeros(4) * np.pi, h=0.1, n=h110,simplified=False)
 # a.solvemeanfield()
-# # a.graph(axs)
+# a.graph(axs)
 # B = a.MFE()
 # BC = a.condensed
-# # plt.show()
+# print(B, BC)
+# plt.show()
 # print(a.chi, a.xi, a.magnetization(),a.gap(), a.MFE())
 
 dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1"
@@ -1254,25 +1282,183 @@ dir = "../../Data_Archive/phase_XYZ_0_field_0_flux/phase_XYZ_0_field_0_flux_nS=1
 # plt.savefig("DSSF.pdf")
 # plt.clf()
 
-# fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), layout="constrained", sharex=True)
-# mpl.rcParams.update({'font.size': 25})
-# axs[0, 0].text(.01, .99, r"$(\mathrm{a})$", ha='left', va='top', transform=axs[0, 0].transAxes,
-#                zorder=10)
-# axs[0, 1].text(.01, .99, r"$(\mathrm{b})$", ha='left', va='top', transform=axs[0, 1].transAxes,
-#                zorder=10)
-# axs[1, 0].text(.01, .95, r"$(\mathrm{c})$", ha='left', va='top', transform=axs[1, 0].transAxes, zorder=10)
-# axs[1, 1].text(.01, .95, r"$(\mathrm{d})$", ha='left', va='top', transform=axs[1, 1].transAxes, zorder=10)
-# A = np.loadtxt("../XYZ_project/Szzglobal_Jpm=0.txt")
-# SSSFgenhelper(A /np.max(A), "110", axs[0,0], fig)
-# A = np.loadtxt("../XYZ_project/Szzglobal.txt")
-# SSSFgenhelper(A /np.max(A), "110", axs[0,1], fig)
-# A = np.loadtxt("../XYZ_project/SzzNSF_Jpm=0.txt")
-# SSSFgenhelper(A /np.max(A), "110", axs[1,0], fig)
-# A = np.loadtxt("../XYZ_project/SzzNSF.txt")
-# SSSFgenhelper(A /np.max(A), "110", axs[1,1], fig)
-# plt.savefig("SSSF.pdf")
-#
+#region graphing functions for XYZ project
+# mpl.rcParams.update({'font.size': 40})
 
+# fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5), layout="constrained")
+# ax00 = axs[0]
+# ax01 = axs[1]
+# ax02 = axs[2]
+# ax00.text(.01, .99, r"$(\mathrm{a})$", ha='left', va='top', transform=ax00.transAxes,
+#                zorder=10,color='black')
+# ax01.text(.01, .99, r"$(\mathrm{b})$", ha='left', va='top', transform=ax01.transAxes,
+#                zorder=10,color='w')
+# ax02.text(.01, .99, r"$(\mathrm{c})$", ha='left', va='top', transform=ax02.transAxes,
+#                zorder=10,color='black')
+
+# A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1/Szzglobal.txt")
+# c = SSSFgenhelper(A /np.max(A), "110", ax00, fig, False)
+# fig.colorbar(c, ax=ax00)
+# ax00.set_xlabel(r"$(h,h,0)$")
+# ax00.set_ylabel(r"$(0,0,l)$")
+# # ax00.set_title(r"$J_{\pm\pm}=0$")
+
+# A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1_0_flux/Szzglobal.txt")
+# c = SSSFgenhelper(A /np.max(A), "110", ax01, fig, False)
+# fig.colorbar(c, ax=ax01)
+# ax01.set_xlabel(r"$(h,h,0)$")
+# # ax01.set_ylabel(r"$(0,0,l)$")
+# # ax00.set_title(r"$J_{\pm\pm}=0$")
+
+# A = np.loadtxt("../XYZ_project/SSSF/SSSF_XYZ_110_Jpm_-0.1_Jpmpm=-0.2_h_0.15/Szzglobal.txt")
+# c = SSSFgenhelper(A /np.max(A), "110", ax02, fig, False)
+# fig.colorbar(c, ax=ax02)
+# ax02.set_xlabel(r"$(h,h,0)$")
+# # ax01.set_ylabel(r"$(0,0,l)$")
+# # ax02.set_title(r"$J_{\pm\pm}=-0.2$")
+# plt.savefig("SSSF_global_same.pdf")
+# plt.clf()
+
+fig = plt.figure(figsize=(22, 8), constrained_layout=True)
+spec = gridspec.GridSpec(ncols=6, nrows=3, figure=fig, height_ratios=[0.05,1,1])
+spec.update(left=0.05, right=0.95, bottom=0.08, top=0.93, wspace=0.02, hspace=0.03)
+
+
+ax00 = fig.add_subplot(spec[1, 0])
+ax01 = fig.add_subplot(spec[1, 1])
+ax02 = fig.add_subplot(spec[1, 2])
+ax03 = fig.add_subplot(spec[1, 3])
+ax04 = fig.add_subplot(spec[1, 4])
+ax05 = fig.add_subplot(spec[1, 5])
+
+ax1 = fig.add_subplot(spec[2, 0:3])
+ax2 = fig.add_subplot(spec[2, 3:])
+
+colobar0 = fig.add_subplot(spec[0, 0])
+colobar1 = fig.add_subplot(spec[0, 1])
+colobar2 = fig.add_subplot(spec[0, 2])
+colobar3 = fig.add_subplot(spec[0, 3])
+colobar4 = fig.add_subplot(spec[0, 4])
+colobar5 = fig.add_subplot(spec[0, 5])
+
+ax00.text(.01, .99, r"$(\mathrm{1.a})$", ha='left', va='top', transform=ax00.transAxes,
+               zorder=10,color='w')
+ax01.text(.01, .99, r"$(\mathrm{1.b})$", ha='left', va='top', transform=ax01.transAxes,
+               zorder=10,color='w')
+ax02.text(.01, .99, r"$(\mathrm{1.c})$", ha='left', va='top', transform=ax02.transAxes,
+               zorder=10,color='w')
+ax03.text(.01, .99, r"$(\mathrm{2.a})$", ha='left', va='top', transform=ax03.transAxes,
+               zorder=10,color='w')
+ax04.text(.01, .99, r"$(\mathrm{2.b})$", ha='left', va='top', transform=ax04.transAxes,
+               zorder=10,color='w')
+ax05.text(.01, .99, r"$(\mathrm{2.c})$", ha='left', va='top', transform=ax05.transAxes,
+               zorder=10,color='w')
+
+ax1.text(.01, .99, r"$(\mathrm{1.d})$", ha='left', va='top', transform=ax1.transAxes,
+               zorder=10,color='w')
+ax2.text(.01, .99, r"$(\mathrm{2.d})$", ha='left', va='top', transform=ax2.transAxes,
+               zorder=10,color='w')
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1/Stotal_global.txt")
+c = SSSFgenhelper(A /np.max(A), "110", ax00, fig, True)
+ax00.set_xlabel(r"$(h,-h,0)$")
+ax00.set_ylabel(r"$(0,0,l)$")
+colobar0.set_title(r"$\mathcal{S}^{zz}$")
+# fig.colorbar(c, ax=ax00)
+Colorbar(mappable=c, ax=colobar0, orientation = 'horizontal', ticklocation = 'top')
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1/Stotal_NSF.txt")
+SSSFgenhelper(A /np.max(A), "110", ax01, fig, False)
+ax01.set_xlabel(r"$(h,-h,0)$")
+# ax01.set_ylabel(r"$(0,0,l)$")
+ax01.set_yticklabels([])
+# ax01.set_xticklabels([])
+
+colobar1.set_title(r"$\mathcal{S}_{NSF}^{zz}$, $\pi$-$flux$")
+Colorbar(mappable=c, ax=colobar1, orientation = 'horizontal', ticklocation = 'top')
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1_0_flux/Stotal_NSF.txt")
+c = SSSFgenhelper(A /np.max(A), "110", ax02, fig, False)
+ax02.set_xlabel(r"$(h,-h,0)$")
+ax02.set_yticklabels([])
+# ax02.set_xticklabels([])
+# ax02.set_ylabel(r"$(0,0,l)$")
+colobar2.set_title(r"$\mathcal{S}_{NSF}^{zz}$, $0$-$flux$")
+Colorbar(mappable=c, ax=colobar2, orientation = 'horizontal', ticklocation = 'top')
+
+d = np.loadtxt("../XYZ_project/DSSF/DSSF_CHO_h110_0.4/S_total_global.txt")
+a = pycon.piFluxSolver(0.234338, 1.0, 0.379298,theta=-0.334922,flux=np.ones(4)*np.pi,h=0.1,n=h110, simplified=False)
+a.solvemeanfield()
+emin, emax = 0.95*np.min(a.graph_loweredge(False, ax1)), 1.02*np.max(a.graph_upperedge(False, ax1))
+# emin, emax = 0.29835552586608627, 1.8698587798053417
+print(emin, emax)
+ax1.set_ylabel(r"$\omega/J_{\parallel}$")
+c = ax1.imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
+# fig.colorbar(c, ax=ax1)
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_XYZ_110_Jpm_-0.1_Jpmpm=-0.2_h_0.15/Szzglobal.txt")
+c = SSSFgenhelper(A /np.max(A), "110", ax03, fig, True)
+ax03.set_xlabel(r"$(h,-h,0)$")
+# ax03.set_ylabel(r"$(0,0,l)$")
+ax03.set_yticklabels([])
+# ax03.set_xticklabels([])
+colobar3.set_title(r"$\mathcal{S}^{zz}$")
+# fig.colorbar(c, ax=ax03)
+Colorbar(mappable=c, ax=colobar3, orientation = 'horizontal', ticklocation = 'top')
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_XYZ_110_Jpm_-0.1_Jpmpm=-0.2_h_0.15/SzzNSF.txt")
+SSSFgenhelper(A /np.max(A), "110", ax04, fig, False)
+ax04.set_xlabel(r"$(h,-h,0)$")
+# ax01.set_ylabel(r"$(0,0,l)$")
+ax04.set_yticklabels([])
+# ax04.set_xticklabels([])
+colobar4.set_title(r"$\mathcal{S}_{NSF}^{zz}$, $J_{\pm\pm}=-0.2J_\parallel$")
+Colorbar(mappable=c, ax=colobar4, orientation = 'horizontal', ticklocation = 'top')
+
+A = np.loadtxt("../XYZ_project/SSSF/SSSF_XYZ_110_Jpm_-0.1_Jpmpm=0.0_h_0.15/SzzNSF.txt")
+c = SSSFgenhelper(A /np.max(A), "110", ax05, fig, False)
+ax05.set_xlabel(r"$(h,-h,0)$")
+ax05.set_yticklabels([])
+# ax05.set_xticklabels([])
+
+# ax02.set_ylabel(r"$(0,0,l)$")
+colobar5.set_title(r"$\mathcal{S}_{NSF}^{zz}$, $J_{\pm\pm}=0$")
+Colorbar(mappable=c, ax=colobar5, orientation = 'horizontal', ticklocation = 'top')
+
+d = np.loadtxt("../XYZ_project/DSSF/DSSF_XYZ_110_Jpm_-0.1_Jpmpm=-0.2_h_0.15/Szzglobal.txt")
+Jpm=-0.1
+Jpmpm=-0.2
+a = pycon.piFluxSolver(0.6, 1.0, -0.2,theta=0,flux=np.ones(4)*np.pi,h=0.15,n=h110, simplified=False)
+a.solvemeanfield()
+emin, emax = 0.95*np.min(a.graph_loweredge(False, ax2)), 1.02*np.max(a.graph_upperedge(False, ax2))
+# emin, emax = 0.29835552586608627, 1.8698587798053417
+print(emin, emax)
+c = ax2.imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
+fig.colorbar(c, ax=ax2)
+
+plt.savefig("CHO_SSF_all.pdf")
+
+
+# axs[1].set_ylabel(r"$(0,0,l)$")
+# A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1/SzzNSF.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[1,0], fig)
+# A = np.loadtxt("../XYZ_project/SSSF/SSSF_CHO_h110_0.1_0_flux/SzzNSF.txt")
+# SSSFgenhelper(A /np.max(A), "110", axs[1,1], fig)
+
+# fig, ax1 = plt.subplots(figsize=(12,5))
+# d = np.loadtxt("../XYZ_project/DSSF/DSSF_XYZ_110_Jpm_-0.1_Jpmpm=-0.2_h_0.15/Szzglobal.txt")
+# Jpm = -0.1
+# Jpmpm = -0.2
+# a = pycon.piFluxSolver(-2*Jpm-2*Jpmpm, 1.0, -2*Jpm+2*Jpmpm,theta=0,flux=np.ones(4)*np.pi,h=0.15,n=h110, simplified=False)
+# a.solvemeanfield()
+# emin, emax = np.min(a.graph_loweredge(False, ax1)), np.max(a.graph_upperedge(False, ax1))
+# # emin, emax = 0.29835552586608627, 1.8698587798053417
+# print(emin, emax)
+# c = ax1.imshow(d.T/np.max(d), interpolation="lanczos", origin='lower', extent=[0, gGamma3, emin, emax], aspect='auto', cmap='gnuplot2')
+# fig.colorbar(c, ax=ax1)
+
+# plt.savefig("CZO_DSSF.pdf")
+#endregion
 
 
 # fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), layout="constrained", sharex=True)

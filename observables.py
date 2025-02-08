@@ -619,22 +619,22 @@ def DSSFgraph_pedantic(D, filename, A, B, lowedge, upedge):
     plt.savefig(filename + ".pdf")
     plt.clf()
 
-def plot_line(A, B, color):
+def plot_line(A, B, color, ax):
     temp = np.array([A,B]).T
-    plt.plot(temp[0], temp[1], color,zorder=5)
+    ax.plot(temp[0], temp[1], color,zorder=5)
 
-def plot_text(A, text):
-    temp = A + 0.05*np.array([1,-1])
-    plt.text(temp[0,0],temp[0,1],text)
+def plot_text(A, text, ax, color='black', offset_adjust = np.array([0,0])):
+    temp = A + 0.08*np.array([1,1.4]) + offset_adjust
+    ax.text(temp[0,0],temp[0,1],text, color=color)
 
-def plot_BZ_hhl(offset, boundary, color):
+def plot_BZ_hhl(offset, boundary, color, ax):
     B = boundary+offset
-    plot_line(B[0],B[1],color)
-    plot_line(B[1],B[2],color)
-    plot_line(B[2],B[3],color)
-    plot_line(B[3],B[4],color)
-    plot_line(B[4],B[5],color)
-    plot_line(B[5],B[0],color)
+    plot_line(B[0],B[1],color,ax)
+    plot_line(B[1],B[2],color,ax)
+    plot_line(B[2],B[3],color,ax)
+    plot_line(B[3],B[4],color,ax)
+    plot_line(B[4],B[5],color,ax)
+    plot_line(B[5],B[0],color,ax)
 
 def plot_BZ_hkk(offset, boundary, color):
     B = boundary+offset

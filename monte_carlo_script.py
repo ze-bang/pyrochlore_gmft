@@ -10,11 +10,14 @@ from phase_diagram import *
 # scan_all(h001, 2)
 
 
-downtetrahedron = np.array([[0,0,0],[0,1,0],[1,0,0],[0,0,1],[0,2,0],[2,0,0],[-1,1,1],[1,-1,1], [1,1,-1], [0,1,1], [1,1,0], [1,1,1]])
-uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0], [1,1,1]])
-downtetrahedron = np.array([[0,0,0]])
-uptetrahedron =  np.array([[0,0,0]])
+# downtetrahedron = np.array([[0,0,0],[0,1,0],[1,0,0],[0,0,1],[0,2,0],[2,0,0],[-1,1,1],[1,-1,1], [1,1,-1], [0,1,1], [1,1,0], [1,1,1]])
+# uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0], [1,1,1]])
+# downtetrahedron = np.array([[0,0,0]])
+# uptetrahedron =  np.array([[0,0,0]])
+downtetrahedron = np.array([[0,1,0],[1,0,0],[0,0,1]])
+uptetrahedron =  np.array([[0,1,1], [1,0,1], [1,1,0]])
 ax = plt.axes(projection='3d')
+ax.view_init(elev=60, azim=93, roll=-130)
 ax.set_axis_off()
 
 graphdownpyrochlore(downtetrahedron,ax)
@@ -56,9 +59,10 @@ graphuppyrochlore_blank(uptetrahedron,ax)
 # graphallgaugebond(downtetrahedron,ax)
 
 # ax.view_init(elev=0, azim=84, roll=45)
-# nb
+ax.set_aspect('equal')
 # plt.show()
-# plt.savefig('test.pdf')
+
+plt.savefig('test.pdf')
 
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.zeros(4),'HanYan_100_Jpm_-0.3_0.1_h_0_1_0_flux_ex')
 # completeSpan_ex(-0.3,0.1,100,0,1,100,h001,17,2,np.ones(4)*np.pi,'HanYan_100_Jpm_-0.3_0.1_h_0_1_pi_flux_ex')
