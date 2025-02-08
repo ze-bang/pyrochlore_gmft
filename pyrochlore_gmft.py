@@ -1106,8 +1106,6 @@ class piFluxSolver:
             self.h = 5.7883818060*10**(-2)*h*gzz
         else:
             self.h = h
-        if a == 0:
-            self.h = -1j*self.h
         self.inversion = True
         # if FF == True:
         #     self.inversion = False
