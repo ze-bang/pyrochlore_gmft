@@ -96,7 +96,7 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
 
 
 
-    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, unitcell, dominant)
+    MagAkBk = M_pi_mag_sub_AB(k, h, n, theta, A_pi_here, dominant, unitcell)
     MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
 
     if Jpmpm == 0:
@@ -108,7 +108,7 @@ def M_pi(k, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_
 
         MagAkBk = MagAkBk + M_pi_sub_interhopping_AB(k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
         MagBkAk = np.conj(np.transpose(MagAkBk, (0, 2, 1)))
-        MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, unitcell, dominant) + M_pi_sub_interhopping_AB(-k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
+        MagAnkBnk = M_pi_mag_sub_AB(-k, h, n, theta, A_pi_here, dominant, unitcell) + M_pi_sub_interhopping_AB(-k, Jpmpm, xi, A_pi_rs_traced_pp_here, unitcell)
         MagBnkAnk = np.conj(np.transpose(MagAnkBnk, (0, 2, 1)))
 
         MAdkAdnk = M_pi_sub_pairing_AdAd(k, Jpmpm, chi, A_pi_rs_traced_pp_here, unitcell) + np.conj(np.transpose(M_pi_fictitious_Z2_AA(k, 0, A_pi_rs_traced_pp_here, g, unitcell),(0,2,1)))
