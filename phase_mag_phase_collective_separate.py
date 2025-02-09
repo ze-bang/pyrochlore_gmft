@@ -55,6 +55,7 @@ Jpm_min = -0.5 + abs(float(Jpmpm))
 Jpm_section = int(np.sqrt(int(JPMH_PARAM_SIZE)))
 Jpm_length = int(JPMH_SECTION_ID) // Jpm_section
 h_length = int(JPMH_SECTION_ID) % Jpm_section
+Jxx = int(Jxx)
 
 Jpm_unit = (0.1 - Jpm_min)/Jpm_section
 h_unit = (hmax - hmin) / Jpm_section
