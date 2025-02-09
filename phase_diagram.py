@@ -1468,10 +1468,9 @@ def conclude_XYZ_finite_field_job_array(filename):
         elif i == "Jpmpm=0.03624000000000001":
             Jpmpm = 0.03624000000000001
 
-    print(Jpmpm)
-    field_dir = stuff[3]
-    Jstart = -0.3
-    Jend = 0.3
+    field_dir = stuff[-1]
+    Jstart = -0.5 + Jpmpm
+    Jend = 0.1
     Hstart = 0
     Hend = 8
 

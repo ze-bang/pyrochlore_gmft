@@ -114,6 +114,9 @@ def repcoord(a, b, c):
 
 z = np.array([np.array([1,1,1])/np.sqrt(3), np.array([1,-1,-1])/np.sqrt(3), np.array([-1,1,-1])/np.sqrt(3), np.array([-1,-1,1])/np.sqrt(3)])
 x = np.array([[-2,1,1],[-2,-1,-1],[2,1,-1], [2,-1,1]])/np.sqrt(6)
+y = np.array([[0,-1,1],[0,1,-1],[0,-1,-1], [0,1,1]])/np.sqrt(2)
+localframe = np.array([x,y,z])
+
 e = np.array([e0,e1,e2,e3])
 @nb.njit
 def neta(alpha):
@@ -144,13 +147,15 @@ def bose(beta, omega):
         return 1/(np.exp(beta*omega)-1)
 
 def g(q):
-    M = np.zeros((4,4))
+    M = np.zeros((4,4, 3,3))
     for i in range(4):
         for j in range(4):
-            if not np.dot(q,q) == 0:
-                M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
-            else:
-                M[i, j] = 0
+            for a in range(3):
+                for b in range(3):
+                    if not np.dot(q,q) == 0:
+                        M[i,j,a,b] = np.dot(localframe[a][i], localframe[b][j]) - np.dot(localframe[a][i],q) * np.dot(localframe[b][j],q)/ np.dot(q,q)
+                    else:
+                        M[i, j,a,b] = 0
     return M
 
 def gx(q):
@@ -188,10 +193,12 @@ def gSF(q, v):
     return M
 
 def gNSF(q, v):
-    M = np.zeros((4,4))
+    M = np.zeros((4,4,3,3))
     for i in range(4):
         for j in range(4):
-            M[i,j] = contract('a,a, b, b->',z[i], v, z[j], v)
+            for a in range(3):
+                for b in range(3):
+                    M[i,j,a,b] = contract('a,a, b, b->',localframe[a][i], v, localframe[b][j], v)
     return M
 
 def gNSFx(q, v):
