@@ -5,7 +5,7 @@ from phase_diagram import *
 from observables import *
 import sys
 
-hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = sys.argv[1:]
+hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size, Jxx = sys.argv[1:]
 
 # hmin, hmax, field_dir, Jpmpm, SLURM_ID, SLURM_SIZE, mpi_size = 0, 0.5, "111", 0.3, 2, 144, 441
 
@@ -74,4 +74,4 @@ if not os.path.exists(pdir):
 
 nK = int(np.sqrt(int(mpi_size)))
 print(filename)
-findPhaseMag_separate(Jpm_length_start, Jpm_length_end, nK, h_length_start, h_length_end, nK, h_dir, flux, 30, 2, filename, Jpmpm=Jpmpm, FF=FF)
+findPhaseMag_separate(Jpm_length_start, Jpm_length_end, nK, h_length_start, h_length_end, nK, h_dir, flux, 30, 2, filename, Jpmpm=Jpmpm, FF=FF, Jxx=Jxx)
