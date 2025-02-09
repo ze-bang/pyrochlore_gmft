@@ -994,9 +994,9 @@ def smooth(A):
 # plt.savefig('phase_110_kappa=2_Jpmpm=0.2.pdf')
 # plt.clf()
 
-# conclude_XYZ_finite_field("../../Data_Archive/Files/phase_110_kappa=2_Jpmpm=0.2", -0.3,0.1,0,0.5)
-# conclude_XYZ_finite_field("../../Data_Archive/Files/phase_001_kappa=2_Jpmpm=0.2",-0.3,0.1,0,0.3)
-# conclude_XYZ_finite_field("../../Data_Archive/Files/phase_111_kappa=2_Jpmpm=0.2",-0.3,0.1,0,0.4)
+# conclude_XYZ_finite_field("/scratch/zhouzb79/phase_110_mag_phase_Jpmpm=-0.2", -0.3,0.1,0,0.5)
+# conclude_XYZ_finite_field("/scratch/zhouzb79/phase_001_mag_phase_Jpmpm=-0.2",-0.3,0.1,0,0.5)
+# conclude_XYZ_finite_field("/scratch/zhouzb79/phase_111_kappa=2_Jpmpm=-0.2",-0.3,0.1,0,0.5)
 
 
 # N=1
@@ -1139,22 +1139,22 @@ fig, axs = plt.subplots()
 # a.graph(axs)
 # plt.show()
 
-A = np.loadtxt("spec_heat.txt", unpack=True)
-# plt.imshow(A, origin="lower", aspect="auto")
+# A = np.loadtxt("spec_heat.txt", unpack=True)
+# # plt.imshow(A, origin="lower", aspect="auto")
+# # plt.show()
+# A = np.flip(A, axis=1)
+# A = A[:,10:]
+# A[1] = A[1] * 8.6173303e-2
+# Cv_integrand = A[1]/A[0]
+# S = np.zeros(len(A[1])-1)
+# for i in range(1,len(A[1])):
+#     S[i-1] = -np.trapezoid(Cv_integrand[i:], A[0][i:]) + np.log(2)
+# plt.plot(A[0,:-1],S, A[0], A[1])
+# plt.errorbar(A[0], A[1], A[2])
+# plt.xscale('log')
+# plt.xlabel(r'$T/|J_{yy}|$')
+# plt.legend(['entropy', 'specific heat'])
 # plt.show()
-A = np.flip(A, axis=1)
-A = A[:,10:]
-A[1] = A[1] * 8.6173303e-2
-Cv_integrand = A[1]/A[0]
-S = np.zeros(len(A[1])-1)
-for i in range(1,len(A[1])):
-    S[i-1] = -np.trapezoid(Cv_integrand[i:], A[0][i:]) + np.log(2)
-plt.plot(A[0,:-1],S, A[0], A[1])
-plt.errorbar(A[0], A[1], A[2])
-plt.xscale('log')
-plt.xlabel(r'$T/|J_{yy}|$')
-plt.legend(['entropy', 'specific heat'])
-plt.show()
 # dir = "Classical_Phase_Diagram"
 # directory = os.fsencode(dir)
 # for file in os.listdir(directory):
@@ -1329,9 +1329,9 @@ fig, axs = plt.subplots()
 # conclude_XYZ_0_field("../../Data_Archive/Files/phase_XYZ_0_field",-0.8, 1.0)
 
 # conclude_XYZ_0_field_job_array("/scratch/zhouzb79/Files/pyrochlore_XYZ_0_field_no_condensate")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_001")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_111")
-# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/Files/pyrochlore_mag_phase_110")
+# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/pyrochlore_mag_phase_001_Jpmpm=-0.2")
+conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/pyrochlore_mag_phase_001_Jpmpm=0.03624000000000001")
+# conclude_XYZ_finite_field_job_array("/scratch/zhouzb79/pyrochlore_mag_phase_110_Jpmpm=-0.2")
 
 # Jxx = np.linspace(0,0.5,10)
 # for i in range(10):
@@ -1346,7 +1346,7 @@ fig, axs = plt.subplots()
 # d0 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/10.txt")
 # d1 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/11.txt")
 # d2 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/12.txt")
-# d3 = np.loadtxt("../Data/Final_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/13.txt")
+# d3 = np.loadtxt("../Data/Fi gvnal_DSSF_pedantic/Jpm=-0.289_pi/h_110/h=0.09999999999999999/Szz/13.txt")
 #
 # d = d0+d1+d2+d3
 # c = axs.imshow(d.T/np.max(d))
@@ -1356,7 +1356,7 @@ fig, axs = plt.subplots()
 # fig, axs = plt.subplots()
 # Jpm=0.0
 # flux = np.zeros(4)
-# # flux = np.ones(4)*np.pi
+# # flux = np.ones(4)*np.pi d
 # # flux = np.array([0,0,np.pi,np.pi])
 # a = pycon.piFluxSolver(-2*Jpm,1,-2*Jpm,flux=flux, h=0.2, n=h111)
 # a.solvemeanfield()

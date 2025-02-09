@@ -1460,17 +1460,22 @@ def conclude_XYZ_finite_field_job_array(filename):
     grid_reso = 0
 
     stuff = filename.split("_")
-    Jpmpm = 0.2
+    Jpmpm = 2
 
     for i in stuff:
         if i == "Jpmpm=0":
             Jpmpm = 0
+        elif i == "Jpmpm=0.03624000000000001":
+            Jpmpm = 0.03624000000000001
 
+    print(Jpmpm)
     field_dir = stuff[3]
-    Jstart = -0.5 + Jpmpm
-    Jend = 0.1
+    Jstart = -0.3
+    Jend = 0.3
     Hstart = 0
-    Hend = 0.5
+    Hend = 8
+
+    fig, ax = plt.subplots(layout="constrained")
 
     if field_dir == "110":
         num_sec = 4
@@ -1502,7 +1507,6 @@ def conclude_XYZ_finite_field_job_array(filename):
                     temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+".txt"
                     temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+".txt"
                     temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+".txt"
-
                     d0 = np.loadtxt(temp)
                     d1 = np.loadtxt(temp1)
                     d2 = np.loadtxt(temp2)
@@ -1514,6 +1518,7 @@ def conclude_XYZ_finite_field_job_array(filename):
                     temp1 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+mult))+"_out_of_"+total_job+"_MFE.txt"
                     temp2 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+2*mult))+"_out_of_"+total_job+"_MFE.txt"
                     temp3 = filename+'/'+dump+"_"+Jpm_start+"_"+Jpm_end+"_"+dump1+"_"+h_start+"_"+h_end+"_"+str(int(int(job_id)+3*mult))+"_out_of_"+total_job+"_MFE.txt"
+
 
                     MFE0 = np.loadtxt(temp)
                     MFE1 = np.loadtxt(temp1)
@@ -1649,32 +1654,33 @@ def conclude_XYZ_finite_field_job_array(filename):
                         # if Jpm == 0:
                         #     phase[i+offset_x,j+offset_y] = 0
 
-
+    # print(phase.shape)
+    # temp = phase[:,0:36]
     plt.imshow(phase.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto', vmin=0, vmax=3)
     plt.colorbar()
-    plt.xlabel(r"$J_{xx}/J_{yy}$")
-    plt.ylabel(r"$J_{zz}/J_{yy}$")
-    plt.savefig(filename+".pdf")
+    plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    plt.ylabel(r"$h/J_{yy}$")
+    plt.savefig(filename+"_0.pdf")
     plt.clf()
 
     plt.imshow(MFEs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
     # plt.colorbar()
-    plt.xlabel(r"$J_{xx}/J_{yy}$")
-    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    plt.ylabel(r"$h/J_{yy}$")
     plt.savefig(filename+"_MFE.pdf")
     plt.clf()
 
     plt.imshow(XIs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
     # plt.colorbar()
-    plt.xlabel(r"$J_{xx}/J_{yy}$")
-    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    plt.ylabel(r"$h/J_{yy}$")
     plt.savefig(filename+"_xi.pdf")
     plt.clf()
 
     plt.imshow(CHIs.T, origin='lower', extent=[Jstart, Jend, Hstart, Hend], aspect='auto')
     # plt.colorbar()
-    plt.xlabel(r"$J_{xx}/J_{yy}$")
-    plt.ylabel(r"$J_{zz}/J_{yy}$")
+    plt.xlabel(r"$J_{\pm}/J_{yy}$")
+    plt.ylabel(r"$h/J_{yy}$")
     plt.savefig(filename+"_chi.pdf")
     plt.clf()
 #endregion
