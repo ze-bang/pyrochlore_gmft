@@ -141,7 +141,25 @@ def bose(beta, omega):
     if beta == 0:
         return np.zeros(omega.shape)
     else:
-        return 1/(np.exp(beta*omega)-1)
+        # Handle large beta*omega to prevent overflow
+        beta_omega = beta * omega
+        # For large positive values, exp(x) - 1 ≈ exp(x), so 1/(exp(x)-1) ≈ exp(-x)
+        result = np.zeros_like(omega)
+        
+        # Where beta*omega is small enough, use the standard formula
+        small_mask = beta_omega < 700  # exp(700) is near the overflow limit
+        result[small_mask] = 1/(np.exp(beta_omega[small_mask])-1)
+        
+        # Where beta*omega is large, use the approximation
+        large_mask = beta_omega >= 700
+        result[large_mask] = np.exp(-beta_omega[large_mask])
+        
+        # Handle the case where omega is zero (if any)
+        zero_mask = omega == 0
+        if np.any(zero_mask):
+            result[zero_mask] = 0
+            
+        return result
 
 def g(q):
     M = np.zeros((4,4))
@@ -893,7 +911,7 @@ def hhknktoK(H, K, L=0):
 def hnhkkn2ktoK(H, K, L=0):
     return np.einsum('ij,k->ijk',H, np.array([-0.5,0.5,0])) \
         + np.einsum('ij,k->ijk',K, np.array([-0.5,-0.5,1])) \
-        + L*np.array([0.5,0.5,0])
+        + L*np.array([1,1,1])
 
 
 def hknkL(H,K,L):
@@ -972,10 +990,10 @@ def gauss_quadrature_1D_pts(a, b, n):
     return gauss_pts, weights
 
 
-def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
-    nodes1, weights1 = np.polynomial.legendre.leggauss(n)
-    nodes2, weights2 = np.polynomial.legendre.leggauss(n)
-    nodes3, weights3 = np.polynomial.legendre.leggauss(n)
+def gauss_quadrature_3D_pts(a, b, c, d, e, g, n1, n2, n3):
+    nodes1, weights1 = np.polynomial.legendre.leggauss(n1)
+    nodes2, weights2 = np.polynomial.legendre.leggauss(n2)
+    nodes3, weights3 = np.polynomial.legendre.leggauss(n3)
 
     amp = np.array([(b-a)/2,(d-c)/2,(g-e)/2])
     # Map nodes from the interval [-1, 1] to the interval [a, b]
@@ -983,6 +1001,7 @@ def gauss_quadrature_3D_pts(a, b, c, d, e, g, n):
     weights = contract('i,j,k->ijk', weights1, weights2, weights3).ravel()
     weights *= 0.125 * (b - a) * (d - c) * (g - e)
     return gauss_pts, weights
+
 def integrate(f, gauss_pts, weights, *args):
     integral_approximation = np.dot(weights, f(gauss_pts, *args))
     return integral_approximation
@@ -991,15 +1010,15 @@ def integrate_fixed(f, weights, *args):
     integral_approximation = np.dot(weights, f(*args))
     return integral_approximation
 
-def riemann_sum_3d_pts(a, b, c, d, p, q, n):
-    dx = (b - a) / n
-    dy = (d - c) / n
-    dz = (q - p) / n
-    xi = np.linspace(a,b,n)
-    yj = np.linspace(c,d,n)
-    zk = np.linspace(p,q,n)
+def riemann_sum_3d_pts(a, b, c, d, p, q, n1, n2, n3):
+    dx = (b - a) / n1
+    dy = (d - c) / n2
+    dz = (q - p) / n3
+    xi = np.linspace(a,b,n1)
+    yj = np.linspace(c,d,n2)
+    zk = np.linspace(p,q,n3)
     pts = np.array(np.meshgrid(xi, yj, zk)).reshape(3, -1).T
-    return pts, np.ones(n**3)*dx*dy*dz
+    return pts, np.ones(n1*n2*n3)*dx*dy*dz
 
 def monte_carlo_integration_3d_pts(a, b, c, d, p, q, n):
     volume = (b - a) * (d - c) * (q - p)

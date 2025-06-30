@@ -14,7 +14,7 @@ import netCDF4 as nc
 def quantum_fisher_information(temp, filename, tosave):
     D = np.loadtxt(filename)
     size = int(np.sqrt(D.shape[0]))
-    omega = np.linspace(0, 1, D.shape[1])
+    omega = np.linspace(0, 10, D.shape[1])
     if not temp == 0:
         beta = 1/(temp)
         print(beta)
@@ -38,14 +38,26 @@ def quantum_fisher_information_K(D, temp):
     omega = np.linspace(0, 10, D.shape[1])
     if not temp == 0:
         beta = 1/(temp)
-        factor1 = 4*np.tanh(omega*beta/2)
-        factor2 = 1-np.exp(-beta*omega)
+        # Handle large beta values to avoid overflow
+        beta_omega = beta * omega
+        
+        # Use numerically stable computation for tanh
+        # For large x, tanh(x) ≈ 1, so we clip the values
+        tanh_arg = np.clip(omega * beta / 2, -20, 20)
+        factor1 = 4 * np.tanh(tanh_arg)
+        
+        # For large beta*omega, exp(-beta*omega) ≈ 0, so 1-exp(-beta*omega) ≈ 1
+        # Use expm1 for better numerical stability: expm1(x) = exp(x) - 1
+        exp_arg = np.clip(-beta_omega, -700, 0)  # Prevent underflow/overflow
+        factor2 = -np.expm1(exp_arg)  # This is 1 - exp(-beta*omega)
+        
         toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
         results = np.trapezoid(toint, omega,axis=1)
     else:
         results = np.trapezoid(D, omega,axis=1)
         results = 4 * results.reshape((size,size))/(2*np.pi)
     return results
+
 
 
 def deltas_beta(Ek, Eq, omega, beta, tol):
@@ -110,23 +122,23 @@ def Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, beta=0):
     ffactpp = np.exp(1j * ffact)
     Spm = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 0:size], greenpQ[:, :, size:2*size, size:2*size],
                    deltapm, A_pi_rs_rsp_here, unitcell, unitcell,
-                   ffactpm) / size**2
+                   ffactpm) / size**2 / 4
 
     Spp = contract('ioay, ipbx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, size:2*size], greenpQ[:, :, 0:size, size:2*size],
                    deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                   ffactpp) / size**2
+                   ffactpp) / size**2 / 4
     if not pyp0.Jpmpm == 0:
         SppA = contract('ioab, ipyx, iwop, abjk, jax, kby, ijk->wijk', greenpK[:, :, 0:size, 2*size:3*size],
                        greenpQ[:, :, 3*size:4*size, size:2*size],
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
-                       ffactpm) / size**2
+                       ffactpm) / size**2 / 4
         Spp = Spp + SppA
     return Spm, Spp
 
 def DSSF_core(q, omega, pyp0, tol):
     Ks = pyp0.pts
     Qs = Ks - q
-    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0, pyp0.lams)
+    Spm, Spp = Spm_Spp_omega(Ks, Qs, q, omega, tol, pyp0)
 
     Szz = (np.real(Spm) + np.real(Spp)) / 2
     Sxx = (np.real(Spm) - np.real(Spp)) / 2
@@ -137,6 +149,60 @@ def DSSF_core(q, omega, pyp0, tol):
     Sglobalxx = contract('wijk,jk, i->w', Sxx, g(q), pyp0.weights)
     Sxx = contract('wijk, i->w', Sxx, pyp0.weights)
     return Szz, Sglobalzz, Sxx, Sglobalxx
+
+def DSSF_int(qs, omega, pyp0, tol, dV=None):
+    """
+    Integrate Dynamic Structure Factor over q-points.
+    
+    Parameters:
+    -----------
+    qs : ndarray
+        q-points with shape (H, K, L, 3) where the last dimension contains the coordinates
+    omega : ndarray
+        Frequency points
+    pyp0 : object
+        Pyrochlore solver object
+    tol : float
+        Tolerance for calculations
+    dV : float or ndarray, optional
+        Volume element for integration, can be scalar or array matching qs shape
+        
+    Returns:
+    --------
+    Szz_int, Sglobalzz_int, Sxx_int, Sglobalxx_int : ndarray
+        Integrated structure factors as functions of omega
+    """
+    # Reshape qs to a 2D array for processing
+    original_shape = qs.shape[:-1]
+    n_points = np.prod(original_shape)
+    qs_flat = qs.reshape(n_points, 3)
+    
+    # Initialize results for integration
+    Szz_int = np.zeros(len(omega), dtype=np.float64)
+    Sglobalzz_int = np.zeros(len(omega), dtype=np.float64)
+    Sxx_int = np.zeros(len(omega), dtype=np.float64)
+    Sglobalxx_int = np.zeros(len(omega), dtype=np.float64)
+    
+        
+    # Calculate and integrate DSF over all q-points
+    print(f"Starting integration over {n_points} q-points")
+    
+    # Calculate progress reporting intervals
+    report_interval = max(1, n_points // 10)
+    
+    for i in range(n_points):
+        Szz, Sglobalzz, Sxx, Sglobalxx = DSSF_core(qs_flat[i], omega, pyp0, tol)
+        Szz_int += Szz * dV
+        Sglobalzz_int += Sglobalzz * dV
+        Sxx_int += Sxx * dV
+        Sglobalxx_int += Sglobalxx * dV
+        
+        # Print progress periodically
+        if i % report_interval == 0 or i == n_points - 1:
+            progress = (i + 1) / n_points * 100
+            print(f"Integration progress: {progress:.1f}% ({i+1}/{n_points})")
+    return Szz_int, Sglobalzz_int, Sxx_int, Sglobalxx_int
+
 def graph_DSSF(pyp0, E, K, tol, rank, size):
     comm = MPI.COMM_WORLD
     n = len(K) / size
@@ -393,7 +459,7 @@ def SpmSpp_zerotemp(K, Q, q, pyp0):
                    piunitcell, piunitcell,
                    ffactpm)/size**2
         Spp = Spp + SppA
-    return Spm, Spp
+    return Spm/(2*np.pi), Spp/(2*np.pi)
 
 def SpmSpp_finite_temp(K, Q, q, pyp0, beta):
     greenpK, tempE, A_pi_rs_rsp_here, A_pi_rs_rsp_pp_here, unitcell = pyp0.green_pi_branch_reduced(K, True)
@@ -424,7 +490,7 @@ def SpmSpp_finite_temp(K, Q, q, pyp0, beta):
                        greenpQ[:, :, 3*size:4*size, size:2*size],
                        deltapm, A_pi_rs_rsp_pp_here, unitcell, unitcell,
                        ffactpm) / size**2
-    return Spm, Spp
+    return Spm/(2*np.pi), Spp/(2*np.pi)
 
 
 def SSSF_core_pedantic(q, v, pyp0):
@@ -514,6 +580,9 @@ def SSSF_core(q, v, pyp0):
         v = v/np.linalg.norm(v)
 
     Spm, Spp = SpmSpp(Ks, Qs, q, pyp0)
+
+    print('Spm', contract('ijk,i->', Spm, pyp0.weights))
+
     if pyp0.dominant == 0:
         Sxx = (np.real(Spm) + np.real(Spp)) / 2
         Szz = (np.real(Spm) - np.real(Spp)) / 2

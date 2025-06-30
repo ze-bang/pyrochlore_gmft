@@ -188,129 +188,6 @@ def Emin(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_he
                 unitcell)[0][0,0]
 
 
-
-# def gradient(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-#     kx, ky, kz = k
-#     step = 1e-8
-#     fx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-#                                                              0, piunitcell)) / step
-#     fy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-#                                                              0, piunitcell)) / step
-#     fz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                A_pi_rs_traced_pp_here, 0, piunitcell) - Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi,
-#                                                              xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-#                                                              0, piunitcell)) / step
-#     return np.array([fx, fy, fz])
-#
-# def hessian(k, lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here):
-#     kx, ky, kz = k
-#     step = 1e-8
-#
-#     fxx = (Emin(np.array([kx + step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     fxy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     fxz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx - step, ky, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     fyy = (Emin(np.array([kx, ky + step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     fyz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx, ky - step, kz]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     fzz = (Emin(np.array([kx, ky, kz + step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                 A_pi_rs_traced_pp_here, 0, piunitcell) - 2 * Emin(np.array([kx, ky, kz]), lams, Jpm, Jpmpm, h, n, theta,
-#                                                                   chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                                                                   A_pi_rs_traced_pp_here, 0, piunitcell)
-#            + Emin(np.array([kx, ky, kz - step]), lams, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                   A_pi_rs_traced_pp_here, 0, piunitcell)) / step ** 2
-#     return np.array([[fxx, fxy, fxz],[fxy, fyy, fyz],[fxz, fyz, fzz]])
-#
-# def findminLam(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here,
-#                BZres, kappa, equi_class_field, equi_class_flux, gen_equi_class_field, gen_equi_class_flux):
-#     if Jpm==0 and Jpmpm == 0 and h == 0:
-#         return 1/(2*kappa**2), np.array([0,0,0]).reshape((1,3))
-#     warnings.filterwarnings("error")
-#     E, V = np.linalg.eigh(M)
-#     E = E[:,0]
-#     Em = E.min()
-#     dex = np.where(np.abs(E-Em)<5e-16)
-#     Know = K[dex]
-#     Know = symmetry_equivalence(Know, equi_class_flux)
-#     Know = symmetry_equivalence(Know, equi_class_field)
-#
-#     if Know.shape == (3,):
-#         Know = Know.reshape(1,3)
-#
-#     if len(Know) >= 8:
-#         Know = Know[0:8]
-#     step = 1
-#     Enow = Em*np.ones(len(Know))
-#     for i in range(len(Know)):
-#         stuff = True
-#         init = True
-#         while stuff:
-#             if not init:
-#                 gradlen = gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
-#                                    A_pi_rs_traced_here, A_pi_rs_traced_pp_here) - gradient(Klast, np.zeros(2), Jpm,
-#                                                                                            Jpmpm, h, n, theta, chi, xi,
-#                                                                                            A_pi_here,
-#                                                                                            A_pi_rs_traced_here,
-#                                                                                            A_pi_rs_traced_pp_here)
-#                 try:
-#                     step = abs(np.dot(Know[i] - Klast, gradlen)) / np.linalg.norm(gradlen) ** 2
-#                 except:
-#                     step = 0
-#
-#             Klast = np.copy(Know[i])
-#             Know[i] = Know[i] - step * gradient(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here,
-#                                                 A_pi_rs_traced_here, A_pi_rs_traced_pp_here)
-#             Elast = np.copy(Enow[i])
-#             Enow[i] = Emin(Know[i], np.zeros(2), Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here,
-#                            A_pi_rs_traced_pp_here, 0, piunitcell)
-#             init = False
-#             if abs(Elast-Enow[i])<1e-14:
-#                 stuff = False
-#     warnings.resetwarnings()
-#
-#     Enowm = Enow.min()
-#     dex = np.where(abs(Enow-Enowm)<5e-16)
-#     Know = Know[dex]
-#     if Know.shape == (3,):
-#         Know = Know.reshape(1,3)
-#     KnowF = gen_equi_class_field(Know)
-#     KnowF = gen_equi_class_flux(KnowF)
-#
-#     KnowF = np.unique(np.mod(KnowF, 1),axis=0)
-#     Know = np.unique(np.mod(Know, 1),axis=0)
-#     if KnowF.shape == (3,):
-#         KnowF = KnowF.reshape(1,3)
-#     return -Enowm, KnowF, Know
-
-#endregion
-
 #region find minlam scipy
 def findminLam_scipy(M, K, tol, Jpm, Jpmpm, h, n, theta, chi, xi, A_pi_here, A_pi_rs_traced_here, A_pi_rs_traced_pp_here, g, unitcell, BZres, kappa):
     if Jpm==0 and Jpmpm == 0 and h == 0:
@@ -1072,8 +949,8 @@ class piFluxSolver:
         self.intmethod = intmethod
         J = np.array([Jxx, Jyy, Jzz])
         a = np.argmax(J)
-        xx = np.mod(a-2,3)
-        yy = np.mod(a-1,3)
+        xx = np.mod(a+1,3)
+        yy = np.mod(a+2,3)
         self.dominant = a
         self.Jzz = J[a]
         self.Jpm = -(J[xx] + J[yy]) / 4
@@ -1084,7 +961,6 @@ class piFluxSolver:
         self.tol = tol
         self.lams = np.array([lam, lam], dtype=np.double)
         self.PSGparams = args
-        print("Instance Created with parameters " + str(J) + " with flux " + str(flux) + " with external field strength " + str(h))
         if unconstrained:
             self.xi_field = xi_unconstrained
             self.chi_field = chi_unconstrained
@@ -1107,7 +983,7 @@ class piFluxSolver:
         self.inversion = True
         # if FF == True:
         #     self.inversion = False
-        self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres)
+        self.pts, self.weights = self.intmethod(0, 1, 0, 1, 0, 1, BZres, BZres, BZres)
 
         self.minLams = np.zeros(2, dtype=np.double)
         self.BZres = BZres
@@ -1158,6 +1034,8 @@ class piFluxSolver:
             self.E, self.V = np.linalg.eigh(self.MF)
             self.delta = np.zeros(self.E.shape[1])
             self.rhos = np.zeros(self.E.shape[1])
+        print("Instance Created with parameters " + str(J) + " with flux " + str(flux) + " with external field strength " + str(h) + " n1 = " + str(self.n1) + " n2 = " + str(self.n2))
+
     def findLambda(self, a=False):
         if a:
             return findlambda_pi(self.kappa, self.tol,self.minLams, self.Jzz, self.weights, self.E, self.MF, (not self.Jpmpm==0), self.inversion)

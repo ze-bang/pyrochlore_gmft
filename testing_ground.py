@@ -532,19 +532,24 @@ def plot_truncated_octahedron():
 # plt.plot(points1, points2, color='blue')
 # plt.show()
 
-t = np.linspace(0, 1, 100000)
-x_rec = np.zeros(100000)
-v_rec = np.zeros(100000)
+E = np.loadtxt("E.txt")
+S = np.loadtxt("S.txt")
+plt.plot(E,S)
+plt.savefig("peaks.pdf")
 
-dt = 1/1e5
-v = 0
-x = 0
-g = -9.8
-for i in range(100000):
-    v = v + g*dt
-    x = x + v*dt
-    v_rec[i] = v
-    x_rec[i] = x
+# t = np.linspace(0, 1, 100000)
+# x_rec = np.zeros(100000)
+# v_rec = np.zeros(100000)
 
-plt.plot(t, x_rec, t, v_rec)
-plt.show()
+# dt = 1/1e5
+# v = 0
+# x = 0
+# g = -9.8
+# for i in range(100000):
+#     v = v + g*dt
+#     x = x + v*dt
+#     v_rec[i] = v
+#     x_rec[i] = x
+
+# plt.plot(t, x_rec, t, v_rec)
+# plt.show()

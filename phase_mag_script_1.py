@@ -59,41 +59,164 @@ Jpm = 0.03
 # SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.4, 11, h111, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.03_pi", "hh2k", 0, 3, 3)
 # Jxx = np.linspace(0,0.5,1 0)
 # for i in range(10):
-Gamma = np.array([[0,0,2*np.pi]])
+def QFI_gamma_X(n_sites):
+    X = np.array([[0,0,2*np.pi]])
 
-n = 50
-Szz = np.zeros(n)
-Sxx = np.zeros(n)
-T = np.linspace(0, 0.05, n)
-for i in range(n):
-    print("Temp = ", T[i])
-    tempzz, tempxx = SSSF_q_omega_beta_at_K(T[i], Gamma, 50, 0.08, 0.08, 1, 0, h110, np.zeros(4), 25, 0)
-    Szz[i] = quantum_fisher_information_K(tempzz, T[i])[0]
-    Sxx[i] = quantum_fisher_information_K(tempxx, T[i])[0]
-np.savetxt("SSSF_0_flux_T=0_Szz_local_X.txt", Szz)
-np.savetxt("SSSF_0_flux_T=0_Sxx_local_X.txt", Sxx)
+    n = 40
+    Szz = np.zeros(n)
+    Sxx = np.zeros(n)
+    T = np.logspace(0, 4, n)
+    T = 1 / T
+    for i in range(n):
+        print("Temp = ", T[i])
+        tempzz, tempxx = SSSF_q_omega_beta_at_K(T[i], X, 500, -0.09, -0.09, 1, 0, h110, np.zeros(4), n_sites, 0)
+        Szz[i] = quantum_fisher_information_K(tempzz, T[i])[0]
+        Sxx[i] = quantum_fisher_information_K(tempxx, T[i])[0]
+    np.savetxt("QFI_T_Spm_local_X_L={}.dat".format(n_sites), np.column_stack((T, Szz)), header="T/|J_{zz}|^{-1} F_{QFI}[S^{pp}]")
+    np.savetxt("QFI_T_Spp_local_X_L={}.dat".format(n_sites), np.column_stack((T, Sxx)), header="T/|J_{zz}|^{-1} F_{QFI}[S^{pm}]")
 
-# Szz = np.loadtxt("SSSF_0_flux_T=0_Szz_local_X.txt")
-# Sxx = np.loadtxt("SSSF_0_flux_T=0_Sxx_local_X.txt")
+    # Szz = np.loadtxt("SSSF_0_flux_T=0_Szz_local_X.txt")
+    # Sxx = np.loadtxt("SSSF_0_flux_T=0_Sxx_local_X.txt")
+    plt.plot(T, Sxx, label="Spm")
+    plt.plot(T, Szz, label="Spp")
 
-plt.plot(T, Szz, label="Szz")
-plt.plot(T, Sxx, label="Sxx")
+    plt.legend([r"$F_{QFI}[S^{x}]$", r"$F_{QFI}[S^{y}]$"])
+    plt.title(r"$F_{QFI}[S^{\alpha}]$  vs $T$ at $q=X$")
+    plt.xlabel(r"$T/|J_{zz}|^{-1}$")
+    plt.ylabel(r"$F_{QFI}$")
+    plt.xscale("log")
+    plt.savefig("SSSF_0_flux_T=0_X.pdf")
+    plt.clf()
 
-plt.legend([r"$F_{QFI}[S^{x}]$", r"$F_{QFI}[S^{z}]$"])
-plt.title(r"$F_{QFI}[S^{x}]$ and $F_{QFI}[S^{z}]$  vs $T$ at $q=\Gamma$")
-plt.xlabel(r"$T/|J_{zz}|^{-1}$")
-plt.ylabel(r"$F_{QFI}$")
-plt.savefig("SSSF_0_flux_T=0_X.pdf")
-# SSSF_pedantic(100, 0.5, 1, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_octupolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
-# SSSF_pedantic(100, 1, 0.5, 0.1, 0.1, h110, np.ones(4)*np.pi, 30, "Files/XYZ/Jpm=0.15_Jpmpm=0.1_fictitious_dipolar", "hnhl", K=0, Hr=2.5, Lr=2.5, g=0.02)
-# findPhaseMag111(-0.3, 0.1, 40, 0, 0.4, 20, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.2)
-# PhaseMag110_linescan(-0.3,0,0.05,20,h110,30,2, "Jpmpm=0.2_Jpm=0.3_110",Jpmpm=0.2)
-# PhaseMag111_linescan(-0.3,0,0.05,20,h111,30,2, "Jpmpm=0.2_Jpm=0.3_111",Jpmpm=0.2)
-# PhaseMag111_linescan(-0.3,0,0.05,20,h001,30,2, "Jpmpm=0.2_Jpm=0.3_001",Jpmpm=0.2)
-# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h110, 20, 2, "CZO_110")
-# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h111, 20, 2, "CZO_111")
-# PhaseMag_linescan(0.98412698412, 1.0, 0.1746031746, 0, 0, 0.5, 10, h001, 20, 2, "CZO_001")
-# quantum_fisher_information(0, "SSSF_0_flux_T=0_Szz_local.txt", "QFI_test_0.txt")
-# quantum_fisher_information(1, "SSSF_photon1.txt", "QFI_test_0.1.txt")
-# quantum_fisher_information(4, "SSSF_photon4.txt", "QFI_test_0.2.txt")
-# quantum_fisher_information(5, "SSSF_photon5.txt", "QFI_test_0.3.txt")
+    Gamma = np.array([[0,0,0]])
+
+    Szz = np.zeros(n)
+    Sxx = np.zeros(n)
+    T = np.logspace(0, 4, n)
+    T = 1 / T
+    for i in range(n):
+        print("Temp = ", T[i])
+        tempzz, tempxx = SSSF_q_omega_beta_at_K(T[i], Gamma, 500, -0.09, -0.09, 1, 0, h110, np.zeros(4), n_sites, 0)
+        Szz[i] = quantum_fisher_information_K(tempzz, T[i])[0]
+        Sxx[i] = quantum_fisher_information_K(tempxx, T[i])[0]
+    np.savetxt("QFI_T_Spm_local_Gamma_L={}.dat".format(n_sites), np.column_stack((T, Szz)), header="T/|J_{zz}|^{-1} F_{QFI}[S^{pm}]")
+    np.savetxt("QFI_T_Spp_local_Gamma_L={}.dat".format(n_sites), np.column_stack((T, Sxx)), header="T/|J_{zz}|^{-1} F_{QFI}[S^{pp}]")
+
+    # Szz = np.loadtxt("SSSF_0_flux_T=0_Szz_local_X.txt")
+    # Sxx = np.loadtxt("SSSF_0_flux_T=0_Sxx_local_X.txt")
+    plt.plot(T, Sxx, label="Spm")
+    plt.plot(T, Szz, label="Spp")
+
+    plt.legend([r"$F_{QFI}[S^{Spm}]$", r"$F_{QFI}[S^{Spp}]$"])
+    plt.title(r"$F_{QFI}[S^{\alpha}]$  vs $T$ at $q=\Gamma$")
+    plt.xlabel(r"$T/|J_{zz}|^{-1}$")
+    plt.ylabel(r"$F_{QFI}$")
+    plt.xscale("log")
+    plt.savefig("SSSF_0_flux_T=0.pdf")
+
+# QFI_gamma_X(3)
+# QFI_gamma_X(4)
+# QFI_gamma_X(6)
+# QFI_gamma_X(25)
+def generate_K_points_pengcheng_dai(H_range_min, H_range_max, nH, K_range_min, K_range_max, nK, L_range_min, L_range_max, nL):
+    """
+    Generate a 3D grid where each point is a linear combination of H_vector, K_vector, and L_vector
+    with coefficients spanning [-H_range, H_range], [-K_range, K_range], [-L_range, L_range].
+
+    Parameters:
+    -----------
+    H_range, K_range, L_range : int
+        Range values for coefficients
+    
+    Returns:
+    --------
+    K_points : ndarray
+        Array of shape (n_points, 3) containing all K points
+    """
+    H_vector_real = 2*np.pi*np.array([1, 1, -2])
+    K_vector_real = 2*np.pi*np.array([1, -1, 0])
+    L_vector_real = 2*np.pi*np.array([1, 1, 1])
+
+    H_vector = np.array([-0.5, -0.5, 1])
+    K_vector = np.array([-0.5, 0.5, 0])
+    L_vector = np.array([1, 1, 1])
+    
+    # Create coefficient ranges
+    h_values = np.linspace(H_range_min, H_range_max, nH)
+    k_values = np.linspace(K_range_min, K_range_max, nK)
+    l_values = np.linspace(L_range_min, L_range_max, nL)
+
+    # Create a grid of all possible combinations
+    h_grid, k_grid, l_grid = np.meshgrid(h_values, k_values, l_values, indexing='ij')
+    h_grid = h_grid.flatten()
+    k_grid = k_grid.flatten()
+    l_grid = l_grid.flatten()
+    
+    # Calculate K points using linear combinations
+    K_points = np.zeros((len(h_grid), 3))
+    for i in range(len(h_grid)):
+        K_points[i] = h_grid[i] * H_vector + k_grid[i] * K_vector + l_grid[i] * L_vector
+    # Calculate the volume element dV
+    dV = np.abs(np.linalg.det(np.array([H_vector_real, K_vector_real, L_vector_real]))) / (nH * nK * nL)
+
+    return K_points, dV
+
+def PC_stuff(B):
+    h_min, h_max, nH, k_min, k_max, nK, l_min, l_max, nL = -0.1, 0.1, 5, 0.739, 0.839, 3, -0.1, 0.1, 5
+
+    int_grid, dV = generate_K_points_pengcheng_dai(h_min, h_max, nH, k_min, k_max, nK, l_min, l_max, nL)
+
+    Jxx =  0.98412698412
+    Jyy = 1.0 
+    Jzz = 0.1746031746
+
+    py = pycon.piFluxSolver(Jxx, Jyy, Jzz, BZres=25, h=B, n=h111, flux=np.ones(4)*np.pi)
+    py.solvemeanfield()
+
+    omega = np.linspace(0, 10, 500)
+
+    Szz, Szzglobal, Sxx, Sxxglobal = DSSF_int(int_grid, omega, py, 1e-6, dV=dV)
+    
+    # Create 2x2 subplots
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    
+    # Plot local Szz
+    im1 = axes[0, 0].pcolormesh(omega, range(len(int_grid)), Szz, shading='auto')
+    axes[0, 0].set_title('Local Szz')
+    axes[0, 0].set_xlabel('Energy (meV)')
+    axes[0, 0].set_ylabel('Q-point index')
+    fig.colorbar(im1, ax=axes[0, 0])
+    
+    # Plot global Szz
+    im2 = axes[0, 1].pcolormesh(omega, range(len(int_grid)), Szzglobal, shading='auto')
+    axes[0, 1].set_title('Global Szz')
+    axes[0, 1].set_xlabel('Energy (meV)')
+    axes[0, 1].set_ylabel('Q-point index')
+    fig.colorbar(im2, ax=axes[0, 1])
+    
+    # Plot local Sxx
+    im3 = axes[1, 0].pcolormesh(omega, range(len(int_grid)), Sxx, shading='auto')
+    axes[1, 0].set_title('Local Sxx')
+    axes[1, 0].set_xlabel('Energy (meV)')
+    axes[1, 0].set_ylabel('Q-point index')
+    fig.colorbar(im3, ax=axes[1, 0])
+    
+    # Plot global Sxx
+    im4 = axes[1, 1].pcolormesh(omega, range(len(int_grid)), Sxxglobal, shading='auto')
+    axes[1, 1].set_title('Global Sxx')
+    axes[1, 1].set_xlabel('Energy (meV)')
+    axes[1, 1].set_ylabel('Q-point index')
+    fig.colorbar(im4, ax=axes[1, 1])
+    
+    plt.tight_layout()
+    plt.savefig(f"DSSF_B={B}_plots.pdf")
+
+    # Save the data to text files
+    np.savetxt(f"DSSF_B={B}_Szz_local.txt", np.column_stack((omega, Szz)), header='Energy (meV) Local Szz', fmt='%.6f')
+    np.savetxt(f"DSSF_B={B}_Szz_global.txt", np.column_stack((omega, Szzglobal)), header='Energy (meV) Global Szz', fmt='%.6f')
+    np.savetxt(f"DSSF_B={B}_Sxx_local.txt", np.column_stack((omega, Sxx)), header='Energy (meV) Local Sxx', fmt='%.6f')
+    np.savetxt(f"DSSF_B={B}_Sxx_global.txt", np.column_stack((omega, Sxxglobal)), header='Energy (meV) Global Sxx', fmt='%.6f')
+    
+PC_stuff(0)
+PC_stuff(0.1)
+PC_stuff(0.2)

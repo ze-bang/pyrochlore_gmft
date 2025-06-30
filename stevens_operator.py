@@ -167,6 +167,10 @@ def construct_matrix(O):
             MtoReturn[i,j] = np.dot(bra, Oj)
     return MtoReturn
 
+def time_reversal_conjugate(H):
+    Jz = np.arange(-6, 7)
+    U_T = np.diag([(-1)**(6 - m) for m in Jz])
+    return U_T @ H.conj() @ U_T
 
 B20, B22, B2n2, B40, B42, B4n2, B44, B4n4, B60, B62, B6n2, B64, B6n4, B66, B6n6 = -5.29e-1, -1.35e-1, 12.79e-1, -0.13e-3, -1.7e-3, 3.29e-3, -1.22e-3, -9.57e-3, 0.2e-5, -1.1e-5, -0.9e-5, 6.1e-5, 0.3e-5, -0.9e-5, 0
 
@@ -179,27 +183,19 @@ H = B20*construct_matrix(O20) + B22*construct_matrix(O22) + B2n2*construct_matri
     + B62 * construct_matrix(O62) + B6n2 * construct_matrix(O6n2) + B64 * construct_matrix(O64) \
     + B6n4 * construct_matrix(O6n4) + B66 * construct_matrix(O66) + B6n6 * construct_matrix(O6n6)
 
+H = construct_matrix(O2n2)
 
-Z = H - np.transpose(H)
-
-M = (H + np.transpose(np.conj(H))) / 2
+print(time_reversal_conjugate(H), H)
 
 E, V = np.linalg.eigh(H)
 E_adj = E - np.min(E)
+print(E_adj)
 E0 = V[:, 0]
 E1 = V[:, 1]
 E2 = V[:, 2]
-Vabs = np.abs(V)
-Vangle = np.angle(V)
-T = np.zeros((13,3), dtype=np.complex128)
-for i in range(3):
-    if i == 2:
-        Angle = (Vangle[1,i]+Vangle[11,i])/2
-        rot = np.exp(-1j*Angle)
-    else:
-        Angle = (Vangle[0, i] + Vangle[12, i]) / 2
-        rot = np.exp(-1j * Angle)
-    T[:,i] = rot*V[:,i]
+print(E0)
+print(E1)
+print(E2)   
 
 E0_paper = np.array([-0.565 + 0.130j, 0, 0.029 + 0.322j,0, 0.202 - 0.069j, 0, -(0.135 + 0.103j), 0, -0.013 + 0.213j, 0, 0.318 - 0.058j, 0, -(0.024 - 0.579j)])
 E1_paper = np.array([0.382 - 0.508j, 0, -(0.196 + 0.209j),0,-0.072 + 0.094j, 0, 0.018j, 0, 0.078 + 0.089j, 0, 0.182 - 0.221j, 0, - 0.414 - 0.482j])
@@ -214,28 +210,5 @@ E1_angle = np.angle(E1_paper)
 Angle = (E1_angle[0] + E1_angle[12]) / 2
 rot = np.exp(-1j * Angle)
 E1_paper = rot*E1_paper
-# print(E0_paper)
-# print(T[:,0])
-# print(E0_paper)
-# print(T[:,0])
-# print(np.abs(E0_paper))
-# print(T[:,0])
-# print(V[:,0], V[:, 1], V[:, 2])
-# print(E)
-# print(T[:,0], T[:, 1], T[:, 2])
-# print(contract('ia, a, i->i', H, T[:,2], 1/T[:,2]))
-# print(contract('ia, a, i->i', H, E2, 1/E2))
-# print(E0_paper + T[:,0])
-# print(contract('ia, a, i->i', H, E0_paper, 1/E0_paper))
-A = T[:,0]
-B = T[:,1]
-print(Jz(A))
-print(B)
-# print(Jz(T[:,0]))
-# print(T[:,1])
-
-print(np.abs(np.dot(B, op_add(Jplus, Jminus, A))/2)**2)
-print(np.abs(np.dot(B, (Jplus(A)-Jminus(A)))/2j)**2)
-print(np.abs(np.dot(B, Jz(A)))**2)
 
 

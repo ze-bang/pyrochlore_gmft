@@ -9,7 +9,7 @@ import numexpr as ne
 import matplotlib.pyplot as plt
 import itertools
 import time
-from opt_einsum import contract
+
 
 plt.rcParams["text.usetex"]=True
 plt.rcParams["font.family"]="serif"
@@ -85,31 +85,25 @@ class QuantumSpinIcePhoton(object):
     c_shannon = 0.6 #(a g/\hbar) from: https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.108.067204
     c_castelnovo = 0.41 #(a g/\hbar) from: https://journals.aps.org/prb/abstract/10.1103/PhysRevB.95.134439
 
-    def __init__(self, speed_of_light=None, W=0, kappa=1, temperature=0.0, renorm_param=1, Jpm=0, Jzz=1, B=0, field_dir=np.array([0,0,1])):
+    def __init__(self, speed_of_light=None, W=0, kappa=1, temperature=0.0, renorm_param=1, Jpm=0, Jzz=1, B=0):
         self.Jpm = Jpm # Jpm coupling in units of Jzz
         self.Jzz = Jzz
         self.B = B
         self.temperature = temperature # Temperature in units of Jzz
         # Define coupling and gMFT ansätz
         self.speed_of_light = speed_of_light
-        self.g0 = 24 * np.abs(self.Jpm**3)/self.Jzz**2 + 20 * self.Jpm**2/np.abs(self.Jzz**3) * B**2 * np.dot(self.z_local_gcc_vec, field_dir)**2
+        self.g0 = 24 * np.abs(self.Jpm**3)/self.Jzz**2
         self.Kappa = renorm_param * self.g0 # Following Benton's convention
-
-        tildeKappa = 0
-        for i in range(4):
-            for j in range(4):
-                if i == j:
-                    continue
-                tildeKappa += np.sqrt(self.Kappa[i] * self.Kappa[j])     
-        tildeKappa /= 12      
-
-        self.U = self.speed_of_light**2/(tildeKappa * renorm_param) # Following Benton's convention
+        if speed_of_light==None:
+           #self.speed_of_light = (self.c_moessner * self.g0)/2
+           self.speed_of_light = (self.c_moessner * self.Kappa)/2
+        self.U = self.speed_of_light**2/(self.Kappa) # Following Benton's convention
         self.W = W
         self.kappa = kappa
         print("QuantumSpinIcePhoton initialized with:")
         print(f"  - U = {self.U} (in units of Jzz)")
-        print(f"  - W = {self.W} (in units of Jzz)")
-        print(f"  - Kappa = {self.g0} (in units of Jzz)")
+        print(f"  - W = {self.g0} (in units of Jzz)")
+        print(f"  - Kappa = {self.Kappa} (in units of Jzz)")
         print(f"  - kappa = {self.kappa} (in units of Jzz)")
         print(f"  - Temperature = {self.temperature} (in units of Jzz)")
         print(f"  - Speed of light = {self.speed_of_light} (in units of a g/\hbar)")
@@ -144,24 +138,17 @@ class QuantumSpinIcePhoton(object):
 
     ##############################################
     # Compute the dispersion along a specific path
+    def zeta_function_at_q_all_steps(self, q_vec):
+        zeta = np.sqrt(2)*np.sum(np.sin(np.einsum('ijk,k->ij', self.h_mu_nu, q_vec))**2)
+        return zeta
 
-    # def zeta_function_at_q(self, q_vec):
-    #     temp = np.sin(contract('mnk,k->mn', self.h_mu_nu, q_vec))
-    #     temp2 = contract('mn,mn->mn', temp, temp)
-    #     zeta = np.sqrt(2)*np.sqrt(contract('m, n, mn->', np.sqrt(self.Kappa), np.sqrt(self.Kappa), temp2))
-    #     return zeta
-    
     def zeta_function_at_q(self, q_vec):
-        temp = 2j*np.sin(contract('mnk,k->mn', self.h_mu_nu, q_vec))
-        Z = contract('m, mn->mn', np.sqrt(self.Kappa), temp)
-        E, V = np.linalg.eig(Z)
-        # Sort eigenvalues 
-        E = np.sort(E)
-        return np.real(E[0])
+        zeta = 2 * np.sqrt(3 - np.cos(q_vec[0]/2)*np.cos(q_vec[1]/2) - np.cos(q_vec[0]/2)*np.cos(q_vec[2]/2) - np.cos(q_vec[1]/2)*np.cos(q_vec[2]/2))
+        return zeta
 
     def compute_dispersion(self, q_vec):
         zeta = self.zeta_function_at_q(q_vec)
-        return np.sqrt(self.U*zeta**2 + self.W*zeta**4)
+        return np.sqrt(self.U*self.Kappa*zeta**2 + self.W*self.Kappa*zeta**4)
 
     def compute_dispersion_along_path_from_points(self, points, n):
         path = self.define_path_FBZ(points, n)
@@ -176,9 +163,9 @@ class QuantumSpinIcePhoton(object):
         omega_at_q = self.compute_dispersion(q_vec) + 10**-7
         if self.temperature != 0:
             n_bose_at_q = 1/(np.exp(omega_at_q/self.temperature) - 1)
-            S_mu_nu = self.kappa**2/(2 * omega_at_q) * np.einsum('i,k,ij,kj->ik', np.sqrt(self.Kappa), np.sqrt(self.Kappa), sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu) * (1 + 2 * n_bose_at_q)
+            S_mu_nu = self.kappa**2 * self.Kappa/(2 * omega_at_q) * np.einsum('ij,kj->ik', sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu) * (1 + 2 * n_bose_at_q)
         else:
-            S_mu_nu = self.kappa**2/(2 * omega_at_q) * np.einsum('i,k,ij,kj->ik', np.sqrt(self.Kappa), np.sqrt(self.Kappa), sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu)
+            S_mu_nu = self.kappa**2 * self.Kappa/(2 * omega_at_q) * np.einsum('ij,kj->ik', sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu)
         if not hasattr(self, "num_sssf_points"):
             self.num_sssf_points = 0
         self.num_sssf_points += 1   # Define high symmetry points in the first Brillouin zone
@@ -324,10 +311,10 @@ class QuantumSpinIcePhoton(object):
         if self.temperature != 0:
             n_bose_at_q = 1/(np.exp(omega_at_q/self.temperature) - 1)
             energy_factor = (((1 + n_bose_at_q) * delta_function_min) + n_bose_at_q * delta_function_plus)
-            S_mu_nu = self.kappa**2/(2 * omega_at_q) * np.einsum('i,k,ij,kj,l->ikl', np.sqrt(self.Kappa), np.sqrt(self.Kappa), sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu, energy_factor)
+            S_mu_nu = self.kappa**2 * self.Kappa/(2 * omega_at_q) * np.einsum('ij,kj,l->ikl', sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu, energy_factor)
         else:
             energy_factor = delta_function_min
-            S_mu_nu = self.kappa**2 /(2 * omega_at_q) * np.einsum('i,k,ij,kj,l->ikl', np.sqrt(self.Kappa), np.sqrt(self.Kappa), sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu, energy_factor)
+            S_mu_nu = self.kappa**2 * self.Kappa/(2 * omega_at_q) * np.einsum('ij,kj,l->ikl', sin_of_q_dot_h_mu_nu, sin_of_q_dot_h_mu_nu, energy_factor)
         if not hasattr(self, "num_dssf_points"):
             self.num_dssf_points = 0
         self.num_dssf_points += 1   # Define high symmetry points in the first Brillouin zone
@@ -537,37 +524,10 @@ def get_hh2k_knk(H_range_min, H_range_max, nH, K_range_min, K_range_max, nK):
 
     return K_points
 
-def sssf_mag(B, field_dir):
+
+def dssf_integrated_K():
     # Generate grid of K points in the specified region
-    nH, nK = 101, 101
-    h_min, h_max = -3 * 2 * np.pi, 3 * 2 * np.pi
-    k_min, k_max = -3 * 2 * np.pi, 3 * 2 * np.pi
-    int_grid = get_hh2k_knk(h_min, h_max, nH, k_min, k_max, nK)
-    Jzz = 0.063
-    Jpm = 0.1825
-    speed_of_light = 0.0028
-    ham = QuantumSpinIcePhoton(Jzz=Jzz, Jpm=Jpm, kappa=1, W=0, temperature=4.0*speed_of_light, speed_of_light=speed_of_light, B=B, field_dir=field_dir)
-    local_frame = ham.compute_any_static_correlation_along_any_path(
-        ham.get_sssf_equal_time_scattering_from_components_q_array, int_grid,
-    )
-    local_frame = np.array(local_frame)  # Convert to numpy array if not already
-    reshaped_data = local_frame.reshape(nH, nK)
-    
-    H_values = np.linspace(h_min, h_max, nH)
-    K_values = np.linspace(k_min, k_max, nK)
-
-    H_grid, K_grid = np.meshgrid(H_values, K_values)
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    # Plot the integrated data as a contour plot
-    contour = ax.pcolormesh(H_grid, K_grid, reshaped_data.T, shading='auto', cmap='viridis')
-    plt.savefig(f'SSSF_H_K_B={B}_fielddir_{field_dir}.pdf')
-
-    return 0
-
-def dssf_integrated_K(H):
-    # Generate grid of K points in the specified region
-    nH, nK, nL = 31, 15, 31
+    nH, nK, nL = 51, 21, 51
     h_min, h_max = -0.1 * 2 * np.pi, 0.1 * 2 * np.pi
     k_min, k_max = 0.739 * 2 * np.pi, 0.839 * 2 * np.pi
     l_min, l_max = -0.1 * 2 * np.pi, 0.1 * 2 * np.pi
@@ -578,9 +538,8 @@ def dssf_integrated_K(H):
     Jzz = 0.063
     Jpm = 0.1825
     speed_of_light = 0.0028
-    B = 0.063*H
-    field_dir = np.array([1,1,1]) / np.sqrt(3)  # Direction of the magnetic field
-    ham = QuantumSpinIcePhoton(Jzz=Jzz, Jpm=Jpm, kappa=1, W=0, temperature=4.0*speed_of_light, speed_of_light=speed_of_light, B=B, field_dir=field_dir)
+    B = 0.0
+    ham = QuantumSpinIcePhoton(Jzz=Jzz, Jpm=Jpm, kappa=1, W=0, temperature=4.0*speed_of_light, speed_of_light=speed_of_light, B=B)
     local_frame = ham.compute_any_dynamical_correlation_along_any_path(
         ham.get_dssf_total_scattering_from_components_q_array, int_grid, n_min, n_max, n_omega
     )
@@ -598,11 +557,6 @@ def dssf_integrated_K(H):
     K_values = np.linspace(k_min, k_max, nK)
 
     H_grid, K_grid = np.meshgrid(H_values, K_values)
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    # Plot the integrated data as a contour plot
-    contour = ax.pcolormesh(H_grid, K_grid, L_integrated.T, shading='auto', cmap='viridis')
-    # plt.show()
     
     # Create 3D plot
     fig = plt.figure(figsize=(12, 10))
@@ -620,7 +574,7 @@ def dssf_integrated_K(H):
     
     # Save the plot
     plt.savefig('DSSF_H_omega_3D.pdf')
-    # plt.show()
+    plt.show()
         
     # Calculate volume element
     dH = 0.2 / (nH - 1)
@@ -647,13 +601,44 @@ def dssf_integrated_K(H):
     plt.xlabel('Energy (meV)')
     plt.ylabel('Intensity (arb. units)')
     plt.title('Integrated Dynamical Structure Factor')
-    plt.savefig('integrated_spectrum+{}.pdf'.format(H))
-
-    # Save the integrated spectrum to a file
-    np.savetxt('integrated_spectrum_{}.txt'.format(H), np.column_stack((omega_vals, integrated_spectrum)), header='Energy (meV) Intensity (arb. units)', fmt='%.6f')
-    # plt.show()
+    plt.savefig('integrated_spectrum.pdf')
+    plt.show()
     
     return integrated_spectrum
+
+def sssf_under_111_field():
+    min_h = -2 * 2 * np.pi
+    max_h = 2 * 2 * np.pi
+    min_l = -2 * 2 * np.pi
+    max_l = 2 * 2 * np.pi
+    n_h = 51
+    n_l = 51
+    k_grid = get_hh2k_knk(min_h, max_h, n_h, min_l, max_l, n_l)
+    Jzz = 1
+    Jpm = -0.3
+    g0 = 24 * np.abs(Jpm**3)/Jzz**2
+    Kappa = g0 # Following Benton's convention
+    speed_of_light = (0.51 * Kappa)/2
+
+    ham = QuantumSpinIcePhoton(Jzz, kappa=1, W=0, temperature=4.0*speed_of_light)
+    local_frame = ham.compute_any_static_correlation_along_any_path(
+        ham.get_sssf_equal_time_scattering_from_components_q_array, k_grid
+    )
+    local_frame = np.reshape(local_frame, (n_h, n_l))
+    # local_frame = ham.compute_any_static_correlation_in_hhl_plane(
+    #     ham.get_sssf_equal_time_scattering_from_components_q_array, n_h=51, n_l=51, min_h=min_h, max_h=max_h, min_l=min_l, max_l=max_l, x_basis=None
+    # )
+
+    f, ax = plt.subplots(figsize=(9,8))
+    cf1 = ax.imshow(local_frame, extent=[min_h/(2*np.pi), max_h/(2*np.pi), min_l/(2*np.pi), max_l/(2*np.pi)], aspect=1/np.sqrt(2))
+    f.colorbar(cf1, ax=ax)
+    ax.set_xlabel("[hh-2h]")
+    ax.set_ylabel("[k-k0]")
+    for axis in ['top','bottom','left','right']:
+        ax.spines[axis].set_linewidth(1.2)
+        ax.tick_params(width=1.2)
+    plt.savefig("local_frame_sssf.pdf", format='pdf')
+    plt.show()
 
 def main():
     U = 1
@@ -901,12 +886,4 @@ def main_temperature():
 # Solving the self-consistency equations
 if __name__=="__main__":
     # sssf_under_111_field()
-    dssf_integrated_K(0)
-    dssf_integrated_K(0.1)
-    dssf_integrated_K(0.2)
-
-    # sssf_mag(0, np.array([1,1,1])/np.sqrt(3)) # Example for a magnetic field along [111] direction
-    # sssf_mag(0.1, np.array([1,1,1])/np.sqrt(3)) # Example for a magnetic field along [111] direction
-    # sssf_mag(1, np.array([1,1,1])/np.sqrt(3)) # Example for a magnetic field along [111] direction
-
-    # main_dispersion()
+    dssf_integrated_K()
