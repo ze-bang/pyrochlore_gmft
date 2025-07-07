@@ -5,7 +5,7 @@ import sys
 
 import matplotlib.pyplot as plt
 
-def read_data(filename):
+def read_data(filename, normalized=True):
     """Read energy and intensity data from a two-column text file."""
     try:
         data = np.loadtxt(filename)
@@ -13,6 +13,8 @@ def read_data(filename):
             raise ValueError("File must contain exactly two columns")
         energy = data[:, 0]
         intensity = data[:, 1]
+        if normalized:
+            energy = energy*0.063
         return energy, intensity
     except Exception as e:
         print(f"Error reading file: {e}")
@@ -81,7 +83,6 @@ def save_data(filename, energy, intensity):
 def plot_comparison(energy, original_intensity, convolved_intensity, resolution_type, resolution_fwhm):
     """Plot original and convolved data for comparison."""
     plt.figure(figsize=(10, 6))
-    plt.plot(energy, original_intensity, 'b-', label='Original', alpha=0.7)
     plt.plot(energy, convolved_intensity, 'r-', label=f'Convolved ({resolution_type}, FWHM={resolution_fwhm})', linewidth=2)
     plt.xlabel('Energy')
     plt.ylabel('Intensity')
@@ -94,18 +95,20 @@ def plot_comparison(energy, original_intensity, convolved_intensity, resolution_
 def main():
     parser = argparse.ArgumentParser(description='Convolve spectral data with experimental resolution')
     parser.add_argument('filename', help='Input text file with two columns (energy, intensity)')
-    parser.add_argument('--resolution', type=float, default=0.1, 
-                        help='Resolution FWHM in energy units (default: 0.1)')
+    parser.add_argument('--resolution', type=float, default=0.04, 
+                        help='Resolution FWHM in energy units (default: 0.04)')
     parser.add_argument('--type', choices=['gaussian', 'lorentzian'], default='gaussian',
                         help='Type of resolution function (default: gaussian)')
     parser.add_argument('--plot', action='store_true', help='Show comparison plot')
     parser.add_argument('--no-save', action='store_true', help='Do not save output file')
-    
+    parser.add_argument('--no-normalized', action='store_true',
+                        help='Do not normalize energy values by multiplying by 0.063')
+
     args = parser.parse_args()
     
     # Read data
-    energy, intensity = read_data(args.filename)
-    
+    energy, intensity = read_data(args.filename, normalized=not args.no_normalized)
+
     # Apply convolution
     if args.type == 'gaussian':
         convolved_intensity = gaussian_resolution(energy, intensity, args.resolution)

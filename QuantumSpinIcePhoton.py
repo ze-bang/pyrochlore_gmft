@@ -631,7 +631,7 @@ def dssf_integrated_K(H):
     # Reshape and perform integration
     # local_frame is a list of arrays, we need to concatenate them
     local_frame_array = np.concatenate(local_frame, axis=0)
-    
+
     # Reshape to match grid dimensions [H, K, L, omega]
     reshaped_data = local_frame_array.reshape(nH, nK, nL, n_omega)
     
@@ -904,6 +904,14 @@ if __name__=="__main__":
     dssf_integrated_K(0)
     dssf_integrated_K(0.1)
     dssf_integrated_K(0.2)
+    dssf_integrated_K(0.3)
+    dssf_integrated_K(0.4)
+    dssf_integrated_K(0.5)
+    dssf_integrated_K(0.6)
+    dssf_integrated_K(0.7)
+    dssf_integrated_K(0.8)
+    dssf_integrated_K(0.9)
+    dssf_integrated_K(1.0)
 
     # sssf_mag(0, np.array([1,1,1])/np.sqrt(3)) # Example for a magnetic field along [111] direction
     # sssf_mag(0.1, np.array([1,1,1])/np.sqrt(3)) # Example for a magnetic field along [111] direction

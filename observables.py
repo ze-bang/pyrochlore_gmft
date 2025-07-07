@@ -20,14 +20,14 @@ def quantum_fisher_information(temp, filename, tosave):
         print(beta)
         factor1 = 4*np.tanh(omega*beta/2)
         factor2 = 1-np.exp(-beta*omega)
-        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
+        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)/3
         results = np.trapezoid(toint, omega,axis=1)
 
         results = results.reshape((size, size))
         np.savetxt(tosave, results)
     else:
         results = np.trapezoid(D, omega,axis=1)
-        results = 4 * results.reshape((size,size))/(2*np.pi)
+        results = 4 * results.reshape((size,size))/(2*np.pi)/3
     plt.imshow(results, extent=[-2.5,2.5,-2.5,2.5], origin='lower')
     plt.colorbar()
     plt.show()
@@ -51,11 +51,11 @@ def quantum_fisher_information_K(D, temp):
         exp_arg = np.clip(-beta_omega, -700, 0)  # Prevent underflow/overflow
         factor2 = -np.expm1(exp_arg)  # This is 1 - exp(-beta*omega)
         
-        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)
+        toint = contract('w, w, kw->kw',factor1, factor2, D)/(2*np.pi)/3
         results = np.trapezoid(toint, omega,axis=1)
     else:
         results = np.trapezoid(D, omega,axis=1)
-        results = 4 * results.reshape((size,size))/(2*np.pi)
+        results = 4 * results.reshape((size,size))/(2*np.pi)/3
     return results
 
 
@@ -1947,7 +1947,6 @@ def TWOSPINONGRAPH(A, B, d1, filename):
 # endregion
 
 # endregion
-
 
 
 
