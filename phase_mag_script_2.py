@@ -39,8 +39,8 @@ Jpm = -0.03
 
 # findPhaseMag110(-0.3, 0.1, 40, 0, 0.5, 20, h110, 30, 2, "phase_110_kappa=2_Jpmpm=-0.2", Jpmpm=-0.2)
 # SSSF_BZ(50, 0.08, 0.08, 1, 0, h110, np.zeros(4),15, "SSSF_BZ", 0)
-D = np.loadtxt("Szz.txt")
-D = D * 4 / (2*np.pi)*0.51550329757 * 18
-plt.imshow(D, origin='lower', extent=[-2.5,2.5,-2.5,2.5], aspect='auto')
-plt.colorbar()
-plt.savefig("Szz.pdf")
+# D = np.loadtxt("Szz.txt")
+# D = D * 4 / (2*np.pi)*0.51550329757 * 18
+# plt.imshow(D, origin='lower', extent=[-2.5,2.5,-2.5,2.5], aspect='auto')
+# plt.colorbar()
+# plt.savefig("Szz.pdf")

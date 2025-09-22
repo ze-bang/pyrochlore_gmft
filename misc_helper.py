@@ -76,6 +76,7 @@ pzzp = np.array([np.pi, 0, 0, np.pi])
 # U = np.array([0.25, 0.625, 0.625])
 
 Gamma = np.array([0, 0, 0])
+Gammap = 4 * np.pi * np.array([1, 0, 0])
 K = 2 * np.pi * np.array([3/4, -3/4, 0])
 W = 2 * np.pi * np.array([1, -1/2, 0])
 X = 2 * np.pi * np.array([1, 0, 0])
@@ -168,7 +169,7 @@ def g(q):
             if not np.dot(q,q) == 0:
                 M[i,j] = np.dot(z[i], z[j]) - np.dot(z[i],q) * np.dot(z[j],q)/ np.dot(q,q)
             else:
-                M[i, j] = 0
+                M[i, j] = np.dot(z[i], z[j]) 
     return M
 
 def gx(q):
@@ -507,6 +508,7 @@ def obliqueProj(W):
 
 #Path to 1-10
 GammaX = drawLine(Gamma, X, stepN)
+XGammap = drawLine(X, Gammap, stepN)
 XW = drawLine(X, W, stepN)
 WK = drawLine(W, K, stepN)
 KGamma = drawLine(K, Gamma, stepN)
