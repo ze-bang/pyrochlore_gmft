@@ -1,0 +1,30 @@
+import os 
+os.environ['MPLCONFIGDIR'] = os.getcwd() + "/configs/"
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from core.phase_diagram import *
+from core.misc_helper import *
+from core.observables import *
+# flux = np.array([np.pi, np.pi, 0, 0])
+
+# findPhaseMag110(-0.5, 0.1, 100, 0, 2, 100, h110, 30, 2, "phase_110_kappa=2")
+# findPhaseMag110_ex(-0.5, 0.1, 100, 0, 1, 100, h110, 17, 2, "phase_110_kappa=2_ex")
+
+Jpm = 0.03
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.03_0", "hnhl")
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.03_pi", "hnhl")
+# SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/SSSF/Jpm=0.03_00pp", "hnhl")
+# Jpm = 0.0
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.zeros(4),30, "Files/SSSF/Jpm=0.02_0", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, np.ones(4)*np.pi, 30, "Files/SSSF/Jpm=0.02_pi", "hnhl")
+SSSF_line_pedantic(100, -2*Jpm, -2*Jpm, 1, 0, 0.6, 11, h110, zppz, 30, "Files/SSSF/Jpm=0.02_00pp", "hnhl")
+
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.zeros(4), 30, "Files/DSSF/Jpm=0.03_0")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.array([0,0,np.pi,np.pi]), 30, "Files/DSSF/Jpm=0.03_00pp")
+# DSSF_line_pedantic(200,-2*Jpm, -2*Jpm, 1, 0, 0.6, 7, h110, np.ones(4)*np.pi, 30, "Files/DSSF/Jpm=0.03_pi")
+
+# SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.05, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.05_hhl', "hhl")
+# SSSF(100, 0.063/0.063, 0.062/0.063, 0.011/0.063, 0.15, h110, np.ones(4)*np.pi, 30, 'Files/SSSF/Jxx_0.063_Jyy_0.062_Jzz_0.011_h110=0.15_hhl', "hhl")
+# findXYZPhase_separate_unconstrained(-1, 1, -1, 1, 100, 30, 2, np.zeros(4), "phase_XYZ_0_field_0_flux_unconstrained")
+
+# findPhaseMag111(-0.3125, 0.1, 40, 0, 0.4, 20, h111, 30, 2, "phase_111_kappa=2_Jpmpm=0.2", Jpmpm=0.1875)
